@@ -1,6 +1,6 @@
 export default function ProgressBar({step} : {step:any}){
     if(step == 1){
-    return <div className="w-[45%] mt-[10px]">
+    return <div className="w-[95%] sm:w-[45%] mt-[10px]">
         <div className="flex items-center justify-between px-[10px] my-[5px]">
             <div>
                 step 1 of 3
@@ -17,7 +17,7 @@ export default function ProgressBar({step} : {step:any}){
     }
 
     if(step == 2){
-    return <div className="w-[45%] mt-[10px]">
+    return <div className="w-[95%] sm:w-[45%] mt-[10px]">
         <div className="flex items-center justify-between px-[10px] my-[5px]">
             <div>
                 step 2 of 3
@@ -34,7 +34,7 @@ export default function ProgressBar({step} : {step:any}){
     }
 
     if(step == 3){
-    return <div className="w-[45%] mt-[10px]">
+    return <div className="w-[95%] sm:w-[45%] mt-[10px]">
         <div className="flex items-center justify-between px-[10px] my-[5px]">
             <div>
                 step 3 of 3

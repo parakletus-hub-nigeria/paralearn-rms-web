@@ -23,17 +23,16 @@ export function PageOne({data,changeData,step,setStep}: any){
         }
     ]
 
-    return <div className="my-[25px] border-[1px] border-[#641BC4] rounded-[6px] w-[45%] flex flex-col items-center justify-between py-[40px] h-[445px]">
+    return <div className="my-[25px] border-[1px] border-[#641BC4] rounded-[6px] w-[95%] sm:w-[45%] flex flex-col items-center justify-between py-[40px] h-[445px]">
         <div className="flex flex-col items-center">
         <p className="text-[20px] font-bold">Register Your School</p>
         <p>Let's get your school set up on ParaLearn RMS</p>
         </div>
         <div className="w-[90%] space-y-3">
             {forms.map((form) => (
-            <div className="flex flex-col w-[100%] ">
+            <div className="flex flex-col w-[100%] p-[10px]">
                 <label htmlFor={form.name}>{form.label}</label>
-                <input type="text" name={form.name} value={data.schoolName} onChange={(e) => changeData(e)} className="border-[1px] border-[#641BC4] h-[45px] w-[100%]"/>
-                <p className="text-[12px]">{form.subtext}</p>
+                <input type="text" name={form.name} value={data[form.name]} onChange={(e) => changeData(e)} className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"/>  
             </div>
         ))}
         </div>
@@ -58,7 +57,7 @@ export function PageTwo({data,changeData,step,setStep}: any){
         }
     ]
 
-    return <div className="my-[25px] border-[1px] border-[#641BC4] rounded-[6px] w-[45%] flex flex-col items-center justify-between py-[40px] h-[445px]">
+    return <div className="my-[25px] border-[1px] border-[#641BC4] rounded-[6px] w-[95%] sm:w-[45%] flex flex-col items-center justify-between py-[40px] h-[445px]">
         <div className="flex flex-col items-center">
         <p className="text-[20px] font-bold">Admin Account Setup</p>
         <p>Create your administrator account</p>
@@ -67,7 +66,7 @@ export function PageTwo({data,changeData,step,setStep}: any){
             {forms.map((form) => (
             <div className="flex flex-col w-[100%] ">
                 <label htmlFor={form.name}>{form.label}</label>
-                <input type="text" name={form.name} value={data.schoolName} onChange={(e) => changeData(e)} className="border-[1px] border-[#641BC4] h-[45px] w-[100%]"/>
+                <input type={form["type"]} name={form.name} value={data[form.name]} onChange={(e) => changeData(e)} className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"/>
                 <p className="text-[12px]">{form.subtext}</p>
             </div>
         ))}
@@ -99,7 +98,7 @@ export function PageThree({data,changeData,step,setStep}: any){
         }
     ]
 
-    return <div className="my-[25px] border-[1px] border-[#641BC4] rounded-[6px] w-[45%] flex flex-col items-center justify-between py-[40px] h-[445px]">
+    return <div className="my-[25px] border-[1px] border-[#641BC4] rounded-[6px]w-[95%] sm:w-[45%] flex flex-col items-center justify-between py-[40px] h-[445px]">
         <div className="flex flex-col items-center">
         <p className="text-[20px] font-bold">Contact Information</p>
         <p>Help us complete your school profile</p>
@@ -108,7 +107,7 @@ export function PageThree({data,changeData,step,setStep}: any){
             {forms.map((form) => (
             <div className="flex flex-col w-[100%] ">
                 <label htmlFor={form.name}>{form.label}</label>
-                <input type={form.type} name={form.name} value={data.schoolName} onChange={(e) => changeData(e)} className="border-[1px] border-[#641BC4] h-[45px] w-[100%]"/>
+                <input type={form.type} name={form.name} value={data[form.name]} onChange={(e) => changeData(e)} className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"/>
                 <p className="text-[12px]">{form.subtext}</p>
             </div>
         ))}
