@@ -15,14 +15,17 @@ const Signup = () => {
         schoolAddress:"",
         agreement:false
     })
-    function changeData(e: React.ChangeEvent<HTMLInputElement>){
-        const {name,value} = e.target
-        setFormData((prevData) => ({
+   function changeData(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value, type, checked } = e.target;
+    const newValue = (type === 'checkbox') ? checked : value;
+    
+    console.log(newValue);
+
+    setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: newValue,
     }));
-    console.log(formData)
-    }
+}
     return  <div className="flex flex-col items-center">
 
         <AuthHeader/>
