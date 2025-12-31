@@ -1,5 +1,6 @@
 "use client"
 import Image from "next/image"
+import Link from "next/link"
 import logo from "../../images/IMG-20201027-WA0000_2-removebg-preview 1.png"
 const AuthHeader = () => {
     return <div className="flex flex-row items-center justify-between bg-white w-[100vw] ">
@@ -8,8 +9,8 @@ const AuthHeader = () => {
             <p className="text-black">PARA LEARN</p>
         </div>
         <div className=" flex flex-row items-center space-x-[20px] ">
-            <button className="px-[15px] py-[10px] text-[#641BC4] text-[18px] font-[550]">Sign in</button>
-            <button className="px-[15px] py-[10px] text-[white] bg-[#641BC4] text-[18px] font-[550]">Get Started</button>
+            <Link href="/auth/signin"><button className="px-[15px] py-[10px] text-[#641BC4] text-[18px] font-[550]">Sign in</button></Link>
+            <Link href="/auth/signup"><button className="px-[15px] py-[10px] text-[white] bg-[#641BC4] text-[18px] font-[550]">Get Started</button></Link>
         </div>
     </div>
 }

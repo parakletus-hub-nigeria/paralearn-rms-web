@@ -19,7 +19,12 @@ const Signup = () => {
     const { name, value, type, checked } = e.target;
     const newValue = (type === 'checkbox') ? checked : value;
     
-    console.log(newValue);
+    console.log(formData);
+    
+    setFormData((prevData) => ({
+        ...prevData,
+        subdomain: prevData.schoolName.toLowerCase().replace(/\s+/g, '-'),
+    }))
 
     setFormData((prevData) => ({
       ...prevData,
