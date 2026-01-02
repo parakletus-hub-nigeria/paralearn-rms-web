@@ -5,39 +5,41 @@ import Image from "next/image"
 import logo from "../../images/IMG-20201027-WA0000_2-removebg-preview 1.png"
 import { Home, UserCircle, BookOpen, DownloadIcon, User, Settings } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 const SideBar = ({ children }: { children: ReactNode }) => {
-    const [selectedPath, setSelectedPath] = useState("/dashboard")
+    const [selectedPath, setSelectedPath] = useState("/RMS/dashboard")
+    const path = usePathname()
 
     const sideBarContent = [
         {
             label: "Dashboard",
-            path: "/dashboard",
+            path: "/RMS/dashboard",
             icon: Home
         },
         {
             label: "Users",
-            path: "/users",
+            path: "/RMS/users",
             icon: UserCircle
         },
         {
             label: "Report Cards",
-            path: "/report_cards",
+            path: "/RMS/report_cards",
             icon: BookOpen
         },
         {
             label: "Bulk Upload",
-            path: "/bulk_upload",
+            path: "/RMS/bulk_upload",
             icon: DownloadIcon
         },
         {
             label: "Profile",
-            path: "/profile",
+            path: "/RMS/profile",
             icon: User
         },
         {
             label: "Settings",
-            path: "/settings",
+            path: "/RMS/settings",
             icon: Settings
         },
     ]
@@ -55,7 +57,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
                     <div className="flex flex-col gap-2 p-2">
                         {
                             sideBarContent.map((items, index) => {
-                                const isSelected = selectedPath === items.path
+                                const isSelected = path === items.path
                                 return (
                                     <Link
                                         key={index}
