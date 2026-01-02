@@ -3,6 +3,24 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* **Light Mode Colors (in OKLCH format):**
+
+- `--background`: oklch(0.985 0 0) - Very light gray/white
+- `--foreground`: oklch(0.165 0 0) - Very dark gray/black (text color)
+- `--primary`: oklch(0.584 0.185 288.48) - Purple color (the main brand color)
+- `--primary-foreground`: oklch(1 0 0) - White (text on purple)
+- `--secondary`: oklch(0.95 0.01 288.48) - Light purple/gray
+- `--muted`: oklch(0.962 0.005 288.48) - Very light purple tint
+- `--border`: oklch(0.922 0.01 288.48) - Light purple-gray border
+- `--destructive`: oklch(0.577 0.245 27.325) - Red color (for errors/delete)
+
+
+**Dark Mode Colors:**
+
+- `--background`: oklch(0.145 0 0) - Very dark gray/black
+- `--foreground`: oklch(0.985 0 0) - Light gray/white (text color)
+- `--primary`: oklch(0.655 0.185 288.48) - Lighter purple */
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
