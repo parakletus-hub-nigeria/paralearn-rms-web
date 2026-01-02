@@ -1,3 +1,4 @@
+import { UserDropDown } from "@/components/RMS/dropdown"
 import { Header } from "@/components/RMS/header"
 import SideBar from "@/components/RMS/sideBar"
 import { Users2, Search, MoreVertical } from "lucide-react"
@@ -109,7 +110,7 @@ const tableData = [
                     <input type="text" placeholder="Search" className="w-full border-none outline-none bg-transparent text-sm"/>
                 </div>
                 <button className="cursor-pointer hover:opacity-80">
-                    <MoreVertical className="size-[24px] text-gray-600"/>
+                    <UserDropDown><MoreVertical className="size-[24px] text-gray-600 cursor-pointer"/></UserDropDown>
                 </button>
             </div>
 
