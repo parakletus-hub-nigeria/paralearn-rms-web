@@ -77,7 +77,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
                 </SidebarContent>
                 <SidebarFooter />
             </Sidebar>
-            <main className="my-[50px] mx-[20px] w-[100%]">
+            <main className="my-[10px] mx-[20px] w-[100%] ">
                 <SidebarTrigger />
                 {children}
             </main>
