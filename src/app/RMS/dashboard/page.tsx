@@ -1,3 +1,4 @@
+import { Header } from "@/components/RMS/header";
 import SideBar from "@/components/RMS/sideBar";
 import { CircleIcon, Plus } from "lucide-react";
 import { GraduationCap,Users,Book,BookImage } from "lucide-react";
@@ -126,11 +127,7 @@ const tableData = [
 
     return (
         <div className="w-full">
-            <div className="flex flex-row items-center justify-between mx-[20px] mb-[20px]">
-                <p className="text-sm md:text-base">Good day Admin!</p>
-                {/* school logo */}
-                <CircleIcon className="size-[30px] md:size-[40px]"/>
-            </div>
+           <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp"/>
 
             <div className="flex flex-col md:flex-row items-center justify-evenly gap-4 md:gap-0 px-[20px] md:px-0">
                 {
