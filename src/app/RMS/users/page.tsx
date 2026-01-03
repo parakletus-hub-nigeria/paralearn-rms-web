@@ -1,3 +1,5 @@
+'use client'
+import { StudentDialog } from "@/components/RMS/dialogs"
 import { UserDropDown } from "@/components/RMS/dropdown"
 import { Header } from "@/components/RMS/header"
 import SideBar from "@/components/RMS/sideBar"
@@ -124,11 +126,13 @@ const tableData = [
                         </thead>
                         <tbody>
                             {tableData.map((row, index) => (
-                                <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "white" : "#EDEAFB" }} className="">
+                               <StudentDialog props={row}>
+                                 <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "white" : "#EDEAFB" }} className="">
                                     {Object.values(row).map((value, cellIndex) => (
                                         <td key={cellIndex} className="p-2 text-[12px]" style={{color: value == 'Published' ? "green" : "black"}}>{value}</td>
                                     ))}
                                 </tr>
+                               </StudentDialog>
                             ))}
                         </tbody>
             </table>
