@@ -212,11 +212,11 @@ const tableData = [
 }
 
 const Dashboard = () => {
-    return (
-        <SideBar>
-            <DashboardComponent/>
-        </SideBar>
-    )
-}
+  return (
+    <SideBar>
+      <DashboardComponent />
+    </SideBar>
+  );
+};
 
-export default Dashboard
+export default Dashboard;
