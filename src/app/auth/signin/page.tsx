@@ -1,16 +1,26 @@
 "use client"
-
+import { UseSelector, useDispatch, useSelector } from "react-redux"
 import { useState } from "react"
 import Link from "next/link"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
 import AuthHeader from "@/components/auth/authHeader"
 import { BiEnvelope } from "react-icons/bi"
+import { updateUserData } from "@/state/user/userSlice"
+import { ToastContainer, toast } from 'react-toastify';
+import { useRouter } from "next/navigation"
+import { routespath } from "@/lib/routepath"
+
 
 const Signin = () => {
-    const [data, setData] = useState({ adminEmail: "", password: "" })
+    const [data, setData] = useState({ email: "", password: "" })
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const dispatch = useDispatch()
+
+    const router = useRouter();
+    const accessToken = useSelector((state: any) => state.accessToken);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((p) => ({ ...p, [e.target.name]: e.target.value }))
@@ -18,7 +28,7 @@ const Signin = () => {
 
     const isValid = () => {
         const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-        return emailRe.test(data.adminEmail) && data.password.length >= 8
+        return emailRe.test(data.email) && data.password.length >= 8
     }
 
     const submit = async () => {
@@ -29,23 +39,29 @@ const Signin = () => {
         }
         setLoading(true)
         try {
-            const res = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            })
-            const json = await res.json()
-            if (res.ok) {
-                localStorage.setItem("token", json.token)
-                // redirect to dashboard or home
-                window.location.href = "/dashboard"
-            } else {
-                setError(json.message || "Login failed")
-            }
+            const response = await fetch("/api/proxy/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)       
+        })
+        const result = await response.json();
+        if(!response.ok){
+            throw new Error(result.message || "Failed to login");
+        }
+        dispatch(updateUserData(result.data))   
+        console.log(result.data)
+        // login successful
         } catch (e) {
             setError("Network error")
+            toast.error("Login failed. Please check your credentials and try again.")
         } finally {
             setLoading(false)
+            toast.success("Logged in successfully!")
+            setTimeout(() => {
+            router.push(routespath.DASHBOARD)
+            }, 500);
         }
     }
 
@@ -60,12 +76,12 @@ const Signin = () => {
 
             <div className="w-[90%] space-y-3">
                 <div className="flex flex-col w-[100%]">
-                    <label htmlFor="adminEmail">Admin Email</label>
+                    <label htmlFor="email">Admin Email</label>
                     <input
-                        id="adminEmail"
-                        name="adminEmail"
+                        id="email"
+                        name="email"
                         type="email"
-                        value={data.adminEmail}
+                        value={data.email}
                         onChange={handleChange}
                         className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"
                     />
@@ -115,6 +131,7 @@ const Signin = () => {
                 </p>
             </div>
         </div>
+        <ToastContainer position="top-right" />
         </div>
     )
 }
