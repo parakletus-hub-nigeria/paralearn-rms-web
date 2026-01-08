@@ -1,3 +1,4 @@
+import ProtectedRoute from "@/components/protectedRoute/protectedRoute";
 import { Header } from "@/components/RMS/header";
 import SideBar from "@/components/RMS/sideBar";
 import { CircleIcon, Plus } from "lucide-react";
@@ -213,9 +214,11 @@ const tableData = [
 
 const Dashboard = () => {
   return (
+    <ProtectedRoute>
     <SideBar>
       <DashboardComponent />
     </SideBar>
+    </ProtectedRoute>
   );
 };
 
