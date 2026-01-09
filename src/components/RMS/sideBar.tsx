@@ -1,5 +1,7 @@
 "use client";
 import { ReactNode, useState } from "react";
+import { useDispatch } from 'react-redux';
+import { logout } from '@/state/user/userSlice';
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +25,10 @@ import Link from "next/link";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
   const [selectedPath, setSelectedPath] = useState("/dashboard");
+  const dispatch = useDispatch();
+  const handleLogout = () => {
+    dispatch(logout());
+  };
 
   const sideBarContent = [
     {
@@ -92,7 +98,14 @@ const SideBar = ({ children }: { children: ReactNode }) => {
             })}
           </div>
         </SidebarContent>
-        <SidebarFooter />
+        <SidebarFooter>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center py-3 px-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 cursor-pointer"
+          >
+            Logout
+          </button>
+        </SidebarFooter>
       </Sidebar>
       <main className="my-[50px] mx-[20px] w-[100%]">
         <SidebarTrigger />
