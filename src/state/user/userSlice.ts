@@ -45,7 +45,6 @@ const userSlice = createSlice({
             if (typeof window !== 'undefined') {
         localStorage.setItem('accessToken', action.payload.accessToken);
       }
-      console.log("User data updated in store:", state.accessToken);
         },
         logout : (state) => {
             state.accessToken = null
@@ -57,6 +56,6 @@ const userSlice = createSlice({
 })
 
 
-export const {updateUserData } = userSlice.actions;
+export const {updateUserData, logout } = userSlice.actions;
 
 export default userSlice.reducer

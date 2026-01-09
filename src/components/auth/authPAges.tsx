@@ -61,7 +61,7 @@ export function PageOne({data,changeData,step,setStep}: any){
                 </div>
             </div>
         </div>
-            {step == 1 &&   <button disabled={!nameAuth} style={!nameAuth? {backgroundColor:"#a166f0"} : {backgroundColor:"#641BC4"}} onClick={async () => {setStep(step + 1)}} className="w-[85%] rounded-[12px] bg-[#a166f0] font-semibold text-white h-[52px] flex flex-row items-center justify-center ">
+            {step == 1 &&   <button disabled={!nameAuth} style={!nameAuth? {backgroundColor:"#a166f0"} : {backgroundColor:"#641BC4"}} onClick={() => {setStep(step + 1)}} className="w-[85%] rounded-[12px] bg-[#a166f0] font-semibold text-white h-[52px] flex flex-row items-center justify-center ">
             continue </button>}
     </div>
 }
@@ -131,9 +131,9 @@ export function PageTwo({data,changeData,step,setStep}: any){
             </div>
         </div>
             {step == 2 &&   <div className="w-[100%] flex justify-evenly">
-                   <button onClick={async () => {setStep(step - 1)}} className="w-[35%] rounded-[12px]  font-semibold text-black h-[52px] flex flex-row items-center justify-center border-[1px] border-black">
+                   <button onClick={() => {setStep(step - 1)}} className="w-[35%] rounded-[12px]  font-semibold text-black h-[52px] flex flex-row items-center justify-center border-[1px] border-black">
             back </button>
-                <button onClick={async () => {setStep(step + 1)}} disabled={!emailAuth || !passwordAuth} style={!emailAuth || !passwordAuth? {backgroundColor:"#a166f0"} : {backgroundColor:"#641BC4"}} className="w-[35%] rounded-[12px] bg-[#641BC4] font-semibold text-white h-[52px] flex flex-row items-center justify-center">
+                <button onClick={() => {setStep(step + 1)}} disabled={!emailAuth || !passwordAuth} style={!emailAuth || !passwordAuth? {backgroundColor:"#a166f0"} : {backgroundColor:"#641BC4"}} className="w-[35%] rounded-[12px] bg-[#641BC4] font-semibold text-white h-[52px] flex flex-row items-center justify-center">
             continue </button>
                 </div>}
     </div>
@@ -231,7 +231,7 @@ export function PageThree({data,changeData,step,setStep}: any){
         <ToastContainer />
         </div>
             {step == 3 &&   <div className="w-[100%] flex justify-evenly">
-                   <button onClick={async () => {setStep(step - 1)}} disabled={isLoading} className="w-[35%] rounded-[12px]  font-semibold text-black h-[52px] flex flex-row items-center justify-center border-[1px] border-black">
+                   <button onClick={() => {setStep(step - 1)}} disabled={isLoading} className="w-[35%] rounded-[12px]  font-semibold text-black h-[52px] flex flex-row items-center justify-center border-[1px] border-black">
             back </button>
             {/* create school */}
                 <button onClick={submit} disabled={!phoneAuth || !agreement || isLoading} style={(!phoneAuth || !agreement || isLoading)? {backgroundColor:"#a166f0"} : {backgroundColor:"#641BC4"}} className="w-[35%] rounded-[12px] bg-[#641BC4] font-semibold text-white h-[52px] flex flex-row items-center justify-center gap-2">
