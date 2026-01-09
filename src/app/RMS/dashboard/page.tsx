@@ -1,40 +1,100 @@
+'use client'
 import ProtectedRoute from "@/components/protectedRoute/protectedRoute";
 import { Header } from "@/components/RMS/header";
 import SideBar from "@/components/RMS/sideBar";
+import { apiFetch } from "@/lib/interceptor";
 import { CircleIcon, Plus } from "lucide-react";
 import { GraduationCap,Users,Book,BookImage } from "lucide-react";
+import { AddStudentDialog, AddTeacherDialog } from "@/components/RMS/dialogs";
+import { useEffect, useState } from "react";
 import { BsAlarmFill } from "react-icons/bs";
+import { toast } from "react-toastify";
 
 
 
 const DashboardComponent = () => {
+    const [studentCount, setStudentCount] = useState(0);
+    const [TeacherCount, setTeacherCount] = useState(1);
+    const [SubjectCount, setSubjectCount] = useState(0);
+    const [AssessmentCount, setAssessmentCount] = useState(0);
+    
+    const getUsersNumber = (data: any[]) => {
+        let student = 0
+        let teacher = 0
+        data.forEach((item,index) => {
+            if(item.roles[0].role.name === "teacher") teacher += 1
+            if(item.roles[0].role.name === "student") student += 1
+        })
+        console.log(student,teacher)
+        setStudentCount(student)
+        setTeacherCount(teacher)
+    }
+
+    useEffect(() => {
+        async function fetchDashboardData() {
+           try {
+                    // teachers and students count
+                 const response = await apiFetch('/api/proxy/users', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    });
+                  const result = await response.json()
+                  const data = result.data
+                  console.log(data)
+                    getUsersNumber(data)
+
+                    //subjects count
+                    const subjectResp = await apiFetch('/api/proxy/subjects', {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+                    const subjectResult = await subjectResp.json()
+                    console.log(subjectResult)
+                    setSubjectCount(subjectResult.data?.length)
+
+                    //assessments count
+                    const assessmentResp = await apiFetch('/api/proxy/assessments', {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+                    const assessmentResult = await assessmentResp.json()
+                    console.log(assessmentResult)
+                    setAssessmentCount(assessmentResult.data?.length)
+
+           } catch (error:any) {
+            console.log(error.message)
+                toast.error(error?.message || "Failed to fetch dashboard data")
+           }
+        }
+        fetchDashboardData();
+    },[])
 
     const vv = [
         {
             title:"Students",
             icon:GraduationCap,
-            figure:"students",
+            figure:studentCount,
             bg_color: "#F0E5FF",
             icon_color: "#9747FF"
         },
         {
             title:"Teachers",
             icon:Users,
-            figure:"teachers",
+            figure:TeacherCount,
             bg_color: "#DFF9D8",
             icon_color: "#3AC13A"
         },
         {
             title:"Subjects",
             icon:Book,
-            figure:"Subjects",
+            figure:SubjectCount,
             bg_color: "#DBE9FF",
             icon_color: "#2A64F6"
         },
         {
             title:"Assessments",
             icon:BookImage,
-            figure:"assessments",
+            figure:AssessmentCount,
             bg_color: "#FFE9CC",
             icon_color: "#F28C1F"
         }
@@ -144,14 +204,18 @@ const tableData = [
                 }
             </div>
             <div className="mt-[20px] flex flex-col md:flex-row gap-4 md:gap-[40px] md:justify-end mr-[20px] px-[20px] md:px-0">
-                <button className="flex flex-row items-center justify-evenly bg-[#9747FF] p-[6px] space-x-1 text-white rounded-[6px] cursor-pointer hover:opacity-90">
-                    <Plus className="text-white"/>
-                    <p className="text-white text-sm md:text-base">Add Student</p>
-                </button>
-                <button className="flex flex-row items-center justify-evenly bg-white p-[6px] space-x-1 text-white rounded-[6px] border-[1px] border-[#9747FF] cursor-pointer hover:opacity-90">
-                    <Plus className="text-black"/>
-                    <p className="text-black text-sm md:text-base">Add Teacher</p>
-                </button>
+                <AddStudentDialog>
+                    <button className="flex flex-row items-center justify-evenly bg-[#9747FF] p-[6px] space-x-1 text-white rounded-[6px] cursor-pointer hover:opacity-90">
+                        <Plus className="text-white"/>
+                        <p className="text-white text-sm md:text-base">Add Student</p>
+                    </button>
+                </AddStudentDialog>
+                <AddTeacherDialog>
+                    <button className="flex flex-row items-center justify-evenly bg-white p-[6px] space-x-1 text-white rounded-[6px] border-[1px] border-[#9747FF] cursor-pointer hover:opacity-90">
+                        <Plus className="text-black"/>
+                        <p className="text-black text-sm md:text-base">Add Teacher</p>
+                    </button>
+                </AddTeacherDialog>
             </div>
             <div className="flex flex-col lg:flex-row mt-[25px] justify-between gap-8 lg:gap-0 px-[20px]  lg:px-0">
                 <div className="w-full lg:w-[40%] h-auto lg:h-[450px] flex flex-col justify-evenly ">
