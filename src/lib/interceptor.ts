@@ -1,0 +1,37 @@
+import { store } from "@/state/store";
+import { logout } from "@/state/user/userSlice";
+
+export const apiFetch = async (urlPath:string, options?: RequestInit) : Promise<Response> => {
+    const state  = store.getState();
+    const accessToken = state.user.accessToken
+
+    const headers : any = {
+        ...options?.headers,
+    }
+
+    if(accessToken){
+        headers["authorization"] = `Bearer ${accessToken}`;
+        headers["X-Tenant-Subdomain"] = "greenwood-heritage-college";
+    }
+
+    const config = {
+        ...options,
+        headers
+    }
+
+    try {
+        const response = await fetch(urlPath, config);
+        if(response.status == 401){
+            console.error("Session expired. Please log in again.");
+            store.dispatch(logout());
+        }
+
+        if(!response.ok){
+            const errorData = await response.json();
+            throw new Error(errorData.message || "API request failed");
+        }
+        return response
+    } catch (error) {
+        throw error;
+    }
+}
