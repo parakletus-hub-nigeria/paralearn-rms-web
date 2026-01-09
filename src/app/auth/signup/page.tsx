@@ -21,15 +21,16 @@ const Signup = () => {
     
     console.log(formData);
     
-    setFormData((prevData) => ({
-        ...prevData,
-        subdomain: prevData.schoolName.toLowerCase().replace(/\s+/g, '-'),
-    }))
 
     setFormData((prevData) => ({
       ...prevData,
       [name]: newValue,
     }));
+
+        setFormData((prevData) => ({
+        ...prevData,
+        subdomain: prevData.schoolName.toLowerCase().replace(/\s+/g, '-'),
+    }))
 }
     return  <div className="flex flex-col items-center">
 
