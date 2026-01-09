@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
-import { ReactNode, useState, useRef } from "react"
+import { ReactNode, useState } from "react"
 import { toast } from "react-toastify"
 
 export function AddStudentDialog({children} : {children : ReactNode}) {
@@ -108,27 +108,16 @@ const studentFormFields = [
   return (
     <Dialog>
         <DialogTrigger asChild>
-          {/* <Button variant="outline">Open Dialog</Button> */}
           {children}
         </DialogTrigger>
         <DialogContent className="w-[95%] sm:max-w-[500px] md:max-w-[600px] max-h-[90vh] overflow-y-auto">
       <form onSubmit={handleSubmit}>
           <DialogHeader>
-                <p className="text-lg font-bold">Add New Student</p>
+                <p>Add New Student</p>
             <DialogDescription>
                 Fill in the details to add a new student
             </DialogDescription>
           </DialogHeader>
-          {/* <div className="grid gap-4 grid-cols-2">
-            <div className="grid gap-3">
-              <Label htmlFor="name-1">Name</Label>
-              <Input id="name-1" name="name" defaultValue="Pedro Duarte" />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="username-1">Username</Label>
-              <Input id="username-1" name="username" defaultValue="@peduarte" />
-            </div>
-          </div> */}
     
             <div className="grid grid-cols-1 sm:grid-cols-2 my-[25px] gap-x-[20px] gap-y-[15px]">
     {studentFormFields.map((field: any) => (
@@ -269,7 +258,7 @@ const teacherFormFields = [
         <DialogContent className="w-[95%] sm:max-w-[500px] md:max-w-[600px] max-h-[90vh] overflow-y-auto">
       <form onSubmit={handleSubmit}>
           <DialogHeader>
-                <p className="text-lg font-bold">Add New Teacher</p>
+                <p>Add New Teacher</p>
             <DialogDescription>
                 Fill in the details to add a new teacher
             </DialogDescription>
@@ -418,7 +407,6 @@ const studentFormFields = [
   return (
     <Dialog>
         <DialogTrigger asChild>
-          {/* <Button variant="outline">Open Dialog</Button> */}
           {children}
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
@@ -429,16 +417,6 @@ const studentFormFields = [
                 Fill in the details to add a new student
             </DialogDescription>
           </DialogHeader>
-          {/* <div className="grid gap-4 grid-cols-2">
-            <div className="grid gap-3">
-              <Label htmlFor="name-1">Name</Label>
-              <Input id="name-1" name="name" defaultValue="Pedro Duarte" />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="username-1">Username</Label>
-              <Input id="username-1" name="username" defaultValue="@peduarte" />
-            </div>
-          </div> */}
     
             <div className="grid grid-cols-2 my-[25px] gap-x-[20px]">
     {studentFormFields.map((field) => (
@@ -482,9 +460,9 @@ const studentFormFields = [
     </div>
   ))}
  </div>
-          <DialogFooter className="flex flex-row-reverse items-center justify-between">
-            <Button type="submit" style={{backgroundColor: '#9747FF'}} className="text-white w-[40%]">Save Data</Button>
+          <DialogFooter>
             <Button type="button" onClick={handleDelete} className="bg-red-500 w-[40%]">Delete Student</Button>
+            <Button type="submit" style={{backgroundColor: '#9747FF'}} className="text-white">Save Changes</Button>
           </DialogFooter>
       </form>
         </DialogContent>
