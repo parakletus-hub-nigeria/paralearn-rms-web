@@ -7,7 +7,7 @@ export const routespath = {
   SIGNIN: "/auth/signin",
   SIGNUP: "/auth/signup",
   RESET_PASSWORD: "/auth/reset-password",
-  // API Endpoints
+  // Endpoints for our backend calls
   API_LOGIN: "/auth/login",
   API_LOGOUT: "/auth/logout",
   API_REFRESH: "/auth/refresh",

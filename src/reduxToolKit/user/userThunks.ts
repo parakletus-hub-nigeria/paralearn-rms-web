@@ -3,12 +3,7 @@ import apiClient, { setAuthToken, removeAuthToken } from "@/lib/api";
 import { tokenManager } from "@/lib/tokenManager";
 import { routespath } from "@/lib/routepath";
 
-/**
- * AsyncThunk for user login
- * - Posts credentials to backend
- * - Stores token in cookies via tokenManager
- * - Returns user data and token
- */
+// Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",
   async (
@@ -43,11 +38,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-/**
- * AsyncThunk for fetching user data
- * - Makes authenticated request to get user profile
- * - Token is automatically added by request interceptor
- */
+// Pull the current user's profile data
 export const fetchUserData = createAsyncThunk(
   "user/fetchUserData",
   async (_, { rejectWithValue }) => {
@@ -72,12 +63,7 @@ export const fetchUserData = createAsyncThunk(
   }
 );
 
-/**
- * AsyncThunk for user logout
- * - Calls backend logout endpoint
- * - Removes token from cookies
- * - Clears user state
- */
+// Log out the user and clean up everything
 export const logoutUser = createAsyncThunk(
   "user/logout",
   async (_, { rejectWithValue }) => {
@@ -113,11 +99,7 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
-/**
- * AsyncThunk for refreshing auth token
- * - Calls refresh token endpoint
- * - Updates token in cookies
- */
+// Refresh the access token when it expires
 export const refreshAuthToken = createAsyncThunk(
   "user/refreshToken",
   async (_, { rejectWithValue }) => {
@@ -150,9 +132,7 @@ export const refreshAuthToken = createAsyncThunk(
   }
 );
 
-/**
- * AsyncThunk for signing up new user
- */
+// Register a new user account
 export const signupUser = createAsyncThunk(
   "user/signup",
   async (
@@ -192,9 +172,7 @@ export const signupUser = createAsyncThunk(
   }
 );
 
-/**
- * AsyncThunk for password reset request
- */
+// Start the password reset process
 export const requestPasswordReset = createAsyncThunk(
   "user/requestPasswordReset",
   async (email: string, { rejectWithValue }) => {
@@ -214,9 +192,7 @@ export const requestPasswordReset = createAsyncThunk(
   }
 );
 
-/**
- * AsyncThunk for confirming password reset
- */
+// Finalize the password reset with the new password
 export const confirmPasswordReset = createAsyncThunk(
   "user/confirmPasswordReset",
   async (data: { token: string; newPassword: string }, { rejectWithValue }) => {

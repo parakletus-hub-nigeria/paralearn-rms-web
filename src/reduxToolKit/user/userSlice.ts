@@ -54,9 +54,7 @@ const userSlice = createSlice({
   reducers: {},
 
   extraReducers: (builder) => {
-    // ============================================
-    // Login User Thunk
-    // ============================================
+    // Handling login states
     builder
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -77,9 +75,7 @@ const userSlice = createSlice({
         state.accessToken = null;
       });
 
-    // ============================================
-    // Fetch User Data Thunk
-    // ============================================
+    // Loading user profile
     builder
       .addCase(fetchUserData.pending, (state) => {
         state.loading = true;
@@ -95,9 +91,7 @@ const userSlice = createSlice({
         state.error = (action.payload as string) || "Failed to fetch user data";
       });
 
-    // ============================================
-    // Logout User Thunk
-    // ============================================
+    // Logging out
     builder
       .addCase(logoutUser.pending, (state) => {
         state.loading = true;
@@ -131,9 +125,7 @@ const userSlice = createSlice({
         state.error = (action.payload as string) || "Logout failed";
       });
 
-    // ============================================
-    // Refresh Auth Token Thunk
-    // ============================================
+    // Refreshing the token
     builder
       .addCase(refreshAuthToken.pending, (state) => {
         state.loading = true;
@@ -150,9 +142,7 @@ const userSlice = createSlice({
         state.accessToken = null;
       });
 
-    // ============================================
-    // Signup User Thunk
-    // ============================================
+    // Signup
     builder
       .addCase(signupUser.pending, (state) => {
         state.loading = true;
@@ -172,9 +162,7 @@ const userSlice = createSlice({
         state.success = false;
       });
 
-    // ============================================
-    // Request Password Reset Thunk
-    // ============================================
+    // Forgot password flow
     builder
       .addCase(requestPasswordReset.pending, (state) => {
         state.loading = true;
@@ -191,9 +179,7 @@ const userSlice = createSlice({
           (action.payload as string) || "Password reset request failed";
       });
 
-    // ============================================
-    // Confirm Password Reset Thunk
-    // ============================================
+    // New password confirmation
     builder
       .addCase(confirmPasswordReset.pending, (state) => {
         state.loading = true;
@@ -211,7 +197,6 @@ const userSlice = createSlice({
       });
   },
 });
-
 // Export thunks for use in components
 export { loginUser, logoutUser, fetchUserData, refreshAuthToken, signupUser };
 

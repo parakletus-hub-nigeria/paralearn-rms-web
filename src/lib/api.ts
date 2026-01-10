@@ -5,15 +5,7 @@ import axios, {
 } from "axios";
 import { tokenManager } from "./tokenManager";
 
-/**
- * Robust API Client with Request/Response Interceptors
- * Features:
- * - Automatic token injection from cookies
- * - Token refresh handling
- * - Automatic logout on 401
- * - Error handling and logging
- * - Request/Response transformation
- */
+// Our global axios instance for all API calls
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
@@ -25,11 +17,7 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-/**
- * Request Interceptor
- * - Adds authorization token from cookies
- * - Logs outgoing requests in development
- */
+// Inject auth token before every request
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     try {
@@ -60,13 +48,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-/**
- * Response Interceptor
- * - Handles successful responses
- * - Manages 401 unauthorized errors
- * - Handles token expiration
- * - Logs errors in development
- */
+// Handle responses and global errors (like 401s)
 apiClient.interceptors.response.use(
   (response) => {
     // Log response in development
@@ -137,25 +119,15 @@ apiClient.interceptors.response.use(
   }
 );
 
-/**
- * Helper function to set token in interceptor
- * Call this after successful login
- */
+// Quick helpers for auth state
 export const setAuthToken = (token: string): void => {
   tokenManager.setToken(token);
 };
 
-/**
- * Helper function to remove token from interceptor
- * Call this on logout
- */
 export const removeAuthToken = (): void => {
   tokenManager.removeToken();
 };
 
-/**
- * Helper function to check if user is authenticated
- */
 export const isAuthenticated = (): boolean => {
   return tokenManager.hasToken();
 };

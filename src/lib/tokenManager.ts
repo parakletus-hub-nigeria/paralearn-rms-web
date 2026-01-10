@@ -8,14 +8,9 @@ const COOKIE_OPTIONS = {
   sameSite: "strict" as const, // CSRF protection
 };
 
-/**
- * Token management utility
- * Handles getting, setting, and removing access tokens from cookies
- */
+// Helper to manage our auth token in cookies
 export const tokenManager = {
-  /**
-   * Get the access token from cookies
-   */
+  // Grab token from cookies (client-side only)
   getToken(): string | undefined {
     if (typeof window === "undefined") {
       return undefined;
@@ -23,9 +18,7 @@ export const tokenManager = {
     return Cookies.get(TOKEN_KEY);
   },
 
-  /**
-   * Set the access token in cookies
-   */
+  // Save the token
   setToken(token: string): void {
     if (typeof window === "undefined") {
       return;
@@ -33,9 +26,7 @@ export const tokenManager = {
     Cookies.set(TOKEN_KEY, token, COOKIE_OPTIONS);
   },
 
-  /**
-   * Remove the access token from cookies
-   */
+  // Kill the token
   removeToken(): void {
     if (typeof window === "undefined") {
       return;
@@ -43,16 +34,12 @@ export const tokenManager = {
     Cookies.remove(TOKEN_KEY, { path: "/" });
   },
 
-  /**
-   * Check if token exists
-   */
+  // Helper to see if we're logged in
   hasToken(): boolean {
     return !!this.getToken();
   },
 
-  /**
-   * Clear all auth cookies
-   */
+  // Nuke all auth-related cookies
   clearAllAuthCookies(): void {
     if (typeof window === "undefined") {
       return;
