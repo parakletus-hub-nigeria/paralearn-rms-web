@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Documentation
+/src/lib/API_SETUP_GUIDE.md
+/DOCUMENTATION_INDEX.md
+/QUICK_REFERENCE.md
+/QUICK_START.md
+/ARCHITECTURE.md
+/README_SETUP.md
+/SETUP_SUMMARY.md
+/README copy.md
