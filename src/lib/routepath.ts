@@ -4,4 +4,6 @@ export const routespath = {
   REPORT: "/RMS/report",
   USERS: "/RMS/users",
   BULK_UPLOAD: "/RMS/bulk_upload",
+  SIGNIN: "/auth/signin",
+  SIGNUP: "/auth/signup",
 };
