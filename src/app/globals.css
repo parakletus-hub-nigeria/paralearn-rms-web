@@ -70,73 +70,68 @@ Red Vivid: #E60023
 Berry / Dark Red: #973C53
 
 Cream / Off-White: #FFFBEB */
+/* Specific Design Tokens from Mockup */
 :root {
-  --radius: 0.625rem;
-  --background: #f0e5ff;
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #641bc4;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.145 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.75rem;
+  
+  /* Color Palette */
+  --purple-light: #f0e5ff;
+  --purple-vivid: #9747ff;
+  --brand-primary: #641bc4;
+  --lavender: #ad8ed6;
+  
+  --green-light: #dff9d8;
+  --green-vivid: #10b981;
+  
+  --blue-light: #dbe9ff;
+  --blue-vivid: #2a64f6;
+  
+  --orange-light: #ffe9cc;
+  --orange-vivid: #f28c1f;
+  
+  --red-light: #fddada;
+  --red-vivid: #e60023;
+  
+  --berry: #973c53;
+  --cream: #fffbeb;
+
+  /* Theme Overrides */
+  --background: #f8f9fc;
+  --foreground: #1e293b;
+  --primary: var(--brand-primary);
+  --primary-foreground: #ffffff;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --ring: var(--brand-primary);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .card-premium {
+    @apply bg-white rounded-3xl shadow-[0_20px_50px_rgba(100,27,196,0.05)] border border-slate-100/80 p-8 transition-all duration-500 hover:shadow-[0_25px_60px_rgba(100,27,196,0.08)];
+  }
+  
+  .btn-primary {
+    @apply bg-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/90 text-white font-bold px-8 py-3 rounded-2xl transition-all active:scale-95 shadow-lg shadow-purple-100 flex items-center justify-center gap-2 text-sm tracking-wide;
+  }
+
+  .status-badge {
+    @apply px-4 py-1.5 rounded-full text-xs font-bold tracking-tight inline-flex items-center justify-center min-w-[100px];
+  }
+
+  /* Status Colors */
+  .badge-published { @apply bg-[var(--green-light)] text-emerald-700; }
+  .badge-draft { @apply bg-slate-100 text-slate-500; }
+  .badge-pending { @apply bg-[var(--orange-light)] text-orange-700; }
+  .badge-error { @apply bg-[var(--red-light)] text-red-700; }
 }
 
 @layer base {
