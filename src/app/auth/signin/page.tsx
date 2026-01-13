@@ -9,13 +9,16 @@ import { updateUserData } from "@/state/user/userSlice";
 import { ToastContainer, toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
+import { loginUser } from "@/reduxToolKit/user/userThunks";
+import { AppDispatch } from "@/reduxToolKit/store";
 
 const Signin = () => {
   const [data, setData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const dispatch = useDispatch();
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { success, error, loading } = useSelector((state: any) => state.user);
 
   const router = useRouter();
   const accessToken = useSelector((state: any) => state.accessToken);
@@ -30,36 +33,32 @@ const Signin = () => {
   };
 
   const submit = async () => {
-    setError(null)
-    if (!isValid()) {
-      setError("Please enter a valid email and password (min 8 chars)")
-      return
-    }
-    setLoading(true)
     try {
-      const response = await fetch("/api/proxy/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)       
-      })
-      const result = await response.json();
-      if(!response.ok){
-        throw new Error(result.message || "Failed to login");
-      }
-      dispatch(updateUserData(result.data)) 
-      toast.success("Logged in successfully!")
+      //   const response = await fetch("/api/proxy/auth/login", {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json"
+      //     },
+      //     body: JSON.stringify(data)
+      //   })
+      //   const result = await response.json();
+      //   if(!response.ok){
+      //     throw new Error(result.message || "Failed to login");
+      //   }
+      //   dispatch(updateUserData(result.data))
+      await dispatch(loginUser(data)).unwrap();
+
       setTimeout(() => {
-        router.push(routespath.DASHBOARD)
+        console.log("success", success);
+        if (success) {
+          toast.success("Logged in successfully!");
+          router.push(routespath.DASHBOARD);
+        }
       }, 500);
     } catch (e: any) {
-      setError("Network error")
-      toast.error("Login failed. Please check your credentials and try again.")
-    } finally {
-      setLoading(false)
+      toast.error("Login failed. Please check your credentials and try again.");
     }
-  }
+  };
 
   return (
     <div className="flex flex-col items-center w-[100%] min-h-[100vh] bg-[#F8F7FC]">
@@ -69,11 +68,15 @@ const Signin = () => {
           <p className="text-[20px] font-bold flex flex-row items-center space-x-2">
             <BiEnvelope className="text-[#641BC4]" /> <span>Admin Login</span>
           </p>
-          <p className="text-sm text-gray-700 text-center">Login to your administrator's account to continue</p>
+          <p className="text-sm text-gray-700 text-center">
+            Login to your administrator's account to continue
+          </p>
         </div>
         <div className="w-full space-y-4 px-4">
           <div className="flex flex-col w-full">
-            <label htmlFor="email" className="mb-2 text-sm font-medium">Admin Email</label>
+            <label htmlFor="email" className="mb-2 text-sm font-medium">
+              Admin Email
+            </label>
             <input
               id="email"
               name="email"
@@ -86,7 +89,9 @@ const Signin = () => {
           </div>
 
           <div className="flex flex-col w-full">
-            <label htmlFor="password" className="mb-2 text-sm font-medium">Password</label>
+            <label htmlFor="password" className="mb-2 text-sm font-medium">
+              Password
+            </label>
             <div className="relative">
               <input
                 id="password"
@@ -113,7 +118,11 @@ const Signin = () => {
         <button
           onClick={submit}
           disabled={loading}
-          style={isValid() ? { backgroundColor: "#641BC4" } : { backgroundColor: "#a166f0" }}
+          style={
+            isValid()
+              ? { backgroundColor: "#641BC4" }
+              : { backgroundColor: "#a166f0" }
+          }
           className="w-full sm:w-3/4 rounded-xl font-semibold text-white h-12 flex flex-row items-center justify-center transition-colors duration-200 disabled:opacity-70 mt-6"
         >
           {loading ? "Signing in..." : "Sign In"}
@@ -121,16 +130,27 @@ const Signin = () => {
 
         <div className="w-full text-center mt-4 flex flex-col space-y-2 px-4">
           <p>
-            <Link href="/auth/forgot-password" className="text-[#641BC4] font-semibold text-sm hover:underline">Forgot password?</Link>
+            <Link
+              href="/auth/forgot-password"
+              className="text-[#641BC4] font-semibold text-sm hover:underline"
+            >
+              Forgot password?
+            </Link>
           </p>
           <p className="text-sm">
-            Don't have an account? <Link href="/auth/signup" className="text-[#641BC4] font-semibold hover:underline">Sign up</Link>
+            Don't have an account?{" "}
+            <Link
+              href="/auth/signup"
+              className="text-[#641BC4] font-semibold hover:underline"
+            >
+              Sign up
+            </Link>
           </p>
         </div>
       </div>
       <ToastContainer position="top-right" />
     </div>
-  )
-}
+  );
+};
 
 export default Signin;

@@ -4,16 +4,19 @@ import axios, {
   AxiosError,
 } from "axios";
 import { tokenManager } from "./tokenManager";
+import { json } from "stream/consumers";
 
 // Our global axios instance for all API calls
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+  // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
   timeout: 30000,
   withCredentials: true, // Important for cookies
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
+    "X-Tenant-Subdomain": "",
+    
   },
 });
 
@@ -71,7 +74,20 @@ apiClient.interceptors.response.use(
       );
 
       // Clear auth cookies and tokens
-      tokenManager.removeToken();
+      // tokenManager.removeToken();
+
+      // call the refresh token endpoint
+      // const refreshResponse = await fetch("/api/proxy/auth/refresh-token", {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   }
+      // })
+      // const jsonResponse = await refreshResponse.json();
+      // if(!jsonResponse.success || !refreshResponse.ok){
+
+      // }
+
 
       // Redirect to login page
       if (typeof window !== "undefined") {

@@ -1,9 +1,13 @@
-import { store } from "@/state/store";
+// import { store } from "@/state/store";
+// import { store } from @st
+// import { store } from "@/reduxToolKit/store";
 import { logout } from "@/state/user/userSlice";
+import { store } from "@/reduxToolKit/store";
+import tokenManager from "./tokenManager";
 
 export const apiFetch = async (urlPath:string, options?: RequestInit) : Promise<Response> => {
     const state  = store.getState();
-    const accessToken = state.user.accessToken
+    const accessToken = tokenManager.getToken() || state.user.accessToken;
 
     const headers : any = {
         ...options?.headers,

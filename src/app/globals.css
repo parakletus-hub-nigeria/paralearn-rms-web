@@ -72,7 +72,7 @@ Berry / Dark Red: #973C53
 Cream / Off-White: #FFFBEB */
 :root {
   --radius: 0.625rem;
-  --background: #f0e5ff;
+  --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -80,11 +80,11 @@ Cream / Off-White: #FFFBEB */
   --popover-foreground: oklch(0.145 0 0);
   --primary: #641bc4;
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
+  --secondary: #ffffff;
   --secondary-foreground: oklch(0.145 0 0);
-  --muted: oklch(0.97 0 0);
+  --muted: #ffffff;
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
+  --accent: #ffffff;
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
@@ -97,10 +97,10 @@ Cream / Off-White: #FFFBEB */
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: #ffffff;
+  --sidebar-accent-foreground: oklch(0.145 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }

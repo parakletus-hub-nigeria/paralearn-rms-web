@@ -2,7 +2,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient, { setAuthToken, removeAuthToken } from "@/lib/api";
 import { tokenManager } from "@/lib/tokenManager";
 import { routespath } from "@/lib/routepath";
-
 // Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",
@@ -11,15 +10,17 @@ export const loginUser = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await apiClient.post(routespath.API_LOGIN, credentials);
-      const { accessToken, user } = response.data;
+      const response = await apiClient.post(`/api/proxy${routespath.API_LOGIN}`, credentials);
+      const { user } = response.data;
 
+      // access token already set as cookie from backend
+      const accessToken = tokenManager.getToken();
       if (!accessToken) {
         return rejectWithValue("No token received from server");
       }
 
       // Store token in cookies
-      setAuthToken(accessToken);
+      // setAuthToken(accessToken);
 
       return {
         accessToken,
@@ -79,6 +80,7 @@ export const logoutUser = createAsyncThunk(
       // Remove token from cookies
       removeAuthToken();
       tokenManager.clearAllAuthCookies();
+      
 
       return null;
     } catch (error: any) {
