@@ -1,32 +1,126 @@
-import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { apiFetch } from "@/lib/interceptor";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 type contentType = {
     email:string,
     firstName:string,
     lastName:string,
+    roles: any
     class:string,
     dateOfBirth:string,
-    gender:string,
+    Gender:string,
     guardianContact:string,
     validationStatus?:boolean
 }
 
+const formatDate = (date:any)  => {
+  // ... inside your for...of loop ...
+
+    // 1. Convert "15/08/1985" -> Date Object
+    let formattedDate = date
+
+    // Check if it is the Slash format (DD/MM/YYYY)
+    if (typeof formattedDate === 'string' && formattedDate.includes('/')) {
+        const [day, month, year] = formattedDate.split('/');
+        // Reassemble as YYYY-MM-DD so JavaScript can understand it
+        formattedDate = new Date(`${year}-${month}-${day}`);
+    } 
+    // Handle Excel numbers if necessary
+    else if (typeof formattedDate === 'number') {
+        formattedDate = new Date((formattedDate - 25569) * 86400 * 1000);
+    }
+    // Fallback for standard strings
+    else {
+        formattedDate = new Date(formattedDate);
+    }
+
+    return formattedDate
+}
+
 const Step_Three = ({validatedFileContent,setValidatedFileContent,step,setStep,ValidNumber,setValidNumber} : {validatedFileContent: contentType[], setValidatedFileContent: React.Dispatch<React.SetStateAction<any>>, step: number, setStep: React.Dispatch<React.SetStateAction<number>>, ValidNumber:number, setValidNumber:React.Dispatch<React.SetStateAction<number>>}) => {
+
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [uploadCount, setUploadCount] = useState(0);
 
     const invalidCount = validatedFileContent.length - ValidNumber;
     const invalidPercentage = ((invalidCount / validatedFileContent.length) * 100).toFixed(2);
 
     const handleBack = () => setStep(Math.max(1, step - 1));
-    const handleSubmit = () => {
-        // Replace with real submit logic; keep minimal for now
-        // e.g., call API to import validatedFileContent
-        // For now, just move to a hypothetical next step or log
-        console.log('Submitting', validatedFileContent.filter(r => r.validationStatus));
-        alert('Submit triggered');
+
+    const handleResetToStep1 = () => {
+        setShowSuccessDialog(false);
+        setStep(1);
+        setValidatedFileContent([]);
+        setValidNumber(0);
+        setUploadCount(0);
+    };
+
+    // 1. Mark the parent function as async so we can await the loop
+const handleSubmit = async () => {
+
+  let successCount = 0;
+
+  // 2. Use 'for...of' instead of 'forEach'
+  for (const record of validatedFileContent) {
+    
+    // Check validation status (Use 'continue' instead of 'return' inside a loop)
+    if (!record.validationStatus) continue;
+
+    // 3. CLEAN UP: Avoid code duplication. 
+    // Since student and teacher logic is identical, handle them dynamically.
+    const role = record.roles; // "student" or "teacher"
+    
+    if (role !== "student" && role !== "teacher") continue; // Skip invalid roles
+
+    try {
+      const newRecord = {
+        email: record.email,
+        firstName: record.firstName,
+        lastName: record.lastName,
+        roles: [role], 
+        dateOfBirth:formatDate(record.dateOfBirth), 
+        
+        gender: record.Gender 
+      };
+
+      const bulkUploadRes = await apiFetch('/api/proxy/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRecord)
+      });
+
+      const res = await bulkUploadRes.json();
+
+      if (!bulkUploadRes.ok) {
+        throw new Error(res.message || `Failed to upload ${role} record`);
+      }
+
+      console.log(res);
+      toast.success(`Successfully uploaded record for ${record.email}`);
+      successCount++;
+
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || `Couldn't upload data for ${record.email}`);
     }
+  }
+  
+  // Now this line will actually wait for all uploads to finish!
+  setUploadCount(successCount);
+  setShowSuccessDialog(true);
+};
 
   return <div className="w-full mx-auto p-3 sm:p-4 md:p-6 space-y-6 font-sans flex flex-col items-center">
-
+    <ToastContainer/>
      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 sm:p-6 flex flex-col items-center text-center w-full sm:w-4/5 md:w-3/5 lg:w-2/5">
         <div className="flex items-center gap-3 mb-1 flex-wrap justify-center">
           <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center  text-sm">
@@ -82,6 +176,36 @@ const Step_Three = ({validatedFileContent,setValidatedFileContent,step,setStep,V
         
         </div>
       </div>
+
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="w-[95%] sm:max-w-[500px] rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              <span>Upload Complete!</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="text-center">
+              <p className="text-gray-700 mb-2">Your bulk upload has been completed successfully.</p>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <p className="text-2xl font-bold text-green-600">{uploadCount}</p>
+                <p className="text-sm text-gray-600">Records uploaded successfully</p>
+              </div>
+              <p className="text-xs text-gray-500">The uploaded students and teachers have been added to your system.</p>
+            </div>
+            <div className="flex gap-3 justify-center pt-4">
+              <Button
+                onClick={handleResetToStep1}
+                style={{ backgroundColor: "#641BC4" }}
+                className="text-white px-6"
+              >
+                Back to Upload
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
   </div>
 }

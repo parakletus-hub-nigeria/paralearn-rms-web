@@ -12,7 +12,7 @@ export const validateEmail = (email: string): boolean => {
 };
 
 // 2. Validate Names (First Name / Last Name)
-export const validateName = (name: string, fieldLabel = "Name"): boolean => {
+export const validateName = (name: string): boolean => {
   if (!name || String(name).trim() === "") {
     return false;
   }
@@ -38,34 +38,63 @@ export const validateRole = (role: string): boolean => {
 };
 
 // 4. Validate Date of Birth
-export const validateDateOfBirth = (dob: string): boolean => {
+export const validateDateOfBirth = (dob: string | number): boolean => {
   if (!dob) return false;
-  
-  // Check basic format YYYY-MM-DD
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(dob)) {
-    return false;
+
+  let jsDate: Date;
+
+  // 1. Handle Excel Serial Numbers (e.g., 36617)
+  if (typeof dob === 'number') {
+    jsDate = new Date((dob - 25569) * 86400 * 1000);
+  } 
+  // 2. Handle Strings (supports "DD/MM/YYYY", "DD-MM-YYYY", "YYYY-MM-DD")
+  else {
+    const dobStr = String(dob).trim();
+    
+    // Regex to detect separators (/ or -)
+    // Matches: 2000-01-01, 2000/01/01, 01-01-2000, 01/01/2000
+    const dateParts = dobStr.split(/[-/]/);
+
+    if (dateParts.length !== 3) return false;
+
+    let year: number, month: number, day: number;
+
+    // Check if the first part is the Year (ISO format: YYYY-MM-DD)
+    if (dateParts[0].length === 4) {
+      year = parseInt(dateParts[0]);
+      month = parseInt(dateParts[1]);
+      day = parseInt(dateParts[2]);
+    } 
+    // Otherwise assume Day-Month-Year (Common format: DD-MM-YYYY)
+    // Note: This prioritizes DD/MM over MM/DD (Standard in Nigeria/UK/Europe)
+    else if (dateParts[2].length === 4) {
+      day = parseInt(dateParts[0]);
+      month = parseInt(dateParts[1]);
+      year = parseInt(dateParts[2]);
+    } 
+    else {
+      return false; // Unknown format
+    }
+
+    // Create date manually (Month is 0-indexed in JS, so we subtract 1)
+    jsDate = new Date(year, month - 1, day);
+
   }
 
-  const date = new Date(dob);
+  // --- VALIDATION CHECKS ---
+
+  // Is it a valid date object?
+  if (isNaN(jsDate.getTime())) return false;
+
   const now = new Date();
-  
-  // Check if it's a valid date object
-  if (isNaN(date.getTime())) {
-    return false;
-  }
-  
-  // Check if date is in the future
-  if (date > now) {
-    return false;
-  }
-
-  // Optional: Check reasonable age (e.g., < 100 years, > 2 years)
   const minDate = new Date();
-  minDate.setFullYear(now.getFullYear() - 100);
-  if (date < minDate) {
-    return false;
-  }
+  minDate.setFullYear(now.getFullYear() - 100); // Max age 100 years
+
+  // Future check (Date cannot be in the future)
+  if (jsDate > now) return false;
+
+  // Too old check (User cannot be older than 100)
+  if (jsDate < minDate) return false;
 
   return true;
 };
@@ -75,7 +104,7 @@ export const validateGender = (gender: string): boolean => {
   if (!gender) return false;
   
   const validGenders = ['male', 'female'];
-  const normalizedGender = String(gender).toLowerCase();
+  const normalizedGender = gender.toLowerCase();
   
   return validGenders.includes(normalizedGender);
 };
@@ -84,15 +113,21 @@ export const validateGender = (gender: string): boolean => {
 export const validateUserRow = (row: any, rowIndex: number) => {
   // Validate all fields
   const isEmailValid = validateEmail(row.email);
-  const isFirstNameValid = validateName(row.firstName, "First Name");
-  const isLastNameValid = validateName(row.lastName, "Last Name");
+  const isFirstNameValid = validateName(row.firstName);
+  const isLastNameValid = validateName(row.lastName);
   const isRoleValid = validateRole(row.roles || row.role);
   const isDobValid = validateDateOfBirth(row.dateOfBirth);
-  const isGenderValid = validateGender(row.gender);
+  const isGenderValid = validateGender(row.Gender);
 
   // All checks must pass
   const isValid = isEmailValid && isFirstNameValid && isLastNameValid && isRoleValid && isDobValid && isGenderValid;
-
+  console.log([
+    isEmailValid,
+    isFirstNameValid,
+    isLastNameValid,
+    isDobValid,
+    isGenderValid
+  ])
   return {
     rowIndex,
     isValid,

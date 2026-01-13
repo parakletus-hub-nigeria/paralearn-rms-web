@@ -6,7 +6,7 @@ type contentType = {
     lastName:string,
     class:string,
     dateOfBirth:string,
-    gender:string,
+    Gender:string,
     guardianContact:string,
     validationStatus?:boolean
 }
@@ -75,7 +75,7 @@ const Step_Two = ({validatedFileContent,setValidatedFileContent,step,setStep,Val
                                 </thead>
                                 <tbody>
                                     {validatedFileContent.map((row, index) => (
-                                         <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "white" : "#EDEAFB" }} className={`${row.validationStatus === false ? "bg-red-[#FDDADA]" : ""}`}>
+                                         <tr key={index} className={`${row.validationStatus === false ? "bg-[#FDDADA]" : index % 2 === 0 ? "bg-white" : "bg-[#EDEAFB]"}`}>
                                             {visibleKeys.map((key, cellIndex) => (
                                                 <td key={cellIndex} className="p-3 text-xs sm:text-sm break-all whitespace-normal overflow-hidden" style={{color: row[key] == 'Published' ? "green" : "black"}}>{row[key]}</td>
                                             ))}

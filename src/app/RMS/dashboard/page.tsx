@@ -8,6 +8,7 @@ import { AddStudentDialog, AddTeacherDialog } from "@/components/RMS/dialogs";
 import { useEffect, useState } from "react";
 import { BsAlarmFill } from "react-icons/bs";
 import { toast } from "react-toastify";
+import ProtectedRoute from "@/components/protectedRoute/protectedRoute";
 
 const DashboardComponent = () => {
     const [studentCount, setStudentCount] = useState(0);
@@ -323,9 +324,11 @@ const DashboardComponent = () => {
 
 const Dashboard = () => {
   return (
-    <SideBar>
+    <ProtectedRoute>
+      <SideBar>
       <DashboardComponent />
     </SideBar>
+    </ProtectedRoute>
   );
 };
 

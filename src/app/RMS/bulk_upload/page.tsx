@@ -12,9 +12,10 @@ type contentType = {
     email:string,
     firstName:string,
     lastName:string,
+    roles:any,
     class:string,
     dateOfBirth:string,
-    gender:string,
+    Gender:string,
     guardianContact:string,
     validationStatus?:boolean
 }
@@ -29,9 +30,10 @@ const BulkUserUploadPage = () => {
      let Valid = 0
     let ValidArray = [] as contentType[]
     
-            if(fileContent.length > 0){
+        if(fileContent.length > 0){
         fileContent.forEach((Content : contentType, index) => {
         const {isValid} = validateUserRow(Content, index);
+        console.log(isValid)
         if(isValid){
             ValidArray.push({...Content,validationStatus:true})
             Valid += 1
