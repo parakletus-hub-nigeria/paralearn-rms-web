@@ -1,7 +1,10 @@
 "use client";
 import { ReactNode, useState } from "react";
-import { useDispatch } from 'react-redux';
-import { logout } from '@/state/user/userSlice';
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
+import { logout } from "@/state/user/userSlice";
+import { toast } from "react-toastify";
+import tokenManager from "@/lib/tokenManager";
 import {
   Sidebar,
   SidebarContent,
@@ -26,8 +29,30 @@ import Link from "next/link";
 const SideBar = ({ children }: { children: ReactNode }) => {
   const [selectedPath, setSelectedPath] = useState("/dashboard");
   const dispatch = useDispatch();
-  const handleLogout = () => {
-    dispatch(logout());
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      // Clear Redux state
+      dispatch(logout());
+
+      // Clear token from cookie
+      tokenManager.removeToken();
+
+      // Clear localStorage
+      localStorage.clear();
+
+      // Show success message
+      toast.success("Logged out successfully");
+
+      // Redirect to signin page
+      setTimeout(() => {
+        router.push(routespath.SIGNIN);
+      }, 1000);
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to logout");
+    }
   };
 
   const sideBarContent = [
