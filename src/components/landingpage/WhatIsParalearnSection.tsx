@@ -2,8 +2,8 @@ import Image from "next/image";
 
 const WhatIsParalearnSection = () => {
   return (
-    <section className="py-20 px-4 bg-white">
-      <div className="container mx-auto">
+    <section className="py-20 px-4">
+      <div className="container  mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-6">

@@ -1,14 +1,14 @@
 import { Clock, Check } from "lucide-react";
 
-const TestCard = ({ 
-  subject, 
-  level, 
-  category, 
-  date, 
-  time, 
-  duration, 
-  status 
-}: { 
+const TestCard = ({
+  subject,
+  level,
+  category,
+  date,
+  time,
+  duration,
+  status,
+}: {
   subject: string;
   level: string;
   category: string;
@@ -21,7 +21,9 @@ const TestCard = ({
     <div className="flex justify-between items-start mb-2">
       <div>
         <h4 className="font-semibold text-gray-900 text-sm">{subject}</h4>
-        <p className="text-xs text-gray-500">{level} | {category}</p>
+        <p className="text-xs text-gray-500">
+          {level} | {category}
+        </p>
       </div>
       {status === "scheduled" && (
         <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded">
@@ -30,7 +32,9 @@ const TestCard = ({
       )}
     </div>
     <div className="flex items-center justify-between text-xs text-gray-600 mt-3">
-      <span>{date}, {time}</span>
+      <span>
+        {date}, {time}
+      </span>
       {duration && (
         <span className="flex items-center gap-1">
           <Clock className="w-3 h-3" />
@@ -52,7 +56,7 @@ const ScoreEntryCard = () => (
 
 const CBTSection = () => {
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 relative overflow-hidden">
+    <section className="py-20 px-4 relative overflow-hidden">
       <div className="container mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
@@ -62,7 +66,9 @@ const CBTSection = () => {
               <span className="text-primary">(CBT):</span>
             </h2>
             <p className="text-lg text-gray-600 leading-relaxed max-w-lg">
-              The platform allows educators to run CBT tests seamlessly, with the built-in system handling delivery to the target student groups.
+              The platform allows educators to run CBT tests seamlessly, with
+              the built-in system handling delivery to the target student
+              groups.
             </p>
           </div>
 
@@ -70,7 +76,7 @@ const CBTSection = () => {
           <div className="relative h-[300px] flex items-center justify-center">
             {/* Background decorative gradient */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-primary/10 rounded-3xl" />
-            
+
             {/* Test Cards */}
             <div className="relative">
               {/* Maths Card - Back */}
@@ -83,7 +89,7 @@ const CBTSection = () => {
                   time="8:30 AM"
                 />
               </div>
-              
+
               {/* English Card - Front */}
               <div className="relative z-10 transform rotate-2 translate-x-12 -translate-y-4">
                 <TestCard
@@ -96,7 +102,7 @@ const CBTSection = () => {
                   status="scheduled"
                 />
               </div>
-              
+
               {/* Score Entry Card */}
               <div className="absolute bottom-0 right-0 transform translate-y-16 translate-x-8">
                 <ScoreEntryCard />
