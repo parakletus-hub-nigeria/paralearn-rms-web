@@ -1,28 +1,46 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { MoreVertical, Trash2, Eye, FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { DeleteReportDialog } from "./delete-report-dialog"
-import { PublishReportDialog } from "./publish-report-dialog"
+import { useState } from "react";
+import { MoreVertical, Trash2, Eye, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { DeleteReportDialog } from "./delete-report-dialog";
+import { PublishReportDialog } from "./publish-report-dialog";
 
 interface ReportCard {
-  id: string
-  studentId: string
-  name: string
-  class: string
-  lastUpdated: string
-  contact: string
-  status: "Published" | "Draft"
+  id: string;
+  studentId: string;
+  name: string;
+  class: string;
+  lastUpdated: string;
+  contact: string;
+  status: "Published" | "Draft";
 }
 
 interface ReportCardTableProps {
-  onViewReport?: (reportId: string) => void
+  onViewReport?: (reportId: string) => void;
 }
 
 const mockReportCards: ReportCard[] = [
@@ -89,36 +107,47 @@ const mockReportCards: ReportCard[] = [
     contact: "+23456789045６",
     status: "Published",
   },
-]
+];
 
 export function ReportCardTable({ onViewReport }: ReportCardTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedClass, setSelectedClass] = useState("All Classes")
-  const [selectedStatus, setSelectedStatus] = useState("All Status")
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [publishDialogOpen, setPublishDialogOpen] = useState(false)
-  const [selectedReport, setSelectedReport] = useState<ReportCard | null>(null)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedClass, setSelectedClass] = useState("All Classes");
+  const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<ReportCard | null>(null);
 
   const filteredCards = mockReportCards.filter((card) => {
-    const matchesSearch = card.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesClass = selectedClass === "All Classes" || card.class === selectedClass
-    const matchesStatus = selectedStatus === "All Status" || card.status === selectedStatus
+    const matchesSearch = card.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesClass =
+      selectedClass === "All Classes" || card.class === selectedClass;
+    const matchesStatus =
+      selectedStatus === "All Status" || card.status === selectedStatus;
 
-    return matchesSearch && matchesClass && matchesStatus
-  })
+    return matchesSearch && matchesClass && matchesStatus;
+  });
 
   const handleDelete = (report: ReportCard) => {
-    setSelectedReport(report)
-    setDeleteDialogOpen(true)
-  }
+    setSelectedReport(report);
+    setDeleteDialogOpen(true);
+  };
 
   const handlePublish = (report: ReportCard) => {
-    setSelectedReport(report)
-    setPublishDialogOpen(true)
-  }
+    setSelectedReport(report);
+    setPublishDialogOpen(true);
+  };
 
-  const classes = ["All Classes", "1 South", "1 North", "1 East", "1 West", "1 Central"]
-  const statuses = ["All Status", "Published", "Draft"]
+  const classes = [
+    "All Classes",
+    "1 South",
+    "1 North",
+    "1 East",
+    "1 West",
+    "1 Central",
+  ];
+  const statuses = ["All Status", "Published", "Draft"];
 
   return (
     <div className="space-y-6">
@@ -168,7 +197,9 @@ export function ReportCardTable({ onViewReport }: ReportCardTableProps) {
               <TableHead className="text-primary-foreground">ID</TableHead>
               <TableHead className="text-primary-foreground">Name</TableHead>
               <TableHead className="text-primary-foreground">Class</TableHead>
-              <TableHead className="text-primary-foreground">Last Updated</TableHead>
+              <TableHead className="text-primary-foreground">
+                Last Updated
+              </TableHead>
               <TableHead className="text-primary-foreground">Contact</TableHead>
               <TableHead className="text-primary-foreground">Status</TableHead>
               <TableHead className="text-primary-foreground">Actions</TableHead>
@@ -176,14 +207,27 @@ export function ReportCardTable({ onViewReport }: ReportCardTableProps) {
           </TableHeader>
           <TableBody>
             {filteredCards.map((card, index) => (
-              <TableRow key={card.id} className={index % 2 === 0 ? "bg-muted/30" : "bg-background"}>
-                <TableCell className="font-medium text-primary">{card.studentId}</TableCell>
+              <TableRow
+                key={card.id}
+                className={
+                  index % 2 === 0 ? "bg-primary/5" : "bg-primary-foreground"
+                }
+              >
+                <TableCell className="font-medium text-accent-foreground">
+                  {card.studentId}
+                </TableCell>
                 <TableCell>{card.name}</TableCell>
                 <TableCell>{card.class}</TableCell>
                 <TableCell>{card.lastUpdated}</TableCell>
                 <TableCell>{card.contact}</TableCell>
                 <TableCell>
-                  <Badge variant={card.status === "Published" ? "default" : "secondary"}>{card.status}</Badge>
+                  <Badge
+                    variant={
+                      card.status === "Published" ? "default" : "secondary"
+                    }
+                  >
+                    {card.status}
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -201,7 +245,10 @@ export function ReportCardTable({ onViewReport }: ReportCardTableProps) {
                         <FileText className="w-4 h-4 mr-2" />
                         Publish
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(card)} className="text-destructive">
+                      <DropdownMenuItem
+                        onClick={() => handleDelete(card)}
+                        className="text-destructive"
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete
                       </DropdownMenuItem>
@@ -216,10 +263,18 @@ export function ReportCardTable({ onViewReport }: ReportCardTableProps) {
 
       {selectedReport && (
         <>
-          <DeleteReportDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} report={selectedReport} />
-          <PublishReportDialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen} report={selectedReport} />
+          <DeleteReportDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            report={selectedReport}
+          />
+          <PublishReportDialog
+            open={publishDialogOpen}
+            onOpenChange={setPublishDialogOpen}
+            report={selectedReport}
+          />
         </>
       )}
     </div>
-  )
+  );
 }

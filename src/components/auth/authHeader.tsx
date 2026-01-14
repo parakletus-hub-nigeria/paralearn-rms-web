@@ -1,18 +1,33 @@
-"use client"
-import Image from "next/image"
-import Link from "next/link"
-import logo from "../../images/IMG-20201027-WA0000_2-removebg-preview 1.png"
+"use client";
+import Image from "next/image";
+import Link from "next/link";
+import logo from "../../images/IMG-20201027-WA0000_2-removebg-preview 1.png";
+import { routespath } from "@/lib/routepath";
 const AuthHeader = () => {
-    return <div className="flex flex-row items-center justify-between bg-white w-[100vw] ">
-        <div className="w-[20%] flex items-center justify-evenly p-2">
-            <Image src={logo} className="w-[40px] sm:w-[40px]" alt="paralearn logo"/>
-            <p className="text-black">PARA LEARN</p>
-        </div>
-        <div className=" flex flex-row items-center space-x-[20px] ">
-            <Link href="/auth/signin"><button className="px-[15px] py-[10px] text-[#641BC4] text-[18px] font-[550]">Sign in</button></Link>
-            <Link href="/auth/signup"><button className="px-[15px] py-[10px] text-[white] bg-[#641BC4] text-[18px] font-[550]">Get Started</button></Link>
-        </div>
+  return (
+    <div className="flex flex-row items-center justify-between bg-white w-[100vw] ">
+      <div className="w-[20%] flex items-center justify-evenly p-2">
+        <Image
+          src={logo}
+          className="w-[40px] sm:w-[40px]"
+          alt="paralearn logo"
+        />
+        <p className="text-black">PARA LEARN</p>
+      </div>
+      <div className=" flex flex-row items-center space-x-[20px] ">
+        <Link href={routespath.SIGNIN}>
+          <button className="px-[15px] py-[10px] text-[#641BC4] text-[18px] font-[550]">
+            Sign in
+          </button>
+        </Link>
+        <Link href={routespath.SIGNUP}>
+          <button className="px-[15px] py-[10px] text-[white] bg-[#641BC4] text-[18px] font-[550]">
+            Get Started
+          </button>
+        </Link>
+      </div>
     </div>
-}
+  );
+};
 
-export default AuthHeader
+export default AuthHeader;
