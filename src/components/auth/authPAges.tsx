@@ -230,7 +230,7 @@ export function PageThree({data,changeData,step,setStep}: any){
                         <p className="text-[20px]">Account Created, you can now login</p>
                     </DialogDescription>
                     <DialogFooter>
-                        <button className="flex flex-row items-center justify-evenly w-[100%] h-[45px] rounded-[6px] bg-[#641BC4] my-4"><Link href={"/login"} className="text-white font-bold">Login</Link></button>
+                        <button className="flex flex-row items-center justify-evenly w-[100%] h-[45px] rounded-[6px] bg-[#641BC4] my-4"><Link href={"/auth/signup "} className="text-white font-bold">Login</Link></button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

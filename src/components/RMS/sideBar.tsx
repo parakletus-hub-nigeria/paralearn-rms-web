@@ -32,7 +32,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
     },
     {
       label: "Users",
-      path: "/users",
+      path: "/RMS/users",
       icon: UserCircle,
     },
     {
@@ -42,7 +42,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
     },
     {
       label: "Bulk Upload",
-      path: "/bulk_upload",
+      path: "/RMS/bulk_upload",
       icon: DownloadIcon,
     },
     {
