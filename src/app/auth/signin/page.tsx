@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthHeader from "@/components/auth/authHeader";
 import { BiEnvelope } from "react-icons/bi";
-import { updateUserData } from "@/reduxToolKit/user/userSlice";
+// import { updateUserData } from "@/reduxToolKit/user/userSlice";
 import { ToastContainer, toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
@@ -48,7 +48,7 @@ const Signin = () => {
       if (!response.ok) {
         throw new Error(result.message || "Failed to login");
       }
-      dispatch(updateUserData(result.data));
+      // dispatch(updateUserData(result.data));
       console.log(result.data);
       // login successful
     } catch (e) {
