@@ -1,19 +1,25 @@
 const TrustedBySection = () => {
   return (
-    <div className="w-full px-6 md:px-12 lg:px-20 py-12 md:py-20">
-      <section className="gradient-purple">
-        <div className="container mx-auto flex flex-col items-center justify-center">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-12 text-center">
-            <span className="text-primary">Trusted</span> By:
-          </h2>
+    <div className="w-full px-6 md:px-12 lg:px-24 py-24 md:py-48">
+      <section className="container mx-auto">
+        <div className="flex flex-col items-center justify-center space-y-24">
+          <div className="text-center space-y-6">
+            <div className="inline-block px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 text-xs font-bold uppercase tracking-widest">
+               Our Network
+            </div>
+            <h2 className="text-4xl md:text-6xl font-black text-center tracking-tight">
+              <span className="text-hero italic">Trusted</span> By Leading Institutions
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 max-w-6xl w-full">
             {/* Havilah Academy Card */}
-            <div className="bg-card rounded-3xl p-12 shadow-lg border border-border/50 flex items-center justify-center min-h-[280px]">
-              <div className="text-center space-y-3">
+            <div className="card-premium p-16 flex flex-col items-center justify-center transform hover:scale-[1.05] transition-all group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-100/50 to-transparent dark:from-slate-800/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="text-center space-y-8 relative z-10">
                 <div className="relative mx-auto">
-                  <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border-4 border-slate-600">
-                    <svg viewBox="0 0 60 60" className="w-16 h-16 text-white">
+                  <div className="w-32 h-32 mx-auto rounded-3xl bg-slate-900 flex items-center justify-center shadow-2xl transform group-hover:rotate-6 transition-transform">
+                    <svg viewBox="0 0 60 60" className="w-20 h-20 text-white">
                       <circle cx="30" cy="15" r="4" fill="currentColor" />
                       <path
                         d="M20 35 L30 20 L40 35 L30 50 Z"
@@ -27,28 +33,29 @@ const TrustedBySection = () => {
                     </svg>
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-xs font-bold tracking-widest text-slate-600">
+                <div className="space-y-2">
+                  <span className="text-xs font-black tracking-[0.3em] text-slate-400 uppercase">
                     HAVILAH
                   </span>
-                  <h3 className="text-2xl font-black text-slate-800">
+                  <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
                     ACADEMY
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    GROWING IN WISDOM AND STATURE
+                  <p className="text-sm text-slate-500 font-medium italic">
+                    "Growing in wisdom and stature"
                   </p>
                 </div>
               </div>
             </div>
 
             {/* La Vie School Card */}
-            <div className="bg-card rounded-3xl p-12 shadow-lg border border-border/50 flex items-center justify-center min-h-[280px]">
-              <div className="text-center space-y-3">
+            <div className="card-premium p-16 flex flex-col items-center justify-center transform hover:scale-[1.05] transition-all group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-100/50 to-transparent dark:from-orange-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="text-center space-y-8 relative z-10">
                 <div className="relative mx-auto">
-                  <div className="w-24 h-24 mx-auto flex items-center justify-center">
+                  <div className="w-32 h-32 mx-auto flex items-center justify-center transform group-hover:-rotate-6 transition-transform">
                     <div className="relative">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" className="w-8 h-8 text-white">
+                      <div className="w-24 h-24 rounded-full bg-orange-600 flex items-center justify-center shadow-2xl shadow-orange-500/30">
+                        <svg viewBox="0 0 24 24" className="w-12 h-12 text-white">
                           <circle
                             cx="12"
                             cy="12"
@@ -64,26 +71,18 @@ const TrustedBySection = () => {
                           />
                         </svg>
                       </div>
-                      <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                        <div
-                          className="w-8 h-6 bg-orange-600"
-                          style={{
-                            clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-                          }}
-                        ></div>
-                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-2xl font-black text-orange-600">
+                <div className="space-y-2">
+                  <h3 className="text-4xl font-black text-orange-600 tracking-tighter">
                     LA VIE
                   </h3>
-                  <p className="text-sm font-semibold text-slate-600">
-                    School of Language Studies
+                  <p className="text-xl font-black text-slate-900 dark:text-white">
+                    School of Languages
                   </p>
-                  <p className="text-xs text-muted-foreground italic">
-                    Knowledge. Excellence. Imagination
+                  <p className="text-sm text-slate-500 font-medium italic">
+                    Knowledge • Excellence • Imagination
                   </p>
                 </div>
               </div>
@@ -94,5 +93,6 @@ const TrustedBySection = () => {
     </div>
   );
 };
+
 
 export default TrustedBySection;
