@@ -10,17 +10,30 @@ export const loginUser = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await apiClient.post(`/api/proxy${routespath.API_LOGIN}`, credentials);
-      const { user } = response.data;
+      const response = await apiClient.post(
+        `/api/proxy${routespath.API_LOGIN}`,
+        credentials
+      );
+      const { user, accessToken: responseToken } = response.data;
 
-      // access token already set as cookie from backend
-      const accessToken = tokenManager.getToken();
+      // Try to get token from response first, then from cookies (set by backend)
+      let accessToken = responseToken || tokenManager.getToken();
+
+      // If still no token, wait a bit for cookie to be set (backend might set it as httpOnly cookie)
+      if (!accessToken) {
+        // Small delay to allow backend to set cookie
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        accessToken = tokenManager.getToken();
+      }
+
       if (!accessToken) {
         return rejectWithValue("No token received from server");
       }
 
-      // Store token in cookies
-      // setAuthToken(accessToken);
+      // Store token in cookies if not already set
+      if (!tokenManager.getToken()) {
+        tokenManager.setToken(accessToken);
+      }
 
       return {
         accessToken,
@@ -80,7 +93,6 @@ export const logoutUser = createAsyncThunk(
       // Remove token from cookies
       removeAuthToken();
       tokenManager.clearAllAuthCookies();
-      
 
       return null;
     } catch (error: any) {
@@ -106,15 +118,27 @@ export const refreshAuthToken = createAsyncThunk(
   "user/refreshToken",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(routespath.API_REFRESH);
-      const { accessToken } = response.data;
+      // Use GET method for refresh token (as used in protectedRoute)
+      const response = await apiClient.get(
+        `/api/proxy${routespath.API_REFRESH}`
+      );
+      const { accessToken: responseToken } = response.data;
+
+      // Try to get token from response first, then from cookies
+      let accessToken = responseToken || tokenManager.getToken();
+
+      // If still no token, wait a bit for cookie to be set
+      if (!accessToken) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        accessToken = tokenManager.getToken();
+      }
 
       if (!accessToken) {
         return rejectWithValue("No token received from refresh endpoint");
       }
 
-      // Update token in cookies
-      setAuthToken(accessToken);
+      // Update token in cookies and Redux
+      tokenManager.setToken(accessToken);
 
       return { accessToken };
     } catch (error: any) {
@@ -128,6 +152,7 @@ export const refreshAuthToken = createAsyncThunk(
 
       // Clear auth if refresh fails
       removeAuthToken();
+      tokenManager.removeToken();
 
       return rejectWithValue(errorMessage);
     }
@@ -179,7 +204,9 @@ export const requestPasswordReset = createAsyncThunk(
   "user/requestPasswordReset",
   async (email: string, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(routespath.API_FORGOT_PASSWORD, { email });
+      const response = await apiClient.post(routespath.API_FORGOT_PASSWORD, {
+        email,
+      });
       return response.data;
     } catch (error: any) {
       const errorMessage =
@@ -199,7 +226,10 @@ export const confirmPasswordReset = createAsyncThunk(
   "user/confirmPasswordReset",
   async (data: { token: string; newPassword: string }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(routespath.API_RESET_PASSWORD, data);
+      const response = await apiClient.post(
+        routespath.API_RESET_PASSWORD,
+        data
+      );
       return response.data;
     } catch (error: any) {
       const errorMessage =

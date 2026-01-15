@@ -22,56 +22,127 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        if (!accesstoken) {
-          // try to get a new accessToken from refresh endpoint
-          const refreshResponse = await apiFetch(
-            "/api/proxy/auth/refresh-token",
-            { method: "GET" }
-          );
-          const refresh = await refreshResponse.json();
+        // Check if token exists in Redux state
+        let currentToken = accesstoken;
 
-          if (
-            !refreshResponse.ok ||
-            refresh.status == 401 ||
-            !tokenManager.getToken
-          ) {
-            throw new Error("token not found");
+        // If no token in Redux, try to get from cookies
+        if (!currentToken || currentToken === null) {
+          currentToken = tokenManager.getToken();
+
+          // If still no token, try to refresh
+          if (!currentToken) {
+            try {
+              const refreshResponse = await apiFetch(
+                `/api/proxy${routespath.API_REFRESH}`,
+                { method: "GET", credentials: "include" }
+              );
+
+              if (!refreshResponse.ok) {
+                throw new Error("Refresh token failed");
+              }
+
+              const refresh = await refreshResponse.json();
+
+              // Extract token from response or cookies
+              const newToken =
+                refresh.accessToken ||
+                refresh.data?.accessToken ||
+                tokenManager.getToken();
+
+              if (
+                !newToken ||
+                refresh.status === 401 ||
+                refresh.statusCode === "401"
+              ) {
+                throw new Error("token not found");
+              }
+
+              // Update Redux state with new token
+              dispatch(updateAccessToken({ accessToken: newToken }));
+              currentToken = newToken;
+            } catch (refreshError) {
+              console.error("Token refresh failed:", refreshError);
+              setIsAuthorized(false);
+              toast.info("Please sign in to access this page.");
+              if (pathName !== routespath.SIGNIN) {
+                setTimeout(() => {
+                  router.push(routespath.SIGNIN);
+                }, 1000);
+              }
+              return;
+            }
+          } else {
+            // Token found in cookies but not in Redux, update Redux
+            dispatch(updateAccessToken({ accessToken: currentToken }));
           }
-          dispatch(updateAccessToken({ accessToken: accesstoken }));
         }
-        if (decodeToken(accesstoken) === false) {
-          // try to get a new accessToken from refresh endpoint
-          const refreshResponse = await apiFetch(
-            "/api/proxy/auth/refresh-token",
-            { method: "GET" }
-          );
-          const refresh = await refreshResponse.json();
-          console.log("...decoding");
-          if (
-            !refreshResponse.ok ||
-            refresh.statusCode == "401" ||
-            !decodeToken(accesstoken)
-          ) {
-            throw new Error("token expired");
+
+        // Verify token is valid (not expired)
+        if (currentToken && decodeToken(currentToken) === false) {
+          // Token expired, try to refresh
+          try {
+            const refreshResponse = await apiFetch(
+              `/api/proxy${routespath.API_REFRESH}`,
+              { method: "GET", credentials: "include" }
+            );
+
+            if (!refreshResponse.ok) {
+              throw new Error("Refresh token failed");
+            }
+
+            const refresh = await refreshResponse.json();
+
+            // Extract new token from response or cookies
+            const newToken =
+              refresh.accessToken ||
+              refresh.data?.accessToken ||
+              tokenManager.getToken();
+
+            if (
+              !newToken ||
+              refresh.status === 401 ||
+              refresh.statusCode === "401"
+            ) {
+              throw new Error("token expired");
+            }
+
+            // Verify new token is valid
+            if (decodeToken(newToken) === false) {
+              throw new Error("refreshed token is also expired");
+            }
+
+            // Update Redux state with new token
+            dispatch(updateAccessToken({ accessToken: newToken }));
+            currentToken = newToken;
+          } catch (refreshError) {
+            console.error("Token refresh failed:", refreshError);
+            setIsAuthorized(false);
+            toast.info("Please sign in to access this page.");
+            if (pathName !== routespath.SIGNIN) {
+              setTimeout(() => {
+                router.push(routespath.SIGNIN);
+              }, 1000);
+            }
+            return;
           }
         }
+
+        // All checks passed
         setIsAuthorized(true);
       } catch (error) {
-        if (error) {
-          console.log(error);
-          setIsAuthorized(false);
-          toast.info("Please sign in to access this page.");
-          if (pathName !== routespath.SIGNIN) {
-            setTimeout(() => {
-              router.push(routespath.SIGNIN);
-            }, 1000);
-          }
+        console.error("Token verification error:", error);
+        setIsAuthorized(false);
+        toast.info("Please sign in to access this page.");
+        if (pathName !== routespath.SIGNIN) {
+          setTimeout(() => {
+            router.push(routespath.SIGNIN);
+          }, 1000);
         }
       }
     };
 
     verifyToken();
-  }, [accesstoken, pathName, router]);
+  }, [accesstoken, pathName, router, dispatch]);
   if (!isAuthorized) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

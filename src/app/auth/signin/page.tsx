@@ -21,7 +21,6 @@ const Signin = () => {
   const { success, error, loading } = useSelector((state: any) => state.user);
 
   const router = useRouter();
-  const accessToken = useSelector((state: any) => state.accessToken);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setData((p) => ({ ...p, [e.target.name]: e.target.value }));
@@ -34,29 +33,18 @@ const Signin = () => {
 
   const submit = async () => {
     try {
-      //   const response = await fetch("/api/proxy/auth/login", {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json"
-      //     },
-      //     body: JSON.stringify(data)
-      //   })
-      //   const result = await response.json();
-      //   if(!response.ok){
-      //     throw new Error(result.message || "Failed to login");
-      //   }
-      //   dispatch(updateUserData(result.data))
-      await dispatch(loginUser(data)).unwrap();
+      const result = await dispatch(loginUser(data)).unwrap();
 
-      setTimeout(() => {
-        console.log("success", success);
-        if (success) {
-          toast.success("Logged in successfully!");
-          router.push(routespath.DASHBOARD);
-        }
-      }, 500);
+      if (result && result.accessToken) {
+        toast.success("Logged in successfully!");
+        router.push(routespath.DASHBOARD);
+      } else {
+        toast.error("Login failed. No token received.");
+      }
     } catch (e: any) {
-      toast.error("Login failed. Please check your credentials and try again.");
+      toast.error(
+        e || "Login failed. Please check your credentials and try again."
+      );
     }
   };
 

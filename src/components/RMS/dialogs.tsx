@@ -472,11 +472,14 @@ type props = {
 export function StudentDialog({
   children,
   props,
+  onStudentDeleted,
 }: {
   children: ReactNode;
   props: any;
+  onStudentDeleted?: (studentId: string) => void;
 }) {
   const [formData, setFormData] = useState<any>({
+    db_id: props?.db_id || "",
     id: props?.id || props?.email || "",
     firstName: props?.firstName || props?.name?.split(" ")[0] || "",
     lastName:
@@ -527,7 +530,7 @@ export function StudentDialog({
         guardianPhone: formData.guardianPhone,
       };
 
-      const response = await apiFetch(`/api/proxy/users/${formData.id}`, {
+      const response = await apiFetch(`/api/proxy/users/${formData.db_id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -567,20 +570,27 @@ export function StudentDialog({
       // @ts-ignore
       const { apiFetch } = await import("@/lib/interceptor");
 
-      const response = await apiFetch(`/api/proxy/users/${formData.id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await apiFetch(
+        `/api/proxy/users/${formData.db_id}/hard`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.ok || response.status === 200) {
         const result = await response.json();
         toast.success(result.message || "Student deleted successfully");
         // Close the dialog after successful deletion
         dialogCloseRef.current?.click();
-        // Reload the page to reflect changes
-        window.location.reload();
+        // Call the callback if provided, otherwise reload the page
+        if (onStudentDeleted) {
+          onStudentDeleted(formData.id);
+        } else {
+          window.location.reload();
+        }
       } else {
         const result = await response.json();
         toast.error(result.message || "Failed to delete student");

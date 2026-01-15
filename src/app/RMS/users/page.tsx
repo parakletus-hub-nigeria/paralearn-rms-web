@@ -67,10 +67,25 @@ const UserComponent = () => {
     },
   ];
 
+  const handleStudentDeleted = (studentId: string) => {
+    setStudents((prevStudents) =>
+      prevStudents.filter((student) => student.id !== studentId)
+    );
+    setStudentCount((count) => count - 1);
+  };
+
+  const handleTeacherDeleted = (teacherId: string) => {
+    setTeachers((prevTeachers) =>
+      prevTeachers.filter((teacher) => teacher.id !== teacherId)
+    );
+    setTeacherCount((count) => count - 1);
+  };
+
   const displayTableData =
     selectedType === "student"
       ? students.map((item: any) => ({
-          id: item.id,
+          db_id: item.id,
+          id: item.studentId,
           name: `${item.firstName} ${item.lastName}`,
           email: item.email,
           dateOfBirth: item.dateOfBirth
@@ -82,7 +97,8 @@ const UserComponent = () => {
           guardianPhone: item.guardianPhone || "N/A",
         }))
       : teachers.map((item: any) => ({
-          id: item.email,
+          db_id: item.id,
+          id: item.teacherId,
           name: `${item.firstName} ${item.lastName}`,
           email: item.email,
           dateOfBirth: item.dateOfBirth
@@ -146,8 +162,9 @@ const UserComponent = () => {
               style={{ backgroundColor: "#AD8ED6", borderRadius: "6px" }}
               className=""
             >
-              {Object.keys(displayTableData[0]).map(
-                (key: string, idx: number) => (
+              {Object.keys(displayTableData[0])
+                .filter((key) => key !== "db_id")
+                .map((key: string, idx: number) => (
                   <th
                     key={key}
                     className="p-2 text-white text-[12px]"
@@ -155,37 +172,50 @@ const UserComponent = () => {
                       borderRadius:
                         idx === 0
                           ? "6px 0 0 6px"
-                          : idx === Object.keys(displayTableData[0]).length - 1
+                          : idx ===
+                            Object.keys(displayTableData[0]).filter(
+                              (k) => k !== "db_id"
+                            ).length -
+                              1
                           ? "0 6px 6px 0"
                           : "0",
                     }}
                   >
                     {key.charAt(0).toUpperCase() + key.slice(1)}
                   </th>
-                )
-              )}
+                ))}
             </tr>
           </thead>
           <tbody>
             {displayTableData.map((row: any, index: number) => (
-              <StudentDialog props={row} key={index}>
+              <StudentDialog
+                props={row}
+                key={index}
+                onStudentDeleted={
+                  selectedType === "student"
+                    ? handleStudentDeleted
+                    : handleTeacherDeleted
+                }
+              >
                 <tr
                   style={{
                     backgroundColor: index % 2 === 0 ? "white" : "#EDEAFB",
                   }}
                   className=""
                 >
-                  {Object.values(row).map((value: any, cellIndex: number) => (
-                    <td
-                      key={cellIndex}
-                      className="p-2 text-[12px]"
-                      style={{
-                        color: value == "Published" ? "green" : "black",
-                      }}
-                    >
-                      {String(value)}
-                    </td>
-                  ))}
+                  {Object.keys(row)
+                    .filter((key) => key !== "db_id")
+                    .map((key: string, cellIndex: number) => (
+                      <td
+                        key={cellIndex}
+                        className="p-2 text-[12px]"
+                        style={{
+                          color: row[key] == "Published" ? "green" : "black",
+                        }}
+                      >
+                        {String(row[key])}
+                      </td>
+                    ))}
                 </tr>
               </StudentDialog>
             ))}
