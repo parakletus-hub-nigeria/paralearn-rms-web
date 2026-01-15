@@ -4,16 +4,18 @@ import axios, {
   AxiosError,
 } from "axios";
 import { tokenManager } from "./tokenManager";
+import { routespath } from "./routepath";
 
 // Our global axios instance for all API calls
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+  // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
   timeout: 30000,
   withCredentials: true, // Important for cookies
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
+    "X-Tenant-Subdomain": "",
   },
 });
 
@@ -62,27 +64,82 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const config = error.config as InternalAxiosRequestConfig;
+    const config = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
-      console.warn(
-        "[API] Unauthorized - Clearing auth and redirecting to login"
-      );
-
-      // Clear auth cookies and tokens
-      tokenManager.removeToken();
-
-      // Redirect to login page
-      if (typeof window !== "undefined") {
-        // Prevent infinite redirect loops
-        const currentPath = window.location.pathname;
-        if (!currentPath.includes("/auth/")) {
-          window.location.href = "/auth/signin";
+      // Prevent infinite retry loops
+      if (config._retry) {
+        console.warn("[API] Refresh token failed, redirecting to login");
+        tokenManager.removeToken();
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes("/auth/")) {
+            window.location.href = "/auth/signin";
+          }
         }
+        return Promise.reject(error);
       }
 
-      return Promise.reject(error);
+      // Mark request as retried
+      config._retry = true;
+
+      try {
+        console.log("[API] Attempting to refresh token...");
+
+        // Try to refresh the token
+        const refreshResponse = await axios.get(
+          `/api/proxy${routespath.API_REFRESH}`,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const refreshData = refreshResponse.data;
+        const newToken =
+          refreshData.accessToken ||
+          refreshData.data?.accessToken ||
+          tokenManager.getToken();
+
+        if (newToken && refreshResponse.status === 200) {
+          // Update token in cookies
+          tokenManager.setToken(newToken);
+
+          // Update the original request with new token
+          if (config.headers) {
+            config.headers.Authorization = `Bearer ${newToken}`;
+          }
+
+          console.log(
+            "[API] Token refreshed successfully, retrying original request"
+          );
+
+          // Retry the original request with new token
+          return apiClient(config);
+        } else {
+          throw new Error("No token received from refresh");
+        }
+      } catch (refreshError) {
+        console.error("[API] Token refresh failed:", refreshError);
+
+        // Clear auth on refresh failure
+        tokenManager.removeToken();
+
+        // Redirect to login page
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes("/auth/")) {
+            window.location.href = "/auth/signin";
+          }
+        }
+
+        return Promise.reject(refreshError);
+      }
     }
 
     // Handle 403 Forbidden
