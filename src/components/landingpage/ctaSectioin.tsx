@@ -16,22 +16,24 @@ const CTASection = () => {
     <div className="w-full text-slate-900 dark:text-white selection:bg-primary selection:text-white">
       {/* Hero Section */}
       <div className="w-full px-6 md:px-12 lg:px-24 py-24 md:py-60 overflow-hidden relative">
-         {/* Background flares */}
-         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full pointer-events-none animate-float-slow" />
-         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none animate-float-slower" />
+         {/* Enhanced Background flares */}
+         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-primary/15 via-purple-500/10 to-indigo-500/15 blur-[140px] rounded-full pointer-events-none animate-float-slow" />
+         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-500/15 via-purple-500/10 to-primary/15 blur-[140px] rounded-full pointer-events-none animate-float-slower" />
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-r from-primary/10 via-purple-500/8 to-indigo-500/10 blur-[100px] rounded-full pointer-events-none animate-pulse" />
          
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-16 lg:gap-32">
             <h1 className="text-6xl md:text-8xl lg:text-[10rem] font-black leading-[0.9] tracking-tighter drop-shadow-2xl">
               Ready to <br />
-              <span className="text-hero italic drop-shadow-2xl">dive in?</span>
+              <span className="text-hero italic drop-shadow-2xl bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-600 to-indigo-600 animate-gradient-x">dive in?</span>
             </h1>
             <div className="space-y-12 group max-w-xl">
                <p className="text-2xl md:text-4xl text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
-                  Start your free trial today and <span className="text-primary italic">join the future</span> of African education.
+                  Start your free trial today and <span className="text-primary italic font-black bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">join the future</span> of African education.
                </p>
-               <Button className="h-24 px-16 rounded-[2rem] bg-primary text-white hover:bg-primary/90 transition-all text-2xl font-black shadow-[0_30px_60px_-15px_rgba(100,27,196,0.4)] group-hover:-translate-y-2 hover:scale-[1.02]">
-                 Get Started Now
+               <Button className="h-24 px-16 rounded-[2rem] bg-gradient-to-r from-primary via-purple-600 to-indigo-600 text-white hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 transition-all text-2xl font-black shadow-[0_30px_60px_-15px_rgba(100,27,196,0.5)] group-hover:-translate-y-2 hover:scale-[1.02] hover:shadow-[0_40px_80px_-15px_rgba(100,27,196,0.6)] relative overflow-hidden">
+                 <span className="relative z-10">Get Started Now</span>
+                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                </Button>
             </div>
           </div>

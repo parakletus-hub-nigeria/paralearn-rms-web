@@ -1,10 +1,12 @@
 name: Staging Sync CI/CD
 
+# DISABLED - Workflow is currently disabled (changed to manual trigger only)
 on:
-  push:
-    branches:
-      - '**'
-      - '!Staging-Branch' # Avoid infinite loops or redundant runs on staging itself
+  workflow_dispatch: # Only runs when manually triggered from GitHub UI
+  # push:
+  #   branches:
+  #     - '**'
+  #     - '!Staging-Branch' # Avoid infinite loops or redundant runs on staging itself
 
 jobs:
   verify:
