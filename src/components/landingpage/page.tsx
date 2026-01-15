@@ -15,26 +15,64 @@ import TrustedBySection from "./trustedBySection";
 import CTASection from "./ctaSectioin";
 import { GradientSection } from "@/components/GradientSection";
 
+import { ScrollReveal } from "./ScrollReveal";
+
 const LandingPage = () => {
   return (
     <GradientSection className="min-h-screen">
       <Header />
       <main>
-        <HeroSection />
-        <SchoolSuiteSection />
-        <ManagementSection />
-        <SchedulingSection />
-        <CBTSection />
-        <WhatIsParalearnSection />
-        <WhatYouCanDo />
-        <FeaturesSection />
-        <ToolsSection />
-        <AssessmentsSection />
-        <TrustedBySection />
-        <CTASection />
+        <ScrollReveal animation="reveal" delay="0.1s">
+          <HeroSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <SchoolSuiteSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal-left">
+          <ManagementSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal-right">
+          <SchedulingSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <CBTSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <WhatIsParalearnSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <WhatYouCanDo />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <FeaturesSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <ToolsSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <AssessmentsSection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <TrustedBySection />
+        </ScrollReveal>
+        
+        <ScrollReveal animation="reveal">
+          <CTASection />
+        </ScrollReveal>
       </main>
     </GradientSection>
   );
 };
+
 
 export default LandingPage;
