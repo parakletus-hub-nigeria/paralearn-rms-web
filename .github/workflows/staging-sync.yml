@@ -1,0 +1,65 @@
+name: Staging Sync CI/CD
+
+# DISABLED - Workflow is currently disabled (changed to manual trigger only)
+on:
+  workflow_dispatch: # Only runs when manually triggered from GitHub UI
+  # push:
+  #   branches:
+  #     - '**'
+  #     - '!Staging-Branch' # Avoid infinite loops or redundant runs on staging itself
+
+jobs:
+  verify:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Project
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+  merge-to-staging:
+    name: Sync with Staging-Branch
+    needs: verify
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Merge and Push to Staging
+        run: |
+          # Ensure Staging-Branch is available locally
+          git fetch origin Staging-Branch:Staging-Branch || git checkout -b Staging-Branch origin/Staging-Branch
+          
+          # Switch to Staging-Branch
+          git checkout Staging-Branch
+          
+          # Merge the pushed commit into Staging-Branch
+          # Using --no-ff to keep a record of the merge
+          git merge --no-ff ${{ github.sha }} -m "Auto-merge push from ${{ github.ref_name }} (Commit: ${{ github.sha }}) into Staging-Branch"
+          
+          # Push the updated Staging-Branch back to origin
+          git push origin Staging-Branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
