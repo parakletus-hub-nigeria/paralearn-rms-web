@@ -1,13 +1,34 @@
-const Logo = () => {
+interface LogoProps {
+  size?: "sm" | "md" | "lg";
+}
+
+const Logo = ({ size = "md" }: LogoProps) => {
+  const sizeClasses = {
+    sm: {
+      svg: "w-6 h-6",
+      text: "text-xs",
+    },
+    md: {
+      svg: "w-10 h-10",
+      text: "text-lg",
+    },
+    lg: {
+      svg: "w-12 h-12",
+      text: "text-xl",
+    },
+  };
+
+  const currentSize = sizeClasses[size];
+
   return (
     <div className="flex items-center gap-2">
       <svg
-        width="40"
-        height="40"
+        width={size === "sm" ? "24" : size === "lg" ? "48" : "40"}
+        height={size === "sm" ? "24" : size === "lg" ? "48" : "40"}
         viewBox="0 0 40 40"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="text-primary"
+        className={`text-primary ${currentSize.svg}`}
       >
         {/* Tree trunk */}
         <path
@@ -48,7 +69,7 @@ const Logo = () => {
         <circle cx="17" cy="6" r="2" fill="currentColor" opacity="0.7" />
         <circle cx="23" cy="6" r="2" fill="currentColor" opacity="0.7" />
       </svg>
-      <span className="font-display text-lg font-semibold text-hero">
+      <span className={`font-display ${currentSize.text} font-semibold text-hero`}>
         PARA <span className="font-normal">LEARN</span>
       </span>
     </div>

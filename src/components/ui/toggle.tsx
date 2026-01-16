@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import * as TogglePrimitive from '@radix-ui/react-toggle'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
@@ -28,20 +27,39 @@ const toggleVariants = cva(
   },
 )
 
-function Toggle({
-  className,
-  variant,
-  size,
-  ...props
-}: React.ComponentProps<typeof TogglePrimitive.Root> &
-  VariantProps<typeof toggleVariants>) {
-  return (
-    <TogglePrimitive.Root
-      data-slot="toggle"
-      className={cn(toggleVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
+interface ToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof toggleVariants> {
+  pressed?: boolean
+  onPressedChange?: (pressed: boolean) => void
 }
+
+const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
+  ({ className, variant, size, pressed, onPressedChange, onClick, ...props }, ref) => {
+    const [internalPressed, setInternalPressed] = React.useState(pressed ?? false)
+    const isPressed = pressed !== undefined ? pressed : internalPressed
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      const newPressed = !isPressed
+      if (pressed === undefined) {
+        setInternalPressed(newPressed)
+      }
+      onPressedChange?.(newPressed)
+      onClick?.(e)
+    }
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        data-slot="toggle"
+        data-state={isPressed ? 'on' : 'off'}
+        aria-pressed={isPressed}
+        className={cn(toggleVariants({ variant, size, className }))}
+        onClick={handleClick}
+        {...props}
+      />
+    )
+  }
+)
+Toggle.displayName = 'Toggle'
 
 export { Toggle, toggleVariants }
