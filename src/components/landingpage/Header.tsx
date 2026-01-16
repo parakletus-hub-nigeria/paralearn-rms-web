@@ -17,8 +17,15 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     const handleScroll = () => {
       const currentScrollY = window.scrollY || document.documentElement.scrollTop;
       const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
@@ -45,7 +52,7 @@ const Header = () => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, mounted]);
 
   const navigationLinks = [
     { label: "Products", href: "#products" },
@@ -82,7 +89,7 @@ const Header = () => {
               />
            </div>
            <span className="text-base sm:text-lg md:text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
-             PARALEARN
+             ParaLearn
            </span>
         </div>
 
@@ -93,10 +100,10 @@ const Header = () => {
               <a 
                 key={index}
                 href={link.href} 
-                className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary transition-all uppercase tracking-widest relative group"
+                className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary active:text-slate-600 focus:text-slate-600 transition-colors uppercase tracking-widest relative focus:outline-none group"
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 group-hover:w-full transition-all duration-300" />
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 group-hover:w-full group-active:w-0 group-focus:w-0 transition-all duration-300 pointer-events-none" />
               </a>
             ))}
           </div>
@@ -130,52 +137,61 @@ const Header = () => {
             Sign In
           </button>
           
-          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-900 dark:text-white" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 mt-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 shadow-lg rounded-lg p-2">
-              {/* Mobile Navigation Links */}
-              {navigationLinks.map((link, index) => (
-                <DropdownMenuItem key={index} asChild>
-                  <a
-                    href={link.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer uppercase tracking-widest rounded-md"
-                  >
-                    {link.label}
-                  </a>
-                </DropdownMenuItem>
-              ))}
-              
-              <div className="border-t border-gray-200 dark:border-gray-800 my-1" />
-              
-              {/* Mobile Action Buttons */}
-              <DropdownMenuItem asChild className="p-0">
-                <button 
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    const event = new CustomEvent('openLoginModal');
-                    window.dispatchEvent(event);
-                  }}
-                  className="w-full text-sm font-bold text-slate-900 dark:text-white px-3 py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-md transition-all duration-300 border border-slate-200 dark:border-white/20"
-                >
-                  Sign In
+          {mounted ? (
+            <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-900 dark:text-white" />
                 </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="p-0">
-                <Button 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="w-full rounded-full h-10 font-black shadow-lg shadow-primary/40 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 relative overflow-hidden group text-xs mt-1"
-                >
-                  <span className="relative z-10">Enroll Now</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                </Button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mt-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 shadow-lg rounded-lg p-2">
+                {/* Mobile Navigation Links */}
+                {navigationLinks.map((link, index) => (
+                  <DropdownMenuItem key={index} asChild>
+                    <a
+                      href={link.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer uppercase tracking-widest rounded-md"
+                    >
+                      {link.label}
+                    </a>
+                  </DropdownMenuItem>
+                ))}
+                
+                <div className="border-t border-gray-200 dark:border-gray-800 my-1" />
+                
+                {/* Mobile Action Buttons */}
+                <DropdownMenuItem asChild className="p-0">
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      const event = new CustomEvent('openLoginModal');
+                      window.dispatchEvent(event);
+                    }}
+                    className="w-full text-sm font-bold text-slate-900 dark:text-white px-3 py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-md transition-all duration-300 border border-slate-200 dark:border-white/20"
+                  >
+                    Sign In
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="p-0">
+                  <Button 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full rounded-full h-10 font-black shadow-lg shadow-primary/40 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 relative overflow-hidden group text-xs mt-1"
+                  >
+                    <span className="relative z-10">Enroll Now</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  </Button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <button 
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-900 dark:text-white" />
+            </button>
+          )}
         </div>
       </nav>
     </header>
