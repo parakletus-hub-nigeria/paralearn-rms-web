@@ -5,6 +5,7 @@ import Link from "next/link"
 import AuthHeader from "@/components/auth/authHeader"
 import { BiEnvelope } from "react-icons/bi"
 import { ArrowLeft, KeyRound } from "lucide-react"
+import { toast,ToastContainer } from "react-toastify"
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("")
@@ -28,7 +29,7 @@ const ForgotPassword = () => {
     setLoading(true)
     try {
       // Mock API call - replace with real endpoint
-      const res = await fetch("/api/auth/forgot-password", {
+      const res = await fetch("/api/proxy/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -39,10 +40,10 @@ const ForgotPassword = () => {
         setSubmitted(true)
         setEmail("")
       } else {
-        setError(json.message || "An error occurred. Please try again.")
+        throw new Error (json.message || "An error occurred. Please try again.")
       }
     } catch (e) {
-      setError("Network error. Please try again.")
+      toast.error("Failed to send reset link. Please try again later.")
     } finally {
       setLoading(false)
     }
@@ -50,6 +51,7 @@ const ForgotPassword = () => {
 
   return (
     <div className="flex flex-col items-center w-[100%] min-h-[100vh]">
+      <ToastContainer />
       <AuthHeader />
       <div className="  w-[95%] md:w-[70%] lg:w-[45%] flex flex-col items-center justify-between py-[40px] min-h-[445px] h-auto mt-[30px] mb-[30px]">
         {!submitted ? (

@@ -48,10 +48,23 @@ const initialState: UserState = {
   success: false,
 };
 
+type User = {
+    id: string,
+    email: string,
+    firstName: string,
+    lastName: string,
+    schoolId: string,
+    roles: string[],
+  }
+
 const userSlice = createSlice({
   name: "user",
   initialState,
-  reducers: {},
+  reducers: {
+     updateAccessToken: (state, action: PayloadAction<{  accessToken: any }>) => {
+      state.accessToken = action.payload.accessToken;
+    }
+  },
 
   extraReducers: (builder) => {
     // Handling login states
@@ -199,6 +212,6 @@ const userSlice = createSlice({
 });
 // Export thunks for use in components
 export { loginUser, logoutUser, fetchUserData, refreshAuthToken, signupUser };
-
+export const {updateAccessToken} = userSlice.actions
 const userReducer = userSlice.reducer;
 export default userReducer;

@@ -4,7 +4,8 @@ import { Dialog, DialogClose, DialogContent, DialogFooter } from "../ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { CheckCircle } from "lucide-react";
-
+import { ToastContainer,toast } from "react-toastify";
+import { Spinner } from "../ui/spinner";
 interface formData {
     schoolName: string
     subdomain: string
@@ -151,35 +152,48 @@ export function PageThree({data,changeData,step,setStep}: any){
         }
     }
 
-    const submit =  async () => {
-        // data.map( (item: any,index : number) => {
-        //     if(!item || item == ""){
-        //         return false
-        //     }
-        // })
-
-        //  const registerAdmin = await fetch('/api/auth/registerAdmin',{
-        //         headers:{
-        //             'Content-Type':'application/json'
-        //         },
-        //         method:'POST',
-        //         body: JSON.stringify(data),
-        //     })
-
-        //     if(registerAdmin.ok){
-        //         const res = await registerAdmin.json()
-        //         console.log(res);
-        //     }
-        
-        console.log(data)
-
-        setDisable(true)
-    }
-
-
     const [disable,setDisable] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
     const [phoneAuth, setPhoneAuth]  = useState(checkPhone(data["phoneNumber"]))
     const [agreement,setAgreement] = useState(data["agreement"])
+
+    const submit =  async () => {
+        setIsLoading(true)
+        
+        const backendData = {
+            schoolName: data.schoolName,
+            domain: data.subdomain,
+            adminEmail: data.adminEmail,
+            adminPassword: data.password,
+            adminFirstName: "",
+            adminLastName:"",
+            phoneNumber: data.phoneNumber,
+            schoolAddress: data.schoolAddress,
+            motto: null,
+            website: null,
+        }
+
+        try {
+             const registerAdmin = await fetch('/api/proxy/auth/register-school',{
+                headers:{
+                    'Content-Type':'application/json'
+                },
+                method:'POST',
+                body: JSON.stringify(backendData),
+            })
+
+            const res = await registerAdmin.json()
+            if(!registerAdmin.ok) throw new Error(res.message || "Failed to create account. Please try again.")
+
+             console.log(res);
+                setDisable(true)
+        } catch (error) {
+            console.log(error);
+            toast.error(error instanceof Error ? error.message : "An unexpected error occurred.");
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     const forms = [
    {
@@ -214,13 +228,16 @@ export function PageThree({data,changeData,step,setStep}: any){
                 <label htmlFor="agreement">I agree to the ParaLearn RMS Terms of Service and Privacy Policy. I confirm that I have the authority to register this school.</label>
             </div>
         {/* submit button */}
+        <ToastContainer />
         </div>
             {step == 3 &&   <div className="w-[100%] flex justify-evenly">
-                   <button onClick={() => {setStep(step - 1)}} className="w-[35%] rounded-[12px]  font-semibold text-black h-[52px] flex flex-row items-center justify-center border-[1px] border-black">
+                   <button onClick={() => {setStep(step - 1)}} disabled={isLoading} className="w-[35%] rounded-[12px]  font-semibold text-black h-[52px] flex flex-row items-center justify-center border-[1px] border-black">
             back </button>
             {/* create school */}
-                <button onClick={() => {submit()}} disabled={!phoneAuth || !agreement} style={!phoneAuth || !agreement? {backgroundColor:"#a166f0"} : {backgroundColor:"#641BC4"}} className="w-[35%] rounded-[12px] bg-[#641BC4] font-semibold text-white h-[52px] flex flex-row items-center justify-center">
-            Create School </button>
+                <button onClick={submit} disabled={!phoneAuth || !agreement || isLoading} style={(!phoneAuth || !agreement || isLoading)? {backgroundColor:"#a166f0"} : {backgroundColor:"#641BC4"}} className="w-[35%] rounded-[12px] bg-[#641BC4] font-semibold text-white h-[52px] flex flex-row items-center justify-center gap-2">
+                    {isLoading && <Spinner />}
+                    {isLoading ? "Creating..." : "Create School"}
+                </button>
                 </div>}
 
             <Dialog open={disable} onOpenChange={() => setDisable(false)}>
@@ -230,7 +247,9 @@ export function PageThree({data,changeData,step,setStep}: any){
                         <p className="text-[20px]">Account Created, you can now login</p>
                     </DialogDescription>
                     <DialogFooter>
-                        <button className="flex flex-row items-center justify-evenly w-[100%] h-[45px] rounded-[6px] bg-[#641BC4] my-4"><Link href={"/auth/signup "} className="text-white font-bold">Login</Link></button>
+                        <Link href={"/auth/signin"} className="text-white font-bold w-[100%] ">
+                            <button className="flex flex-row items-center justify-evenly w-[100%] h-[45px] rounded-[6px] bg-[#641BC4] my-4 text-white font-bold">Login</button>
+                        </Link>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
