@@ -14,6 +14,9 @@ import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { ReactNode, useState, useRef } from "react";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/reduxToolKit/store";
+import { deleteUser, fetchAllUsers } from "@/reduxToolKit/user/userThunks";
 
 export function AddStudentDialog({ children }: { children: ReactNode }) {
   const [formData, setFormData] = useState({
@@ -567,36 +570,17 @@ export function StudentDialog({
 
     setDeleting(true);
     try {
-      // @ts-ignore
-      const { apiFetch } = await import("@/lib/interceptor");
-
-      const response = await apiFetch(
-        `/api/proxy/users/${formData.db_id}/hard`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok || response.status === 200) {
-        const result = await response.json();
-        toast.success(result.message || "Student deleted successfully");
-        // Close the dialog after successful deletion
-        dialogCloseRef.current?.click();
-        // Call the callback if provided, otherwise reload the page
-        if (onStudentDeleted) {
-          onStudentDeleted(formData.id);
-        } else {
-          window.location.reload();
-        }
-      } else {
-        const result = await response.json();
-        toast.error(result.message || "Failed to delete student");
+      const result = await dispatch(deleteUser(formData.db_id)).unwrap();
+      
+      toast.success(result.message || "Student deleted successfully");
+      // Close the dialog after successful deletion
+      dialogCloseRef.current?.click();
+      // Call the callback if provided
+      if (onStudentDeleted) {
+        onStudentDeleted(formData.id);
       }
     } catch (err: any) {
-      toast.error(err.message || "Network error");
+      toast.error(err || "Failed to delete student");
     } finally {
       setDeleting(false);
     }

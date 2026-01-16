@@ -8,36 +8,25 @@ import { AddStudentDialog, AddTeacherDialog } from "@/components/RMS/dialogs";
 import { useEffect, useState } from "react";
 import { BsAlarmFill } from "react-icons/bs";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
 
 export const DashboardPage = () => {
-  const [studentCount, setStudentCount] = useState(0);
-  const [TeacherCount, setTeacherCount] = useState(0);
+  const dispatch = useDispatch<AppDispatch>();
+  const { studentCount, teacherCount } = useSelector(
+    (state: RootState) => state.user
+  );
   const [SubjectCount, setSubjectCount] = useState(0);
   const [AssessmentCount, setAssessmentCount] = useState(0);
   const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
-  
-  const getUsersNumber = (data: any[]) => {
-    let student = 0;
-    let teacher = 0;
-    data.forEach((item) => {
-      if (item.roles[0].role.name === "teacher") teacher += 1;
-      if (item.roles[0].role.name === "student") student += 1;
-    });
-    setStudentCount(student);
-    setTeacherCount(teacher);
-  };
 
   useEffect(() => {
+    // Fetch users using Redux
+    dispatch(fetchAllUsers());
+    
     async function fetchDashboardData() {
       try {
-        // teachers and students count
-        const response = await apiFetch("/api/proxy/users", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        const result = await response.json();
-        const data = result.data;
-        getUsersNumber(data);
 
         //subjects count
         const subjectResp = await apiFetch("/api/proxy/subjects", {

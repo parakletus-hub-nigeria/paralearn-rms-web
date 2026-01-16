@@ -1,45 +1,34 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/interceptor";
+import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { fetchUserById } from "@/reduxToolKit/user/userThunks";
 
 export const UserDetailPage = () => {
   const params = useParams();
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const userId = params?.id as string;
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const { selectedUser, loading, error } = useSelector(
+    (state: RootState) => state.user
+  );
 
   useEffect(() => {
-    const fetchUser = async () => {
-      if (!userId) return;
+    if (userId) {
+      dispatch(fetchUserById(userId));
+    }
+  }, [userId, dispatch]);
 
-      try {
-        setLoading(true);
-        const response = await apiFetch(`/api/proxy/users/${userId}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch user");
-        }
-
-        const result = await response.json();
-        setUser(result.data || result);
-      } catch (error: any) {
-        toast.error(error?.message || "Failed to fetch user details");
-        router.back();
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [userId, router]);
+  useEffect(() => {
+    if (error) {
+      toast.error(error || "Failed to fetch user details");
+      router.back();
+    }
+  }, [error, router]);
 
   if (loading) {
     return (
@@ -52,13 +41,15 @@ export const UserDetailPage = () => {
     );
   }
 
-  if (!user) {
+  if (!selectedUser && !loading) {
     return (
       <div className="flex items-center justify-center w-full min-h-screen">
         <p className="text-gray-600">User not found</p>
       </div>
     );
   }
+
+  const user = selectedUser;
 
   return (
     <div className="w-full p-6">
@@ -70,75 +61,77 @@ export const UserDetailPage = () => {
         Back
       </button>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">User Details</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-sm font-medium text-gray-500">Name</label>
-            <p className="text-lg text-gray-900">
-              {user.firstName} {user.lastName}
-            </p>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-500">Email</label>
-            <p className="text-lg text-gray-900">{user.email || "N/A"}</p>
-          </div>
-
-          {user.dateOfBirth && (
+      {user && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">User Details</h1>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="text-sm font-medium text-gray-500">
-                Date of Birth
-              </label>
+              <label className="text-sm font-medium text-gray-500">Name</label>
               <p className="text-lg text-gray-900">
-                {new Date(user.dateOfBirth).toLocaleDateString()}
+                {user.firstName} {user.lastName}
               </p>
             </div>
-          )}
 
-          {user.gender && (
             <div>
-              <label className="text-sm font-medium text-gray-500">Gender</label>
-              <p className="text-lg text-gray-900 capitalize">{user.gender}</p>
+              <label className="text-sm font-medium text-gray-500">Email</label>
+              <p className="text-lg text-gray-900">{user.email || "N/A"}</p>
             </div>
-          )}
 
-          {user.phoneNumber && (
-            <div>
-              <label className="text-sm font-medium text-gray-500">
-                Phone Number
-              </label>
-              <p className="text-lg text-gray-900">{user.phoneNumber}</p>
-            </div>
-          )}
+            {user.dateOfBirth && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Date of Birth
+                </label>
+                <p className="text-lg text-gray-900">
+                  {new Date(user.dateOfBirth).toLocaleDateString()}
+                </p>
+              </div>
+            )}
 
-          {user.address && (
-            <div>
-              <label className="text-sm font-medium text-gray-500">Address</label>
-              <p className="text-lg text-gray-900">{user.address}</p>
-            </div>
-          )}
+            {user.gender && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">Gender</label>
+                <p className="text-lg text-gray-900 capitalize">{user.gender}</p>
+              </div>
+            )}
 
-          {user.roles && user.roles.length > 0 && (
-            <div>
-              <label className="text-sm font-medium text-gray-500">Role</label>
-              <p className="text-lg text-gray-900 capitalize">
-                {user.roles[0]?.role?.name || user.roles[0] || "N/A"}
-              </p>
-            </div>
-          )}
+            {user.phoneNumber && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Phone Number
+                </label>
+                <p className="text-lg text-gray-900">{user.phoneNumber}</p>
+              </div>
+            )}
 
-          {(user.studentId || user.teacherId) && (
-            <div>
-              <label className="text-sm font-medium text-gray-500">ID</label>
-              <p className="text-lg text-gray-900">
-                {user.studentId || user.teacherId}
-              </p>
-            </div>
-          )}
+            {user.address && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">Address</label>
+                <p className="text-lg text-gray-900">{user.address}</p>
+              </div>
+            )}
+
+            {user.roles && user.roles.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">Role</label>
+                <p className="text-lg text-gray-900 capitalize">
+                  {user.roles[0]?.role?.name || user.roles[0] || "N/A"}
+                </p>
+              </div>
+            )}
+
+            {(user.studentId || user.teacherId) && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">ID</label>
+                <p className="text-lg text-gray-900">
+                  {user.studentId || user.teacherId}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

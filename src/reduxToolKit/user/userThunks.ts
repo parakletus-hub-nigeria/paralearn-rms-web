@@ -246,3 +246,101 @@ export const confirmPasswordReset = createAsyncThunk(
     }
   }
 );
+
+// Fetch all users (students and teachers)
+export const fetchAllUsers = createAsyncThunk(
+  "user/fetchAllUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get("/api/proxy/users");
+      
+      if (!response.data) {
+        return rejectWithValue("No users data received");
+      }
+
+      const users = response.data.data || response.data;
+      
+      // Separate students and teachers
+      const students = users.filter(
+        (item: any) => item.roles?.[0]?.role?.name === "student"
+      );
+      const teachers = users.filter(
+        (item: any) => item.roles?.[0]?.role?.name === "teacher"
+      );
+
+      return {
+        users,
+        students,
+        teachers,
+        studentCount: students.length,
+        teacherCount: teachers.length,
+      };
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch users";
+
+      console.error("[Fetch All Users Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Fetch a single user by ID
+export const fetchUserById = createAsyncThunk(
+  "user/fetchUserById",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      if (!userId) {
+        return rejectWithValue("User ID is required");
+      }
+
+      const response = await apiClient.get(`/api/proxy/users/${userId}`);
+
+      if (!response.data) {
+        return rejectWithValue("No user data received");
+      }
+
+      return response.data.data || response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch user details";
+
+      console.error("[Fetch User By ID Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Delete a user
+export const deleteUser = createAsyncThunk(
+  "user/deleteUser",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      if (!userId) {
+        return rejectWithValue("User ID is required");
+      }
+
+      const response = await apiClient.delete(`/api/proxy/users/${userId}/hard`);
+
+      return {
+        userId,
+        message: response.data?.message || "User deleted successfully",
+      };
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to delete user";
+
+      console.error("[Delete User Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);

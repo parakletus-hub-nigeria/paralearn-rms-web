@@ -4,52 +4,24 @@ import { StudentDialog } from "@/components/RMS/dialogs";
 import { UserDropDown } from "@/components/RMS/dropdown";
 import { Header } from "@/components/RMS/header";
 import { Users2, Search, MoreVertical } from "lucide-react";
-import { apiFetch } from "@/lib/interceptor";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
 
 export const UsersPage = () => {
-  const [studentCount, setStudentCount] = useState(0);
-  const [teacherCount, setTeacherCount] = useState(0);
-  const [students, setStudents] = useState<any[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
+  const dispatch = useDispatch<AppDispatch>();
+  const { students, teachers, studentCount, teacherCount, loading } = useSelector(
+    (state: RootState) => state.user
+  );
   const [selectedType, setSelectedType] = useState<"student" | "teacher">(
     "student"
   );
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchUsersData = async () => {
-      try {
-        setLoading(true);
-        const response = await apiFetch("/api/proxy/users", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        const result = await response.json();
-        const data = result.data;
-
-        // Separate students and teachers
-        const studentsList = data.filter(
-          (item: any) => item.roles[0].role.name === "student"
-        );
-        const teachersList = data.filter(
-          (item: any) => item.roles[0].role.name === "teacher"
-        );
-        console.log(teachersList);
-        console.log(studentsList);
-        setStudents(studentsList);
-        setTeachers(teachersList);
-        setStudentCount(studentsList.length);
-        setTeacherCount(teachersList.length);
-      } catch (error: any) {
-        toast.error(error?.message || "Failed to fetch users data");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsersData();
-  }, []);
+    dispatch(fetchAllUsers());
+  }, [dispatch]);
 
   const vv = [
     {
@@ -66,18 +38,14 @@ export const UsersPage = () => {
     },
   ];
 
-  const handleStudentDeleted = (studentId: string) => {
-    setStudents((prevStudents) =>
-      prevStudents.filter((student) => student.id !== studentId)
-    );
-    setStudentCount((count) => count - 1);
+  const handleStudentDeleted = () => {
+    // Refetch users after deletion
+    dispatch(fetchAllUsers());
   };
 
-  const handleTeacherDeleted = (teacherId: string) => {
-    setTeachers((prevTeachers) =>
-      prevTeachers.filter((teacher) => teacher.id !== teacherId)
-    );
-    setTeacherCount((count) => count - 1);
+  const handleTeacherDeleted = () => {
+    // Refetch users after deletion
+    dispatch(fetchAllUsers());
   };
 
   const displayTableData =
