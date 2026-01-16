@@ -30,9 +30,12 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue("No token received from server");
       }
 
-      // Store token in cookies if not already set
+      // Store token in cookies and sync with Redux
       if (!tokenManager.getToken()) {
-        tokenManager.setToken(accessToken);
+        setAuthToken(accessToken);
+      } else {
+        // Still sync with Redux even if token exists in cookies
+        setAuthToken(accessToken);
       }
 
       return {
@@ -138,7 +141,7 @@ export const refreshAuthToken = createAsyncThunk(
       }
 
       // Update token in cookies and Redux
-      tokenManager.setToken(accessToken);
+      setAuthToken(accessToken);
 
       return { accessToken };
     } catch (error: any) {

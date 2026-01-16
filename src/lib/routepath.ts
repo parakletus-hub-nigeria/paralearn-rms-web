@@ -15,4 +15,8 @@ export const routespath = {
   API_USER_PROFILE: "/user/profile",
   API_FORGOT_PASSWORD: "/auth/forgot-password",
   API_RESET_PASSWORD: "/auth/reset-password",
+  // Academic Session endpoints
+  API_CREATE_ACADEMIC_SESSION: "/academic/sessions",
+  API_GET_ALL_SESSIONS: "/academic/sessions",
+  API_GET_CURRENT_SESSION: "/academic/current",
 };

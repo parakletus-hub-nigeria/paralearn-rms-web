@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, GraduationCap, ArrowLeft } from "lucide-react";
@@ -9,6 +11,8 @@ import { Step2ClassesGrades } from "./step2-classes-grades";
 import { Step3Subjects } from "./step3-subjects";
 import { Step4GradingSystem } from "./step4-grading-system";
 import { SubjectsManagementModal } from "./subjects-management-modal";
+import { createAcademicSession, fetchAllSessions, clearError, clearSuccess } from "@/reduxToolKit/setUp/setUpSlice";
+import { toast } from "react-toastify";
 
 interface Term {
   id: string;
@@ -47,6 +51,11 @@ const defaultGradeScales: GradeScale[] = [
 ];
 
 export function SchoolSetupWizard() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error, success, createdSession } = useSelector(
+    (state: RootState) => state.setUp
+  );
+
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
 
@@ -75,10 +84,84 @@ export function SchoolSetupWizard() {
 
   const progressPercentage = (currentStep / totalSteps) * 100;
 
+  // Handle Redux state changes
+  useEffect(() => {
+    if (success && createdSession) {
+      toast.success("Academic session created successfully!");
+      dispatch(clearSuccess());
+      dispatch(clearError());
+      // Move to next step after successful creation
+      if (currentStep === 1) {
+        setCurrentStep(2);
+      }
+    }
+  }, [success, createdSession, dispatch, currentStep]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
+
   const toggleClass = (id: string) => {
     setSelectedClasses((prev) =>
       prev.includes(id) ? prev.filter((clsId) => clsId !== id) : [...prev, id]
     );
+  };
+
+  // Transform component term format to API format
+  const transformTermName = (termName: string): string => {
+    const termMap: Record<string, string> = {
+      "First Term": "Term 1",
+      "Second Term": "Term 2",
+      "Third Term": "Term 3",
+      "Fall Semester": "Term 1",
+      "Spring Semester": "Term 2",
+    };
+    return termMap[termName] || termName;
+  };
+
+  // Handle Step 1 submission (create academic session)
+  const handleStep1Submit = async () => {
+    // Validation
+    if (!academicYear || !sessionStartDate || !sessionEndDate) {
+      toast.error("Please fill in all session fields");
+      return;
+    }
+
+    if (terms.length === 0) {
+      toast.error("Please add at least one term");
+      return;
+    }
+
+    // Validate all terms have required fields
+    const incompleteTerms = terms.filter(
+      (term) => !term.name || !term.startDate || !term.endDate
+    );
+    if (incompleteTerms.length > 0) {
+      toast.error("Please complete all term fields");
+      return;
+    }
+
+    try {
+      // Transform data format
+      const sessionData = {
+        session: academicYear.replace("-", "/"), // Convert "2024-2025" to "2024/2025"
+        startsAt: new Date(sessionStartDate).toISOString(),
+        endsAt: new Date(sessionEndDate).toISOString(),
+        terms: terms.map((term) => ({
+          term: transformTermName(term.name),
+          startsAt: new Date(term.startDate).toISOString(),
+          endsAt: new Date(term.endDate).toISOString(),
+        })),
+      };
+
+      await dispatch(createAcademicSession(sessionData)).unwrap();
+    } catch (error: any) {
+      // Error is handled by Redux and shown in useEffect
+      console.error("Failed to create academic session:", error);
+    }
   };
 
   const stepHeaders = [
@@ -174,6 +257,8 @@ export function SchoolSetupWizard() {
             setSessionEndDate={setSessionEndDate}
             terms={terms}
             setTerms={setTerms}
+            onSubmit={handleStep1Submit}
+            loading={loading}
           />
         )}
 
@@ -214,11 +299,16 @@ export function SchoolSetupWizard() {
             <Button>Finish Set Up</Button>
           ) : (
             <Button
-              onClick={() =>
-                setCurrentStep(Math.min(totalSteps, currentStep + 1))
-              }
+              onClick={() => {
+                if (currentStep === 1) {
+                  handleStep1Submit();
+                } else {
+                  setCurrentStep(Math.min(totalSteps, currentStep + 1));
+                }
+              }}
+              disabled={loading}
             >
-              Next
+              {loading ? "Processing..." : currentStep === 1 ? "Create Session" : "Next"}
             </Button>
           )}
         </div>

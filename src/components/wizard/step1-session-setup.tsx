@@ -23,6 +23,8 @@ interface Step1Props {
   setSessionEndDate: (value: string) => void
   terms: Term[]
   setTerms: (terms: Term[]) => void
+  onSubmit?: () => void
+  loading?: boolean
 }
 
 export function Step1SessionSetup({
@@ -34,6 +36,8 @@ export function Step1SessionSetup({
   setSessionEndDate,
   terms,
   setTerms,
+  onSubmit,
+  loading = false,
 }: Step1Props) {
   const addTerm = () => {
     const newTerm: Term = {

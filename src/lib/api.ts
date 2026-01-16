@@ -4,18 +4,20 @@ import axios, {
   AxiosError,
 } from "axios";
 import { tokenManager } from "./tokenManager";
+import { store } from "@/reduxToolKit/store";
+import { logoutUser } from "@/reduxToolKit/user/userThunks";
+import { updateAccessToken } from "@/reduxToolKit/user/userSlice";
 import { routespath } from "./routepath";
 
 // Our global axios instance for all API calls
 
 const apiClient: AxiosInstance = axios.create({
-  // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
   timeout: 30000,
   withCredentials: true, // Important for cookies
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
-    "X-Tenant-Subdomain": "",
   },
 });
 
@@ -23,10 +25,13 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     try {
-      const token = tokenManager.getToken();
+      // Get token from Redux state or cookie manager
+      const state = store.getState();
+      const token = tokenManager.getToken() || state.user.accessToken;
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        config.headers["X-Tenant-Subdomain"] = "greenwood-heritage-college";
       }
 
       // Log request in development
@@ -68,12 +73,14 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Handle 401 Unauthorized
+    // Handle 401 Unauthorized with token refresh
     if (error.response?.status === 401) {
       // Prevent infinite retry loops
       if (config._retry) {
         console.warn("[API] Refresh token failed, redirecting to login");
         tokenManager.removeToken();
+        store.dispatch(logoutUser());
+        
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
           if (!currentPath.includes("/auth/")) {
@@ -110,6 +117,9 @@ apiClient.interceptors.response.use(
           // Update token in cookies
           tokenManager.setToken(newToken);
 
+          // Update Redux state
+          store.dispatch(updateAccessToken({ accessToken: newToken }));
+
           // Update the original request with new token
           if (config.headers) {
             config.headers.Authorization = `Bearer ${newToken}`;
@@ -129,6 +139,7 @@ apiClient.interceptors.response.use(
 
         // Clear auth on refresh failure
         tokenManager.removeToken();
+        store.dispatch(logoutUser());
 
         // Redirect to login page
         if (typeof window !== "undefined") {
@@ -179,14 +190,19 @@ apiClient.interceptors.response.use(
 // Quick helpers for auth state
 export const setAuthToken = (token: string): void => {
   tokenManager.setToken(token);
+  // Sync with Redux state
+  store.dispatch(updateAccessToken({ accessToken: token }));
 };
 
 export const removeAuthToken = (): void => {
   tokenManager.removeToken();
+  // Sync with Redux state - clear token
+  store.dispatch(updateAccessToken({ accessToken: null }));
 };
 
 export const isAuthenticated = (): boolean => {
-  return tokenManager.hasToken();
+  const state = store.getState();
+  return tokenManager.hasToken() || !!state.user.accessToken;
 };
 
 export default apiClient;
