@@ -1,14 +1,12 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Header } from "@/components/RMS/header";
 import SideBar from "@/components/RMS/sideBar";
 import ProtectedRoute from "@/components/protectedRoute/protectedRoute";
 import { apiFetch } from "@/lib/interceptor";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 const UserDetailPage = () => {
   const params = useParams();
@@ -147,7 +145,7 @@ const UserDetailPage = () => {
   );
 };
 
-const UserDetail = () => {
+export default function UserDetail() {
   return (
     <ProtectedRoute>
       <SideBar>
@@ -155,6 +153,4 @@ const UserDetail = () => {
       </SideBar>
     </ProtectedRoute>
   );
-};
-
-export default UserDetail;
+}
