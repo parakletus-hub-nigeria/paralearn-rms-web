@@ -88,7 +88,7 @@ const Header = () => {
                 alt="paralearn logo"
               />
            </div>
-           <span className="text-base sm:text-lg md:text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
+           <span className="text-base sm:text-lg md:text-xl font-black tracking-tighter text-slate-900 dark:text-white group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
              ParaLearn
            </span>
         </div>
@@ -100,10 +100,10 @@ const Header = () => {
               <a 
                 key={index}
                 href={link.href} 
-                className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary active:text-slate-600 focus:text-slate-600 transition-colors uppercase tracking-widest relative focus:outline-none group"
+                className="header-nav-link text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary transition-colors uppercase tracking-widest relative focus:outline-none"
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 group-hover:w-full group-active:w-0 group-focus:w-0 transition-all duration-300 pointer-events-none" />
+                <span className="header-nav-underline absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 transition-all duration-300 pointer-events-none" />
               </a>
             ))}
           </div>

@@ -62,34 +62,77 @@ const CTASection = () => {
   return (
     <div className="w-full text-slate-900 dark:text-white selection:bg-primary selection:text-white">
       {/* Final CTA Section */}
-      <div className="w-full px-6 md:px-12 lg:px-24 py-24 md:py-40 overflow-hidden relative">
+      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-20 md:py-32 lg:py-40 overflow-hidden relative bg-gradient-to-b from-white via-slate-50/50 to-white dark:from-slate-900 dark:via-slate-900/50 dark:to-slate-900">
          {/* Enhanced Background flares */}
-         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-primary/15 via-purple-500/10 to-indigo-500/15 blur-[140px] rounded-full pointer-events-none animate-float-slow" />
-         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-500/15 via-purple-500/10 to-primary/15 blur-[140px] rounded-full pointer-events-none animate-float-slower" />
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-r from-primary/10 via-purple-500/8 to-indigo-500/10 blur-[100px] rounded-full pointer-events-none animate-pulse" />
+         <div className="absolute top-0 right-0 w-[500px] h-[500px] sm:w-[600px] sm:h-[600px] bg-gradient-to-br from-primary/20 via-purple-500/15 to-indigo-500/20 blur-[140px] rounded-full pointer-events-none opacity-60" />
+         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] sm:w-[600px] sm:h-[600px] bg-gradient-to-tr from-indigo-500/20 via-purple-500/15 to-primary/20 blur-[140px] rounded-full pointer-events-none opacity-60" />
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] bg-gradient-to-r from-primary/15 via-purple-500/12 to-indigo-500/15 blur-[100px] rounded-full pointer-events-none animate-pulse" />
          
-        <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white mb-6">
-            Ready to modernize your school's result management?
+        <div className="max-w-5xl mx-auto relative z-10 text-center">
+          {/* Badge */}
+          <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
+            <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
+              Get Started Today
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white mb-4 md:mb-6 px-4">
+            Ready to modernize your{" "}
+            <span className="relative inline-block">
+              <span className="relative z-10 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                school's result management
+              </span>
+              <span className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-primary/20 via-purple-600/30 to-indigo-600/20 rounded-full blur-sm" />
+            </span>
+            ?
           </h1>
-          <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 font-medium mb-8">
+          
+          {/* Subheadline */}
+          <p className="text-lg sm:text-xl md:text-2xl lg:text-2xl text-slate-600 dark:text-slate-400 font-medium mb-8 md:mb-12 max-w-3xl mx-auto px-4 leading-relaxed">
             Join the forward-thinking schools that have already moved from chaos to calm.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 px-4">
             <Button 
               size="lg"
-              className="h-16 px-12 rounded-2xl text-lg font-black shadow-2xl shadow-primary/40 hover:-translate-y-1 hover:shadow-primary/60 transition-all duration-300 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 relative overflow-hidden group"
+              onClick={() => {
+                window.location.href = "/auth/signup";
+              }}
+              className="h-14 sm:h-16 md:h-20 px-8 sm:px-10 md:px-14 rounded-2xl text-base sm:text-lg md:text-xl font-black shadow-2xl shadow-primary/50 hover:-translate-y-1 hover:shadow-primary/70 transition-all duration-300 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 relative overflow-hidden group w-full sm:w-auto"
             >
-              <span className="relative z-10">Start Your School's Registration</span>
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                Start Your School's Registration
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
             </Button>
             <Button
               variant="ghost"
               size="lg"
-              className="h-16 px-8 text-lg font-bold hover:text-primary"
+              className="h-14 sm:h-16 md:h-20 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl font-bold hover:text-primary dark:hover:text-purple-400 border border-slate-200 dark:border-slate-700 hover:border-primary/50 dark:hover:border-purple-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-300 w-full sm:w-auto"
             >
               Still have questions? Contact Our Support Team
             </Button>
+          </div>
+
+          {/* Trust Indicators */}
+          <div className="mt-12 md:mt-16 pt-8 border-t border-slate-200/50 dark:border-slate-700/50">
+            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-sm sm:text-base font-medium text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span>Trusted by 500+ Schools</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                <span>24/7 Support Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" style={{ animationDelay: '1s' }} />
+                <span>Free Setup & Migration</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
