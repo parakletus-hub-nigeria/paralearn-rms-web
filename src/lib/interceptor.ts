@@ -1,0 +1,118 @@
+import { store } from "@/reduxToolKit/store";
+import { logoutUser } from "@/reduxToolKit/user/userThunks";
+import { updateAccessToken } from "@/reduxToolKit/user/userSlice";
+import tokenManager from "./tokenManager";
+import { routespath } from "./routepath";
+
+export const apiFetch = async (
+  urlPath: string,
+  options?: RequestInit
+): Promise<Response> => {
+  const state = store.getState();
+  let accessToken = tokenManager.getToken() || state.user.accessToken;
+
+  // Helper function to retry request with token refresh
+  const makeRequest = async (token: string, retry = false): Promise<Response> => {
+    const headers: any = {
+      ...options?.headers,
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers["authorization"] = `Bearer ${token}`;
+      headers["X-Tenant-Subdomain"] = "greenwood-heritage-college";
+    }
+
+    const config: RequestInit = {
+      ...options,
+      headers,
+      credentials: "include", // Important for cookies
+    };
+
+    const response = await fetch(urlPath, config);
+
+    // Handle 401 Unauthorized - try token refresh once
+    if (response.status === 401 && !retry) {
+      console.warn("[API Fetch] Token expired, attempting refresh...");
+      
+      try {
+        // Attempt to refresh token
+        const refreshResponse = await fetch(`/api/proxy${routespath.API_REFRESH}`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          const newToken = refreshData.accessToken || refreshData.data?.accessToken || tokenManager.getToken();
+
+          if (newToken) {
+            // Update token in cookies
+            tokenManager.setToken(newToken);
+            
+            // Update Redux state
+            store.dispatch(updateAccessToken({ accessToken: newToken }));
+
+            console.log("[API Fetch] Token refreshed, retrying request");
+            
+            // Retry original request with new token
+            return makeRequest(newToken, true);
+          }
+        }
+
+        // Refresh failed, clear auth and dispatch logout
+        console.error("[API Fetch] Token refresh failed, logging out");
+        tokenManager.removeToken();
+        store.dispatch(logoutUser());
+        
+        // Redirect to login if not already there
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes("/auth/")) {
+            window.location.href = "/auth/signin";
+          }
+        }
+
+        throw new Error("Session expired. Please log in again.");
+      } catch (refreshError: any) {
+        // Clear auth on refresh failure
+        tokenManager.removeToken();
+        store.dispatch(logoutUser());
+        
+        // Redirect to login
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes("/auth/")) {
+            window.location.href = "/auth/signin";
+          }
+        }
+
+        throw new Error(refreshError.message || "Session expired. Please log in again.");
+      }
+    }
+
+    if (!response.ok && response.status !== 401) {
+      let errorMessage = "API request failed";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response;
+  };
+
+  try {
+    return await makeRequest(accessToken || "");
+  } catch (error: any) {
+    console.error("[API Fetch Error]", error);
+    throw error;
+  }
+};

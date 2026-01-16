@@ -2,7 +2,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient, { setAuthToken, removeAuthToken } from "@/lib/api";
 import { tokenManager } from "@/lib/tokenManager";
 import { routespath } from "@/lib/routepath";
-
 // Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",
@@ -11,15 +10,33 @@ export const loginUser = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await apiClient.post(routespath.API_LOGIN, credentials);
-      const { accessToken, user } = response.data;
+      const response = await apiClient.post(
+        `/api/proxy${routespath.API_LOGIN}`,
+        credentials
+      );
+      const { user, accessToken: responseToken } = response.data;
+
+      // Try to get token from response first, then from cookies (set by backend)
+      let accessToken = responseToken || tokenManager.getToken();
+
+      // If still no token, wait a bit for cookie to be set (backend might set it as httpOnly cookie)
+      if (!accessToken) {
+        // Small delay to allow backend to set cookie
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        accessToken = tokenManager.getToken();
+      }
 
       if (!accessToken) {
         return rejectWithValue("No token received from server");
       }
 
-      // Store token in cookies
-      setAuthToken(accessToken);
+      // Store token in cookies and sync with Redux
+      if (!tokenManager.getToken()) {
+        setAuthToken(accessToken);
+      } else {
+        // Still sync with Redux even if token exists in cookies
+        setAuthToken(accessToken);
+      }
 
       return {
         accessToken,
@@ -104,14 +121,26 @@ export const refreshAuthToken = createAsyncThunk(
   "user/refreshToken",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(routespath.API_REFRESH);
-      const { accessToken } = response.data;
+      // Use GET method for refresh token (as used in protectedRoute)
+      const response = await apiClient.get(
+        `/api/proxy${routespath.API_REFRESH}`
+      );
+      const { accessToken: responseToken } = response.data;
+
+      // Try to get token from response first, then from cookies
+      let accessToken = responseToken || tokenManager.getToken();
+
+      // If still no token, wait a bit for cookie to be set
+      if (!accessToken) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        accessToken = tokenManager.getToken();
+      }
 
       if (!accessToken) {
         return rejectWithValue("No token received from refresh endpoint");
       }
 
-      // Update token in cookies
+      // Update token in cookies and Redux
       setAuthToken(accessToken);
 
       return { accessToken };
@@ -126,6 +155,7 @@ export const refreshAuthToken = createAsyncThunk(
 
       // Clear auth if refresh fails
       removeAuthToken();
+      tokenManager.removeToken();
 
       return rejectWithValue(errorMessage);
     }
@@ -177,7 +207,9 @@ export const requestPasswordReset = createAsyncThunk(
   "user/requestPasswordReset",
   async (email: string, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(routespath.API_FORGOT_PASSWORD, { email });
+      const response = await apiClient.post(routespath.API_FORGOT_PASSWORD, {
+        email,
+      });
       return response.data;
     } catch (error: any) {
       const errorMessage =
@@ -197,7 +229,10 @@ export const confirmPasswordReset = createAsyncThunk(
   "user/confirmPasswordReset",
   async (data: { token: string; newPassword: string }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(routespath.API_RESET_PASSWORD, data);
+      const response = await apiClient.post(
+        routespath.API_RESET_PASSWORD,
+        data
+      );
       return response.data;
     } catch (error: any) {
       const errorMessage =
@@ -207,6 +242,104 @@ export const confirmPasswordReset = createAsyncThunk(
         "Password reset confirmation failed";
 
       console.error("[Password Reset Confirmation Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Fetch all users (students and teachers)
+export const fetchAllUsers = createAsyncThunk(
+  "user/fetchAllUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get("/api/proxy/users");
+      
+      if (!response.data) {
+        return rejectWithValue("No users data received");
+      }
+
+      const users = response.data.data || response.data;
+      
+      // Separate students and teachers
+      const students = users.filter(
+        (item: any) => item.roles?.[0]?.role?.name === "student"
+      );
+      const teachers = users.filter(
+        (item: any) => item.roles?.[0]?.role?.name === "teacher"
+      );
+
+      return {
+        users,
+        students,
+        teachers,
+        studentCount: students.length,
+        teacherCount: teachers.length,
+      };
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch users";
+
+      console.error("[Fetch All Users Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Fetch a single user by ID
+export const fetchUserById = createAsyncThunk(
+  "user/fetchUserById",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      if (!userId) {
+        return rejectWithValue("User ID is required");
+      }
+
+      const response = await apiClient.get(`/api/proxy/users/${userId}`);
+
+      if (!response.data) {
+        return rejectWithValue("No user data received");
+      }
+
+      return response.data.data || response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch user details";
+
+      console.error("[Fetch User By ID Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Delete a user
+export const deleteUser = createAsyncThunk(
+  "user/deleteUser",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      if (!userId) {
+        return rejectWithValue("User ID is required");
+      }
+
+      const response = await apiClient.delete(`/api/proxy/users/${userId}/hard`);
+
+      return {
+        userId,
+        message: response.data?.message || "User deleted successfully",
+      };
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to delete user";
+
+      console.error("[Delete User Error]", errorMessage);
       return rejectWithValue(errorMessage);
     }
   }
