@@ -24,9 +24,9 @@ const HeroSection = () => {
     }
   }, [currentIndex, isTyping, fullText]);
   return (
-    <section className="w-full relative overflow-hidden min-h-screen pt-24 md:pt-32 lg:pt-0">
+    <section className="w-full relative overflow-hidden min-h-screen pt-24 md:pt-32 lg:pt-28 xl:pt-0">
       {/* Two Column Layout: Text Left, Image Right */}
-      <div className="flex flex-col lg:flex-row h-full min-h-screen items-start md:items-center justify-start md:justify-center lg:items-center pt-8 md:pt-0">
+      <div className="flex flex-col lg:flex-row h-full min-h-screen items-start md:items-center justify-start md:justify-center lg:items-center pt-8 md:pt-0 lg:pt-0">
         {/* Left Column: Hero Text Content */}
         <div className="w-full lg:w-1/2 flex flex-col justify-start md:justify-center items-center lg:items-start space-y-3 md:space-y-5 lg:space-y-8 xl:space-y-10 py-4 md:py-6 lg:py-0 px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24">
           {/* Headline - Mobile: text-5xl, Tablet: text-5xl, Desktop: text-6xl, Large: text-7xl */}
