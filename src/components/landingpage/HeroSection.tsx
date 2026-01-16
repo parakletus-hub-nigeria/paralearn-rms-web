@@ -24,7 +24,7 @@ const HeroSection = () => {
     }
   }, [currentIndex, isTyping, fullText]);
   return (
-    <section className="w-full relative overflow-hidden min-h-screen pt-24 md:pt-32 lg:pt-28 xl:pt-0">
+    <section className="w-full relative overflow-hidden min-h-screen pt-24 md:pt-32 lg:pt-28 xl:pt-28 2xl:pt-0">
       {/* Two Column Layout: Text Left, Image Right */}
       <div className="flex flex-col lg:flex-row h-full min-h-screen items-start md:items-center justify-start md:justify-center lg:items-center pt-8 md:pt-0 lg:pt-0">
         {/* Left Column: Hero Text Content */}
