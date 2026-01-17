@@ -1,6 +1,51 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 const HowItWorksSection = () => {
+  const fullText = "How It Works";
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    if (!isDeleting && isTyping) {
+      // Typing forward
+      if (currentIndex < fullText.length) {
+        timeout = setTimeout(() => {
+          setDisplayText((prev) => prev + fullText[currentIndex]);
+          setCurrentIndex((prev) => prev + 1);
+        }, 80);
+      } else {
+        // Finished typing, wait then start deleting
+        timeout = setTimeout(() => {
+          setIsTyping(false);
+          setIsDeleting(true);
+        }, 2000); // Pause for 2 seconds after typing
+      }
+    } else if (isDeleting) {
+      // Deleting backward
+      if (displayText.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayText((prev) => prev.slice(0, -1));
+        }, 50); // Faster deletion speed
+      } else {
+        // Finished deleting, reset and start typing again
+        timeout = setTimeout(() => {
+          setIsDeleting(false);
+          setIsTyping(true);
+          setCurrentIndex(0);
+        }, 500); // Short pause before retyping
+      }
+    }
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [currentIndex, isTyping, isDeleting, displayText, fullText]);
   const steps = [
     {
       number: "1",
@@ -38,8 +83,11 @@ const HowItWorksSection = () => {
               Simple Process
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
-            How It Works
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
+            <span>{displayText}</span>
+            {(isTyping || isDeleting) && (
+              <span className="inline-block w-0.5 h-[0.9em] bg-slate-900 dark:bg-white ml-1 align-baseline animate-blink" />
+            )}
           </h2>
           <div className="flex items-center justify-center gap-2">
             <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
@@ -66,7 +114,7 @@ const HowItWorksSection = () => {
             {steps.map((step, index) => (
               <div
                 key={index}
-                className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden hover:-translate-y-2"
+                className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden hover:-translate-y-2 min-h-[280px] sm:min-h-[320px] md:min-h-[300px] lg:min-h-[340px]"
               >
                 {/* Glowing border on hover */}
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/0 via-purple-600/0 to-indigo-600/0 group-hover:from-primary/10 group-hover:via-purple-600/10 group-hover:to-indigo-600/10 transition-all duration-500 border-2 border-transparent group-hover:border-primary/30 dark:group-hover:border-purple-500/30" />
@@ -87,9 +135,9 @@ const HowItWorksSection = () => {
                       </div>
                       
                       {/* Icon Badge */}
-                      <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 text-3xl sm:text-4xl md:text-3xl lg:text-4xl opacity-70 group-hover:opacity-100 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 z-20 drop-shadow-lg">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-12 md:h-12 lg:w-16 lg:h-16 rounded-full bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-primary/20 dark:border-purple-500/30">
-                          {step.icon}
+                      <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 z-20 drop-shadow-lg">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-12 md:h-12 lg:w-16 lg:h-16 rounded-full bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-primary/20 dark:border-purple-500/30 opacity-70 group-hover:opacity-100 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">
+                          <span className="text-2xl sm:text-3xl md:text-2xl lg:text-3xl">{step.icon}</span>
                         </div>
                       </div>
                     </div>

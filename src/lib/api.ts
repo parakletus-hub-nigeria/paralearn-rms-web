@@ -4,15 +4,24 @@ import axios, {
   AxiosError,
 } from "axios";
 import { tokenManager } from "./tokenManager";
-import { store } from "@/reduxToolKit/store";
-import { logoutUser } from "@/reduxToolKit/user/userThunks";
-import { updateAccessToken } from "@/reduxToolKit/user/userSlice";
 import { routespath } from "./routepath";
+import { getSubdomain } from "./subdomainManager";
+
+// Lazy import store to avoid circular dependency
+let storeInstance: any = null;
+
+const getStore = () => {
+  if (!storeInstance) {
+    // Use require to break circular dependency at module evaluation time
+    storeInstance = require("@/reduxToolKit/store").store;
+  }
+  return storeInstance;
+};
 
 // Our global axios instance for all API calls
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "",
   timeout: 30000,
   withCredentials: true, // Important for cookies
   headers: {
@@ -26,12 +35,18 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     try {
       // Get token from Redux state or cookie manager
-      const state = store.getState();
+      const state = getStore().getState();
       const token = tokenManager.getToken() || state.user.accessToken;
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        config.headers["X-Tenant-Subdomain"] = "greenwood-heritage-college";
+      }
+
+      // Get subdomain with fallback priority: Redux -> localStorage -> URL
+      const subdomain = getSubdomain(state.user.subdomain);
+      
+      if (subdomain) {
+        config.headers["X-Tenant-Subdomain"] = subdomain;
       }
 
       // Log request in development
@@ -40,6 +55,7 @@ apiClient.interceptors.request.use(
           method: config.method?.toUpperCase(),
           url: config.url,
           hasAuth: !!token,
+          subdomain: subdomain || "none",
         });
       }
 
@@ -79,7 +95,10 @@ apiClient.interceptors.response.use(
       if (config._retry) {
         console.warn("[API] Refresh token failed, redirecting to login");
         tokenManager.removeToken();
-        store.dispatch(logoutUser());
+        // Use dynamic import to avoid circular dependency
+        import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
+          getStore().dispatch(logoutUser());
+        });
         
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
@@ -117,8 +136,9 @@ apiClient.interceptors.response.use(
           // Update token in cookies
           tokenManager.setToken(newToken);
 
-          // Update Redux state
-          store.dispatch(updateAccessToken({ accessToken: newToken }));
+          // Update Redux state - use dynamic import to avoid circular dependency
+          const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
+          getStore().dispatch(updateAccessToken({ accessToken: newToken }));
 
           // Update the original request with new token
           if (config.headers) {
@@ -139,7 +159,10 @@ apiClient.interceptors.response.use(
 
         // Clear auth on refresh failure
         tokenManager.removeToken();
-        store.dispatch(logoutUser());
+        // Use dynamic import to avoid circular dependency
+        import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
+          getStore().dispatch(logoutUser());
+        });
 
         // Redirect to login page
         if (typeof window !== "undefined") {
@@ -188,20 +211,22 @@ apiClient.interceptors.response.use(
 );
 
 // Quick helpers for auth state
-export const setAuthToken = (token: string): void => {
+export const setAuthToken = async (token: string): Promise<void> => {
   tokenManager.setToken(token);
-  // Sync with Redux state
-  store.dispatch(updateAccessToken({ accessToken: token }));
+  // Sync with Redux state - use dynamic import to avoid circular dependency
+  const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
+  getStore().dispatch(updateAccessToken({ accessToken: token }));
 };
 
-export const removeAuthToken = (): void => {
+export const removeAuthToken = async (): Promise<void> => {
   tokenManager.removeToken();
-  // Sync with Redux state - clear token
-  store.dispatch(updateAccessToken({ accessToken: null }));
+  // Sync with Redux state - clear token - use dynamic import to avoid circular dependency
+  const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
+  getStore().dispatch(updateAccessToken({ accessToken: null }));
 };
 
 export const isAuthenticated = (): boolean => {
-  const state = store.getState();
+  const state = getStore().getState();
   return tokenManager.hasToken() || !!state.user.accessToken;
 };
 

@@ -1,6 +1,7 @@
 "use client";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { tokenManager } from "@/lib/tokenManager";
+import { getSubdomainFromStorage, extractSubdomainFromURL, saveSubdomainToStorage, removeSubdomainFromStorage } from "@/lib/subdomainManager";
 import {
   loginUser,
   logoutUser,
@@ -12,10 +13,16 @@ import {
   fetchAllUsers,
   fetchUserById,
   deleteUser,
+  getCurrentUserProfile,
+  updateUserProfile,
+  changePassword,
+  getTenantInfo,
+  updateSchoolBranding,
 } from "./userThunks";
 
 interface UserState {
   accessToken: string | null;
+  subdomain: string | null;
   user: {
     id: string;
     email: string;
@@ -32,6 +39,10 @@ interface UserState {
   teacherCount: number;
   // Selected user detail
   selectedUser: any | null;
+  // Current user profile
+  currentUserProfile: any | null;
+  // Tenant/School settings
+  tenantInfo: any | null;
   loading: boolean;
   error: string | null;
   success: boolean;
@@ -44,8 +55,20 @@ const getInitialToken = () => {
   return null;
 };
 
+const getInitialSubdomain = () => {
+  // Don't automatically fetch subdomain on initialization
+  // It will be extracted from login response
+  if (typeof window !== "undefined") {
+    // Only check localStorage if it exists from previous session
+    const stored = getSubdomainFromStorage();
+    return stored || null;
+  }
+  return null;
+};
+
 const initialState: UserState = {
   accessToken: getInitialToken() || null,
+  subdomain: getInitialSubdomain(),
   user: {
     id: "",
     email: "",
@@ -60,6 +83,8 @@ const initialState: UserState = {
   studentCount: 0,
   teacherCount: 0,
   selectedUser: null,
+  currentUserProfile: null,
+  tenantInfo: null,
   loading: false,
   error: null,
   success: false,
@@ -80,6 +105,15 @@ const userSlice = createSlice({
   reducers: {
      updateAccessToken: (state, action: PayloadAction<{  accessToken: any }>) => {
       state.accessToken = action.payload.accessToken;
+    },
+    updateSubdomain: (state, action: PayloadAction<{ subdomain: string | null }>) => {
+      state.subdomain = action.payload.subdomain;
+      // Sync to localStorage
+      if (action.payload.subdomain) {
+        saveSubdomainToStorage(action.payload.subdomain);
+      } else {
+        removeSubdomainFromStorage();
+      }
     }
   },
 
@@ -95,6 +129,7 @@ const userSlice = createSlice({
         state.loading = false;
         state.accessToken = action.payload.accessToken;
         state.user = action.payload.user;
+        state.subdomain = action.payload.subdomain || state.subdomain;
         state.success = true;
         state.error = null;
       })
@@ -129,6 +164,7 @@ const userSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
         state.accessToken = null;
+        state.subdomain = null;
         state.user = {
           id: "",
           email: "",
@@ -144,6 +180,7 @@ const userSlice = createSlice({
         state.loading = false;
         // Clear state even on error
         state.accessToken = null;
+        state.subdomain = null;
         state.user = {
           id: "",
           email: "",
@@ -285,6 +322,101 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = (action.payload as string) || "Failed to delete user";
       });
+
+    // Get current user profile
+    builder
+      .addCase(getCurrentUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentUserProfile = action.payload;
+        state.error = null;
+      })
+      .addCase(getCurrentUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to fetch user profile";
+      });
+
+    // Update user profile
+    builder
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentUserProfile = action.payload;
+        state.user = {
+          ...state.user,
+          ...action.payload,
+        };
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+        state.error = (action.payload as string) || "Failed to update user profile";
+      });
+
+    // Change password
+    builder
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+        state.error = (action.payload as string) || "Failed to change password";
+      });
+
+    // Get tenant info
+    builder
+      .addCase(getTenantInfo.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTenantInfo.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tenantInfo = action.payload;
+        state.error = null;
+      })
+      .addCase(getTenantInfo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to fetch tenant information";
+      });
+
+    // Update school branding
+    builder
+      .addCase(updateSchoolBranding.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(updateSchoolBranding.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tenantInfo = {
+          ...state.tenantInfo,
+          ...action.payload,
+        };
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(updateSchoolBranding.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+        state.error = (action.payload as string) || "Failed to update school branding";
+      });
   },
 });
 // Export thunks for use in components
@@ -297,7 +429,12 @@ export {
   fetchAllUsers,
   fetchUserById,
   deleteUser,
+  getCurrentUserProfile,
+  updateUserProfile,
+  changePassword,
+  getTenantInfo,
+  updateSchoolBranding,
 };
-export const {updateAccessToken} = userSlice.actions
+export const {updateAccessToken, updateSubdomain} = userSlice.actions
 const userReducer = userSlice.reducer;
 export default userReducer;
