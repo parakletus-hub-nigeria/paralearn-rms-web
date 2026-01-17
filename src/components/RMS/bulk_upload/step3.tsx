@@ -9,6 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { tokenManager } from "@/lib/tokenManager";
+import { getSubdomain } from "@/lib/subdomainManager";
+import { useSelector } from "react-redux";
+import { RootState } from "@/reduxToolKit/store";
 
 type contentType = {
   email: string;
@@ -43,6 +46,7 @@ const Step_Three = ({
 }) => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [uploadCount, setUploadCount] = useState(0);
+  const { subdomain: reduxSubdomain } = useSelector((state: RootState) => state.user);
 
   const invalidCount = validatedFileContent.length - ValidNumber;
   const invalidPercentage = (
@@ -80,13 +84,20 @@ const Step_Three = ({
       // Get token from tokenManager for authorization
       const token = tokenManager.getToken();
 
+      // Get subdomain with fallback priority: Redux -> localStorage -> URL
+      const subdomain = getSubdomain(reduxSubdomain);
+      if (!subdomain) {
+        toast.error("Subdomain not found. Please ensure you're logged in correctly.");
+        return;
+      }
+
       // Make the request using fetch (apiFetch doesn't support FormData well)
       // Note: Don't set Content-Type header - browser will set it with boundary for multipart/form-data
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": "greenwood-heritage-college", // This should come from user context
+          "X-Tenant-Subdomain": subdomain,
         },
         body: formData,
       });

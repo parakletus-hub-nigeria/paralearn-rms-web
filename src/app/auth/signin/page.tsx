@@ -36,6 +36,13 @@ const Signin = () => {
       const result = await dispatch(loginUser(data)).unwrap();
 
       if (result && result.accessToken) {
+        // If redirecting to subdomain URL, don't push to dashboard
+        // The redirect will happen automatically
+        if (result.redirecting) {
+          toast.success("Logged in successfully! Redirecting...");
+          return;
+        }
+        
         toast.success("Logged in successfully!");
         router.push(routespath.DASHBOARD);
       } else {

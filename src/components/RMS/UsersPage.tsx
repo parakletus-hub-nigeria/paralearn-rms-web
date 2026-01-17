@@ -3,12 +3,13 @@
 import { StudentDialog } from "@/components/RMS/dialogs";
 import { UserDropDown } from "@/components/RMS/dropdown";
 import { Header } from "@/components/RMS/header";
-import { Users2, Search, MoreVertical } from "lucide-react";
+import { Users2, Search, MoreVertical, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
+import { exportStudentsToPDF, exportTeachersToPDF } from "@/lib/pdfExport";
 
 export const UsersPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,6 +47,60 @@ export const UsersPage = () => {
   const handleTeacherDeleted = () => {
     // Refetch users after deletion
     dispatch(fetchAllUsers());
+  };
+
+  const handleExportStudents = () => {
+    if (students.length === 0) {
+      toast.warning("No students to export");
+      return;
+    }
+    
+    const studentData = students.map((item: any) => ({
+      id: item.studentId || "N/A",
+      name: `${item.firstName} ${item.lastName}`,
+      email: item.email || "N/A",
+      dateOfBirth: item.dateOfBirth
+        ? new Date(item.dateOfBirth).toLocaleDateString()
+        : "N/A",
+      address: item.address || "N/A",
+      phoneNumber: item.phoneNumber || "N/A",
+      guardianName: item.guardianName || "N/A",
+      guardianPhone: item.guardianPhone || "N/A",
+    }));
+    
+    try {
+      exportStudentsToPDF(studentData);
+      toast.success("Students list exported successfully!");
+    } catch (error) {
+      toast.error("Failed to export students list");
+      console.error("Export error:", error);
+    }
+  };
+
+  const handleExportTeachers = () => {
+    if (teachers.length === 0) {
+      toast.warning("No teachers to export");
+      return;
+    }
+    
+    const teacherData = teachers.map((item: any) => ({
+      id: item.teacherId || "N/A",
+      name: `${item.firstName} ${item.lastName}`,
+      email: item.email || "N/A",
+      dateOfBirth: item.dateOfBirth
+        ? new Date(item.dateOfBirth).toLocaleDateString()
+        : "N/A",
+      phoneNumber: item.phoneNumber || "N/A",
+      address: item.address || "N/A",
+    }));
+    
+    try {
+      exportTeachersToPDF(teacherData);
+      toast.success("Teachers list exported successfully!");
+    } catch (error) {
+      toast.error("Failed to export teachers list");
+      console.error("Export error:", error);
+    }
   };
 
   const displayTableData =
@@ -96,8 +151,8 @@ export const UsersPage = () => {
           </div>
         ))}
       </div>
-      <div className="flex flex-row justify-between items-center mt-[25px]">
-        <div className="flex flex-row items-center border-[1px] border-gray-300 rounded-[6px] w-[50%] px-[15px] py-[10px] gap-2">
+      <div className="flex flex-row justify-between items-center mt-[25px] gap-4">
+        <div className="flex flex-row items-center border-[1px] border-gray-300 rounded-[6px] flex-1 px-[15px] py-[10px] gap-2">
           <Search className="size-[20px] text-gray-500" />
           <input
             type="text"
@@ -105,11 +160,32 @@ export const UsersPage = () => {
             className="w-full border-none outline-none bg-transparent text-sm"
           />
         </div>
-        <button className="cursor-pointer hover:opacity-80">
-          <UserDropDown>
-            <MoreVertical className="size-[24px] text-gray-600 cursor-pointer" />
-          </UserDropDown>
-        </button>
+        <div className="flex items-center gap-2">
+          {selectedType === "student" ? (
+            <button
+              onClick={handleExportStudents}
+              className="flex items-center gap-2 px-4 py-2 bg-[#9747FF] text-white rounded-[6px] hover:opacity-90 transition-all text-sm font-medium"
+              disabled={students.length === 0}
+            >
+              <Download className="size-[16px]" />
+              Export Students
+            </button>
+          ) : (
+            <button
+              onClick={handleExportTeachers}
+              className="flex items-center gap-2 px-4 py-2 bg-[#9747FF] text-white rounded-[6px] hover:opacity-90 transition-all text-sm font-medium"
+              disabled={teachers.length === 0}
+            >
+              <Download className="size-[16px]" />
+              Export Teachers
+            </button>
+          )}
+          <button className="cursor-pointer hover:opacity-80">
+            <UserDropDown>
+              <MoreVertical className="size-[24px] text-gray-600 cursor-pointer" />
+            </UserDropDown>
+          </button>
+        </div>
       </div>
 
       {loading ? (
