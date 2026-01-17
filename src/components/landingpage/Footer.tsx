@@ -56,7 +56,7 @@ const Footer = () => {
     { icon: Twitter, href: "#", label: "Twitter" },
     { icon: Facebook, href: "#", label: "Facebook" },
     { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Linkedin, href: "#", label: "LinkedIn" },
+    { icon: Linkedin, href: "https://www.linkedin.com/company/paralearn/", label: "LinkedIn" },
   ];
 
   return (
@@ -150,11 +150,14 @@ const Footer = () => {
             <div className="flex items-center gap-2 md:gap-3 pt-2">
               {socialLinks.map((social, index) => {
                 const Icon = social.icon;
+                const isExternal = social.href.startsWith('http');
                 return (
                   <a
                     key={index}
                     href={social.href}
                     aria-label={social.label}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
                     className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 hover:scale-110 hover:-translate-y-1 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
                   >
                     <Icon className="w-4 h-4 md:w-5 md:h-5" />
