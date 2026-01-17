@@ -3,6 +3,7 @@ import { logoutUser } from "@/reduxToolKit/user/userThunks";
 import { updateAccessToken } from "@/reduxToolKit/user/userSlice";
 import tokenManager from "./tokenManager";
 import { routespath } from "./routepath";
+import { getSubdomain } from "./subdomainManager";
 
 export const apiFetch = async (
   urlPath: string,
@@ -20,7 +21,12 @@ export const apiFetch = async (
 
     if (token) {
       headers["authorization"] = `Bearer ${token}`;
-      headers["X-Tenant-Subdomain"] = "greenwood-heritage-college";
+    }
+
+    // Get subdomain with fallback priority: Redux -> localStorage -> URL
+    const subdomain = getSubdomain(state.user.subdomain);
+    if (subdomain) {
+      headers["X-Tenant-Subdomain"] = subdomain;
     }
 
     const config: RequestInit = {

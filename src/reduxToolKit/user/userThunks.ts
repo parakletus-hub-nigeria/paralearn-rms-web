@@ -2,6 +2,8 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient, { setAuthToken, removeAuthToken } from "@/lib/api";
 import { tokenManager } from "@/lib/tokenManager";
 import { routespath } from "@/lib/routepath";
+import { getSubdomain, saveSubdomainToStorage, extractSubdomainFromURL, getSubdomainFromStorage } from "@/lib/subdomainManager";
+import { store } from "@/reduxToolKit/store";
 // Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",
@@ -14,10 +16,17 @@ export const loginUser = createAsyncThunk(
         `/api/proxy${routespath.API_LOGIN}`,
         credentials
       );
-      const { user, accessToken: responseToken } = response.data;
+      
+      // Log the full response for debugging
+      console.log("[Login Response]", response);
+      console.log("[Login Response Data]", response.data);
+
+      // Handle different response structures
+      const responseData = response.data?.data || response.data;
+      const { accessToken: responseToken, user, school} = responseData;
 
       // Try to get token from response first, then from cookies (set by backend)
-      let accessToken = responseToken || tokenManager.getToken();
+      let accessToken = responseToken || responseData?.accessToken || tokenManager.getToken();
 
       // If still no token, wait a bit for cookie to be set (backend might set it as httpOnly cookie)
       if (!accessToken) {
@@ -25,6 +34,7 @@ export const loginUser = createAsyncThunk(
         await new Promise((resolve) => setTimeout(resolve, 100));
         accessToken = tokenManager.getToken();
       }
+      console.log('response',responseData)
 
       if (!accessToken) {
         return rejectWithValue("No token received from server");
@@ -32,15 +42,90 @@ export const loginUser = createAsyncThunk(
 
       // Store token in cookies and sync with Redux
       if (!tokenManager.getToken()) {
-        setAuthToken(accessToken);
+        await setAuthToken(accessToken);
       } else {
         // Still sync with Redux even if token exists in cookies
-        setAuthToken(accessToken);
+        await setAuthToken(accessToken);
+      }
+
+      // Extract subdomain ONLY from backend response user object
+      // Check multiple possible locations in the response structure
+      let subdomain: string | null = null;
+      
+      if (response.data?.data?.school?.subdomain) {
+        // Structure: { success: true, data: { school: { subdomain: "...", ... }, ... } }
+        subdomain = response.data.data.school.subdomain;
+      } else if (response.data?.school?.subdomain) {
+        // Structure: { success: true, school: { subdomain: "...", ... }, ... }
+        subdomain = response.data.school.subdomain;
+      } else if (school?.subdomain) {
+        // Direct access from destructured school
+        subdomain = school.subdomain;
+      }
+      
+      // If subdomain not found in user object, return error
+      if (!subdomain) {
+        return rejectWithValue("Subdomain not found in user response. Please contact support.");
+      }
+
+      // Store subdomain in localStorage and Redux
+      saveSubdomainToStorage(subdomain);
+      
+      // Redirect to subdomain URL with dashboard path
+      if (typeof window !== "undefined") {
+        const currentHost = window.location.host;
+        const currentProtocol = window.location.protocol;
+        
+        // // Check if we're already on the subdomain URL
+        // const hostParts = currentHost.split(".");
+        // const isAlreadyOnSubdomain = hostParts[0] === subdomain && hostParts.length > 1;
+        
+        // if (!isAlreadyOnSubdomain) {
+        if (true) {
+
+          // Construct subdomain URL
+          // For localhost: subdomain.localhost:port
+          // For production: subdomain.domain.com
+          let newHost: string;
+          
+          if (currentHost.includes("localhost") || currentHost.includes("127.0.0.1")) {
+            // Local development
+            const port = currentHost.includes(":") ? currentHost.split(":")[1] : "";
+            newHost = port ? `${subdomain}.localhost:${port}` : `${subdomain}.localhost`;
+          } else {
+            // Production - extract base domain
+            const hostParts = currentHost.split(".");
+            if (hostParts.length >= 2) {
+              // Get the last two parts (e.g., "example.com" from "app.example.com")
+              const baseDomain = hostParts.slice(-2).join(".");
+              newHost = `${subdomain}.${baseDomain}`;
+            } else {
+              // Fallback
+              newHost = `${subdomain}.${currentHost}`;
+            }
+          }
+          
+          // Redirect to subdomain URL with dashboard path
+          const dashboardPath = routespath.DASHBOARD;
+          const newUrl = `${currentProtocol}//${newHost}${dashboardPath}`;
+          
+          // Redirect to subdomain URL with dashboard
+          window.location.href = newUrl;
+          
+          // Return early since we're redirecting
+          return {
+            accessToken,
+            user: user || {},
+            subdomain: subdomain,
+            redirecting: true,
+          };
+        }
       }
 
       return {
         accessToken,
         user: user || {},
+        subdomain: subdomain,
       };
     } catch (error: any) {
       const errorMessage =
@@ -94,8 +179,12 @@ export const logoutUser = createAsyncThunk(
       }
 
       // Remove token from cookies
-      removeAuthToken();
+      await removeAuthToken();
       tokenManager.clearAllAuthCookies();
+
+      // Clear subdomain from localStorage
+      const { removeSubdomainFromStorage } = await import("@/lib/subdomainManager");
+      removeSubdomainFromStorage();
 
       return null;
     } catch (error: any) {
@@ -108,7 +197,7 @@ export const logoutUser = createAsyncThunk(
       console.error("[Logout Error]", errorMessage);
 
       // Still clear cookies even if error occurs
-      removeAuthToken();
+      await removeAuthToken();
       tokenManager.clearAllAuthCookies();
 
       return rejectWithValue(errorMessage);
@@ -141,7 +230,7 @@ export const refreshAuthToken = createAsyncThunk(
       }
 
       // Update token in cookies and Redux
-      setAuthToken(accessToken);
+      await setAuthToken(accessToken);
 
       return { accessToken };
     } catch (error: any) {
@@ -154,7 +243,7 @@ export const refreshAuthToken = createAsyncThunk(
       console.error("[Token Refresh Error]", errorMessage);
 
       // Clear auth if refresh fails
-      removeAuthToken();
+      await removeAuthToken();
       tokenManager.removeToken();
 
       return rejectWithValue(errorMessage);
@@ -183,7 +272,7 @@ export const signupUser = createAsyncThunk(
       }
 
       // Store token in cookies
-      setAuthToken(accessToken);
+      await setAuthToken(accessToken);
 
       return {
         accessToken,
@@ -340,6 +429,159 @@ export const deleteUser = createAsyncThunk(
         "Failed to delete user";
 
       console.error("[Delete User Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Get current user profile
+export const getCurrentUserProfile = createAsyncThunk(
+  "user/getCurrentUserProfile",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get("/api/proxy/users/me");
+
+      if (!response.data) {
+        return rejectWithValue("No user data received");
+      }
+
+      return response.data.data || response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch user profile";
+
+      console.error("[Get Current User Profile Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Update user profile
+export const updateUserProfile = createAsyncThunk(
+  "user/updateUserProfile",
+  async (
+    data: {
+      userId: string;
+      firstName?: string;
+      lastName?: string;
+      phoneNumber?: string;
+      address?: string;
+      dateOfBirth?: string;
+      gender?: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      if (!data.userId) {
+        return rejectWithValue("User ID is required");
+      }
+
+      const response = await apiClient.patch(
+        `/api/proxy/users/${data.userId}`,
+        {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phoneNumber,
+          address: data.address,
+          dateOfBirth: data.dateOfBirth,
+          gender: data.gender,
+        }
+      );
+
+      return response.data.data || response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update user profile";
+
+      console.error("[Update User Profile Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Change password
+export const changePassword = createAsyncThunk(
+  "user/changePassword",
+  async (
+    data: { currentPassword: string; newPassword: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await apiClient.post("/api/proxy/auth/change-password", {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to change password";
+
+      console.error("[Change Password Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Get tenant/school settings
+export const getTenantInfo = createAsyncThunk(
+  "user/getTenantInfo",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get("/api/proxy/tenant/info");
+
+      if (!response.data) {
+        return rejectWithValue("No tenant data received");
+      }
+
+      return response.data.data || response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch tenant information";
+
+      console.error("[Get Tenant Info Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Update school branding
+export const updateSchoolBranding = createAsyncThunk(
+  "user/updateSchoolBranding",
+  async (
+    data: {
+      logoUrl?: string;
+      primaryColor?: string;
+      secondaryColor?: string;
+      accentColor?: string;
+      motto?: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await apiClient.patch("/api/proxy/tenant/branding", data);
+
+      return response.data.data || response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update school branding";
+
+      console.error("[Update School Branding Error]", errorMessage);
       return rejectWithValue(errorMessage);
     }
   }
