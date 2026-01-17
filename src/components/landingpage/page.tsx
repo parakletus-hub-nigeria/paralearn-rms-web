@@ -5,7 +5,8 @@ import Header from "./Header";
 import ComparisonSection from "./ComparisonSection";
 import BenefitsSection from "./BenefitsSection";
 import HowItWorksSection from "./HowItWorksSection";
-import CTASection from "./ctaSectioin";
+import CTASection from "./CTASection";
+import Footer from "./Footer";
 import LoginModal from "./LoginModal";
 import { GradientSection } from "@/components/GradientSection";
 
@@ -37,6 +38,7 @@ const LandingPage = () => {
           <CTASection />
         </ScrollReveal>
       </main>
+      <Footer />
     </GradientSection>
   );
 };
