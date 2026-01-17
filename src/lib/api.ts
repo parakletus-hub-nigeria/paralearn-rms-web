@@ -5,14 +5,13 @@ import axios, {
 } from "axios";
 import { tokenManager } from "./tokenManager";
 import { store } from "@/reduxToolKit/store";
-import { logoutUser } from "@/reduxToolKit/user/userThunks";
 import { updateAccessToken } from "@/reduxToolKit/user/userSlice";
 import { routespath } from "./routepath";
 
 // Our global axios instance for all API calls
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "",
   timeout: 30000,
   withCredentials: true, // Important for cookies
   headers: {
@@ -79,7 +78,10 @@ apiClient.interceptors.response.use(
       if (config._retry) {
         console.warn("[API] Refresh token failed, redirecting to login");
         tokenManager.removeToken();
-        store.dispatch(logoutUser());
+        // Use dynamic import to avoid circular dependency
+        import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
+          store.dispatch(logoutUser());
+        });
         
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
@@ -139,7 +141,10 @@ apiClient.interceptors.response.use(
 
         // Clear auth on refresh failure
         tokenManager.removeToken();
-        store.dispatch(logoutUser());
+        // Use dynamic import to avoid circular dependency
+        import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
+          store.dispatch(logoutUser());
+        });
 
         // Redirect to login page
         if (typeof window !== "undefined") {
