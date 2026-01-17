@@ -61,7 +61,7 @@ export const DashboardPage = () => {
     {
       title: "Teachers",
       icon: Users,
-      figure: TeacherCount,
+      figure: teacherCount,
       bg_color: "#DFF9D8",
       icon_color: "#3AC13A",
     },
