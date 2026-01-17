@@ -113,8 +113,8 @@ const SideBar = ({ children }: { children: ReactNode }) => {
               return (
                 <Link
                   key={index}
-                  href={items.path}
-                  onClick={() => setSelectedPath(items.path)}
+                  href={item.path}
+                  onClick={() => setSelectedPath(item.path)}
                   className={`flex flex-row items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
                     isSelected
                       ? "bg-[#EDEAFB] text-[#641BC4] font-semibold"
@@ -136,7 +136,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
                 </Link>
               );
             })}
-          </div>
+          </nav>
         </SidebarContent>
         <SidebarFooter>
           <button

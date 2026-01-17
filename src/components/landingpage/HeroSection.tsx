@@ -36,12 +36,14 @@ const HeroSection = () => {
               <span className="inline-block w-0.5 h-[0.9em] bg-slate-900 dark:bg-white ml-1 align-baseline animate-blink" />
             )}
           </h1>
-          
+
           {/* Subheadline - Mobile: text-base, Tablet: text-lg, Desktop: text-xl, Large: text-2xl */}
           <p className="text-base md:text-base lg:text-lg xl:text-xl 2xl:text-2xl text-slate-700 dark:text-slate-300 leading-relaxed font-medium text-center lg:text-left max-w-xl">
-            Move from chaotic paper trails and compilation bottlenecks to a unified, digital system. ParaLearn simplifies result management so you can focus on education, not paperwork.
+            Move from chaotic paper trails and compilation bottlenecks to a
+            unified, digital system. ParaLearn simplifies result management so
+            you can focus on education, not paperwork.
           </p>
-          
+
           {/* Hero Image - Mobile & Tablet Only (between text and buttons) */}
           <div className="flex items-center justify-center py-3 md:py-5 lg:hidden w-full -mx-6 md:mx-0">
             <div className="relative w-full h-auto max-w-full scale-105 md:scale-100">
@@ -56,24 +58,24 @@ const HeroSection = () => {
               />
             </div>
           </div>
-          
+
           {/* CTAs - Consistent sizing within each category */}
           <div className="flex flex-row flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4 lg:gap-6 xl:gap-8 pt-2 md:pt-5 lg:pt-8 pb-8 md:pb-10 lg:pb-12 xl:pb-16 2xl:pb-20 w-full">
             <Button
-              className="font-black shadow-lg shadow-primary/40 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 hover:bg-orange-600 text-white px-6 py-3 md:px-7 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 text-sm md:text-base lg:text-lg xl:text-xl font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px]"
+              className="font-bold shadow-lg shadow-primary/40 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 hover:bg-orange-600 text-white px-6 py-3 md:px-7 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 text-sm md:text-base lg:text-lg xl:text-xl rounded-lg hover:shadow-xl transition-all whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px]"
               onClick={() => {
                 window.location.href = "/auth/signup";
               }}
             >
               Register Your School
             </Button>
-            
+
             <Link
               href="/auth/signin"
               className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 dark:text-white px-7 py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 bg-white dark:bg-white/10 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/20 dark:hover:to-white/10 rounded-xl border border-slate-200 dark:border-white/20 hover:border-slate-300 dark:hover:border-white/30 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 relative overflow-hidden group whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center"
               onClick={(e) => {
                 e.preventDefault();
-                const event = new CustomEvent('openLoginModal');
+                const event = new CustomEvent("openLoginModal");
                 window.dispatchEvent(event);
               }}
             >
