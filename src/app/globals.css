@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@theme {
+  --color-border: #e2e8f0;
+  --color-background: #fdfdff;
+  --color-foreground: #0f172a;
+  --color-ring: #641bc4;
+}
+
+.dark {
+  --color-border: #1e293b;
+  --color-background: #020617;
+  --color-foreground: #f8fafc;
+}
+
 /* Purple Light (Background): #F0E5FF
 
 Purple Vivid: #9747FF
