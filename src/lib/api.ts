@@ -13,6 +13,8 @@ let storeInstance: any = null;
 const getStore = () => {
   if (!storeInstance) {
     // Use require to break circular dependency at module evaluation time
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // @ts-ignore - Dynamic require to avoid circular dependency
     storeInstance = require("@/reduxToolKit/store").store;
   }
   return storeInstance;
