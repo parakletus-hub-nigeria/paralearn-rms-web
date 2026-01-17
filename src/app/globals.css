@@ -355,6 +355,11 @@ Cream / Off-White: #FFFBEB */
   }
 }
 
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 2s linear infinite;
+}
+
 .hero-headline {
   animation: fadeInUp 0.8s ease-out;
 }

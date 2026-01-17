@@ -57,9 +57,10 @@
     }, [lastScrollY, mounted]);
 
     const navigationLinks = [
-      { label: "Products", href: "#products" },
+      { label: "Product", href: "/product" },
       { label: "For Schools", href: "#school" },
       { label: "About", href: "/about" },
+      { label: "Contact", href: "/contact" },
     ];
 
     return (
