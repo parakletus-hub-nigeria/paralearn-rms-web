@@ -19,6 +19,7 @@ import { AppDispatch } from "@/reduxToolKit/store";
 import { deleteUser, fetchAllUsers } from "@/reduxToolKit/user/userThunks";
 
 export function AddStudentDialog({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -89,6 +90,7 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
           guardianName: "",
           guardianPhone: "",
         });
+        setOpen(false);
       } else {
         const result = await response.json();
         toast.error(result.message || "Failed to create student");
@@ -171,7 +173,7 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {/* <Button variant="outline">Open Dialog</Button> */}
         {children}
@@ -253,6 +255,7 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
 }
 
 export function AddTeacherDialog({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -317,6 +320,7 @@ export function AddTeacherDialog({ children }: { children: ReactNode }) {
           gender: "",
           address: "",
         });
+        setOpen(false);
       } else {
         const result = await response.json();
         toast.error(result.message || "Failed to create teacher");
@@ -385,7 +389,7 @@ export function AddTeacherDialog({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="w-[95%] sm:max-w-[500px] md:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
@@ -481,6 +485,7 @@ export function StudentDialog({
   props: any;
   onStudentDeleted?: (studentId: string) => void;
 }) {
+  const dispatch = useDispatch<AppDispatch>();
   const [formData, setFormData] = useState<any>({
     db_id: props?.db_id || "",
     id: props?.id || props?.email || "",
