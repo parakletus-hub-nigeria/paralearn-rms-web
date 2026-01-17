@@ -3,26 +3,9 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 const HeroSection = () => {
   const fullText = "Restore Calm to Your School's Administration";
-  const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTyping, setIsTyping] = useState(true);
-
-  useEffect(() => {
-    if (currentIndex < fullText.length && isTyping) {
-      const timeout = setTimeout(() => {
-        setDisplayText((prev) => prev + fullText[currentIndex]);
-        setCurrentIndex((prev) => prev + 1);
-      }, 80); // Adjust speed here (lower = faster)
-
-      return () => clearTimeout(timeout);
-    } else if (currentIndex >= fullText.length) {
-      setIsTyping(false);
-    }
-  }, [currentIndex, isTyping, fullText]);
   return (
     <section className="w-full relative overflow-hidden min-h-screen pt-24 md:pt-32 lg:pt-28 xl:pt-28 2xl:pt-0 pb-16 md:pb-20 lg:pb-24 xl:pb-28 2xl:pb-32">
       {/* Two Column Layout: Text Left, Image Right */}
@@ -31,10 +14,7 @@ const HeroSection = () => {
         <div className="w-full lg:w-1/2 flex flex-col justify-start md:justify-center items-center lg:items-start space-y-3 md:space-y-5 lg:space-y-8 xl:space-y-10 py-4 md:py-6 lg:py-0 pb-12 md:pb-16 lg:pb-12 xl:pb-16 2xl:pb-20 px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24">
           {/* Headline - Mobile: text-5xl, Tablet: text-5xl, Desktop: text-6xl, Large: text-7xl */}
           <h1 className="text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-7xl font-black leading-[1.15] tracking-tight text-center lg:text-left max-w-2xl hero-headline">
-            <span>{displayText}</span>
-            {isTyping && (
-              <span className="inline-block w-0.5 h-[0.9em] bg-slate-900 dark:bg-white ml-1 align-baseline animate-blink" />
-            )}
+            {fullText}
           </h1>
           
           {/* Subheadline - Mobile: text-base, Tablet: text-lg, Desktop: text-xl, Large: text-2xl */}
