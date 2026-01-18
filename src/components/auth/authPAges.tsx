@@ -56,7 +56,7 @@ export function PageOne({data,changeData,step,setStep}: any){
                 <div className="flex flex-row items-center">
                 <input type="text" name="subdomain" value={data["subdomain"]} onChange={(e) => {changeData(e)}} className="border-[1px] border-gray-300 focus:border-[2px] focus:outline-none h-[45px] w-[90%] p-[13px]" /> 
                 <div className="w-[15%] text-center border-gray-300 border-[1px] h-[45px] flex items-center justify-center">
-                    <p className="text-center">.pl.ng</p>
+                    <p className="text-center">.pln.ng</p>
                 </div>
                 </div>
             </div>
