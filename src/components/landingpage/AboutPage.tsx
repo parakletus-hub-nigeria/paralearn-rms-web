@@ -77,7 +77,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Our Story Section */}
+      {/* Our Story Section section !IMPORTANT: Add the section title and description here */}
       <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30">
         <div className="absolute inset-0 opacity-20 dark:opacity-10">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 dark:bg-purple-900/20 rounded-full blur-3xl" />
