@@ -143,8 +143,17 @@ Cream / Off-White: #FFFBEB */
   * {
     @apply border-border outline-ring/50;
   }
+  
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
   body {
     @apply bg-background text-foreground selection:bg-purple-200 selection:text-purple-900;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1,
   h2,
@@ -155,7 +164,6 @@ Cream / Off-White: #FFFBEB */
     @apply font-bold tracking-tight text-slate-900 dark:text-white;
   }
 }
-
 @layer components {
   .glass-card {
     @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-800/50 shadow-2xl;
@@ -195,38 +203,6 @@ Cream / Off-White: #FFFBEB */
     @apply sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border;
   }
 
-  .reveal {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .reveal.active {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  .reveal-left {
-    opacity: 0;
-    transform: translateX(-40px) rotate(-1deg) scale(0.95);
-    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .reveal-left.active {
-    opacity: 1;
-    transform: translateX(0) rotate(0) scale(1);
-  }
-
-  .reveal-right {
-    opacity: 0;
-    transform: translateX(40px) rotate(1deg) scale(0.95);
-    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .reveal-right.active {
-    opacity: 1;
-    transform: translateX(0) rotate(0) scale(1);
-  }
 
   /* Hover-only effects - only apply on devices that support hover */
   @media (hover: hover) {

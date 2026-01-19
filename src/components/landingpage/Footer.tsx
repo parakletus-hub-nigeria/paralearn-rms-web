@@ -53,9 +53,9 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { icon: Twitter, href: "#", label: "Twitter" },
+    { icon: Twitter, href: "https://x.com/paralearn?t=3ViWKpFjN_J4apAcsrzu0Q&s=09", label: "Twitter" },
     { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Instagram, href: "#", label: "Instagram" },
+    { icon: Instagram, href: "https://www.instagram.com/paralearn.io?igsh=Nzh5eXRpdHhtcHU5", label: "Instagram" },
     { icon: Linkedin, href: "https://www.linkedin.com/company/paralearn/", label: "LinkedIn" },
   ];
 

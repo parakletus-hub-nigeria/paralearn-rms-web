@@ -28,28 +28,36 @@
     useEffect(() => {
       if (!mounted) return;
       
+      let ticking = false;
+      
       const handleScroll = () => {
-        const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrollPercent = (winScroll / height) * 100;
-        setScrolled(scrollPercent);
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollPercent = (winScroll / height) * 100;
+            setScrolled(scrollPercent);
 
-        // Hide header when scrolling down, show when scrolling up
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          // Scrolling down
-          setIsVisible(false);
-        } else if (currentScrollY < lastScrollY) {
-          // Scrolling up
-          setIsVisible(true);
+            // Hide header when scrolling down, show when scrolling up
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+              // Scrolling down
+              setIsVisible(false);
+            } else if (currentScrollY < lastScrollY) {
+              // Scrolling up
+              setIsVisible(true);
+            }
+
+            // Always show header at the top
+            if (currentScrollY < 100) {
+              setIsVisible(true);
+            }
+
+            setLastScrollY(currentScrollY);
+            ticking = false;
+          });
+          ticking = true;
         }
-
-        // Always show header at the top
-        if (currentScrollY < 100) {
-          setIsVisible(true);
-        }
-
-        setLastScrollY(currentScrollY);
       };
 
       window.addEventListener('scroll', handleScroll, { passive: true });
@@ -68,6 +76,7 @@
         className={`fixed top-0 left-0 w-full z-50 px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 bg-transparent transition-transform duration-300 ease-in-out ${
           isVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
+        style={{ willChange: 'transform' }}
       >
         <nav className="max-w-7xl mx-auto h-14 sm:h-16 md:h-20 px-4 sm:px-6 md:px-8 bg-white rounded-full flex items-center justify-between border border-gray-200/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
           {/* Enhanced Scroll Progress Bar */}

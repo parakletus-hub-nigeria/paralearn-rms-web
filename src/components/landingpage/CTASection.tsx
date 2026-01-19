@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ScrollReveal } from "./ScrollReveal";
 import { ArrowRight } from "lucide-react";
 
 const CTASection = () => {
@@ -15,34 +14,29 @@ const CTASection = () => {
       </div>
       
       <div className="max-w-5xl mx-auto relative z-10 text-center">
-        <ScrollReveal animation="reveal" delay="0s">
-          {/* Headline */}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black leading-tight text-slate-900 dark:text-white mb-6 md:mb-8 tracking-tight">
-            <span>
-              {fullText.includes("your ") ? (
-                <>
-                  {fullText.substring(0, fullText.indexOf("your ") + 5)}
-                  <br className="hidden sm:block" />
-                  {fullText.substring(fullText.indexOf("your ") + 5)}
-                </>
-              ) : (
-                fullText
-              )}
-            </span>
-          </h1>
-        </ScrollReveal>
+        {/* Headline */}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black leading-tight text-slate-900 dark:text-white mb-6 md:mb-8 tracking-tight">
+          <span>
+            {fullText.includes("your ") ? (
+              <>
+                {fullText.substring(0, fullText.indexOf("your ") + 5)}
+                <br className="hidden sm:block" />
+                {fullText.substring(fullText.indexOf("your ") + 5)}
+              </>
+            ) : (
+              fullText
+            )}
+          </span>
+        </h1>
         
-        <ScrollReveal animation="reveal" delay="0.1s">
-          {/* Subheadline */}
-          <p className="text-base sm:text-lg md:text-xl lg:text-xl text-slate-600 dark:text-slate-400 font-medium mb-10 md:mb-12 max-w-3xl mx-auto leading-relaxed">
-            Whether you're starting fresh or migrating from a manual system - Result Management,
-            Assessment Tracking, Grade Compilation, and Student Progress Reporting, we support
-            your school's growth.
-          </p>
-        </ScrollReveal>
+        {/* Subheadline */}
+        <p className="text-base sm:text-lg md:text-xl lg:text-xl text-slate-600 dark:text-slate-400 font-medium mb-10 md:mb-12 max-w-3xl mx-auto leading-relaxed">
+          Whether you're starting fresh or migrating from a manual system - Result Management,
+          Assessment Tracking, Grade Compilation, and Student Progress Reporting, we support
+          your school's growth.
+        </p>
         
-        <ScrollReveal animation="reveal" delay="0.2s">
-          {/* CTA Buttons */}
+        {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6">
             <Button 
               size="lg"
@@ -67,7 +61,6 @@ const CTASection = () => {
               Learn More
             </Button>
           </div>
-        </ScrollReveal>
       </div>
     </section>
   );
