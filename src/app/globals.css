@@ -145,7 +145,7 @@ Cream / Off-White: #FFFBEB */
   }
   
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
   }
   
@@ -154,6 +154,21 @@ Cream / Off-White: #FFFBEB */
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Optimize scroll performance - instant rendering */
+  section {
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: auto;
+  }
+  
+  /* Force GPU acceleration for all elements during scroll */
+  main, div {
+    transform: translateZ(0);
   }
   h1,
   h2,

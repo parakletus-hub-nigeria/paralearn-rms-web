@@ -30,36 +30,28 @@
     useEffect(() => {
       if (!mounted) return;
       
-      let ticking = false;
-      
       const handleScroll = () => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrollPercent = (winScroll / height) * 100;
-            setScrolled(scrollPercent);
+        const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrollPercent = (winScroll / height) * 100;
+        setScrolled(scrollPercent);
 
-            // Hide header when scrolling down, show when scrolling up
-            if (currentScrollY > lastScrollY && currentScrollY > 100) {
-              // Scrolling down
-              setIsVisible(false);
-            } else if (currentScrollY < lastScrollY) {
-              // Scrolling up
-              setIsVisible(true);
-            }
-
-            // Always show header at the top
-            if (currentScrollY < 100) {
-              setIsVisible(true);
-            }
-
-            setLastScrollY(currentScrollY);
-            ticking = false;
-          });
-          ticking = true;
+        // Hide header when scrolling down, show when scrolling up
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+          // Scrolling down
+          setIsVisible(false);
+        } else if (currentScrollY < lastScrollY) {
+          // Scrolling up
+          setIsVisible(true);
         }
+
+        // Always show header at the top
+        if (currentScrollY < 100) {
+          setIsVisible(true);
+        }
+
+        setLastScrollY(currentScrollY);
       };
 
       window.addEventListener('scroll', handleScroll, { passive: true });
@@ -78,7 +70,7 @@
         className={`fixed top-0 left-0 w-full z-50 px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 bg-transparent transition-transform duration-300 ease-in-out ${
           isVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
-        style={{ willChange: 'transform' }}
+        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
       >
         <nav className="max-w-7xl mx-auto h-14 sm:h-16 md:h-20 px-4 sm:px-6 md:px-8 bg-white rounded-full flex items-center justify-between border border-gray-200/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
           {/* Enhanced Scroll Progress Bar */}
@@ -143,33 +135,30 @@
             </div>
             
             <div className="flex items-center gap-4">
-              <button 
-                className="text-sm font-bold text-slate-900 dark:text-white px-4 md:px-6 py-2 sm:py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-xl transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-white/20 hover:shadow-md"
-                onClick={() => {
-                  const event = new CustomEvent('openLoginModal');
-                  window.dispatchEvent(event);
-                }}
-              >
-                  Sign In
-              </button>
-              <Button className="rounded-full px-6 md:px-10 h-10 sm:h-11 md:h-12 font-black shadow-2xl shadow-primary/40 hover:-translate-y-1 hover:shadow-primary/60 transition-all duration-300 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 relative overflow-hidden group text-xs sm:text-sm">
-                <span className="relative z-10">Enroll Now</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-              </Button>
+              <Link href="/auth/signin">
+                <button 
+                  className="text-sm font-bold text-slate-900 dark:text-white px-4 md:px-6 py-2 sm:py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-xl transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-white/20 hover:shadow-md"
+                >
+                    Sign In
+                </button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button className="rounded-full px-6 md:px-10 h-10 sm:h-11 md:h-12 font-black shadow-md shadow-primary/30 bg-gradient-to-r from-primary via-purple-700 to-indigo-700 hover:from-purple-700 hover:via-indigo-700 hover:to-primary text-xs sm:text-sm">
+                  Enroll Now
+                </Button>
+              </Link>
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center gap-2 sm:gap-4 relative z-10">
-            <button 
-              className="hidden sm:block text-sm font-bold text-slate-900 dark:text-white px-4 py-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all duration-300"
-              onClick={() => {
-                const event = new CustomEvent('openLoginModal');
-                window.dispatchEvent(event);
-              }}
-            >
-              Sign In
-            </button>
+            <Link href="/auth/signin" className="hidden sm:block">
+              <button 
+                className="text-sm font-bold text-slate-900 dark:text-white px-4 py-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all duration-300"
+              >
+                Sign In
+              </button>
+            </Link>
             
             {mounted ? (
               <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
@@ -223,25 +212,27 @@
                   
                   {/* Mobile Action Buttons */}
                   <DropdownMenuItem asChild className="p-0">
-                    <button 
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        const event = new CustomEvent('openLoginModal');
-                        window.dispatchEvent(event);
-                      }}
-                      className="w-full text-sm font-bold text-slate-900 dark:text-white px-3 py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-md transition-all duration-300 border border-slate-200 dark:border-white/20"
+                    <Link 
+                      href="/auth/signin"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="w-full text-sm font-bold text-slate-900 dark:text-white px-3 py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-md transition-all duration-300 border border-slate-200 dark:border-white/20 block text-center"
                     >
                       Sign In
-                    </button>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="p-0">
-                    <Button 
+                    <Link 
+                      href="/auth/signup"
                       onClick={() => setIsMenuOpen(false)}
-                      className="w-full rounded-full h-10 font-black shadow-lg shadow-primary/40 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 relative overflow-hidden group text-xs mt-1"
+                      className="block w-full mt-1"
                     >
-                      <span className="relative z-10">Enroll Now</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                    </Button>
+                      <Button 
+                        className="w-full rounded-full h-10 font-black shadow-lg shadow-primary/40 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 relative overflow-hidden group text-xs"
+                      >
+                        <span className="relative z-10">Enroll Now</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                      </Button>
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

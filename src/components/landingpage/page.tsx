@@ -8,6 +8,7 @@ import HowItWorksSection from "./HowItWorksSection";
 import CTASection from "./CTASection";
 import Footer from "./Footer";
 import LoginModal from "./LoginModal";
+import WhatsAppFloat from "./WhatsAppFloat";
 import { GradientSection } from "@/components/GradientSection";
 
 const LandingPage = () => {
@@ -23,6 +24,7 @@ const LandingPage = () => {
         <CTASection />
       </main>
       <Footer />
+      <WhatsAppFloat />
     </GradientSection>
   );
 };
