@@ -6,6 +6,7 @@
   import logo from "../../../public/log.png";
 
   import { useEffect, useState } from "react";
+  import { usePathname } from "next/navigation";
   import { Menu, X } from "lucide-react";
   import {
     DropdownMenu,
@@ -15,6 +16,7 @@
   } from "@/components/ui/dropdown-menu";
 
   const Header = () => {
+    const pathname = usePathname();
     const [scrolled, setScrolled] = useState(0);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
@@ -106,13 +108,18 @@
             <div className="flex items-center gap-8">
               {navigationLinks.map((link, index) => {
                 const isHashLink = link.href.startsWith('#');
+                const isActive = pathname === link.href;
                 
                 if (isHashLink) {
                   return (
                     <a
                       key={index}
                       href={link.href}
-                      className="header-nav-link text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary transition-colors uppercase tracking-widest relative focus:outline-none"
+                      className={`header-nav-link text-sm font-bold transition-all uppercase tracking-widest relative focus:outline-none px-4 py-2 rounded-lg ${
+                        isActive 
+                          ? 'text-primary bg-primary/10 dark:bg-primary/20' 
+                          : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/10'
+                      }`}
                     >
                       {link.label}
                     </a>
@@ -123,7 +130,11 @@
                   <Link
                     key={index}
                     href={link.href}
-                    className="header-nav-link text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary transition-colors uppercase tracking-widest relative focus:outline-none"
+                    className={`header-nav-link text-sm font-bold transition-all uppercase tracking-widest relative focus:outline-none px-4 py-2 rounded-lg ${
+                      isActive 
+                        ? 'text-primary bg-primary/10 dark:bg-primary/20' 
+                        : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/10'
+                    }`}
                   >
                     {link.label}
                   </Link>
@@ -171,6 +182,7 @@
                   {/* Mobile Navigation Links */}
                   {navigationLinks.map((link, index) => {
                     const isHashLink = link.href.startsWith('#');
+                    const isActive = pathname === link.href;
                     
                     if (isHashLink) {
                       return (
@@ -178,7 +190,11 @@
                           <a
                             href={link.href}
                             onClick={() => setIsMenuOpen(false)}
-                            className="px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer uppercase tracking-widest rounded-md"
+                            className={`px-3 py-2.5 text-sm font-bold cursor-pointer uppercase tracking-widest rounded-md ${
+                              isActive 
+                                ? 'text-primary bg-primary/10 dark:bg-primary/20' 
+                                : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                            }`}
                           >
                             {link.label}
                           </a>
@@ -191,7 +207,11 @@
                         <Link
                           href={link.href}
                           onClick={() => setIsMenuOpen(false)}
-                          className="px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer uppercase tracking-widest rounded-md"
+                          className={`px-3 py-2.5 text-sm font-bold cursor-pointer uppercase tracking-widest rounded-md ${
+                            isActive 
+                              ? 'text-primary bg-primary/10 dark:bg-primary/20' 
+                              : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                          }`}
                         >
                           {link.label}
                         </Link>
