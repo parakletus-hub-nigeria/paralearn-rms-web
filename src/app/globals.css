@@ -1,3 +1,4 @@
+@import url('https://fonts.cdnfonts.com/css/coolvetica');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -140,6 +141,10 @@ Cream / Off-White: #FFFBEB */
 }
 
 @layer base {
+  .font-coolvetica {
+    font-family: 'Coolvetica', 'Coolvetica Rg', sans-serif;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
@@ -166,8 +171,9 @@ Cream / Off-White: #FFFBEB */
     will-change: auto;
   }
   
-  /* Force GPU acceleration for all elements during scroll */
-  main, div {
+  /* Force GPU acceleration for main scroll. Avoid applying to all divs:
+     it overrides transforms (e.g. dialog translate) and can hide modal content. */
+  main {
     transform: translateZ(0);
   }
   h1,

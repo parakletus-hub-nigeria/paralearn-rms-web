@@ -42,13 +42,6 @@ const AboutPage = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
                 Goal
               </h2>
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-primary" />
-                <div className="w-16 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-              </div>
             </div>
 
           <div className="max-w-4xl mx-auto space-y-12 md:space-y-16">
@@ -82,13 +75,6 @@ const AboutPage = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
                 Our Story
               </h2>
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-primary" />
-                <div className="w-16 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-              </div>
             </div>
 
           <div className="max-w-4xl mx-auto space-y-12 md:space-y-16">
@@ -120,13 +106,6 @@ const AboutPage = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
                 Our Core Values
               </h2>
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-primary" />
-                <div className="w-16 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-              </div>
             </div>
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-8 lg:gap-12">

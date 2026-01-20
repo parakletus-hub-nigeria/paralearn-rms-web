@@ -12,7 +12,7 @@ const HowItWorksSection = () => {
     {
       number: "2",
       title: "Claim Your Identity",
-      description: "Get a dedicated, secure subdomain for your school (e.g., yourschool.pl.ng).",
+      description: "Get a dedicated, secure subdomain for your school (e.g., yourschool.pln.ng).",
       icon: "🔐",
     },
     {
@@ -24,7 +24,7 @@ const HowItWorksSection = () => {
   ];
 
   return (
-    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/80 to-slate-100/50 dark:from-slate-900 dark:via-slate-900/80 dark:to-slate-800/50" style={{ transform: 'translateZ(0)' }}>
+    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/80 to-slate-100/50 dark:from-slate-900 dark:via-slate-900/80 dark:to-slate-800/50" style={{ transform: 'translateZ(0)' }}>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -37,26 +37,10 @@ const HowItWorksSection = () => {
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
             {fullText}
           </h2>
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary via-purple-500 to-indigo-600" />
-            <div className="w-24 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary via-purple-500 to-indigo-600" />
-            <div className="w-12 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-          </div>
         </div>
 
         {/* Steps Grid */}
         <div className="relative">
-          {/* Connecting Lines - Desktop Only */}
-          <div className="hidden lg:block absolute top-[100px] left-[8%] right-[8%] h-1 z-0">
-            <div className="w-full h-full bg-gradient-to-r from-primary/30 via-purple-500/50 to-indigo-600/30 rounded-full relative">
-              {/* Static dots */}
-              <div className="absolute left-[16.66%] top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50" />
-              <div className="absolute right-[16.66%] top-1/2 -translate-y-1/2 w-3 h-3 bg-indigo-600 rounded-full shadow-lg shadow-indigo-600/50" />
-            </div>
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 md:gap-6 lg:gap-8 xl:gap-12 relative z-10">
             {steps.map((step, index) => (
               <div

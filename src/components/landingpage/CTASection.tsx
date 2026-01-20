@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 const CTASection = () => {
   const fullText = "Ready to modernize your school's result management?";
   return (
-    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-20 md:py-32 lg:py-40 overflow-hidden relative bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30" style={{ transform: 'translateZ(0)' }}>
+    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-20 md:py-32 lg:py-16 overflow-hidden relative bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30" style={{ transform: 'translateZ(0)' }}>
       
       <div className="max-w-5xl mx-auto relative z-10 text-center">
         {/* Headline */}

@@ -15,9 +15,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import logo from "../../../public/log.png";
+import ComingSoonModal from "./ComingSoonModal";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [comingSoonTitle, setComingSoonTitle] = useState("Coming Soon");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,30 +28,59 @@ const Footer = () => {
     setEmail("");
   };
 
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, label: string) => {
+    // Contact Support opens WhatsApp
+    if (href === "/support") {
+      e.preventDefault();
+      const phoneNumber = "2348148876125";
+      const whatsappUrl = `https://wa.me/${phoneNumber}`;
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+    
+    // About Us and Contact go to their pages
+    if (href === "/about" || href === "/contact") {
+      return; // Allow normal navigation
+    }
+    
+    // All other links show coming soon modal
+    e.preventDefault();
+    setComingSoonTitle(label);
+    setComingSoonOpen(true);
+  };
+
+  const handleComingSoonOpenChange = (open: boolean) => {
+    setComingSoonOpen(open);
+    if (!open) {
+      // When closing (Got it, overlay, or ESC), scroll back to footer at bottom
+      setTimeout(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" }), 0);
+    }
+  };
+
   const footerLinks = {
     product: [
-      { label: "Features", href: "#features" },
-      { label: "Pricing", href: "#pricing" },
-      { label: "For Schools", href: "#schools" },
-      { label: "CBT System", href: "#cbt" },
+      { label: "Features", href: "/features" },
+      { label: "Pricing", href: "/contact" },
+      // { label: "For Schools", href: "#schools" },
+      // { label: "CBT System", href: "#cbt" },
     ],
     company: [
       { label: "About Us", href: "/about" },
-      { label: "Careers", href: "#careers" },
-      { label: "Blog", href: "#blog" },
-      { label: "Partners", href: "#partners" },
+      { label: "Careers", href: "/careers" },
+      { label: "Blog", href: "/blog" },
+      { label: "Partners", href: "/partners" },
     ],
     resources: [
-      { label: "Documentation", href: "#docs" },
-      { label: "Help Center", href: "#help" },
-      { label: "Contact Support", href: "#support" },
-      { label: "Community", href: "#community" },
+      { label: "Documentation", href: "/documentation" },
+      { label: "Help Center", href: "/help" },
+      { label: "Contact Support", href: "/support" },
+      // { label: "Community", href: "#community" },
     ],
     legal: [
-      { label: "Privacy Policy", href: "#privacy" },
-      { label: "Terms of Service", href: "#terms" },
-      { label: "Security", href: "#security" },
-      { label: "Cookie Policy", href: "#cookies" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Security", href: "/security" },
+      { label: "Cookie Policy", href: "/cookies" },
     ],
   };
 
@@ -129,7 +161,7 @@ const Footer = () => {
               <div className="flex items-start gap-2 md:gap-3">
                 <MapPin className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0 mt-0.5" />
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                  Lagos, Nigeria
+                  PortHarcourt, Rivers State
                 </p>
               </div>
               <div className="flex items-center gap-2 md:gap-3">
@@ -141,7 +173,7 @@ const Footer = () => {
               <div className="flex items-center gap-2 md:gap-3">
                 <Mail className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
                 <a href="mailto:hello@paralearn.com" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors break-all">
-                  hello@paralearn.com
+                  paralearn.io@gmail.com
                 </a>
               </div>
             </div>
@@ -173,15 +205,33 @@ const Footer = () => {
               Product
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
-              {footerLinks.product.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {footerLinks.product.map((link, index) => {
+                const isExternal = link.href.startsWith('http');
+                const isHash = link.href.startsWith('#');
+                if (isExternal || isHash) {
+                  return (
+                    <a
+                      key={index}
+                      href={link.href}
+                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
 
@@ -191,15 +241,33 @@ const Footer = () => {
               Company
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
-              {footerLinks.company.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {footerLinks.company.map((link, index) => {
+                const isExternal = link.href.startsWith('http');
+                const isHash = link.href.startsWith('#');
+                if (isExternal || isHash) {
+                  return (
+                    <a
+                      key={index}
+                      href={link.href}
+                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
 
@@ -209,15 +277,33 @@ const Footer = () => {
               Resources
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
-              {footerLinks.resources.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {footerLinks.resources.map((link, index) => {
+                const isExternal = link.href.startsWith('http');
+                const isHash = link.href.startsWith('#');
+                if (isExternal || isHash) {
+                  return (
+                    <a
+                      key={index}
+                      href={link.href}
+                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
 
@@ -227,15 +313,33 @@ const Footer = () => {
               Legal
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
-              {footerLinks.legal.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {footerLinks.legal.map((link, index) => {
+                const isExternal = link.href.startsWith('http');
+                const isHash = link.href.startsWith('#');
+                if (isExternal || isHash) {
+                  return (
+                    <a
+                      key={index}
+                      href={link.href}
+                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
         </div>
@@ -261,6 +365,11 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      <ComingSoonModal 
+        open={comingSoonOpen} 
+        onOpenChange={handleComingSoonOpenChange}
+        title={comingSoonTitle}
+      />
     </footer>
   );
 };

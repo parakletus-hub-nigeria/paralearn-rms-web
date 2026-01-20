@@ -33,7 +33,7 @@ const BenefitsSection = () => {
   ];
 
   return (
-    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30" style={{ transform: 'translateZ(0)' }}>
+    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30" style={{ transform: 'translateZ(0)' }}>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -49,13 +49,6 @@ const BenefitsSection = () => {
           <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
             Focused on outcomes, not technical specs
           </p>
-          <div className="flex items-center justify-center gap-2 mt-4">
-            <div className="w-8 h-1 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-            <div className="w-2 h-2 rounded-full bg-primary" />
-            <div className="w-16 h-1 bg-gradient-to-r from-primary via-purple-600 to-indigo-700 rounded-full" />
-            <div className="w-2 h-2 rounded-full bg-indigo-700" />
-            <div className="w-8 h-1 bg-gradient-to-r from-indigo-700 via-indigo-700 to-transparent rounded-full" />
-          </div>
         </div>
 
         {/* Benefits Grid */}

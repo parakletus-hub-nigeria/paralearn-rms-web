@@ -3,7 +3,7 @@
 const ComparisonSection = () => {
   return (
     <section 
-      className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30"
+      className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30"
       style={{ transform: 'translateZ(0)' }}
     >
 
@@ -23,14 +23,6 @@ const ComparisonSection = () => {
           <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
             The Old Way vs. The ParaLearn Way
           </p>
-          
-          <div className="flex items-center justify-center gap-2 mt-4">
-            <div className="w-8 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-            <div className="w-1 h-1 rounded-full bg-primary" />
-            <div className="w-16 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-            <div className="w-1 h-1 rounded-full bg-indigo-600" />
-            <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 md:gap-12">

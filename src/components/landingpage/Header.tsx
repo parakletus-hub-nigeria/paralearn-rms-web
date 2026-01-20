@@ -60,19 +60,19 @@
 
     const navigationLinks = [
       { label: "Product", href: "/product" },
-      { label: "For Schools", href: "#school" },
+      // { label: "For Schools", href: "#school" },
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
     ];
 
     return (
       <header 
-        className={`fixed top-0 left-0 w-full z-50 px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 bg-transparent transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 w-full z-50 px-0 sm:px-1 md:px-2 py-2 sm:py-3 md:py-4 bg-transparent transition-transform duration-300 ease-in-out ${
           isVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
         style={{ willChange: 'transform', transform: 'translateZ(0)' }}
       >
-        <nav className="max-w-7xl mx-auto h-14 sm:h-16 md:h-20 px-4 sm:px-6 md:px-8 bg-white rounded-full flex items-center justify-between border border-gray-200/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
+        <nav className="max-w-7xl mx-auto h-14 sm:h-16 md:h-20 pl-0 sm:pl-1 md:pl-2 pr-4 sm:pr-6 md:pr-8 bg-white rounded-full flex items-center justify-between border border-gray-200/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
           {/* Enhanced Scroll Progress Bar */}
           <div className="absolute bottom-0 left-0 h-[2px] sm:h-[3px] bg-slate-200/50 dark:bg-slate-800/50 transition-all duration-150 ease-out z-50 overflow-hidden w-full rounded-full">
             <div 
@@ -84,11 +84,11 @@
           {/* Animated background gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full" />
 
-          <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer relative z-10">
+          <div className="flex items-center gap-1 sm:gap-2 group cursor-pointer relative z-10">
             <Link href="/" className="relative bg-transparent">
               <Image
                 src={logo}
-                className="w-[200px] h-[200px] sm:w-[210px] sm:h-[210px] md:w-[220px] md:h-[220px] lg:w-[230px] lg:h-[230px] xl:w-[240px] xl:h-[240px] object-contain relative z-10"
+                className="w-[120px] h-[100px] sm:w-[140px] sm:h-[140px] md:w-[160px] md:h-[160px] lg:w-[180px] lg:h-[180px] xl:w-[200px] xl:h-[200px] object-contain relative z-10"
                 alt="paralearn logo"
                 priority
               />
