@@ -167,7 +167,7 @@
                     <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-900 dark:text-white" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 mt-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 shadow-lg rounded-lg p-2">
+                <DropdownMenuContent align="end" className="w-48 mt-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 shadow-lg rounded-lg p-3">
                   {/* Mobile Navigation Links */}
                   {navigationLinks.map((link, index) => {
                     const isHashLink = link.href.startsWith('#');
@@ -179,7 +179,7 @@
                           <a
                             href={link.href}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`px-3 py-2.5 text-sm font-bold cursor-pointer uppercase tracking-widest rounded-md ${
+                            className={`px-4 py-2.5 text-xs font-extrabold cursor-pointer uppercase tracking-wider rounded-md ${
                               isActive 
                                 ? 'text-primary bg-primary/10 dark:bg-primary/20' 
                                 : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20'
@@ -196,11 +196,11 @@
                         <Link
                           href={link.href}
                           onClick={() => setIsMenuOpen(false)}
-                          className={`px-3 py-2.5 text-sm font-bold cursor-pointer uppercase tracking-widest rounded-md ${
-                            isActive 
-                              ? 'text-primary bg-primary/10 dark:bg-primary/20' 
-                              : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20'
-                          }`}
+className={`px-4 py-2.5 text-xs font-extrabold cursor-pointer uppercase tracking-wider rounded-md ${
+                              isActive 
+                                ? 'text-primary bg-primary/10 dark:bg-primary/20' 
+                                : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                            }`}
                         >
                           {link.label}
                         </Link>
@@ -208,14 +208,14 @@
                     );
                   })}
                   
-                  <div className="border-t border-gray-200 dark:border-gray-800 my-1" />
+                  <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
                   
                   {/* Mobile Action Buttons */}
                   <DropdownMenuItem asChild className="p-0">
                     <Link 
                       href="/auth/signin"
                       onClick={() => setIsMenuOpen(false)}
-                      className="w-full text-sm font-bold text-slate-900 dark:text-white px-3 py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-md transition-all duration-300 border border-slate-200 dark:border-white/20 block text-center"
+                      className="w-full flex justify-center items-center text-xs font-extrabold text-slate-900 dark:text-white px-4 py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-md transition-all duration-300 border border-slate-200 dark:border-white/20"
                     >
                       Sign In
                     </Link>
@@ -224,7 +224,7 @@
                     <Link 
                       href="/auth/signup"
                       onClick={() => setIsMenuOpen(false)}
-                      className="block w-full mt-1"
+                      className="block w-full mt-2"
                     >
                       <Button 
                         className="w-full rounded-full h-10 font-black shadow-lg shadow-primary/40 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-primary/90 hover:via-purple-500/90 hover:to-indigo-500/90 relative overflow-hidden group text-xs"
