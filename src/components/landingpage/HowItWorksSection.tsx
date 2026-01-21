@@ -7,19 +7,16 @@ const HowItWorksSection = () => {
       number: "1",
       title: "Create Your Workspace",
       description: "Register your institution and define your structure (Classes, Subjects, and Grading Systems).",
-      icon: "🏢",
     },
     {
       number: "2",
       title: "Claim Your Identity",
       description: "Get a dedicated, secure subdomain for your school (e.g., yourschool.pln.ng).",
-      icon: "🔐",
     },
     {
       number: "3",
       title: "Onboard Your Team",
       description: "Invite teachers and upload student lists. They receive credentials instantly.",
-      icon: "👥",
     },
   ];
 
@@ -39,7 +36,7 @@ const HowItWorksSection = () => {
           </h2>
         </div>
 
-        {/* Steps Grid */}
+        {/* Steps: grid on desktop, stacked on mobile */}
         <div className="relative">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 md:gap-6 lg:gap-8 xl:gap-12 relative z-10">
             {steps.map((step, index) => (
@@ -52,20 +49,10 @@ const HowItWorksSection = () => {
                 
                 {/* Content */}
                 <div className="relative z-10">
-                  {/* Step Number Badge with Icon */}
+                  {/* Step Number Badge */}
                   <div className="flex flex-col items-center mb-6 md:mb-8">
-                    <div className="relative group/badge">
-                      {/* Main badge */}
-                      <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-22 md:h-22 lg:w-28 lg:h-28 mx-auto rounded-full bg-gradient-to-br from-primary via-purple-700 to-indigo-700 flex items-center justify-center text-3xl sm:text-4xl md:text-3xl lg:text-5xl font-black text-white shadow-lg shadow-primary/40 relative z-10">
-                        <span className="relative z-10">{step.number}</span>
-                      </div>
-                      
-                      {/* Icon Badge */}
-                      <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 z-20">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-12 md:h-12 lg:w-16 lg:h-16 rounded-full bg-white/90 dark:bg-slate-700/90 flex items-center justify-center shadow-lg border-2 border-primary/40 dark:border-purple-500/50">
-                          <span className="text-2xl sm:text-3xl md:text-2xl lg:text-3xl">{step.icon}</span>
-                        </div>
-                      </div>
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 mx-auto rounded-full bg-gradient-to-br from-primary via-purple-700 to-indigo-700 flex items-center justify-center text-3xl sm:text-4xl md:text-3xl lg:text-5xl font-black text-white shadow-lg shadow-primary/40">
+                      <span>{step.number}</span>
                     </div>
                   </div>
                   
@@ -80,7 +67,7 @@ const HowItWorksSection = () => {
                     </p>
                   </div>
 
-                  {/* Arrow connector - Mobile/Tablet */}
+                  {/* Arrow - Mobile only */}
                   {index < steps.length - 1 && (
                     <div className="md:hidden flex justify-center my-8">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary/30">

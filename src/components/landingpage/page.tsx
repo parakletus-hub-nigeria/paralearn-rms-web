@@ -10,6 +10,7 @@ import Footer from "./Footer";
 import LoginModal from "./LoginModal";
 import WhatsAppFloat from "./WhatsAppFloat";
 import { GradientSection } from "@/components/GradientSection";
+import { ScrollReveal } from "./ScrollReveal";
 
 const LandingPage = () => {
   return (
@@ -18,12 +19,22 @@ const LandingPage = () => {
       <LoginModal />
       <main>
         <HeroSection />
-        <ComparisonSection />
-        <BenefitsSection />
-        <HowItWorksSection />
-        <CTASection />
+        <ScrollReveal animation="reveal">
+          <ComparisonSection />
+        </ScrollReveal>
+        <ScrollReveal animation="reveal">
+          <BenefitsSection />
+        </ScrollReveal>
+        <ScrollReveal animation="reveal">
+          <HowItWorksSection />
+        </ScrollReveal>
+        <ScrollReveal animation="reveal">
+          <CTASection />
+        </ScrollReveal>
       </main>
-      <Footer />
+      <ScrollReveal animation="reveal">
+        <Footer />
+      </ScrollReveal>
       <WhatsAppFloat />
     </GradientSection>
   );

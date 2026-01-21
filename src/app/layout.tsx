@@ -20,8 +20,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ParaLearn",
-  description: "ParaLearn",
+  title: {
+    default: "ParaLearn - Modern Result Management for African Schools",
+    template: "%s | ParaLearn",
+  },
+  description:
+    "Simplify results, assessments, and reporting. ParaLearn RMS helps African schools move from paperwork to a unified digital system.",
   icons: {
     icon: "/favicon.png",
   },

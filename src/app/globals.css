@@ -318,6 +318,49 @@ Cream / Off-White: #FFFBEB */
       transform: translateY(0);
     }
   }
+
+  /* ScrollReveal: opacity + transform only (GPU-friendly). transition when .active is added. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+  .reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+  .reveal-left.active {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+  .reveal-right.active {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Load-time stagger: for hero and above-the-fold. transform + opacity only. */
+  @keyframes load-fade-in-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-load-fade-in-up {
+    animation: load-fade-in-up 0.5s ease-out backwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal-left, .reveal-right { opacity: 1; transform: none; transition: none; }
+    .animate-load-fade-in-up { animation: none; opacity: 1; transform: none; }
+  }
 }
 
 /* Custom Scrollbar */

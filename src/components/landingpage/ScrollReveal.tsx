@@ -18,6 +18,9 @@ export const ScrollReveal = ({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -25,20 +28,11 @@ export const ScrollReveal = ({
           observer.unobserve(entry.target);
         }
       },
-      {
-        threshold: 0.1,
-      }
+      { threshold: 0.08, rootMargin: "0px 0px -24px 0px" }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (

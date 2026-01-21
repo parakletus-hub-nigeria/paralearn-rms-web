@@ -14,7 +14,8 @@ import {
   SidebarTrigger,
 } from "../ui/sidebar";
 import Image from "next/image";
-import logo from "../../images/IMG-20201027-WA0000_2-removebg-preview 1.png";
+import logo from "../../../public/mainLogo.svg";
+
 import {
   Home,
   UserCircle,
@@ -76,9 +77,6 @@ const SideBar = ({ children }: { children: ReactNode }) => {
                 alt="paralearn logo"
               />
             </div>
-            <p className="text-[#641BC4] font-bold text-lg tracking-tight">
-              PARA LEARN
-            </p>
           </div>
         </SidebarHeader>
 

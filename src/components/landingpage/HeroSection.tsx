@@ -31,12 +31,12 @@ const HeroSection = () => {
           </h1>
           
           {/* Subheadline - Mobile: text-base, Tablet: text-lg, Desktop: text-xl, Large: text-2xl */}
-          <p className="text-base md:text-base lg:text-lg xl:text-xl 2xl:text-2xl text-slate-700 dark:text-slate-300 leading-relaxed font-medium text-left max-w-xl">
+          <p className="animate-load-fade-in-up text-base md:text-base lg:text-lg xl:text-xl 2xl:text-2xl text-slate-700 dark:text-slate-300 leading-relaxed font-medium text-left max-w-xl" style={{ animationDelay: "100ms" }}>
             Move from chaotic paper trails and compilation bottlenecks to a unified, digital system. ParaLearn simplifies result management so you can focus on education, not paperwork.
           </p>
           
           {/* Hero Image - Mobile & Tablet Only (between text and buttons) */}
-          <div className="flex items-start justify-start pt-6 md:pt-8 pb-3 md:pb-4 lg:hidden w-full">
+          <div className="animate-load-fade-in-up flex items-start justify-start pt-6 md:pt-8 pb-3 md:pb-4 lg:hidden w-full" style={{ animationDelay: "180ms" }}>
             <div className="relative w-auto h-auto max-w-[90%] md:max-w-[70%] scale-105 md:scale-75 origin-left">
               <div className="relative">
                 <Image
@@ -53,20 +53,19 @@ const HeroSection = () => {
           </div>
           
           {/* CTAs - Consistent sizing within each category */}
-          <div className="flex flex-row flex-wrap items-center justify-start gap-4 md:gap-5 lg:gap-6 xl:gap-6 pt-6 md:pt-8 lg:pt-12 pb-1 md:pb-2 lg:pb-4 xl:pb-5 2xl:pb-6 w-full">
-            <Button
-              className="font-black bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-purple-600 hover:via-indigo-600 hover:to-primary text-white px-6 py-3 md:px-7 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 text-sm md:text-base lg:text-lg xl:text-xl font-semibold rounded-xl shadow-md shadow-primary/30 whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center"
-              onClick={() => {
-                window.location.href = "/auth/signup";
-              }}
-            >
-              <span className="flex items-center justify-center gap-2">
-                Register Your School
-                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </span>
-            </Button>
+          <div className="animate-load-fade-in-up flex flex-row flex-wrap items-center justify-start gap-4 md:gap-5 lg:gap-6 xl:gap-6 pt-6 md:pt-8 lg:pt-12 pb-1 md:pb-2 lg:pb-4 xl:pb-5 2xl:pb-6 w-full" style={{ animationDelay: "260ms" }}>
+            <Link href="/auth/signup">
+              <Button
+                className="font-black bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-purple-600 hover:via-indigo-600 hover:to-primary text-white px-6 py-3 md:px-7 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 text-sm md:text-base lg:text-lg xl:text-xl font-semibold rounded-xl shadow-md shadow-primary/30 whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  Register Your School
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </Button>
+            </Link>
             
             <Link
               href="/auth/signin"
@@ -83,7 +82,7 @@ const HeroSection = () => {
         </div>
 
         {/* Right Column: Hero Image - Desktop/Laptop Only */}
-        <div className="hidden lg:flex w-full lg:w-1/2 items-center justify-center p-8 lg:p-12 xl:p-16 2xl:p-20">
+        <div className="animate-load-fade-in-up hidden lg:flex w-full lg:w-1/2 items-center justify-center p-8 lg:p-12 xl:p-16 2xl:p-20" style={{ animationDelay: "180ms" }}>
           <div className="relative w-full h-full max-w-[90%] xl:max-w-full">
             <div className="relative">
               <Image

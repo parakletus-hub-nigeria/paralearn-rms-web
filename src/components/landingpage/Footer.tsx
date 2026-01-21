@@ -14,46 +14,23 @@ import {
   ArrowRight
 } from "lucide-react";
 import Image from "next/image";
-import logo from "../../../public/log.png";
-import ComingSoonModal from "./ComingSoonModal";
+import logo from "../../../public/mainLogo.svg";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
-  const [comingSoonOpen, setComingSoonOpen] = useState(false);
-  const [comingSoonTitle, setComingSoonTitle] = useState("Coming Soon");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitted email:", email);
+    toast.info("Newsletter signup coming soon. We'll notify you when it's available.");
     setEmail("");
   };
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, label: string) => {
-    // Contact Support opens WhatsApp
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href === "/support") {
       e.preventDefault();
-      const phoneNumber = "2348148876125";
-      const whatsappUrl = `https://wa.me/${phoneNumber}`;
-      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-    
-    // About Us and Contact go to their pages
-    if (href === "/about" || href === "/contact") {
-      return; // Allow normal navigation
-    }
-    
-    // All other links show coming soon modal
-    e.preventDefault();
-    setComingSoonTitle(label);
-    setComingSoonOpen(true);
-  };
-
-  const handleComingSoonOpenChange = (open: boolean) => {
-    setComingSoonOpen(open);
-    if (!open) {
-      // When closing (Got it, overlay, or ESC), scroll back to footer at bottom
-      setTimeout(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" }), 0);
+      window.open("https://wa.me/2348148876125", "_blank", "noopener,noreferrer");
     }
   };
 
@@ -161,7 +138,7 @@ const Footer = () => {
               <div className="flex items-start gap-2 md:gap-3">
                 <MapPin className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0 mt-0.5" />
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                  PortHarcourt, Rivers State
+                  Port Harcourt, Rivers State
                 </p>
               </div>
               <div className="flex items-center gap-2 md:gap-3">
@@ -172,7 +149,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2 md:gap-3">
                 <Mail className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
-                <a href="mailto:hello@paralearn.com" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors break-all">
+                <a href="mailto:paralearn.io@gmail.com" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors break-all">
                   paralearn.io@gmail.com
                 </a>
               </div>
@@ -225,7 +202,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
@@ -261,7 +238,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
@@ -297,7 +274,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
@@ -333,7 +310,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
@@ -365,11 +342,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      <ComingSoonModal 
-        open={comingSoonOpen} 
-        onOpenChange={handleComingSoonOpenChange}
-        title={comingSoonTitle}
-      />
+      <ToastContainer position="bottom-right" />
     </footer>
   );
 };

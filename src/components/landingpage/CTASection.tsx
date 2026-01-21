@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
@@ -33,28 +34,26 @@ const CTASection = () => {
         
         {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6">
-            <Button 
-              size="lg"
-              onClick={() => {
-                window.location.href = "/auth/signup";
-              }}
-              className="h-12 sm:h-14 px-8 sm:px-10 rounded-2xl text-base sm:text-lg font-black bg-gradient-to-r from-primary via-purple-700 to-indigo-700 hover:from-purple-700 hover:via-indigo-700 hover:to-primary text-white border-0 shadow-md shadow-primary/30 w-full sm:w-auto touch-manipulation"
-            >
-              <span className="flex items-center justify-center gap-2">
-                Start Registration
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 group-active:translate-x-1 transition-transform duration-300" />
-              </span>
-            </Button>
-            <Button
-              size="lg"
-              onClick={() => {
-                window.location.href = "/about";
-              }}
-              variant="ghost"
-              className="h-12 sm:h-14 px-8 sm:px-10 rounded-2xl text-base sm:text-lg font-bold text-slate-900 dark:text-white border-2 border-slate-300 dark:border-slate-600 hover:border-primary dark:hover:border-purple-500 hover:bg-gradient-to-r hover:from-primary/10 hover:via-purple-600/10 hover:to-indigo-700/10 dark:hover:from-purple-500/10 dark:hover:via-indigo-500/10 dark:hover:to-primary/10 hover:text-primary dark:hover:text-purple-400 transition-all duration-300 w-full sm:w-auto touch-manipulation active:scale-95"
-            >
-              Learn More
-            </Button>
+            <Link href="/auth/signup">
+              <Button 
+                size="lg"
+                className="h-12 sm:h-14 px-8 sm:px-10 rounded-2xl text-base sm:text-lg font-black bg-gradient-to-r from-primary via-purple-700 to-indigo-700 hover:from-purple-700 hover:via-indigo-700 hover:to-primary text-white border-0 shadow-md shadow-primary/30 w-full sm:w-auto touch-manipulation"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  Start Registration
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 group-active:translate-x-1 transition-transform duration-300" />
+                </span>
+              </Button>
+            </Link>
+            <Link href="/about">
+              <Button
+                size="lg"
+                variant="ghost"
+                className="h-12 sm:h-14 px-8 sm:px-10 rounded-2xl text-base sm:text-lg font-bold text-slate-900 dark:text-white border-2 border-slate-300 dark:border-slate-600 hover:border-primary dark:hover:border-purple-500 hover:bg-gradient-to-r hover:from-primary/10 hover:via-purple-600/10 hover:to-indigo-700/10 dark:hover:from-purple-500/10 dark:hover:via-indigo-500/10 dark:hover:to-primary/10 hover:text-primary dark:hover:text-purple-400 transition-all duration-300 w-full sm:w-auto touch-manipulation active:scale-95"
+              >
+                Learn More
+              </Button>
+            </Link>
           </div>
       </div>
     </section>
