@@ -5,7 +5,7 @@
   import Image from "next/image";
   import logo from "../../../public/mainLogo.svg";
 
-  import { useEffect, useState } from "react";
+  import { useEffect, useRef, useState } from "react";
   import { usePathname } from "next/navigation";
   import { Menu } from "lucide-react";
   import {
@@ -20,7 +20,7 @@
     const [scrolled, setScrolled] = useState(0);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
+    const lastScrollYRef = useRef(0);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -29,34 +29,33 @@
 
     useEffect(() => {
       if (!mounted) return;
-      
-      const handleScroll = () => {
-        const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrollPercent = (winScroll / height) * 100;
-        setScrolled(scrollPercent);
 
-        // Hide header when scrolling down, show when scrolling up
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          // Scrolling down
+      lastScrollYRef.current = window.scrollY ?? document.documentElement.scrollTop;
+
+      const handleScroll = () => {
+        const currentScrollY = window.scrollY ?? document.documentElement.scrollTop;
+        const last = lastScrollYRef.current;
+
+        // Scroll progress for the bar
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        setScrolled(height > 0 ? (currentScrollY / height) * 100 : 0);
+
+        // Hide header when scrolling down (past 100px), show when scrolling up
+        if (currentScrollY > last && currentScrollY > 100) {
           setIsVisible(false);
-        } else if (currentScrollY < lastScrollY) {
-          // Scrolling up
+        } else if (currentScrollY < last) {
           setIsVisible(true);
         }
-
-        // Always show header at the top
         if (currentScrollY < 100) {
           setIsVisible(true);
         }
 
-        setLastScrollY(currentScrollY);
+        lastScrollYRef.current = currentScrollY;
       };
 
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScrollY, mounted]);
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      return () => window.removeEventListener("scroll", handleScroll);
+    }, [mounted]);
 
     const navigationLinks = [
       { label: "Product", href: "/product" },

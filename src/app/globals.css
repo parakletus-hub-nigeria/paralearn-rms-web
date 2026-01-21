@@ -159,7 +159,6 @@ Cream / Off-White: #FFFBEB */
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transform: translateZ(0);
     -webkit-overflow-scrolling: touch;
   }
   
