@@ -26,7 +26,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-4">2. Use License</h2>
               <p className="text-slate-600 dark:text-slate-400 mb-4">
-                Permission is granted to temporarily use ParaLearn for your school&apos;s result management purposes. This is the grant of a license, not a transfer of title, and under this license you may not:
+                Permission is granted to temporarily use ParaLearn for your school result management purposes. This is the grant of a license, not a transfer of title, and under this license you may not:
               </p>
               <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-400 mb-4 ml-4">
                 <li>Modify or copy the materials</li>

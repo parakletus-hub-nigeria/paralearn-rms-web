@@ -20,18 +20,18 @@ const ProductPage = () => {
   const commandCenterFeatures = [
     {
       icon: FileSpreadsheet,
-      title: "The \"Magic\" Broadsheet",
-      description: "Forget Excel formulas. As scores are uploaded by teachers, your Master Broadsheet populates in real-time. View class performance at a glance, identify struggling students instantly, and approve an entire class's results with one click."
+      title: "The Magic Broadsheet",
+      description: "Forget Excel formulas. As scores are uploaded by teachers, your Master Broadsheet populates in real-time. View class performance at a glance, identify struggling students instantly, and approve an entire class results with one click."
     },
     {
       icon: Wand2,
       title: "School Onboarding Wizard",
-      description: "Setting up a digital infrastructure shouldn't take weeks. Our 4-step wizard helps you configure your Academic Year, Classes, Subjects, and unique Grading Systems in under 30 minutes."
+      description: "Setting up a digital infrastructure should not take weeks. Our 4-step wizard helps you configure your Academic Year, Classes, Subjects, and unique Grading Systems in under 30 minutes."
     },
     {
       icon: Shield,
       title: "Audit-Ready Security",
-      description: "Every score change, every approval, and every login is logged. Protect your institution's reputation with a system that ensures the grades on the report card match the grades in the exam hall."
+      description: "Every score change, every approval, and every login is logged. Protect your institution reputation with a system that ensures the grades on the report card match the grades in the exam hall."
     }
   ];
 
@@ -96,7 +96,7 @@ const ProductPage = () => {
             <ScrollReveal animation="reveal" delay="0.2s">
               <div className="space-y-6">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4">
-                  One Ecosystem. Two Specialized Experiences.
+                  One Ecosystem, two Specialized Experiences.
                 </h1>
                 <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                   ParaLearn splits the workload intelligently. Administrators command from the web; teachers and students engage from their devices.
@@ -117,8 +117,11 @@ const ProductPage = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <ScrollReveal animation="reveal" delay="0.1s">
             <div className="text-center mb-12 md:mb-16 lg:mb-20">
+              <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-widest text-primary font-semibold mb-2 md:mb-3">
+                Part 1
+              </p>
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
-                Part 1: The Command Center (For Admins)
+                The Command Center (For Admins)
               </h2>
             </div>
           </ScrollReveal>
@@ -169,8 +172,11 @@ const ProductPage = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <ScrollReveal animation="reveal" delay="0.1s">
             <div className="text-center mb-12 md:mb-16 lg:mb-20">
+              <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-widest text-primary font-semibold mb-2 md:mb-3">
+                Part 2
+              </p>
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
-                Part 2: The Classroom Companion (For Teachers & Students)
+                The Classroom Companion (For Teachers & Students)
               </h2>
             </div>
           </ScrollReveal>

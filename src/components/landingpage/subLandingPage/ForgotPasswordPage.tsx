@@ -116,7 +116,7 @@ export default function ForgotPasswordPage() {
             </button>
 
             <p className="text-sm">
-              Didn&apos;t receive an email?{" "}
+              Did not receive an email?{" "}
               <button
                 onClick={handleSubmit}
                 className="text-[#641BC4] font-semibold hover:underline"

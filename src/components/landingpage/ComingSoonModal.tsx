@@ -27,7 +27,7 @@ const ComingSoonModal = ({ open, onOpenChange, title = "Coming Soon" }: ComingSo
       id="coming-soon-description"
       className="text-center text-base md:text-lg text-slate-600 dark:text-slate-400 pt-2"
     >
-      This page is currently under development. We&apos;re working hard to bring you amazing content. Check
+      This page is currently under development. We are working hard to bring you amazing content. Check
       back soon!
     </p>
     <div className="flex justify-center pt-4">

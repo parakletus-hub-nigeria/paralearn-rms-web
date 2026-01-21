@@ -1,5 +1,7 @@
 "use client";
 
+import { ScrollReveal } from "./ScrollReveal";
+
 const HowItWorksSection = () => {
   const fullText = "How It Works";
   const steps = [
@@ -25,23 +27,25 @@ const HowItWorksSection = () => {
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16 lg:mb-20">
-          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
-            <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
-              Simple Process
-            </span>
+        <ScrollReveal animation="reveal" delay="0s">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
+              <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
+                Simple Process
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
+              {fullText}
+            </h2>
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
-            {fullText}
-          </h2>
-        </div>
+        </ScrollReveal>
 
         {/* Steps: grid on desktop, stacked on mobile */}
         <div className="relative">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 md:gap-6 lg:gap-8 xl:gap-12 relative z-10">
             {steps.map((step, index) => (
+              <ScrollReveal key={index} animation="reveal" delay={`${0.1 + index * 0.1}s`}>
               <div
-                key={index}
                 className="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-md border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden min-h-[280px] sm:min-h-[320px] md:min-h-[300px] lg:min-h-[340px]"
               >
                 {/* Glowing border on hover */}
@@ -79,6 +83,7 @@ const HowItWorksSection = () => {
                   )}
                 </div>
               </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>

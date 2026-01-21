@@ -1,5 +1,7 @@
 "use client";
 
+import { ScrollReveal } from "./ScrollReveal";
+
 const ComparisonSection = () => {
   return (
     <section 
@@ -9,24 +11,27 @@ const ComparisonSection = () => {
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16 lg:mb-20">
-          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
-            <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
-              The Transformation
-            </span>
+        <ScrollReveal animation="reveal" delay="0s">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
+              <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
+                The Transformation
+              </span>
+            </div>
+            
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
+              The Shift
+            </h2>
+            
+            <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
+              The Old Way vs. The ParaLearn Way
+            </p>
           </div>
-          
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
-            The Shift
-          </h2>
-          
-          <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
-            The Old Way vs. The ParaLearn Way
-          </p>
-        </div>
+        </ScrollReveal>
 
         <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {/* The Reality You Know */}
+          <ScrollReveal animation="reveal-left" delay="0.1s">
           <div>
             <div className="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-8 shadow-md border-2 border-red-200 dark:border-red-900/30 group relative overflow-hidden touch-manipulation">
               {/* Gradient border on hover/active */}
@@ -80,8 +85,10 @@ const ComparisonSection = () => {
               </div>
             </div>
           </div>
+          </ScrollReveal>
 
           {/* The ParaLearn Standard */}
+          <ScrollReveal animation="reveal-right" delay="0.1s">
           <div>
             <div className="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-8 shadow-md border-2 border-primary/30 dark:border-primary/50 group relative overflow-hidden touch-manipulation">
               {/* Gradient border on hover/active */}
@@ -105,7 +112,7 @@ const ComparisonSection = () => {
                       Instant Compilation
                     </h4>
                     <p className="text-slate-600 dark:text-slate-400">
-                      Scores move from the teacher's phone to the master broadsheet in real-time.
+                      Scores move from teacher phones to the master broadsheet in real-time.
                     </p>
                   </div>
                   
@@ -135,6 +142,7 @@ const ComparisonSection = () => {
               </div>
             </div>
           </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>

@@ -11,7 +11,7 @@ export default function FeaturesPage() {
             Features
           </h1>
           <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-            Discover what makes ParaLearn the perfect solution for your school&apos;s result management needs.
+            Discover what makes ParaLearn the perfect solution for your school result management needs.
           </p>
         </div>
         <div className="space-y-8">

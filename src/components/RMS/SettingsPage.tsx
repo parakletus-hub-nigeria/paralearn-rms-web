@@ -87,7 +87,7 @@ export const SettingsPage = () => {
                   <CardTitle>School Information</CardTitle>
                 </div>
                 <CardDescription>
-                  View your school's basic information
+                  View your school basic information
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -155,7 +155,7 @@ export const SettingsPage = () => {
                   <CardTitle>School Branding</CardTitle>
                 </div>
                 <CardDescription>
-                  Customize your school's colors, logo, and motto
+                  Customize your school colors, logo, and motto
                 </CardDescription>
               </CardHeader>
               <CardContent>

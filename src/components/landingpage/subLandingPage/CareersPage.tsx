@@ -18,7 +18,7 @@ export default function CareersPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-md">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-4">Join Our Team</h2>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              We&apos;re always looking for talented individuals who share our passion for education technology.
+              We are always looking for talented individuals who share our passion for education technology.
             </p>
             <p className="text-slate-600 dark:text-slate-400">
               Current openings will be posted here soon. In the meantime, feel free to reach out to us at{" "}

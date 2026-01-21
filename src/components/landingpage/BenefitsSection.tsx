@@ -1,11 +1,13 @@
 "use client";
 
+import { ScrollReveal } from "./ScrollReveal";
+
 const BenefitsSection = () => {
   const benefits = [
     {
       title: "Eliminate the End-of-Term Bottleneck",
       category: "Administrative Efficiency",
-      description: "You shouldn't have to pause school operations just to generate report cards. ParaLearn automates the compilation of broadsheets. Whether you are managing 50 students or 5,000, approval and publishing happen in clicks, not weeks.",
+      description: "You should not have to pause school operations just to generate report cards. ParaLearn automates the compilation of broadsheets. Whether you are managing 50 students or 5,000, approval and publishing happen in clicks, not weeks.",
       icon: "⚡",
       gradient: "from-yellow-500 via-orange-600 to-red-600",
     },
@@ -26,7 +28,7 @@ const BenefitsSection = () => {
     {
       title: "Build Trust with Instant Transparency",
       category: "Parent/Student Access",
-      description: "End the anxiety of 'missing results.' Once you approve a report, it is immediately available to parents and students via their secure mobile portal. No lost papers, no confusion—just clear, accessible progress tracking.",
+      description: "End the anxiety of missing results. Once you approve a report, it is immediately available to parents and students via their secure mobile portal. No lost papers, no confusion—just clear, accessible progress tracking.",
       icon: "📱",
       gradient: "from-pink-500 via-purple-600 to-indigo-700",
     },
@@ -37,25 +39,27 @@ const BenefitsSection = () => {
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16 lg:mb-20">
-          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/20 via-purple-600/20 to-indigo-700/20 border-2 border-primary/40 dark:border-purple-500/50">
-            <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-primary via-purple-600 to-indigo-700 bg-clip-text text-transparent dark:from-purple-400 dark:via-indigo-400 dark:to-primary uppercase tracking-widest">
-              Real Benefits
-            </span>
+        <ScrollReveal animation="reveal" delay="0s">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/20 via-purple-600/20 to-indigo-700/20 border-2 border-primary/40 dark:border-purple-500/50">
+              <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-primary via-purple-600 to-indigo-700 bg-clip-text text-transparent dark:from-purple-400 dark:via-indigo-400 dark:to-primary uppercase tracking-widest">
+                Real Benefits
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
+              Why Schools Switch
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
+              Focused on outcomes, not technical specs
+            </p>
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
-            Why Schools Switch
-          </h2>
-          <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
-            Focused on outcomes, not technical specs
-          </p>
-        </div>
+        </ScrollReveal>
 
         {/* Benefits Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-6 lg:gap-8">
           {benefits.map((benefit, index) => (
+            <ScrollReveal key={index} animation="reveal" delay={`${0.1 + index * 0.08}s`}>
             <div
-              key={index}
               className="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-md border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden"
             >
               {/* Gradient border on hover */}
@@ -95,6 +99,7 @@ const BenefitsSection = () => {
                 </div>
               </div>
             </div>
+            </ScrollReveal>
           ))}
         </div>
       </div>

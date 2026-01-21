@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 const HeroSection = () => {
-  const fullText = "Restore Calm to Your School's Administration";
+  const fullText = "Restore Calm to Your School Administration";
   return (
     <section className="w-full relative overflow-hidden min-h-screen lg:min-h-[70vh] pt-24 md:pt-32 lg:pt-32 xl:pt-36 2xl:pt-40 pb-2 md:pb-4 lg:pb-6 xl:pb-8 2xl:pb-10" style={{ transform: 'translateZ(0)' }}>
       
@@ -20,7 +20,7 @@ const HeroSection = () => {
               <span className="block lg:hidden">
                 Restore Calm<br />
                 to Your<br />
-                School's<br />
+                School<br />
                 Administration
               </span>
               {/* Desktop - Full Text */}

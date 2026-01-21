@@ -18,7 +18,7 @@ export default function PricingPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-md">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-4">Coming Soon</h2>
             <p className="text-slate-600 dark:text-slate-400">
-              Our pricing plans are being finalized. Contact us for a custom quote tailored to your school&apos;s needs.
+              Our pricing plans are being finalized. Contact us for a custom quote tailored to your school needs.
             </p>
           </div>
         </div>

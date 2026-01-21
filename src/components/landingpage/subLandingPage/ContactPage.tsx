@@ -155,12 +155,12 @@ const ContactPage = () => {
       setErrors({});
       setIsSubmitted(true);
 
-      toast.success("Thank you for your inquiry! We'll get back to you soon.");
+      toast.success("Thank you for your inquiry! We will get back to you soon.");
 
       setTimeout(() => setIsSubmitted(false), 5000);
     } catch (error) {
       console.error("Form submission error:", error);
-      toast.success("Thank you for your inquiry! We'll get back to you soon. For immediate assistance, please email us at growth@paralearn.ng");
+      toast.success("Thank you for your inquiry! We will get back to you soon. For immediate assistance, please email us at growth@paralearn.ng");
 
       setFormData({
         fullName: "",
@@ -228,14 +228,15 @@ const ContactPage = () => {
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                      <a href="mailto:growth@paralearn.ng" className="text-sm md:text-base text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium">
-                        growth@paralearn.ng
+                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium">
+                        paralearn.io@gmail.com
                       </a>
                     </div>
                     <div className="flex items-center gap-3">
                       <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                      <a href="tel:+234123456789" className="text-sm md:text-base text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium">
-                        +234 [Insert Number]
+                      <a href="tel:+2348148876125" className="text-sm md:text-base text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium">
+                        +234 814887 6125
+
                       </a>
                     </div>
                   </div>
@@ -257,19 +258,19 @@ const ContactPage = () => {
                     Already use ParaLearn?
                   </p>
                   <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-4 md:mb-5">
-                    For the fastest response regarding account issues, bug reports, or "How-to" questions, please contact our support desk directly or visit the Knowledge Base.
+                    For the fastest response regarding account issues, bug reports, or How-to questions, please contact our support desk directly or visit the Knowledge Base.
                   </p>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                      <a href="mailto:help@paralearn.ng" className="text-sm md:text-base text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium">
-                        help@paralearn.ng
+                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium">
+                        paralearn.io@gmail.com
                       </a>
                     </div>
                     <div className="flex items-center gap-3">
                       <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                      <a href="#" className="text-sm md:text-base text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium">
-                        Support Ticket: [Link to Support Portal]
+                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium">
+                        paralearn.io@gmail.com
                       </a>
                     </div>
                   </div>
@@ -542,7 +543,7 @@ const ContactPage = () => {
                   Office Location
                 </h2>
                 <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-2">
-                  [Insert Physical Address Here]
+                Port Harcourt, Rivers State, Nigeria
                 </p>
                 <p className="text-xs md:text-sm text-slate-500 dark:text-slate-500 italic">
                   Visits by appointment only.

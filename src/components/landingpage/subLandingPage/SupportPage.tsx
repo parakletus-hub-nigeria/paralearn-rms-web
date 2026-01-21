@@ -27,7 +27,7 @@ export default function SupportPage() {
         <div className="space-y-8">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-md text-center">
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              We&apos;re opening WhatsApp for you. If it doesn&apos;t open automatically, please click{" "}
+              We are opening WhatsApp for you. If it does not open automatically, please click{" "}
               <a
                 href="https://wa.me/2348148876125"
                 target="_blank"

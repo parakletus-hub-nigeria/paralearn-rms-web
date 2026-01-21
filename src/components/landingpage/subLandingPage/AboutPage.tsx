@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { LandingLayout } from "../LandingLayout";
+import { ScrollReveal } from "../ScrollReveal";
 
 const AboutPage = () => {
   const coreValues = [
@@ -20,7 +21,7 @@ const AboutPage = () => {
     {
       icon: Sparkles,
       title: "Simplicity",
-      description: "Complexity is the enemy of execution. If it requires a manual to use, we refine it until it doesn't."
+      description: "Complexity is the enemy of execution. If it requires a manual to use, we refine it until it does not."
     },
     {
       icon: Eye,
@@ -39,20 +40,25 @@ const AboutPage = () => {
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10 pt-4 md:pt-6">
-          <div className="text-center mb-8 md:mb-10">
+          <ScrollReveal animation="reveal" delay="0s">
+            <div className="text-center mb-8 md:mb-10">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-3 md:mb-4 tracking-tight">
                 Goal
               </h2>
             </div>
+          </ScrollReveal>
 
           <div className="max-w-4xl mx-auto space-y-8 md:space-y-10">
-            <div className="space-y-4">
+            <ScrollReveal animation="reveal" delay="0.1s">
+              <div className="space-y-4">
                 <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                   Establish trust by showing you understand the unique challenges of African educational administration.
                 </p>
               </div>
+            </ScrollReveal>
 
-            <div className="space-y-4">
+            <ScrollReveal animation="reveal" delay="0.2s">
+              <div className="space-y-4">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-3">
                   We Believe Education Should Be About Teaching, Not Tallying.
                 </h1>
@@ -60,6 +66,7 @@ const AboutPage = () => {
                   ParaLearn was built to bridge the gap between the administrative efficiency schools need and the educational excellence they strive for.
                 </p>
               </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -72,30 +79,36 @@ const AboutPage = () => {
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-8 md:mb-10">
+          <ScrollReveal animation="reveal" delay="0s">
+            <div className="text-center mb-8 md:mb-10">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-3 md:mb-4 tracking-tight">
                 Our Story
               </h2>
             </div>
+          </ScrollReveal>
 
           <div className="max-w-4xl mx-auto space-y-8 md:space-y-10">
-            <div className="space-y-4">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-2">
-                The Problem We Saw
-              </h3>
-              <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                Across Africa, we noticed a recurring pattern in top-tier schools. Principals were visionary leaders, and teachers were passionate educators, yet both were constantly bogged down by the "end-of-term chaos." The manual compilation of broadsheets, the endless verification of scores, and the stress of deadline-driven grading were stealing valuable time from what matters most: the students.
-              </p>
-            </div>
+            <ScrollReveal animation="reveal" delay="0.1s">
+              <div className="space-y-4">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-2">
+                  The Problem We Saw
+                </h3>
+                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                  Across Africa, we noticed a recurring pattern in top-tier schools. Principals were visionary leaders, and teachers were passionate educators, yet both were constantly bogged down by the end-of-term chaos. The manual compilation of broadsheets, the endless verification of scores, and the stress of deadline-driven grading were stealing valuable time from what matters most: the students.
+                </p>
+              </div>
+            </ScrollReveal>
 
-            <div className="space-y-4">
+            <ScrollReveal animation="reveal" delay="0.2s">
+              <div className="space-y-4">
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-2">
                   The Solution We Built
                 </h3>
                 <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                  We didn't just build a database; we built an operating system for academic integrity. ParaLearn RMS exists to automate the repetitive, high-stakes tasks of school management. By handling the heavy lifting of calculation and data security, we return peace of mind to the administrator's office and weekends to the staff room.
+                  We did not just build a database; we built an operating system for academic integrity. ParaLearn RMS exists to automate the repetitive, high-stakes tasks of school management. By handling the heavy lifting of calculation and data security, we return peace of mind to the administrator office and weekends to the staff room.
                 </p>
               </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -103,17 +116,20 @@ const AboutPage = () => {
       {/* Core Values Section */}
       <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-12 md:py-16 lg:py-20 relative overflow-hidden bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 md:mb-10">
+          <ScrollReveal animation="reveal" delay="0s">
+            <div className="text-center mb-8 md:mb-10">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-3 md:mb-4 tracking-tight">
                 Our Core Values
               </h2>
             </div>
+          </ScrollReveal>
 
           <div className="grid md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
             {coreValues.map((value, index) => {
               const Icon = value.icon;
               return (
-                <div key={index} className="relative">
+                <ScrollReveal key={index} animation="reveal" delay={`${0.1 + index * 0.1}s`}>
+                  <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-600/10 rounded-3xl blur-xl transform rotate-3" />
                     <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300">
                       <div className="w-12 h-12 md:w-14 md:h-14 mb-3 md:mb-4 rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 flex items-center justify-center">
@@ -127,6 +143,7 @@ const AboutPage = () => {
                       </p>
                     </div>
                   </div>
+                </ScrollReveal>
               );
             })}
           </div>
@@ -138,7 +155,8 @@ const AboutPage = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] bg-gradient-to-r from-primary/5 via-purple-500/5 to-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10 text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white mb-6 md:mb-8">
+          <ScrollReveal animation="reveal" delay="0s">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white mb-6 md:mb-8">
               Join the movement towards efficient education.
             </h2>
 
@@ -149,7 +167,7 @@ const AboutPage = () => {
                   className="h-12 sm:h-14 md:h-14 px-6 sm:px-8 md:px-10 rounded-2xl text-sm sm:text-base md:text-base font-black shadow-2xl shadow-primary/50 transition-all duration-300 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 relative overflow-hidden group w-full sm:w-auto touch-manipulation active:scale-95"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
-                    Start Your School's Registration
+                    Start Your School Registration
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 group-active:translate-x-1 transition-transform duration-300" />
                   </span>
                 </Button>
@@ -164,6 +182,7 @@ const AboutPage = () => {
                 </Button>
               </Link>
             </div>
+          </ScrollReveal>
         </div>
       </section>
     </LandingLayout>

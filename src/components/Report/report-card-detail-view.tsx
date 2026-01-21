@@ -89,7 +89,7 @@ export function ReportCardDetailView({
               <TableHead className="text-white font-bold h-14 text-center">2nd Test 20%</TableHead>
               <TableHead className="text-white font-bold h-14 text-center">Total</TableHead>
               <TableHead className="text-white font-bold h-14 text-center">Position</TableHead>
-              <TableHead className="text-white font-bold h-14 pr-6">Teacher's Remarks</TableHead>
+              <TableHead className="text-white font-bold h-14 pr-6">Teacher Remarks</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

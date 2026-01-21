@@ -87,7 +87,7 @@ const Step_Three = ({
       // Get subdomain with fallback priority: Redux -> localStorage -> URL
       const subdomain = getSubdomain(reduxSubdomain);
       if (!subdomain) {
-        toast.error("Subdomain not found. Please ensure you're logged in correctly.");
+        toast.error("Subdomain not found. Please ensure you are logged in correctly.");
         return;
       }
 

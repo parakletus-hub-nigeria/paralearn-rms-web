@@ -18,7 +18,7 @@ export default function PartnersPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-md">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-4">Partner With Us</h2>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              We&apos;re always looking for strategic partners who share our vision of improving education through technology.
+              We are always looking for strategic partners who share our vision of improving education through technology.
             </p>
             <p className="text-slate-600 dark:text-slate-400">
               Interested in partnering? Reach out to us at{" "}

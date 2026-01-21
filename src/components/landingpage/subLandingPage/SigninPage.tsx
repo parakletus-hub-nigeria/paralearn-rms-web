@@ -138,7 +138,7 @@ export default function SigninPage() {
                 Forgot password?
               </Link>
               <p className="text-sm text-slate-500">
-                Don&apos;t have an account?{" "}
+                Do not have an account?{" "}
                 <Link
                   href="/auth/signup"
                   className="font-semibold text-primary hover:underline hover:underline-offset-2"

@@ -47,7 +47,7 @@ export function PageOne({data,changeData,step,setStep}: any){
         <Card className="w-full border-slate-200/80 bg-white/95 shadow-lg shadow-slate-200/50 shadow-primary/5 ring-1 ring-slate-200/60">
             <CardHeader className="pb-2 text-center">
                 <CardTitle className="text-xl font-bold text-slate-900">Register Your School</CardTitle>
-                <p className="text-slate-500 text-sm">Let&apos;s get your school set up on ParaLearn RMS</p>
+                <p className="text-slate-500 text-sm">Let us get your school set up on ParaLearn RMS</p>
             </CardHeader>
             <CardContent className="space-y-5 px-6 pb-6">
                 {forms.map((form, index) => (

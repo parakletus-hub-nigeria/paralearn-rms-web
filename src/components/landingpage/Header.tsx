@@ -84,14 +84,14 @@
           <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full" />
 
           <div className="flex items-center gap-1 sm:gap-2 group cursor-pointer relative z-10 shrink-0">
-            <Link href="/" className="relative block h-14 sm:h-12 md:h-11 aspect-[930/479] bg-transparent">
+            <Link href="/" className="relative block h-14 sm:h-12 md:h-14 lg:h-16 aspect-[930/479] bg-transparent">
               <Image
                 src={logo}
                 fill
                 className="object-contain object-left"
                 alt="paralearn logo"
                 priority
-                sizes="(max-width: 640px) 240px, (max-width: 768px) 220px, 194px"
+                sizes="(max-width: 640px) 240px, (max-width: 768px) 220px, (max-width: 1024px) 260px, 320px"
               />
             </Link>
           </div>

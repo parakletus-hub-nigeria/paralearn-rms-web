@@ -18,6 +18,7 @@ import logo from "../../../public/mainLogo.svg";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ComingSoonModal from "./ComingSoonModal";
+import { ScrollReveal } from "./ScrollReveal";
 
 const COMING_SOON_HREFS = [
   "/features",
@@ -39,7 +40,7 @@ const Footer = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info("Newsletter signup coming soon. We'll notify you when it's available.");
+    toast.info("Newsletter signup coming soon. We will notify you when it is available.");
     setEmail("");
   };
 
@@ -99,6 +100,7 @@ const Footer = () => {
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-12 lg:px-24 py-16 md:py-20">
         {/* Newsletter Section */}
+        <ScrollReveal animation="reveal" delay="0s">
         <div className="mb-16 md:mb-20">
           <div className="bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-500/10 dark:from-primary/20 dark:via-purple-500/20 dark:to-indigo-500/20 rounded-3xl p-8 md:p-12 border border-primary/20 dark:border-primary/30 shadow-xl">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
@@ -136,8 +138,10 @@ const Footer = () => {
             </div>
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Main Footer Content */}
+        <ScrollReveal animation="reveal" delay="0.1s">
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 md:gap-10 lg:gap-12 mb-12">
           {/* Brand Column */}
           <div className="col-span-2 lg:col-span-1 space-y-4 md:space-y-6">
@@ -342,8 +346,10 @@ const Footer = () => {
             </nav>
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Bottom Bar */}
+        <ScrollReveal animation="reveal" delay="0.15s">
         <div className="pt-8 border-t border-slate-200 dark:border-slate-800">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6">
@@ -363,6 +369,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
+        </ScrollReveal>
       </div>
       <ToastContainer position="bottom-right" />
       <ComingSoonModal open={comingSoonOpen} onOpenChange={setComingSoonOpen} title={comingSoonTitle} />
