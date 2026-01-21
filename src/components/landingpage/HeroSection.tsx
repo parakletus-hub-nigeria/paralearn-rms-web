@@ -52,15 +52,15 @@ const HeroSection = () => {
             </div>
           </div>
           
-          {/* CTAs - Consistent sizing within each category */}
+          {/* CTAs - Consistent sizing with clear hierarchy and interaction feedback */}
           <div className="animate-load-fade-in-up flex flex-row flex-wrap items-center justify-start gap-4 md:gap-5 lg:gap-6 xl:gap-6 pt-6 md:pt-8 lg:pt-12 pb-1 md:pb-2 lg:pb-4 xl:pb-5 2xl:pb-6 w-full" style={{ animationDelay: "260ms" }}>
-            <Link href="/auth/signup">
+            <Link href="/auth/signup" className="group/btn">
               <Button
-                className="font-black bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-purple-600 hover:via-indigo-600 hover:to-primary text-white px-6 py-3 md:px-7 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 text-sm md:text-base lg:text-lg xl:text-xl font-semibold rounded-xl shadow-md shadow-primary/30 whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center"
+                className="font-black bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-purple-600 hover:via-indigo-600 hover:to-primary text-white px-6 py-3 md:px-7 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 text-sm md:text-base lg:text-lg xl:text-xl font-semibold rounded-2xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 border-0 whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center transition-all duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <span className="flex items-center justify-center gap-2">
                   Register Your School
-                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-200 group-hover/btn:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </span>
@@ -69,7 +69,7 @@ const HeroSection = () => {
             
             <Link
               href="/auth/signin"
-              className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 dark:text-white px-7 py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/20 rounded-xl border border-slate-200 dark:border-white/20 shadow-md whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center"
+              className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 dark:text-white px-7 py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/20 hover:border-primary/40 hover:text-primary dark:hover:text-purple-300 rounded-2xl border-2 border-slate-200 dark:border-white/20 shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center transition-all duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               onClick={(e) => {
                 e.preventDefault();
                 const event = new CustomEvent('openLoginModal');
