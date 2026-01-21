@@ -33,7 +33,10 @@ const ComingSoonModal = ({ open, onOpenChange, title = "Coming Soon" }: ComingSo
     <div className="flex justify-center pt-4">
       <button
         type="button"
-        onClick={() => onOpenChange(false)}
+        onClick={() => {
+          onOpenChange(false);
+          document.getElementById("footer")?.scrollIntoView();
+        }}
         className="px-6 py-3 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:from-purple-600 hover:via-indigo-600 hover:to-primary text-white font-bold rounded-xl shadow-md shadow-primary/30 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
       >
         Got it

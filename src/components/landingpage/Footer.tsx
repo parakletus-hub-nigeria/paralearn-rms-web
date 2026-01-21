@@ -17,9 +17,25 @@ import Image from "next/image";
 import logo from "../../../public/mainLogo.svg";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ComingSoonModal from "./ComingSoonModal";
+
+const COMING_SOON_HREFS = [
+  "/features",
+  "/careers",
+  "/blog",
+  "/partners",
+  "/documentation",
+  "/help",
+  "/privacy",
+  "/terms",
+  "/security",
+  "/cookies",
+];
 
 const Footer = () => {
   const [email, setEmail] = useState("");
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [comingSoonTitle, setComingSoonTitle] = useState("Coming Soon");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +43,16 @@ const Footer = () => {
     setEmail("");
   };
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, label?: string) => {
     if (href === "/support") {
       e.preventDefault();
       window.open("https://wa.me/2348148876125", "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (COMING_SOON_HREFS.includes(href)) {
+      e.preventDefault();
+      setComingSoonTitle(label ?? "Coming Soon");
+      setComingSoonOpen(true);
     }
   };
 
@@ -69,7 +91,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="relative bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-t border-slate-200 dark:border-slate-800">
+    <footer id="footer" className="relative bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-t border-slate-200 dark:border-slate-800">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 dark:opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_1px_1px,rgb(100,27,196)_1px,transparent_0)] bg-[length:24px_24px]" />
@@ -202,7 +224,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href)}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
@@ -238,7 +260,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href)}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
@@ -274,7 +296,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href)}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
@@ -310,7 +332,7 @@ const Footer = () => {
                   <a
                     key={index}
                     href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href)}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
                     className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
@@ -343,6 +365,7 @@ const Footer = () => {
         </div>
       </div>
       <ToastContainer position="bottom-right" />
+      <ComingSoonModal open={comingSoonOpen} onOpenChange={setComingSoonOpen} title={comingSoonTitle} />
     </footer>
   );
 };
