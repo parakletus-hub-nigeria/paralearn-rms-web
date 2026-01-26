@@ -3,7 +3,12 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Dialog, DialogContent, DialogFooter } from "../ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import Link from "next/link";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/reduxToolKit/store";
+import { loginUser } from "@/reduxToolKit/user/userThunks";
+import { AlertCircle, CheckCircle, Check } from "lucide-react";
+import { routespath } from "@/lib/routepath";
 import { ToastContainer, toast } from "react-toastify";
 import { Spinner } from "../ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -86,13 +91,24 @@ export function PageOne({data,changeData,step,setStep}: any){
                     </div>
                 </div>
                 {step === 1 && (
-                    <Button
-                        disabled={!nameAuth}
-                        onClick={() => setStep(step + 1)}
-                        className="mt-2 h-12 w-full rounded-xl bg-gradient-to-r from-primary via-purple-700 to-primary font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:opacity-95 active:scale-[0.99] disabled:opacity-60"
-                    >
-                        Continue
-                    </Button>
+                    <>
+                        <Button
+                            disabled={!nameAuth}
+                            onClick={() => setStep(step + 1)}
+                            className="mt-2 h-12 w-full rounded-xl bg-gradient-to-r from-primary via-purple-700 to-primary font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:opacity-95 active:scale-[0.99] disabled:opacity-60"
+                        >
+                            Continue
+                        </Button>
+                        <p className="text-sm text-slate-500 text-center mt-4">
+                            Already registered?{" "}
+                            <Link
+                                href={routespath.SIGNIN}
+                                className="font-semibold text-primary hover:underline hover:underline-offset-2"
+                            >
+                                Sign in
+                            </Link>
+                        </p>
+                    </>
                 )}
             </CardContent>
         </Card>
@@ -107,13 +123,27 @@ export function PageTwo({data,changeData,step,setStep}: any){
         }else{return false}
     }
     const passwordCheck = () => {
-        if(data["password"].length){
-            return true
-        }else{return false}
+        const password = data["password"];
+        if (!password || password.length < 8) return false;
+        
+        // Check for uppercase letter
+        const hasUpperCase = /[A-Z]/.test(password);
+        // Check for special character
+        const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+        // Check for number
+        const hasNumber = /[0-9]/.test(password);
+        
+        return hasUpperCase && hasSpecialChar && hasNumber;
     }
     const [emailAuth, setemailAuth] = useState(emailCheck())
     const [showPassword, setshowPassword] = useState(false)
     const [passwordAuth, setPasswordAuth] = useState(passwordCheck())
+    const [passwordErrors, setPasswordErrors] = useState({
+        length: false,
+        uppercase: false,
+        specialChar: false,
+        number: false
+    })
     const forms = [
         {
             label:"Admin Email",
@@ -131,11 +161,18 @@ export function PageTwo({data,changeData,step,setStep}: any){
 }
 
     const checkPassword = (password : string) => {
-        if(password.length >= 8 && password.length != 0){
-            setPasswordAuth(true)
-        } else{
-            setPasswordAuth(false)
-        }
+        const errors = {
+            length: password.length < 8,
+            uppercase: !/[A-Z]/.test(password),
+            specialChar: !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+            number: !/[0-9]/.test(password)
+        };
+        
+        setPasswordErrors(errors);
+        
+        // Password is valid if all requirements are met
+        const isValid = password.length >= 8 && !errors.uppercase && !errors.specialChar && !errors.number;
+        setPasswordAuth(isValid);
     }
 
 
@@ -177,7 +214,7 @@ export function PageTwo({data,changeData,step,setStep}: any){
                             name="password"
                             value={data.password}
                             onChange={(e) => { changeData(e); checkPassword(e.target.value) }}
-                            placeholder="Min. 8 characters"
+                            placeholder="Min. 8 chars, 1 uppercase, 1 number, 1 special"
                             className="h-11 rounded-lg border-slate-300 bg-slate-50/50 pr-10 focus:bg-white"
                             aria-invalid={!passwordAuth && data.password !== ""}
                         />
@@ -190,12 +227,44 @@ export function PageTwo({data,changeData,step,setStep}: any){
                             {showPassword ? <FaEye className="h-4 w-4" /> : <FaEyeSlash className="h-4 w-4" />}
                         </button>
                     </div>
-                    {data.password === "" && <p className="text-xs text-slate-500">Create a strong password</p>}
-                    {!passwordAuth && data.password !== "" && (
-                        <p className="flex items-center gap-1.5 text-xs text-red-600">
-                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                            Password must be at least 8 characters
-                        </p>
+                    {data.password !== "" && (
+                        <div className="space-y-1.5 pt-1">
+                            <div className={`flex items-center gap-2 text-xs ${passwordErrors.length ? 'text-slate-600' : 'text-emerald-600'}`}>
+                                {!passwordErrors.length ? (
+                                    <Check className="h-3.5 w-3.5 shrink-0" />
+                                ) : (
+                                    <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-300" />
+                                )}
+                                <span>At least 8 characters</span>
+                            </div>
+                            <div className={`flex items-center gap-2 text-xs ${passwordErrors.uppercase ? 'text-slate-600' : 'text-emerald-600'}`}>
+                                {!passwordErrors.uppercase ? (
+                                    <Check className="h-3.5 w-3.5 shrink-0" />
+                                ) : (
+                                    <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-300" />
+                                )}
+                                <span>One uppercase letter</span>
+                            </div>
+                            <div className={`flex items-center gap-2 text-xs ${passwordErrors.number ? 'text-slate-600' : 'text-emerald-600'}`}>
+                                {!passwordErrors.number ? (
+                                    <Check className="h-3.5 w-3.5 shrink-0" />
+                                ) : (
+                                    <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-300" />
+                                )}
+                                <span>One number</span>
+                            </div>
+                            <div className={`flex items-center gap-2 text-xs ${passwordErrors.specialChar ? 'text-slate-600' : 'text-emerald-600'}`}>
+                                {!passwordErrors.specialChar ? (
+                                    <Check className="h-3.5 w-3.5 shrink-0" />
+                                ) : (
+                                    <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-300" />
+                                )}
+                                <span>One special character</span>
+                            </div>
+                        </div>
+                    )}
+                    {data.password === "" && (
+                        <p className="text-xs text-slate-500">Create a strong password with at least 8 characters, one uppercase letter, one number, and one special character</p>
                     )}
                 </div>
                 {step === 2 && (
@@ -226,6 +295,8 @@ export function PageTwo({data,changeData,step,setStep}: any){
 
 
 export function PageThree({data,changeData,step,setStep}: any){
+    const router = useRouter();
+    const dispatch = useDispatch<AppDispatch>();
 
     const checkPhone = (phone:string) => {
         if(phone.length > 0){
@@ -268,7 +339,53 @@ export function PageThree({data,changeData,step,setStep}: any){
             if(!registerAdmin.ok) throw new Error(res.message || "Failed to create account. Please try again.")
 
              console.log(res);
-                setDisable(true)
+             
+             // Check if registration response includes auth tokens
+             if (res.data?.accessToken || res.accessToken) {
+                 // If tokens are in response, redirect directly to setup wizard
+                 toast.success("Account created successfully! Redirecting to setup...");
+                 setTimeout(() => {
+                     window.location.href = "/setup";
+                 }, 1000);
+                 return;
+             }
+             
+             // Automatically log in the admin after successful registration
+             try {
+                 // Small delay to ensure backend has processed the registration
+                 await new Promise(resolve => setTimeout(resolve, 1000));
+                 
+                 console.log("Attempting auto-login with:", data.adminEmail);
+                 const loginResult = await dispatch(loginUser({
+                     email: data.adminEmail,
+                     password: data.password,
+                     skipSessionCheck: true, // Skip session check for new signups, always go to setup
+                     redirectTo: "/setup" // Explicitly redirect to setup wizard
+                 })).unwrap();
+                 
+                 console.log("Login result:", loginResult);
+                 
+                 if (loginResult && (loginResult.accessToken || loginResult.user)) {
+                     // Login successful - the loginUser thunk will handle redirect to /setup
+                     // (we passed skipSessionCheck: true and redirectTo: "/setup")
+                     if (loginResult.redirecting) {
+                         toast.success("Account created successfully! Redirecting to setup...");
+                     }
+                 } else {
+                     throw new Error("Login failed - no token or user received");
+                 }
+             } catch (loginError: any) {
+                 // If auto-login fails, show the dialog to manually sign in
+                 console.error("Auto-login failed:", loginError);
+                 const errorMessage = loginError?.message || loginError || "Auto-login failed";
+                 console.error("Login error details:", errorMessage);
+                 toast.warning("Account created! Please sign in to continue.");
+                 // Store redirect path so signin will redirect to setup
+                 if (typeof window !== 'undefined') {
+                     sessionStorage.setItem('redirectAfterLogin', '/setup');
+                 }
+                 setDisable(true);
+             }
         } catch (error) {
             console.log(error);
             toast.error(error instanceof Error ? error.message : "An unexpected error occurred.");
@@ -364,12 +481,20 @@ export function PageThree({data,changeData,step,setStep}: any){
                                 <CheckCircle className="h-10 w-10 text-emerald-600" />
                             </div>
                             <p className="text-lg font-semibold text-slate-900">Account created</p>
-                            <p className="text-sm text-slate-500">You can now sign in to your school dashboard.</p>
+                            <p className="text-sm text-slate-500">Please sign in to continue to the setup wizard.</p>
                         </div>
                     </DialogDescription>
                     <DialogFooter>
                         <Link href="/auth/signin" className="w-full">
-                            <Button className="h-12 w-full rounded-xl bg-gradient-to-r from-primary via-purple-700 to-primary font-semibold text-white shadow-lg shadow-primary/30">
+                            <Button 
+                                onClick={() => {
+                                    // Store redirect path in sessionStorage so signin can redirect to setup
+                                    if (typeof window !== 'undefined') {
+                                        sessionStorage.setItem('redirectAfterLogin', '/setup');
+                                    }
+                                }}
+                                className="h-12 w-full rounded-xl bg-gradient-to-r from-primary via-purple-700 to-primary font-semibold text-white shadow-lg shadow-primary/30"
+                            >
                                 Sign in
                             </Button>
                         </Link>

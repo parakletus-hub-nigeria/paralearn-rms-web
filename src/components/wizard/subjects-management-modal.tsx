@@ -8,6 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, X } from "lucide-react"
 
+interface Class {
+  id: string
+  name: string
+  level: number
+  stream: string
+  capacity: string
+}
+
 interface SubjectsManagementModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -16,20 +24,13 @@ interface SubjectsManagementModalProps {
   subjectCode: string
   setSubjectCode: (value: string) => void
   selectedClasses: string[]
+  setSelectedClasses: (classes: string[]) => void
   toggleClass: (id: string) => void
-  selectedCategory: string
-  setSelectedCategory: (value: string) => void
+  subjectDescription: string
+  setSubjectDescription: (value: string) => void
+  classes: Class[]
+  onAddSubject: (subject: { id: string; name: string; code: string; classId: string; description?: string }) => void
 }
-
-const classOptions = [
-  { id: "1-north", label: "1 North" },
-  { id: "1-east", label: "1 East" },
-  { id: "1-west", label: "1 West" },
-  { id: "1-south", label: "1 South" },
-  { id: "1-central", label: "1 Central" },
-]
-
-const categoryOptions = ["Mathematics", "English Language", "Basic Science", "Basic Technology", "Social Studies"]
 
 export function SubjectsManagementModal({
   open,
@@ -39,10 +40,36 @@ export function SubjectsManagementModal({
   subjectCode,
   setSubjectCode,
   selectedClasses,
+  setSelectedClasses,
   toggleClass,
-  selectedCategory,
-  setSelectedCategory,
+  subjectDescription,
+  setSubjectDescription,
+  classes,
+  onAddSubject,
 }: SubjectsManagementModalProps) {
+  const handleAddSubject = () => {
+    if (!subjectName || !subjectCode || selectedClasses.length === 0) {
+      return;
+    }
+
+    // Create a subject for each selected class
+    selectedClasses.forEach((classId) => {
+      onAddSubject({
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        name: subjectName,
+        code: subjectCode,
+        classId: classId,
+        description: subjectDescription || undefined,
+      });
+    });
+
+    // Reset form
+    setSubjectName("");
+    setSubjectCode("");
+    setSelectedClasses([]);
+    setSubjectDescription("");
+    onOpenChange(false);
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
@@ -60,6 +87,7 @@ export function SubjectsManagementModal({
                 value={subjectName}
                 onChange={(e) => setSubjectName(e.target.value)}
                 placeholder="Enter subject name"
+                className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
               />
             </div>
             <div className="relative space-y-2">
@@ -70,6 +98,7 @@ export function SubjectsManagementModal({
                   value={subjectCode}
                   onChange={(e) => setSubjectCode(e.target.value)}
                   placeholder="Enter code"
+                  className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
                 />
                 {subjectCode && (
                   <button
@@ -84,45 +113,42 @@ export function SubjectsManagementModal({
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Class</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select classes" />
-                </SelectTrigger>
-                <SelectContent>
-                  {classOptions.map((cls) => (
-                    <div
-                      key={cls.id}
-                      className="flex cursor-pointer items-center justify-between px-2 py-1.5 hover:bg-accent"
-                      onClick={() => toggleClass(cls.id)}
-                    >
-                      <span>{cls.label}</span>
-                      <Checkbox checked={selectedClasses.includes(cls.id)} />
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOptions.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label>Class</Label>
+            {classes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Please add classes in Step 2 first</p>
+            ) : (
+              <div className="max-h-48 overflow-y-auto rounded-md border border-slate-300 p-2 bg-white">
+                {classes.map((cls) => (
+                  <div
+                    key={cls.id}
+                    className="flex cursor-pointer items-center justify-between px-2 py-1.5 hover:bg-slate-50 rounded-sm"
+                    onClick={() => toggleClass(cls.id)}
+                  >
+                    <span>{cls.name}</span>
+                    <Checkbox checked={selectedClasses.includes(cls.id)} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="subject-description">Description</Label>
+            <Input
+              id="subject-description"
+              value={subjectDescription}
+              onChange={(e) => setSubjectDescription(e.target.value)}
+              placeholder="Enter description (e.g., Core mathematics curriculum)"
+              className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
+            />
           </div>
 
-          <Button className="w-full" size="lg">
+          <Button 
+            className="w-full" 
+            size="lg"
+            onClick={handleAddSubject}
+            disabled={!subjectName || !subjectCode || selectedClasses.length === 0 || classes.length === 0}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Add Subject
           </Button>

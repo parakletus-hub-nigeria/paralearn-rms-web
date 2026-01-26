@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
 import { loginUser } from "@/reduxToolKit/user/userThunks";
 import { AppDispatch } from "@/reduxToolKit/store";
+import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +43,35 @@ export default function SigninPage() {
           return;
         }
         toast.success("Logged in successfully!");
-        router.push(routespath.DASHBOARD);
+        
+        // Check if there's a redirect path stored (e.g., from signup)
+        const redirectPath = typeof window !== 'undefined' 
+          ? sessionStorage.getItem('redirectAfterLogin') 
+          : null;
+        
+        if (redirectPath) {
+          // Clear the redirect path and redirect
+          sessionStorage.removeItem('redirectAfterLogin');
+          router.push(redirectPath);
+          return;
+        }
+        
+        // Check if academic session is set up
+        try {
+          const sessionResult = await dispatch(fetchCurrentSession()).unwrap();
+          
+          // If session exists, redirect to dashboard
+          if (sessionResult && sessionResult.sessionDetails) {
+            router.push(routespath.DASHBOARD);
+          } else {
+            // No session found, redirect to setup wizard
+            router.push("/setup");
+          }
+        } catch (sessionError: any) {
+          // If fetching session fails (likely means no session exists), go to setup
+          console.log("No academic session found, redirecting to setup:", sessionError);
+          router.push("/setup");
+        }
       } else {
         toast.error("Login failed. No token received.");
       }

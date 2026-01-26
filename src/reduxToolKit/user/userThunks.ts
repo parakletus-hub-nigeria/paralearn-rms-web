@@ -4,11 +4,12 @@ import { tokenManager } from "@/lib/tokenManager";
 import { routespath } from "@/lib/routepath";
 import { getSubdomain, saveSubdomainToStorage, extractSubdomainFromURL, getSubdomainFromStorage } from "@/lib/subdomainManager";
 import { store } from "@/reduxToolKit/store";
+import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
 // Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",
   async (
-    credentials: { email: string; password: string },
+    credentials: { email: string; password: string; skipSessionCheck?: boolean; redirectTo?: string },
     { rejectWithValue }
   ) => {
     try {
@@ -71,7 +72,47 @@ export const loginUser = createAsyncThunk(
       // Store subdomain in localStorage and Redux
       saveSubdomainToStorage(subdomain);
       
-      // Redirect to subdomain URL with dashboard path
+      // Determine redirect path
+      let redirectPath: string;
+      
+      // If explicit redirect path provided (e.g., from signup), use it
+      if (credentials.redirectTo) {
+        redirectPath = credentials.redirectTo;
+      } 
+      // If skipSessionCheck is true (e.g., for new signups), go to setup
+      else if (credentials.skipSessionCheck) {
+        redirectPath = "/setup";
+      }
+      // Otherwise, check if academic session is set up
+      else {
+        redirectPath = routespath.DASHBOARD; // Default to dashboard
+        
+        try {
+          // Try to fetch current session to check if setup is complete
+          // Use a timeout to prevent blocking login for too long
+          const sessionResponse = await Promise.race([
+            apiClient.get(`/api/proxy${routespath.API_GET_CURRENT_SESSION}`),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("Session check timeout")), 3000)
+            )
+          ]) as any;
+          
+          // If session exists and is valid, go to dashboard
+          if (sessionResponse?.data?.success && sessionResponse?.data?.data?.sessionDetails) {
+            redirectPath = routespath.DASHBOARD;
+          } else {
+            // No session found, redirect to setup wizard
+            redirectPath = "/setup";
+          }
+        } catch (sessionError: any) {
+          // If fetching session fails (404, timeout, or no session), redirect to setup
+          // This is safe - if session check fails, assume setup is needed
+          console.log("No academic session found or check timed out, redirecting to setup:", sessionError);
+          redirectPath = "/setup";
+        }
+      }
+      
+      // Redirect to subdomain URL with appropriate path
       if (typeof window !== "undefined") {
         const currentHost = window.location.host;
         const currentProtocol = window.location.protocol;
@@ -105,11 +146,10 @@ export const loginUser = createAsyncThunk(
             }
           }
           
-          // Redirect to subdomain URL with dashboard path
-          const dashboardPath = routespath.DASHBOARD;
-          const newUrl = `${currentProtocol}//${newHost}${dashboardPath}`;
+          // Redirect to subdomain URL with appropriate path
+          const newUrl = `${currentProtocol}//${newHost}${redirectPath}`;
           
-          // Redirect to subdomain URL with dashboard
+          // Redirect to subdomain URL
           window.location.href = newUrl;
           
           // Return early since we're redirecting
@@ -371,7 +411,12 @@ export const fetchAllUsers = createAsyncThunk(
         error.message ||
         "Failed to fetch users";
 
-      console.error("[Fetch All Users Error]", errorMessage);
+      // Only log non-subdomain errors to reduce console noise
+      // Subdomain errors are expected in some scenarios and will be handled by the UI
+      if (!errorMessage.toLowerCase().includes("subdomain")) {
+        console.error("[Fetch All Users Error]", errorMessage);
+      }
+      
       return rejectWithValue(errorMessage);
     }
   }

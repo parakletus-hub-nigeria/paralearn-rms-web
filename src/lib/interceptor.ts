@@ -100,7 +100,8 @@ export const apiFetch = async (
       }
     }
 
-    if (!response.ok && response.status !== 401) {
+    // Allow 404 responses to pass through (endpoint might not exist yet)
+    if (!response.ok && response.status !== 401 && response.status !== 404) {
       let errorMessage = "API request failed";
       try {
         const errorData = await response.json();
@@ -118,7 +119,10 @@ export const apiFetch = async (
   try {
     return await makeRequest(accessToken || "");
   } catch (error: any) {
-    console.error("[API Fetch Error]", error);
+    // Only log non-404 errors to reduce console noise
+    if (!error.message?.includes("Cannot GET") && !error.message?.includes("404")) {
+      console.error("[API Fetch Error]", error);
+    }
     throw error;
   }
 };

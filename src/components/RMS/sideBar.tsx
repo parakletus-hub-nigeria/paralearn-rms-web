@@ -1,7 +1,7 @@
 "use client";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { logout } from "@/state/user/userSlice";
 import { toast } from "react-toastify";
 import tokenManager from "@/lib/tokenManager";
@@ -28,9 +28,9 @@ import { routespath } from "@/lib/routepath";
 import Link from "next/link";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
-  const [selectedPath, setSelectedPath] = useState("/dashboard");
   const dispatch = useDispatch();
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogout = async () => {
     try {
@@ -58,9 +58,9 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
   const sideBarContent = [
     { label: "Dashboard", path: routespath.DASHBOARD, icon: Home },
-    { label: "Users", path: "/RMS/users", icon: UserCircle },
+    { label: "Users", path: routespath.USERS, icon: UserCircle },
     { label: "Report Cards", path: routespath.REPORT, icon: BookOpen },
-    { label: "Bulk Upload", path: "/RMS/bulk_upload", icon: DownloadIcon },
+    { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon },
     { label: "Profile", path: "/profile", icon: User },
     { label: "Settings", path: "/settings", icon: Settings },
   ];
@@ -68,27 +68,27 @@ const SideBar = ({ children }: { children: ReactNode }) => {
   return (
     <SidebarProvider>
       <Sidebar className="border-r border-purple-100/50">
-        <SidebarHeader className="p-6">
+        <SidebarHeader className="p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-50 p-1 rounded-lg">
+            <Link href={routespath.DASHBOARD} className="block">
               <Image
                 src={logo}
-                className="w-[32px] h-[32px] object-contain"
+                className="h-auto w-[120px] sm:w-[140px] md:w-[160px] max-w-full object-contain"
                 alt="paralearn logo"
               />
-            </div>
+            </Link>
           </div>
         </SidebarHeader>
 
         <SidebarContent className="px-4">
           <nav className="flex flex-col gap-1.5 mt-4">
             {sideBarContent.map((item, index) => {
-              const isSelected = selectedPath === item.path;
+              // Check if current pathname matches the item path
+              const isSelected = pathname === item.path || pathname?.startsWith(item.path + "/");
               return (
                 <Link
                   key={index}
                   href={item.path}
-                  onClick={() => setSelectedPath(item.path)}
                   className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${
                     isSelected
                       ? "bg-[var(--purple-light)] text-[var(--brand-primary)] shadow-sm"

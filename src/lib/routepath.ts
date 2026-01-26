@@ -19,4 +19,12 @@ export const routespath = {
   API_CREATE_ACADEMIC_SESSION: "/academic/sessions",
   API_GET_ALL_SESSIONS: "/academic/sessions",
   API_GET_CURRENT_SESSION: "/academic/current",
+  // Class endpoints
+  API_CREATE_CLASS: "/classes",
+  // Subject endpoints
+  API_CREATE_SUBJECT: "/subjects",
+  // School Settings endpoints
+  API_UPDATE_GRADING_SCALE: "/school-settings/grading",
+  // Onboarding Wizard endpoints
+  API_ONBOARDING_SETUP: "/onboarding/setup",
 };

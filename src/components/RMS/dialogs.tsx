@@ -253,6 +253,7 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
 }
 
 export function AddTeacherDialog({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

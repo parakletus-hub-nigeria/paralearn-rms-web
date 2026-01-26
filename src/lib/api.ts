@@ -195,15 +195,37 @@ apiClient.interceptors.response.use(
       console.error("[API] Network Error:", error.message);
     }
 
-    // Log all errors in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("[API Error]", {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: config?.url,
-        data: error.response?.data,
-        message: error.message,
-      });
+    // Check if this is a subdomain-related error (expected in some scenarios)
+    const errorMessage = 
+      error.response?.data?.message || 
+      error.response?.data?.error || 
+      error.message || 
+      "";
+    const isSubdomainError = errorMessage.toLowerCase().includes("subdomain") || 
+                            errorMessage.toLowerCase().includes("invalid subdomain");
+
+    // Log all errors in development (only if there's meaningful data and not expected subdomain errors)
+    if (process.env.NODE_ENV === "development" && !isSubdomainError) {
+      const errorInfo: any = {
+        message: error.message || "Unknown error",
+      };
+      
+      if (error.response) {
+        errorInfo.status = error.response.status;
+        errorInfo.statusText = error.response.statusText;
+        errorInfo.url = config?.url;
+        if (error.response.data) {
+          errorInfo.data = error.response.data;
+        }
+      } else if (error.request) {
+        errorInfo.type = "Network Error";
+        errorInfo.url = config?.url;
+      }
+      
+      // Only log if we have meaningful information
+      if (errorInfo.status || errorInfo.data || errorInfo.message !== "Unknown error") {
+        console.error("[API Error]", errorInfo);
+      }
     }
 
     return Promise.reject(error);

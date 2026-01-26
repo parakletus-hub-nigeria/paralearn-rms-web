@@ -10,6 +10,7 @@ interface GradeScale {
   letter: string
   minPoints: number
   maxPoints: number
+  description: string
 }
 
 interface Step4Props {
@@ -56,7 +57,7 @@ export function Step4GradingSystem({
           <div className="space-y-2">
             <Label htmlFor="grading-academic-year">Academic Year</Label>
             <Select value={academicYear} onValueChange={setAcademicYear}>
-              <SelectTrigger id="grading-academic-year">
+              <SelectTrigger id="grading-academic-year" className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] font-medium rounded-lg">
                 <SelectValue placeholder="Select academic year" />
               </SelectTrigger>
               <SelectContent>
@@ -116,6 +117,7 @@ export function Step4GradingSystem({
                 type="number"
                 value={passingGrade}
                 onChange={(e) => setPassingGrade(e.target.value)}
+                className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
               />
             </div>
             <div className="space-y-2">
@@ -125,6 +127,7 @@ export function Step4GradingSystem({
                 type="number"
                 value={maximumPoints}
                 onChange={(e) => setMaximumPoints(e.target.value)}
+                className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
               />
             </div>
           </div>
@@ -141,29 +144,38 @@ export function Step4GradingSystem({
 
           <div className="space-y-3">
             {/* Header */}
-            <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground">
+            <div className="grid grid-cols-4 gap-4 text-sm font-medium text-muted-foreground">
               <span>Letter Grade</span>
               <span>Min Points</span>
               <span>Max Points</span>
+              <span>Description</span>
             </div>
 
             {/* Grade Rows */}
             {gradeScales.map((grade, index) => (
-              <div key={grade.letter} className="grid grid-cols-3 gap-4">
+              <div key={grade.letter} className="grid grid-cols-4 gap-4">
                 <Input
                   value={grade.letter}
                   onChange={(e) => updateGradeScale(index, "letter", e.target.value)}
-                  className="text-center"
+                  className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg text-center"
                 />
                 <Input
                   type="number"
                   value={grade.minPoints}
                   onChange={(e) => updateGradeScale(index, "minPoints", Number.parseInt(e.target.value) || 0)}
+                  className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
                 />
                 <Input
                   type="number"
                   value={grade.maxPoints}
                   onChange={(e) => updateGradeScale(index, "maxPoints", Number.parseInt(e.target.value) || 0)}
+                  className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
+                />
+                <Input
+                  value={grade.description}
+                  onChange={(e) => updateGradeScale(index, "description", e.target.value)}
+                  placeholder="Enter description"
+                  className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
                 />
               </div>
             ))}
