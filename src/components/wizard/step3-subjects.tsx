@@ -15,8 +15,9 @@ interface Subject {
 interface Class {
   id: string;
   name: string;
+  level: number;
+  stream: string;
   capacity: string;
-  gradeLevel: string;
 }
 
 interface Step3Props {

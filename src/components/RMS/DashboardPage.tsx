@@ -2,22 +2,28 @@
 
 import { Header } from "@/components/RMS/header";
 import { apiFetch } from "@/lib/interceptor";
-import { Plus, Clock, Eye } from "lucide-react";
-import { GraduationCap, Users, Book, BookImage, TrendingUp } from "lucide-react";
+import { Plus, Clock, Eye, ArrowRight } from "lucide-react";
+import { GraduationCap, Users, Book, BookImage, TrendingUp, Calendar } from "lucide-react";
 import { AddStudentDialog, AddTeacherDialog } from "@/components/RMS/dialogs";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
+import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { routespath } from "@/lib/routepath";
+import Link from "next/link";
 
 export const DashboardPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { studentCount, teacherCount } = useSelector(
     (state: RootState) => state.user
+  );
+  const { currentSession } = useSelector(
+    (state: RootState) => state.setUp
   );
   const [SubjectCount, setSubjectCount] = useState(0);
   const [AssessmentCount, setAssessmentCount] = useState(0);
@@ -26,6 +32,7 @@ export const DashboardPage = () => {
   useEffect(() => {
     // Fetch users using Redux
     dispatch(fetchAllUsers());
+    dispatch(fetchCurrentSession());
     
     async function fetchDashboardData() {
       // Fetch subjects count
@@ -188,10 +195,40 @@ export const DashboardPage = () => {
   return (
     <div className="w-full space-y-6 pb-8">
       {/* Header Section */}
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" 
+        showGreeting={true}
+      />
+
+      {/* Current Academic Session Banner */}
+      {currentSession && (
+        <div className="mb-6">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-4 sm:p-6 text-white shadow-lg">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Calendar className="w-24 h-24" />
+            </div>
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-purple-100 text-xs font-bold uppercase tracking-wider mb-1">
+                  Active Academic Period
+                </p>
+                <h2 className="text-xl sm:text-2xl font-black">
+                  {currentSession.session} — {currentSession.term}
+                </h2>
+              </div>
+              <Link href={routespath.ACADEMIC}>
+                <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-md">
+                  Manage Sessions
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4 lg:px-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {vv.map((item, index) => (
           <Card
             key={index}
@@ -221,7 +258,7 @@ export const DashboardPage = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap items-center gap-3 px-4 lg:px-0">
+      <div className="flex flex-wrap items-center gap-3">
         <AddStudentDialog>
           <Button className="bg-[#9747FF] hover:bg-[#8538E0] text-white shadow-md hover:shadow-lg transition-all">
             <Plus className="w-4 h-4 mr-2" />
@@ -240,7 +277,7 @@ export const DashboardPage = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 lg:px-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upcoming Exams Section */}
         <div className="lg:col-span-1 space-y-4">
           <div className="flex items-center justify-between">

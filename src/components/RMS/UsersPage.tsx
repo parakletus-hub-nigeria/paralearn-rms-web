@@ -167,7 +167,8 @@ export const UsersPage = () => {
   return (
     <div className="w-full">
       <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
-      <div className="flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-4">
         {vv.map((item, index) => (
           <div
             key={index}
@@ -448,6 +449,7 @@ export const UsersPage = () => {
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 };

@@ -51,6 +51,9 @@ apiClient.interceptors.request.use(
 
       // Log request in development
       if (process.env.NODE_ENV === "development") {
+        if (!token) {
+          console.warn("[API Request] WARNING: No auth token found for request", config.url);
+        }
         console.log("[API Request]", {
           method: config.method?.toUpperCase(),
           url: config.url,

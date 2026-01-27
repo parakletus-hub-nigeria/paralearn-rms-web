@@ -263,31 +263,26 @@ export const createSubject = createAsyncThunk(
 );
 
 // Update Grading Scale
+export interface GradeBoundary {
+  letter: string;
+  min: number;
+  max: number;
+  description: string;
+}
+
 export interface UpdateGradingScaleInput {
-  gradingScale: {
-    [letter: string]: {
-      min: number;
-      max: number;
-      description: string;
-    };
-  };
+  gradeBoundaries: GradeBoundary[];
 }
 
 export interface UpdateGradingScaleResponse {
-  gradingScale: {
-    [letter: string]: {
-      min: number;
-      max: number;
-      description: string;
-    };
-  };
+  gradeBoundaries: GradeBoundary[];
 }
 
 export const updateGradingScale = createAsyncThunk(
   "setUp/updateGradingScale",
   async (data: UpdateGradingScaleInput, { rejectWithValue }) => {
     try {
-      const response = await apiClient.patch(
+      const response = await apiClient.put(
         `/api/proxy${routespath.API_UPDATE_GRADING_SCALE}`,
         data
       );
@@ -336,13 +331,7 @@ export interface OnboardingSetupInput {
     classId: string;
     description?: string;
   }>;
-  gradingScale: {
-    [letter: string]: {
-      min: number;
-      max: number;
-      description: string;
-    };
-  };
+  gradingScale: GradeBoundary[];
 }
 
 export interface OnboardingSetupResponse {

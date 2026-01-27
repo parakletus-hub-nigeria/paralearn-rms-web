@@ -119,6 +119,16 @@ Cream / Off-White: #FFFBEB */
   --border: #e2e8f0;
   --ring: var(--brand-primary);
 
+  /* Sidebar Variables */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: var(--brand-primary);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f8f6ff;
+  --sidebar-accent-foreground: var(--brand-primary);
+  --sidebar-border: #f1f0fb;
+  --sidebar-ring: var(--brand-primary);
+
   /* Gradients */
   --grad-primary: linear-gradient(135deg, #641bc4 0%, #9747ff 100%);
   --grad-surface: linear-gradient(
@@ -182,6 +192,16 @@ Cream / Off-White: #FFFBEB */
   h5,
   h6 {
     @apply font-bold tracking-tight text-slate-900 dark:text-white;
+  }
+
+  button,
+  a,
+  select,
+  label,
+  input[type="checkbox"],
+  input[type="radio"],
+  [role="button"] {
+    cursor: pointer;
   }
 }
 @layer components {
@@ -354,6 +374,13 @@ Cream / Off-White: #FFFBEB */
   }
   .animate-load-fade-in-up {
     animation: load-fade-in-up 0.5s ease-out backwards;
+  }
+  @keyframes load-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .animate-load-fade-in {
+    animation: load-fade-in 0.5s ease-out backwards;
   }
 
   @media (prefers-reduced-motion: reduce) {

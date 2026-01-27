@@ -69,7 +69,7 @@ export const SettingsPage = () => {
     <div className="w-full min-h-screen pb-8">
       <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
       
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
+      <div className="max-w-5xl mx-auto sm:px-6 lg:px-8 mt-6 sm:mt-8">
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#641BC4] to-[#8538E0] flex items-center justify-center shadow-md">

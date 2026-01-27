@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { Dialog, DialogContent, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "../ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -340,52 +340,16 @@ export function PageThree({data,changeData,step,setStep}: any){
 
              console.log(res);
              
-             // Check if registration response includes auth tokens
-             if (res.data?.accessToken || res.accessToken) {
-                 // If tokens are in response, redirect directly to setup wizard
-                 toast.success("Account created successfully! Redirecting to setup...");
-                 setTimeout(() => {
-                     window.location.href = "/setup";
-                 }, 1000);
-                 return;
+             // Account created successfully - show success dialog and prompt for manual sign-in
+             toast.success("Account created successfully!");
+             
+             // Store redirect path so signin will redirect to setup after user logs in manually
+             if (typeof window !== 'undefined') {
+                 sessionStorage.setItem('redirectAfterLogin', '/setup');
              }
              
-             // Automatically log in the admin after successful registration
-             try {
-                 // Small delay to ensure backend has processed the registration
-                 await new Promise(resolve => setTimeout(resolve, 1000));
-                 
-                 console.log("Attempting auto-login with:", data.adminEmail);
-                 const loginResult = await dispatch(loginUser({
-                     email: data.adminEmail,
-                     password: data.password,
-                     skipSessionCheck: true, // Skip session check for new signups, always go to setup
-                     redirectTo: "/setup" // Explicitly redirect to setup wizard
-                 })).unwrap();
-                 
-                 console.log("Login result:", loginResult);
-                 
-                 if (loginResult && (loginResult.accessToken || loginResult.user)) {
-                     // Login successful - the loginUser thunk will handle redirect to /setup
-                     // (we passed skipSessionCheck: true and redirectTo: "/setup")
-                     if (loginResult.redirecting) {
-                         toast.success("Account created successfully! Redirecting to setup...");
-                     }
-                 } else {
-                     throw new Error("Login failed - no token or user received");
-                 }
-             } catch (loginError: any) {
-                 // If auto-login fails, show the dialog to manually sign in
-                 console.error("Auto-login failed:", loginError);
-                 const errorMessage = loginError?.message || loginError || "Auto-login failed";
-                 console.error("Login error details:", errorMessage);
-                 toast.warning("Account created! Please sign in to continue.");
-                 // Store redirect path so signin will redirect to setup
-                 if (typeof window !== 'undefined') {
-                     sessionStorage.setItem('redirectAfterLogin', '/setup');
-                 }
-                 setDisable(true);
-             }
+             // Open the success dialog
+             setDisable(true);
         } catch (error) {
             console.log(error);
             toast.error(error instanceof Error ? error.message : "An unexpected error occurred.");
@@ -475,6 +439,7 @@ export function PageThree({data,changeData,step,setStep}: any){
 
             <Dialog open={disable} onOpenChange={() => setDisable(false)}>
                 <DialogContent className="gap-6 py-8">
+                    <DialogTitle className="sr-only">Account Created Successfully</DialogTitle>
                     <DialogDescription asChild>
                         <div className="flex flex-col items-center gap-4 text-center">
                             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">

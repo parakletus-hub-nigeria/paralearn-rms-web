@@ -88,9 +88,9 @@ export function Step1SessionSetup({
                     <SelectValue placeholder="Select academic year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2024-2025">2024-2025</SelectItem>
-                    <SelectItem value="2025-2026">2025-2026</SelectItem>
-                    <SelectItem value="2026-2027">2026-2027</SelectItem>
+                    <SelectItem value="2024/2025">2024/2025</SelectItem>
+                    <SelectItem value="2025/2026">2025/2026</SelectItem>
+                    <SelectItem value="2026/2027">2026/2027</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -184,9 +184,9 @@ export function Step1SessionSetup({
                           <SelectValue placeholder="Select term" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="First Term">First Term</SelectItem>
-                          <SelectItem value="Second Term">Second Term</SelectItem>
-                          <SelectItem value="Third Term">Third Term</SelectItem>
+                          <SelectItem value="Term 1">Term 1</SelectItem>
+                          <SelectItem value="Term 2">Term 2</SelectItem>
+                          <SelectItem value="Term 3">Term 3</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

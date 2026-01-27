@@ -306,14 +306,6 @@ export const signupUser = createAsyncThunk(
     try {
       const response = await apiClient.post(routespath.API_SIGNUP, userData);
       const { accessToken, user } = response.data;
-
-      if (!accessToken) {
-        return rejectWithValue("No token received from server");
-      }
-
-      // Store token in cookies
-      await setAuthToken(accessToken);
-
       return {
         accessToken,
         user: user || {},

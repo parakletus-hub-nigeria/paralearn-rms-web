@@ -56,7 +56,7 @@ export const BulkUploadPage = () => {
     <div className="w-full min-h-screen pb-8">
       <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
         {/* Page Title */}
         <div className="text-center space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">

@@ -13,6 +13,7 @@ import { Step4GradingSystem } from "./step4-grading-system";
 import { SubjectsManagementModal } from "./subjects-management-modal";
 import {
   createAcademicSession,
+  activateTerm,
   createClass,
   createSubject,
   updateGradingScale,
@@ -68,21 +69,21 @@ const defaultGradeScales: GradeScale[] = [
 const defaultTerms: Term[] = [
   {
     id: "1",
-    name: "First Term",
+    name: "Term 1",
     startDate: "2024-09-01",
-    endDate: "2024-12-20",
+    endDate: "2024-12-15",
   },
   {
     id: "2",
-    name: "Second Term",
+    name: "Term 2",
     startDate: "2025-01-10",
-    endDate: "2025-04-30",
+    endDate: "2025-04-10",
   },
   {
     id: "3",
-    name: "Third Term",
-    startDate: "2025-05-15",
-    endDate: "2025-08-31",
+    name: "Term 3",
+    startDate: "2025-04-25",
+    endDate: "2025-07-20",
   },
 ];
 
@@ -145,9 +146,9 @@ export function SchoolSetupWizard() {
 
   // Step 1 state
   const [terms, setTerms] = useState<Term[]>(defaultTerms);
-  const [academicYear, setAcademicYear] = useState("2024-2025");
+  const [academicYear, setAcademicYear] = useState("2024/2025");
   const [sessionStartDate, setSessionStartDate] = useState("2024-09-01");
-  const [sessionEndDate, setSessionEndDate] = useState("2025-08-31");
+  const [sessionEndDate, setSessionEndDate] = useState("2025-07-31");
 
   // Step 2 state
   const [classes, setClasses] = useState<Class[]>(defaultClasses);
@@ -171,19 +172,7 @@ export function SchoolSetupWizard() {
 
   const progressPercentage = useMemo(() => (currentStep / totalSteps) * 100, [currentStep, totalSteps]);
 
-  // Handle Redux state changes
-  useEffect(() => {
-    if (success && gradingScaleData) {
-      toast.success("School setup completed successfully!");
-      dispatch(clearSuccess());
-      dispatch(clearError());
-      dispatch(clearWizardData());
-      // Redirect to dashboard after successful setup
-      setTimeout(() => {
-        router.push(routespath.DASHBOARD);
-      }, 1500);
-    }
-  }, [success, gradingScaleData, dispatch, router]);
+
 
   useEffect(() => {
     if (error) {
@@ -229,21 +218,39 @@ export function SchoolSetupWizard() {
     }
 
     try {
+      const formatStartDate = (dateStr: string) => `${dateStr}T00:00:00.000Z`;
+      const formatEndDate = (dateStr: string) => `${dateStr}T23:59:59.000Z`;
+
       const sessionData = {
-        session: academicYear.replace("-", " / "),
-        startsAt: new Date(sessionStartDate).toISOString().split('T')[0],
-        endsAt: new Date(sessionEndDate).toISOString().split('T')[0],
+        session: academicYear,
+        startsAt: formatStartDate(sessionStartDate),
+        endsAt: formatEndDate(sessionEndDate),
         terms: terms.map((term) => ({
-          term: transformTermName(term.name),
-          startsAt: new Date(term.startDate).toISOString().split('T')[0],
-          endsAt: new Date(term.endDate).toISOString().split('T')[0],
+          term: term.name,
+          startsAt: formatStartDate(term.startDate),
+          endsAt: formatEndDate(term.endDate),
         })),
       };
 
       const result = await dispatch(createAcademicSession(sessionData)).unwrap();
       setSessionId(result.id);
-      setTermIds(result.terms.map((t: any) => t.id));
-      toast.success("Academic session created successfully!");
+      
+      const sessionTerms = result.terms || [];
+      setTermIds(sessionTerms.map((t: any) => t.id));
+
+      // Automatically activate the first term to set the operational context for the school
+      if (sessionTerms.length > 0) {
+        try {
+          await dispatch(activateTerm({ sessionId: result.id, termId: sessionTerms[0].id })).unwrap();
+          toast.success(`Academic session created and ${sessionTerms[0].term} activated!`);
+        } catch (activationError) {
+          console.warn("Session created but term activation failed:", activationError);
+          toast.info("Session created. Please activate a term manually later if needed.");
+        }
+      } else {
+        toast.success("Academic session created successfully!");
+      }
+
       return true;
     } catch (error: any) {
       console.error("Failed to create academic session:", error);
@@ -279,12 +286,20 @@ export function SchoolSetupWizard() {
 
       const createdClasses = await Promise.all(classPromises);
       
-      // Map wizard class IDs to API class IDs
+      // Create a map for IDs transformation
       const newClassIdMap = new Map<string, string>();
       classes.forEach((cls, index) => {
         newClassIdMap.set(cls.id, createdClasses[index].id);
       });
       setClassIdMap(newClassIdMap);
+
+      // Update both classes and subjects state with real API IDs
+      // This ensures that any subjects defined in state point to the real class IDs
+      setClasses(prev => prev.map((cls, idx) => ({ ...cls, id: createdClasses[idx].id })));
+      setSubjects(prev => prev.map(subject => ({
+        ...subject,
+        classId: newClassIdMap.get(subject.classId) || subject.classId
+      })));
 
       toast.success(`${createdClasses.length} class(es) created successfully!`);
       return true;
@@ -307,22 +322,20 @@ export function SchoolSetupWizard() {
     }
 
     try {
-      const subjectPromises = subjects.map(async (subject) => {
-        const apiClassId = classIdMap.get(subject.classId);
-        if (!apiClassId) {
-          throw new Error(`Class ID not found for subject ${subject.name}`);
-        }
-
+      // We process subjects sequentially to ensure the backend can handle each creation
+      // correctly and to avoid potential race conditions/database deadlocks.
+      const createdSubjectsList = [];
+      for (const subject of subjects) {
         const subjectData = {
           name: subject.name,
           code: subject.code,
-          classId: apiClassId,
-          description: subject.description || "",
+          classId: subject.classId,
+          description: subject.description || undefined,
         };
-        return await dispatch(createSubject(subjectData)).unwrap();
-      });
+        const result = await dispatch(createSubject(subjectData)).unwrap();
+        createdSubjectsList.push(result);
+      }
 
-      await Promise.all(subjectPromises);
       toast.success(`${subjects.length} subject(s) created successfully!`);
       return true;
     } catch (error: any) {
@@ -334,23 +347,31 @@ export function SchoolSetupWizard() {
   // Handle Step 4 submission (Update Grading Scale)
   const handleStep4Submit = useCallback(async () => {
     try {
-      const gradingScaleData: { [key: string]: { min: number; max: number; description: string } } = {};
-      gradeScales.forEach((scale) => {
-        gradingScaleData[scale.letter] = {
-          min: scale.minPoints,
-          max: scale.maxPoints,
-          description: scale.description || `${scale.letter} Grade`,
-        };
-      });
+      const gradeBoundaries = gradeScales.map((scale) => ({
+        letter: scale.letter,
+        min: scale.minPoints,
+        max: scale.maxPoints,
+        description: scale.description || `${scale.letter} Grade`,
+      }));
 
-      await dispatch(updateGradingScale({ gradingScale: gradingScaleData })).unwrap();
-      toast.success("Grading scale updated successfully!");
+      await dispatch(updateGradingScale({ gradeBoundaries })).unwrap();
+      
+      toast.success("School setup completed successfully!");
+      
+      // Cleanup wizard data
+      dispatch(clearSuccess());
+      dispatch(clearError());
+      dispatch(clearWizardData());
+      
+      // Navigate to dashboard immediately
+      router.push(routespath.DASHBOARD);
+      
       return true;
     } catch (error: any) {
       console.error("Failed to update grading scale:", error);
       return false;
     }
-  }, [gradeScales, dispatch]);
+  }, [gradeScales, dispatch, router]);
 
   // Handle final submission (Step 4 - Update Grading Scale)
   const handleFinishSetup = useCallback(async () => {

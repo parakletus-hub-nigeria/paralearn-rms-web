@@ -1,12 +1,33 @@
 import Cookies from "js-cookie";
 
 const TOKEN_KEY = "accessToken";
-const COOKIE_OPTIONS = {
+
+// Helper to get the base domain for cross-subdomain cookies
+const getCookieDomain = () => {
+  if (typeof window === "undefined") return undefined;
+  const hostname = window.location.hostname;
+  
+  // Don't set domain for localhost or IP addresses
+  if (hostname === "localhost" || hostname === "127.0.0.1" || /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
+    return undefined;
+  }
+  
+  // For production domains (e.g., school.pln.ng -> .pln.ng)
+  const parts = hostname.split(".");
+  if (parts.length >= 2) {
+    return "." + parts.slice(-2).join(".");
+  }
+  return undefined;
+};
+
+const getCookieOptions = () => ({
   expires: 7, // 7 days
   path: "/",
-  secure: process.env.NODE_ENV === "production", // HTTPS only in production
-  sameSite: "strict" as const, // CSRF protection
-};
+  domain: getCookieDomain(),
+  secure: typeof window !== "undefined" && window.location.protocol === "https:",
+  sameSite: "lax" as const, // Changed from strict to lax to allow cross-subdomain navigation
+});
+
 
 // Helper to manage our auth token in cookies
 export const tokenManager = {
@@ -23,7 +44,7 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return;
     }
-    Cookies.set(TOKEN_KEY, token, COOKIE_OPTIONS);
+    Cookies.set(TOKEN_KEY, token, getCookieOptions());
   },
 
   // Kill the token
@@ -31,7 +52,9 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return;
     }
+    // Try both with and without domain to be safe during removal
     Cookies.remove(TOKEN_KEY, { path: "/" });
+    Cookies.remove(TOKEN_KEY, { path: "/", domain: getCookieDomain() });
   },
 
   // Helper to see if we're logged in
@@ -45,6 +68,7 @@ export const tokenManager = {
       return;
     }
     Cookies.remove(TOKEN_KEY, { path: "/" });
+    Cookies.remove(TOKEN_KEY, { path: "/", domain: getCookieDomain() });
   },
 };
 

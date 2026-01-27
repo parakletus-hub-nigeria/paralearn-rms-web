@@ -23,6 +23,7 @@ import {
   DownloadIcon,
   User,
   Settings,
+  Calendar,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
@@ -58,16 +59,17 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
   const sideBarContent = [
     { label: "Dashboard", path: routespath.DASHBOARD, icon: Home },
+    { label: "Academic", path: routespath.ACADEMIC, icon: Calendar },
     { label: "Users", path: routespath.USERS, icon: UserCircle },
     { label: "Report Cards", path: routespath.REPORT, icon: BookOpen },
     { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon },
-    { label: "Profile", path: "/profile", icon: User },
+    { label: "Profile", path: "/RMS/profile", icon: User },
     { label: "Settings", path: "/settings", icon: Settings },
   ];
 
   return (
     <SidebarProvider>
-      <Sidebar className="border-r border-purple-100/50">
+      <Sidebar className="border-r border-purple-100/50 bg-white">
         <SidebarHeader className="p-4 sm:p-6">
           <div className="flex items-center gap-3">
             <Link href={routespath.DASHBOARD} className="block">
@@ -122,11 +124,11 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         </SidebarFooter>
       </Sidebar>
 
-      <main className="flex-1 bg-[#fbfaff] min-h-screen relative">
-        <div className="absolute top-6 left-6 z-50">
-          <SidebarTrigger className="hover:bg-purple-50" />
+      <main className="flex-1 bg-[#fbfaff] min-h-screen relative overflow-x-hidden">
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
         </div>
-        <div className="p-10 w-full max-w-[1600px] mx-auto">{children}</div>
+        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">{children}</div>
       </main>
     </SidebarProvider>
   );

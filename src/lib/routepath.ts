@@ -3,6 +3,7 @@ export const routespath = {
   PROFILE: "/RMS/profile",
   REPORT: "/RMS/report",
   USERS: "/RMS/users",
+  ACADEMIC: "/RMS/academic",
   BULK_UPLOAD: "/RMS/bulk_upload",
   SIGNIN: "/auth/signin",
   SIGNUP: "/auth/signup",

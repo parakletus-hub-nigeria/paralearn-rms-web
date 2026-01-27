@@ -136,7 +136,7 @@ export const ProfilePage = () => {
     <div className="w-full min-h-screen pb-8">
       <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
+      <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 mt-6 sm:mt-8">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">
             Profile Settings

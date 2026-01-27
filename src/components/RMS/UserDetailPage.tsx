@@ -60,7 +60,7 @@ export const UserDetailPage = () => {
   const user = selectedUser;
 
   return (
-    <div className="w-full p-6">
+    <div className="w-full p-0 sm:p-6">
       <button
         onClick={() => router.back()}
         className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900"
