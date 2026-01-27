@@ -7,7 +7,7 @@ const getCookieDomain = () => {
   if (typeof window === "undefined") return undefined;
   const hostname = window.location.hostname;
   
-  // Don't set domain for localhost or IP addresses
+  // Don't domain for localhost or IP addresses
   if (hostname === "localhost" || hostname === "127.0.0.1" || /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
     return undefined;
   }
