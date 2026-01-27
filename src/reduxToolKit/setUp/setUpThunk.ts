@@ -44,7 +44,7 @@ export interface CurrentSessionResponse {
   termDetails: Term;
 }
 
-// Create Academic Session with Terms
+// Create Academic Session Terms
 export const createAcademicSession = createAsyncThunk(
   "setUp/createAcademicSession",
   async (data: CreateSessionInput, { rejectWithValue }) => {
