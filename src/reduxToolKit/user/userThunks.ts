@@ -5,6 +5,12 @@ import { routespath } from "@/lib/routepath";
 import { getSubdomain, saveSubdomainToStorage, extractSubdomainFromURL, getSubdomainFromStorage } from "@/lib/subdomainManager";
 import { store } from "@/reduxToolKit/store";
 import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
+import { 
+  normalizeRoles, 
+  pickRedirectPath, 
+  extractTokenAndUser, 
+  extractSubdomainFromUser 
+} from "./userUtils";
 // Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",

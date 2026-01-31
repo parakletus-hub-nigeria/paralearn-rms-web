@@ -26,7 +26,6 @@ import {
   UserPlus,
   User,
   Settings,
-  Calendar,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
@@ -87,7 +86,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
                 className="h-auto w-[120px] sm:w-[140px] md:w-[160px] max-w-full object-contain"
                 alt="paralearn logo"
               />
-            </div>
+            </Link>
             <div className="flex flex-col leading-tight">
               <p className="text-[#641BC4] font-bold text-lg tracking-tight">PARA LEARN</p>
               <p className="text-xs text-slate-500 font-medium">

@@ -19,6 +19,7 @@ import {
   getTenantInfo,
   updateSchoolBranding,
 } from "./userThunks";
+import { normalizeRoles } from "./userUtils";
 
 interface UserState {
   accessToken: string | null;
@@ -50,16 +51,7 @@ interface UserState {
 
 const USER_KEY = "currentUser";
 
-const normalizeRoles = (roles: any): string[] => {
-  if (!roles) return [];
-  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles;
-  if (Array.isArray(roles)) {
-    return roles
-      .map((r) => r?.role?.name || r?.name || r)
-      .filter((v) => typeof v === "string");
-  }
-  return [];
-};
+
 
 const getInitialUser = (): UserState["user"] => {
   if (typeof window === "undefined") {
