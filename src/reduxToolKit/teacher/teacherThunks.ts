@@ -76,105 +76,90 @@ export const fetchMyAssessments = createAsyncThunk(
       teacherClasses.forEach((c: any) => {
         if (c.classId || c.id) assignedClassIds.add(c.classId || c.id);
         if (c.subjectId) assignedSubjectIds.add(c.subjectId);
-        // If subjects array exists
         if (Array.isArray(c.subjects)) {
           c.subjects.forEach((s: any) => assignedSubjectIds.add(s.id || s));
         }
       });
 
-      console.log("[fetchMyAssessments] Filtering based on:", { 
-        subjects: assignedSubjectIds.size, 
-        classes: assignedClassIds.size 
-      });
+      console.log("[fetchMyAssessments] fetching via status endpoints (started, ended, not_started)...");
 
-      let items: Assessment[] = [];
-
-      // Primary: Try GET /assessments/me (Documented for teachers)
-      try {
-        const res = await apiClient.get("/api/proxy/assessments/me");
-        const data = res.data?.data || res.data || [];
-        if (Array.isArray(data)) {
-          items = data as Assessment[];
-        }
-      } catch (meError: any) {
-        console.log("[fetchMyAssessments] /assessments/me endpoint failed:", meError?.message);
-        
-        // Fallback: Fetch all assessments and CLIENT-SIDE FILTER
-        // This is robust against backend leaks or missing endpoints
-        try {
-          console.log("[fetchMyAssessments] Entering fallback fetch...");
-          // Try fetching by status first (if backend supports it)
-          const statuses: Array<"started" | "ended" | "not_started"> = ["started", "ended", "not_started"];
-          const results = await Promise.all(
-            statuses.map(async (status) => {
-              try {
-                // Try query param style first as it is more standard: /assessments?status=started
-                const res = await apiClient.get(`/api/proxy/assessments?status=${status}`);
-                const list = res.data?.data || res.data || [];
-                return Array.isArray(list) ? (list as Assessment[]) : [];
-              } catch (e: any) {
-                 // Try path param style: /assessments/started
-                 try {
-                   const res = await apiClient.get(`/api/proxy/assessments/${status}`);
-                   const list = res.data?.data || res.data || [];
-                   return Array.isArray(list) ? (list as Assessment[]) : [];
-                 } catch (pathErr) {
-                   return [];
-                 }
-              }
-            })
-          );
-          
-          let fetched = results.flat();
-          
-          // If status fetch yielded nothing, try fetching ALL assessments
-          if (fetched.length === 0) {
-             try {
-               const res = await apiClient.get(`/api/proxy/assessments`);
-               const list = res.data?.data || res.data || [];
-               if (Array.isArray(list)) {
-                 fetched = list as Assessment[];
-               }
-             } catch (allErr) {
-               console.log("[fetchMyAssessments] Final fallback /assessments failed");
-             }
+      // Strategy: Fetch all 3 statuses in parallel as requested by user
+      // Endpoint: /api/proxy/assessments/:status
+      const statuses: Array<"started" | "ended" | "not_started"> = ["started", "ended", "not_started"];
+      
+      const results = await Promise.all(
+        statuses.map(async (status) => {
+          try {
+             console.log(`[fetchMyAssessments] Fetching /assessments/${status}...`);
+             const res = await apiClient.get(`/api/proxy/assessments/${status}`);
+             const data = res.data?.data || res.data || [];
+             console.log(`[fetchMyAssessments] /assessments/${status} returned ${Array.isArray(data) ? data.length : 0} items`);
+             if (Array.isArray(data)) return data;
+             return [];
+          } catch (e: any) {
+             console.error(`[fetchMyAssessments] Failed to fetch /assessments/${status}:`, e?.message);
+             return [];
           }
-          
-          items = fetched;
-        } catch (fallbackErr) {
-          console.log("Fallback fetch failed", fallbackErr);
-        }
+        })
+      );
+
+      // Combine all raw results. Note: These might be Grouped objects or Assessment objects.
+      const rawCombined = results.flat();
+      
+      if (rawCombined.length === 0) {
+         console.warn("[fetchMyAssessments] No assessments found across all statuses.");
+         return [];
       }
 
-      // FINAL FILTER: Only return assessments for assigned classes/subjects
-      // Use logic: (matches subject AND matches class) OR (matches subject if no class specific?)
-      // Usually assessment is linked to both.
+      // Check for Grouped Structure (Subject -> Assessments)
+      // Structure: [ { name: "Subject", class: {...}, assessments: [...] }, ... ]
+      const isGrouped = rawCombined.some((item: any) => item.assessments && Array.isArray(item.assessments));
       
-      const filtered = items.filter(a => {
-        const subjectMatch = a.subject?.id ? assignedSubjectIds.has(a.subject.id) : (a.subjectId ? assignedSubjectIds.has(a.subjectId) : false);
-        // Some assessments might not have classId if they are general? Likely strict.
-        const classMatch = a.class?.id ? assignedClassIds.has(a.class.id) : (a.classId ? assignedClassIds.has(a.classId) : false);
-        
-        // If we have no assigned classes loaded yet, we can't filter safely. 
-        // But if we returned items from /assessments/me, we trust them.
-        // If we came from fallback, we MUST filter.
-        
-        // For now, let's filter if we have assignedIds. If assignedIds is empty, maybe teacher has nothing?
-        if (assignedSubjectIds.size > 0) {
-            return subjectMatch; 
-        }
-        return true; 
-      });
+      let items: Assessment[] = [];
 
-      console.log(`[fetchMyAssessments] Loaded ${items.length}, Filtered to ${filtered.length}`);
-      
+      if (isGrouped) {
+         console.log("[fetchMyAssessments] Detected grouped response structure in status fetch");
+         const flattened: Assessment[] = [];
+         
+         rawCombined.forEach((group: any) => {
+           if (group.assessments && Array.isArray(group.assessments)) {
+             group.assessments.forEach((assess: any) => {
+               // Determine status if missing (inherit from fetch group? no, assess object has it usually)
+               // But we fetched by status, so we technically know the status, but mixed results...
+               
+               flattened.push({
+                 ...assess,
+                 classId: group.class?.id || assess.classId,
+                 subject: { 
+                    id: group.code || "unknown", 
+                    name: group.name || "Unknown Subject" 
+                 },
+                 class: group.class || { id: group.class?.id, name: "Unknown Class" },
+                 // Ensure critical UI fields
+                 title: assess.title || "Untitled Assessment",
+                 totalMarks: assess.totalMarks,
+                 duration: assess.duration,
+                 status: assess.status || "active",
+                 isOnline: assess.assessmentType === "online" || assess.isOnline,
+               });
+             });
+           }
+         });
+         items = flattened;
+         console.log(`[fetchMyAssessments] Flattened ${rawCombined.length} groups into ${items.length} assessments`);
+      } else {
+         items = rawCombined as Assessment[];
+      }
+
+      // Deduplicate by ID (in case same assessment appears in multiple statuses? Unlikely but safe)
       const byId = new Map<string, Assessment>();
-      for (const a of filtered) {
+      for (const a of items) {
         if (a?.id) byId.set(a.id, a);
       }
       return Array.from(byId.values());
 
     } catch (e: any) {
+      // Global error handler
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to load assessments"
       );
@@ -749,3 +734,37 @@ export const generateAndNotifyReports = createAsyncThunk(
   }
 );
 
+export const fetchAssessmentCategories = createAsyncThunk(
+  "teacher/fetchAssessmentCategories",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.get("/api/proxy/assessment-categories");
+      const data = res.data?.data || res.data || [];
+      return Array.isArray(data) ? data : [];
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to load assessment categories"
+      );
+    }
+  }
+);
+
+export const updateTeacherAssessment = createAsyncThunk(
+  "teacher/updateTeacherAssessment",
+  async (
+    params: { id: string; data: Partial<Assessment> },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await apiClient.patch(
+        `/api/proxy/assessments/${params.id}`,
+        params.data
+      );
+      return res.data?.data || res.data || null;
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to update assessment"
+      );
+    }
+  }
+);

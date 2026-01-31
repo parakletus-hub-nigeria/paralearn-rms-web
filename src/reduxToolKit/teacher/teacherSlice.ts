@@ -21,6 +21,8 @@ import {
   uploadOfflineScores,
   fetchClassStudents,
   fetchClassSubjects,
+  fetchAssessmentCategories,
+  updateTeacherAssessment,
 } from "./teacherThunks";
 
 type TeacherState = {
@@ -32,6 +34,7 @@ type TeacherState = {
   teacherClasses: any[];
   classStudents: any[];
   classSubjects: any[];
+  assessmentCategories: any[];
   scores: any[];
   comments: TeacherComment[];
   bookletPreview: any | null;
@@ -49,6 +52,7 @@ const initialState: TeacherState = {
   teacherClasses: [],
   classStudents: [],
   classSubjects: [],
+  assessmentCategories: [],
   scores: [],
   comments: [],
   bookletPreview: null,
@@ -325,6 +329,36 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchClassSubjects.rejected, (state) => {
         state.classSubjects = [];
+      });
+
+    // Assessment Categories
+    builder
+      .addCase(fetchAssessmentCategories.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAssessmentCategories.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assessmentCategories = action.payload;
+      })
+      .addCase(fetchAssessmentCategories.rejected, (state) => {
+        state.loading = false;
+        // Non-critical, just empty list
+        state.assessmentCategories = [];
+      });
+
+    // Update Assessment
+    builder
+      .addCase(updateTeacherAssessment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateTeacherAssessment.fulfilled, (state) => {
+        state.loading = false;
+        state.success = "Assessment updated successfully";
+      })
+      .addCase(updateTeacherAssessment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to update assessment";
       });
   },
 });

@@ -10,6 +10,7 @@ import {
   fetchTeacherClasses,
   fetchClassSubjects,
   fetchAcademicCurrent,
+  fetchAssessmentCategories,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { TeacherHeader } from "./TeacherHeader";
 import { Input } from "@/components/ui/input";
@@ -58,7 +59,7 @@ const statusConfig: Record<string, { bg: string; text: string; icon: typeof Chec
 
 export function TeacherAssessmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { assessments, teacherClasses, academicCurrent, loading } = useSelector((s: RootState) => s.teacher);
+  const { assessments, teacherClasses, academicCurrent, assessmentCategories, loading } = useSelector((s: RootState) => s.teacher);
   const { user } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -72,20 +73,36 @@ export function TeacherAssessmentsPage() {
   const [classSubjects, setClassSubjects] = useState<any[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
 
+  // Form State
   const [createForm, setCreateForm] = useState({
     title: "",
     classId: "",
     subjectId: "",
+    categoryId: "",
     totalMarks: "100",
     duration: "60",
     session: "",
     term: "First Term",
     isOnline: "false",
+    startsAt: "",
+    endsAt: "",
+    instructions: "",
+    questions: [] as any[],
+  });
+
+  // Question Builder State
+  const [newQuestion, setNewQuestion] = useState({
+    text: "",
+    type: "MCQ",
+    marks: "1",
+    options: [{ text: "", isCorrect: false }, { text: "", isCorrect: false }],
+    correctAnswer: "",
   });
 
   useEffect(() => {
     dispatch(fetchAcademicCurrent());
     dispatch(fetchMyAssessments());
+    dispatch(fetchAssessmentCategories());
     const teacherId = (user as any)?.id || (user as any)?.teacherId;
     if (teacherId) {
       dispatch(fetchTeacherClasses({ teacherId }));
@@ -173,17 +190,27 @@ export function TeacherAssessmentsPage() {
       if (!createForm.title.trim()) return toast.error("Title is required");
       if (!createForm.classId) return toast.error("Please select a class");
       if (!createForm.subjectId) return toast.error("Please select a subject");
+      if (!createForm.categoryId) return toast.error("Please select a category");
+
+      if (createForm.isOnline === "true" && createForm.questions.length === 0) {
+        return toast.error("Online assessments must have at least one question");
+      }
 
       await dispatch(
         createTeacherAssessment({
           title: createForm.title.trim(),
           classId: createForm.classId,
           subjectId: createForm.subjectId,
+          categoryId: createForm.categoryId,
           totalMarks: Number(createForm.totalMarks) || 100,
           duration: Number(createForm.duration) || 60,
           session: createForm.session || academicCurrent?.session || "2024/2025",
           term: createForm.term,
           isOnline: createForm.isOnline === "true",
+          startsAt: createForm.startsAt ? new Date(createForm.startsAt).toISOString() : undefined,
+          endsAt: createForm.endsAt ? new Date(createForm.endsAt).toISOString() : undefined,
+          instructions: createForm.instructions,
+          questions: createForm.isOnline === "true" ? createForm.questions : [],
         })
       ).unwrap();
 
@@ -193,16 +220,43 @@ export function TeacherAssessmentsPage() {
         title: "",
         classId: "",
         subjectId: "",
+        categoryId: "",
         totalMarks: "100",
         duration: "60",
         session: academicCurrent?.session || "",
         term: academicCurrent?.term || "First Term",
         isOnline: "false",
+        startsAt: "",
+        endsAt: "",
+        instructions: "",
+        questions: [],
       });
       dispatch(fetchMyAssessments());
     } catch (e: any) {
       toast.error(e || "Failed to create assessment");
     }
+  };
+
+  const addQuestion = () => {
+    if (!newQuestion.text) return toast.error("Question text is required");
+    setCreateForm(prev => ({
+      ...prev,
+      questions: [...prev.questions, { ...newQuestion, id: Date.now() }]
+    }));
+    setNewQuestion({
+      text: "",
+      type: "MCQ",
+      marks: "1",
+      options: [{ text: "", isCorrect: false }, { text: "", isCorrect: false }],
+      correctAnswer: "",
+    });
+  };
+
+  const removeQuestion = (idx: number) => {
+    setCreateForm(prev => ({
+      ...prev,
+      questions: prev.questions.filter((_, i) => i !== idx)
+    }));
   };
 
   const getClassName = (classId: string) => {
@@ -530,7 +584,7 @@ export function TeacherAssessmentsPage() {
             </div>
 
             {/* Modal Content */}
-            <div className="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
+            <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
               <div>
                 <label className="text-sm font-semibold text-slate-700">Title *</label>
                 <Input
@@ -583,6 +637,24 @@ export function TeacherAssessmentsPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                  <label className="text-sm font-semibold text-slate-700">Category *</label>
+                  <Select
+                    value={createForm.categoryId}
+                    onValueChange={(v) => setCreateForm((p) => ({ ...p, categoryId: v }))}
+                  >
+                    <SelectTrigger className="mt-2 h-11 rounded-xl">
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {assessmentCategories.map((cat: any) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name} ({cat.weight}%)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700">Total Marks</label>
                   <Input
@@ -592,6 +664,45 @@ export function TeacherAssessmentsPage() {
                     placeholder="100"
                     className="mt-2 h-11 rounded-xl"
                   />
+                </div>
+              </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <label className="text-sm font-semibold text-slate-700">Start Date</label>
+                   <Input
+                     type="datetime-local"
+                     value={createForm.startsAt}
+                     onChange={(e) => setCreateForm((p) => ({ ...p, startsAt: e.target.value }))}
+                     className="mt-2 h-11 rounded-xl"
+                   />
+                 </div>
+                 <div>
+                   <label className="text-sm font-semibold text-slate-700">End Date</label>
+                   <Input
+                     type="datetime-local"
+                     value={createForm.endsAt}
+                     onChange={(e) => setCreateForm((p) => ({ ...p, endsAt: e.target.value }))}
+                     className="mt-2 h-11 rounded-xl"
+                   />
+                 </div>
+               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Assessment Type</label>
+                   <Select
+                    value={createForm.isOnline}
+                    onValueChange={(v) => setCreateForm((p) => ({ ...p, isOnline: v }))}
+                  >
+                    <SelectTrigger className="mt-2 h-11 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="false">Offline / Paper-based</SelectItem>
+                      <SelectItem value="true">Online</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700">Duration (mins)</label>
@@ -604,50 +715,79 @@ export function TeacherAssessmentsPage() {
                   />
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold text-slate-700">Session</label>
-                  <Input
-                    value={createForm.session}
-                    onChange={(e) => setCreateForm((p) => ({ ...p, session: e.target.value }))}
-                    placeholder="2024/2025"
-                    className="mt-2 h-11 rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-slate-700">Term</label>
-                  <Select
-                    value={createForm.term}
-                    onValueChange={(v) => setCreateForm((p) => ({ ...p, term: v }))}
-                  >
-                    <SelectTrigger className="mt-2 h-11 rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="First Term">First Term</SelectItem>
-                      <SelectItem value="Second Term">Second Term</SelectItem>
-                      <SelectItem value="Third Term">Third Term</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
+              
               <div>
-                <label className="text-sm font-semibold text-slate-700">Assessment Type</label>
-                <Select
-                  value={createForm.isOnline}
-                  onValueChange={(v) => setCreateForm((p) => ({ ...p, isOnline: v }))}
-                >
-                  <SelectTrigger className="mt-2 h-11 rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="false">Offline / Paper-based</SelectItem>
-                    <SelectItem value="true">Online</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-semibold text-slate-700">Instructions</label>
+                <textarea
+                  value={createForm.instructions}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, instructions: e.target.value }))}
+                  className="mt-2 w-full p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  rows={3}
+                  placeholder="Instructions for students..."
+                />
               </div>
+
+              {/* Online Questions Builder */}
+              {createForm.isOnline === "true" && (
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <h3 className="font-bold text-slate-900 mb-4">Questions Builder</h3>
+                  
+                  <div className="space-y-4 mb-6">
+                    {createForm.questions.map((q, idx) => (
+                      <div key={idx} className="bg-slate-50 p-4 rounded-xl relative border border-slate-200">
+                        <button
+                          onClick={() => removeQuestion(idx)}
+                          className="absolute top-2 right-2 text-slate-400 hover:text-red-500"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <p className="font-semibold text-sm">Q{idx + 1}: {q.text}</p>
+                        <p className="text-xs text-slate-500 mt-1">Type: {q.type} • Marks: {q.marks}</p>
+                      </div>
+                    ))}
+                    {createForm.questions.length === 0 && (
+                      <div className="text-center py-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-300 text-slate-500 text-sm">
+                        No questions added yet.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <p className="text-sm font-bold text-slate-700">Add New Question</p>
+                    <Input
+                       placeholder="Question text..."
+                       value={newQuestion.text}
+                       onChange={e => setNewQuestion(p => ({ ...p, text: e.target.value }))}
+                       className="bg-white"
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <Select 
+                        value={newQuestion.type} 
+                        onValueChange={v => setNewQuestion(p => ({ ...p, type: v }))}
+                      >
+                         <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="MCQ">Multiple Choice</SelectItem>
+                           <SelectItem value="SHORT_ANSWER">Short Answer</SelectItem>
+                           <SelectItem value="ESSAY">Essay</SelectItem>
+                         </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        placeholder="Marks"
+                        value={newQuestion.marks}
+                        onChange={e => setNewQuestion(p => ({ ...p, marks: e.target.value }))}
+                        className="bg-white"
+                      />
+                    </div>
+                    {/* Add options logic here if needed, keeping simple for now */}
+                    <Button onClick={addQuestion} size="sm" className="w-full mt-2 bg-slate-900 text-white">
+                      Add Question
+                    </Button>
+                  </div>
+                </div>
+              )}
+
             </div>
 
             {/* Modal Footer */}
