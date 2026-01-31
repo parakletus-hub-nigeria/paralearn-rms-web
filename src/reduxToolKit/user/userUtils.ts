@@ -47,9 +47,8 @@ export const extractSubdomainFromUser = (user: any, responseData: any): string |
   // Priority: 1. Response root, 2. User object, 3. Nested objects
   return (
     responseData?.subdomain || 
-    user?.subdomain || 
-    user?.school?.subdomain || 
-    user?.tenant?.subdomain || 
+    responseData?.data.school.subdomain ||
+    responseData?.school.subdomain ||
     null
   );
 };
