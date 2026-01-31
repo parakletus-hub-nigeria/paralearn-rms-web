@@ -1,12 +1,41 @@
-import { CircleIcon } from "lucide-react"
 import Image from "next/image"
 
-export const Header = ({schoolLogo} : {schoolLogo :string}) => {
+export const Header = ({ schoolLogo, showGreeting = false }: { schoolLogo: string; showGreeting?: boolean }) => {
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) return "Good morning";
+        if (hour >= 12 && hour < 17) return "Good afternoon";
+        if (hour >= 17 && hour < 21) return "Good evening";
+        return "Good night";
+    };
+
     return (
-            <div className="flex flex-row items-center justify-between mx-[20px] mb-[20px]">
-                <p className="text-sm md:text-base">Good day Admin!</p>
-                {/* This is suppose to use the school logo url */}
-                <img src={schoolLogo} alt="school Logo" className="w-[30px] md:w-[40px] "/>
+        <div className="flex flex-row items-center justify-between mb-8 animate-load-fade-in pt-14 md:pt-0">
+            <div>
+                {showGreeting && (
+                    <>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 font-coolvetica tracking-tight leading-tight">
+                            {getGreeting()}, <span className="text-[#641BC4]">Admin!</span>
+                        </h1>
+                        <p className="text-[11px] sm:text-sm font-medium text-slate-500 mt-1 flex items-center gap-1.5 sm:gap-2">
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shrink-0" />
+                            Welcome back to your dashboard
+                        </p>
+                    </>
+                )}
             </div>
-    )
-}
+            <div className="relative group/logo">
+                <div className="absolute -inset-2 bg-gradient-to-br from-[#641BC4] to-[#8538E0] rounded-2xl blur-lg opacity-0 group-hover/logo:opacity-20 transition-opacity duration-500" />
+                <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden relative z-10 p-2 group-hover/logo:border-purple-200 transition-colors duration-500">
+                    <Image
+                        src={schoolLogo}
+                        alt="School Logo"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover/logo:scale-110"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};

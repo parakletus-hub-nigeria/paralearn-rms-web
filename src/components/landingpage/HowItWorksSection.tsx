@@ -1,151 +1,68 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ScrollReveal } from "./ScrollReveal";
 
 const HowItWorksSection = () => {
   const fullText = "How It Works";
-  const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTyping, setIsTyping] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-
-    if (!isDeleting && isTyping) {
-      // Typing forward
-      if (currentIndex < fullText.length) {
-        timeout = setTimeout(() => {
-          setDisplayText((prev) => prev + fullText[currentIndex]);
-          setCurrentIndex((prev) => prev + 1);
-        }, 80);
-      } else {
-        // Finished typing, wait then start deleting
-        timeout = setTimeout(() => {
-          setIsTyping(false);
-          setIsDeleting(true);
-        }, 2000); // Pause for 2 seconds after typing
-      }
-    } else if (isDeleting) {
-      // Deleting backward
-      if (displayText.length > 0) {
-        timeout = setTimeout(() => {
-          setDisplayText((prev) => prev.slice(0, -1));
-        }, 50); // Faster deletion speed
-      } else {
-        // Finished deleting, reset and start typing again
-        timeout = setTimeout(() => {
-          setIsDeleting(false);
-          setIsTyping(true);
-          setCurrentIndex(0);
-        }, 500); // Short pause before retyping
-      }
-    }
-
-    return () => {
-      if (timeout) clearTimeout(timeout);
-    };
-  }, [currentIndex, isTyping, isDeleting, displayText, fullText]);
   const steps = [
     {
       number: "1",
       title: "Create Your Workspace",
       description: "Register your institution and define your structure (Classes, Subjects, and Grading Systems).",
-      icon: "🏢",
     },
     {
       number: "2",
       title: "Claim Your Identity",
-      description: "Get a dedicated, secure subdomain for your school (e.g., yourschool.pl.ng).",
-      icon: "🔐",
+      description: "Get a dedicated, secure subdomain for your school (e.g., yourschool.pln.ng).",
     },
     {
       number: "3",
       title: "Onboard Your Team",
       description: "Invite teachers and upload student lists. They receive credentials instantly.",
-      icon: "👥",
     },
   ];
 
   return (
-    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/80 to-slate-100/50 dark:from-slate-900 dark:via-slate-900/80 dark:to-slate-800/50">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 opacity-30 dark:opacity-10">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200 dark:bg-purple-900/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-200 dark:bg-indigo-900/20 rounded-full blur-3xl" />
-      </div>
+    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/80 to-slate-100/50 dark:from-slate-900 dark:via-slate-900/80 dark:to-slate-800/50" style={{ transform: 'translateZ(0)' }}>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16 lg:mb-20">
-          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
-            <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
-              Simple Process
-            </span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
-            <span>{displayText}</span>
-            {(isTyping || isDeleting) && (
-              <span className="inline-block w-0.5 h-[0.9em] bg-slate-900 dark:bg-white ml-1 align-baseline animate-blink" />
-            )}
-          </h2>
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary via-purple-500 to-indigo-600" />
-            <div className="w-24 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary via-purple-500 to-indigo-600" />
-            <div className="w-12 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-          </div>
-        </div>
-
-        {/* Steps Grid */}
-        <div className="relative">
-          {/* Connecting Lines with Animated Dots - Desktop Only */}
-          <div className="hidden lg:block absolute top-[100px] left-[8%] right-[8%] h-1 z-0">
-            <div className="w-full h-full bg-gradient-to-r from-primary/30 via-purple-500/50 to-indigo-600/30 rounded-full relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full opacity-60 animate-pulse" />
-              {/* Animated dots */}
-              <div className="absolute left-[16.66%] top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50 animate-ping" style={{ animationDelay: '0s' }} />
-              <div className="absolute right-[16.66%] top-1/2 -translate-y-1/2 w-3 h-3 bg-indigo-600 rounded-full shadow-lg shadow-indigo-600/50 animate-ping" style={{ animationDelay: '1s' }} />
+        <ScrollReveal animation="reveal" delay="0s">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
+              <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
+                Simple Process
+              </span>
             </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
+              {fullText}
+            </h2>
           </div>
-          
+        </ScrollReveal>
+
+        {/* Steps: grid on desktop, stacked on mobile */}
+        <div className="relative">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 md:gap-6 lg:gap-8 xl:gap-12 relative z-10">
             {steps.map((step, index) => (
+              <ScrollReveal key={index} animation="reveal" delay={`${0.1 + index * 0.1}s`}>
               <div
-                key={index}
-                className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden hover:-translate-y-2 min-h-[280px] sm:min-h-[320px] md:min-h-[300px] lg:min-h-[340px]"
+                className="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-md border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden min-h-[280px] sm:min-h-[320px] md:min-h-[300px] lg:min-h-[340px]"
               >
                 {/* Glowing border on hover */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/0 via-purple-600/0 to-indigo-600/0 group-hover:from-primary/10 group-hover:via-purple-600/10 group-hover:to-indigo-600/10 transition-all duration-500 border-2 border-transparent group-hover:border-primary/30 dark:group-hover:border-purple-500/30" />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/0 via-purple-600/0 to-indigo-600/0 group-hover:from-primary/10 group-hover:via-purple-600/10 group-hover:to-indigo-600/10 transition-all duration-300 border-2 border-transparent group-hover:border-primary/30 dark:group-hover:border-purple-500/30" />
                 
                 {/* Content */}
                 <div className="relative z-10">
-                  {/* Step Number Badge with Icon */}
+                  {/* Step Number Badge */}
                   <div className="flex flex-col items-center mb-6 md:mb-8">
-                    <div className="relative group/badge">
-                      {/* Outer glow ring */}
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 opacity-20 group-hover/badge:opacity-40 blur-xl group-hover:scale-150 transition-all duration-500" />
-                      
-                      {/* Main badge */}
-                      <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-22 md:h-22 lg:w-28 lg:h-28 mx-auto rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 flex items-center justify-center text-3xl sm:text-4xl md:text-3xl lg:text-5xl font-black text-white shadow-xl shadow-primary/40 group-hover:scale-110 group-hover:shadow-2xl group-hover:shadow-primary/60 transition-all duration-500 relative z-10">
-                        <span className="relative z-10">{step.number}</span>
-                        {/* Shine effect */}
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      </div>
-                      
-                      {/* Icon Badge */}
-                      <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 z-20 drop-shadow-lg">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-12 md:h-12 lg:w-16 lg:h-16 rounded-full bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-primary/20 dark:border-purple-500/30 opacity-70 group-hover:opacity-100 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">
-                          <span className="text-2xl sm:text-3xl md:text-2xl lg:text-3xl">{step.icon}</span>
-                        </div>
-                      </div>
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 mx-auto rounded-full bg-gradient-to-br from-primary via-purple-700 to-indigo-700 flex items-center justify-center text-3xl sm:text-4xl md:text-3xl lg:text-5xl font-black text-white shadow-lg shadow-primary/40">
+                      <span>{step.number}</span>
                     </div>
                   </div>
                   
                   {/* Content Text */}
                   <div className="text-center space-y-3 md:space-y-4">
-                    <h3 className="text-xl sm:text-2xl md:text-xl lg:text-2xl xl:text-3xl font-black text-slate-900 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-purple-400 transition-colors duration-500">
+                    <h3 className="text-xl sm:text-2xl md:text-xl lg:text-2xl xl:text-3xl font-black text-slate-900 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-purple-400 transition-colors duration-300">
                       {step.title}
                     </h3>
                     
@@ -154,10 +71,10 @@ const HowItWorksSection = () => {
                     </p>
                   </div>
 
-                  {/* Arrow connector - Mobile/Tablet */}
+                  {/* Arrow - Mobile only */}
                   {index < steps.length - 1 && (
                     <div className="md:hidden flex justify-center my-8">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary/30 animate-bounce">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary/30">
                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -166,6 +83,7 @@ const HowItWorksSection = () => {
                   )}
                 </div>
               </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>

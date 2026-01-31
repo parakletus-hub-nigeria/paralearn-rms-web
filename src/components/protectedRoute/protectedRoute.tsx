@@ -13,6 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { getSubdomain } from "@/lib/subdomainManager";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  // AUTHENTICATION TEMPORARILY DISABLED
   // const accesstoken = useSelector((state: any) => state.user.accessToken);
   const accesstoken = useSelector((state: any) => state.user.accessToken);
   const reduxSubdomain = useSelector((state: any) => state.user.subdomain);
@@ -21,15 +22,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch();
   const [isAuthorized, setIsAuthorized] = useState(false);
 
-  useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        // Check if token exists in Redux state
-        let currentToken = accesstoken;
+  // AUTHENTICATION LOGIC TEMPORARILY DISABLED
+  // useEffect(() => {
+  //   const verifyToken = async () => {
+  //     try {
+  //       // Check if token exists in Redux state
+  //       let currentToken = accesstoken;
 
-        // If no token in Redux, try to get from cookies
-        if (!currentToken || currentToken === null) {
-          currentToken = tokenManager.getToken();
+  //       // If no token in Redux, try to get from cookies
+  //       if (!currentToken || currentToken === null) {
+  //         currentToken = tokenManager.getToken();
 
           // If still no token, try to refresh
           if (!currentToken) {
@@ -51,41 +53,41 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                 throw new Error(`Refresh token failed (HTTP ${refreshResponse.status})`);
               }
 
-              const refresh = await refreshResponse.json();
+  //             const refresh = await refreshResponse.json();
 
-              // Extract token from response or cookies
-              const newToken =
-                refresh.accessToken ||
-                refresh.data?.accessToken ||
-                tokenManager.getToken();
+  //             // Extract token from response or cookies
+  //             const newToken =
+  //               refresh.accessToken ||
+  //               refresh.data?.accessToken ||
+  //               tokenManager.getToken();
 
-              if (
-                !newToken ||
-                refresh.status === 401 ||
-                refresh.statusCode === "401"
-              ) {
-                throw new Error("token not found");
-              }
+  //             if (
+  //               !newToken ||
+  //               refresh.status === 401 ||
+  //               refresh.statusCode === "401"
+  //             ) {
+  //               throw new Error("token not found");
+  //             }
 
-              // Update Redux state with new token
-              dispatch(updateAccessToken({ accessToken: newToken }));
-              currentToken = newToken;
-            } catch (refreshError) {
-              console.error("Token refresh failed:", refreshError);
-              setIsAuthorized(false);
-              toast.info("Please sign in to access this page.");
-              if (pathName !== routespath.SIGNIN) {
-                setTimeout(() => {
-                  router.push(routespath.SIGNIN);
-                }, 1000);
-              }
-              return;
-            }
-          } else {
-            // Token found in cookies but not in Redux, update Redux
-            dispatch(updateAccessToken({ accessToken: currentToken }));
-          }
-        }
+  //             // Update Redux state with new token
+  //             dispatch(updateAccessToken({ accessToken: newToken }));
+  //             currentToken = newToken;
+  //           } catch (refreshError) {
+  //             console.error("Token refresh failed:", refreshError);
+  //             setIsAuthorized(false);
+  //             toast.info("Please sign in to access this page.");
+  //             if (pathName !== routespath.SIGNIN) {
+  //               setTimeout(() => {
+  //                 router.push(routespath.SIGNIN);
+  //               }, 1000);
+  //             }
+  //             return;
+  //           }
+  //         } else {
+  //           // Token found in cookies but not in Redux, update Redux
+  //           dispatch(updateAccessToken({ accessToken: currentToken }));
+  //         }
+  //       }
 
         // Verify token is valid (not expired)
         if (currentToken && decodeToken(currentToken) === false) {
@@ -105,59 +107,59 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
               throw new Error(`Refresh token failed (HTTP ${refreshResponse.status})`);
             }
 
-            const refresh = await refreshResponse.json();
+  //           const refresh = await refreshResponse.json();
 
-            // Extract new token from response or cookies
-            const newToken =
-              refresh.accessToken ||
-              refresh.data?.accessToken ||
-              tokenManager.getToken();
+  //           // Extract new token from response or cookies
+  //           const newToken =
+  //             refresh.accessToken ||
+  //             refresh.data?.accessToken ||
+  //             tokenManager.getToken();
 
-            if (
-              !newToken ||
-              refresh.status === 401 ||
-              refresh.statusCode === "401"
-            ) {
-              throw new Error("token expired");
-            }
+  //           if (
+  //             !newToken ||
+  //             refresh.status === 401 ||
+  //             refresh.statusCode === "401"
+  //           ) {
+  //             throw new Error("token expired");
+  //           }
 
-            // Verify new token is valid
-            if (decodeToken(newToken) === false) {
-              throw new Error("refreshed token is also expired");
-            }
+  //           // Verify new token is valid
+  //           if (decodeToken(newToken) === false) {
+  //             throw new Error("refreshed token is also expired");
+  //           }
 
-            // Update Redux state with new token
-            dispatch(updateAccessToken({ accessToken: newToken }));
-            currentToken = newToken;
-          } catch (refreshError) {
-            console.error("Token refresh failed:", refreshError);
-            setIsAuthorized(false);
-            toast.info("Please sign in to access this page.");
-            if (pathName !== routespath.SIGNIN) {
-              setTimeout(() => {
-                router.push(routespath.SIGNIN);
-              }, 1000);
-            }
-            return;
-          }
-        }
+  //           // Update Redux state with new token
+  //           dispatch(updateAccessToken({ accessToken: newToken }));
+  //           currentToken = newToken;
+  //         } catch (refreshError) {
+  //           console.error("Token refresh failed:", refreshError);
+  //           setIsAuthorized(false);
+  //           toast.info("Please sign in to access this page.");
+  //           if (pathName !== routespath.SIGNIN) {
+  //             setTimeout(() => {
+  //               router.push(routespath.SIGNIN);
+  //             }, 1000);
+  //           }
+  //           return;
+  //         }
+  //       }
 
-        // All checks passed
-        setIsAuthorized(true);
-      } catch (error) {
-        console.error("Token verification error:", error);
-        setIsAuthorized(false);
-        toast.info("Please sign in to access this page.");
-        if (pathName !== routespath.SIGNIN) {
-          setTimeout(() => {
-            router.push(routespath.SIGNIN);
-          }, 1000);
-        }
-      }
-    };
+  //       // All checks passed
+  //       setIsAuthorized(true);
+  //     } catch (error) {
+  //       console.error("Token verification error:", error);
+  //       setIsAuthorized(false);
+  //       toast.info("Please sign in to access this page.");
+  //       if (pathName !== routespath.SIGNIN) {
+  //         setTimeout(() => {
+  //           router.push(routespath.SIGNIN);
+  //         }, 1000);
+  //       }
+  //     }
+  //   };
 
-    verifyToken();
-  }, [accesstoken, pathName, router, dispatch]);
+  //   verifyToken();
+  // }, [accesstoken, pathName, router, dispatch]);
   if (!isAuthorized) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

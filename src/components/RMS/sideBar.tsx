@@ -12,7 +12,8 @@ import {
   SidebarTrigger,
 } from "../ui/sidebar";
 import Image from "next/image";
-import logo from "../../images/IMG-20201027-WA0000_2-removebg-preview 1.png";
+import logo from "../../../public/mainLogo.svg";
+
 import {
   BookOpenCheck,
   Calendar,
@@ -25,6 +26,7 @@ import {
   UserPlus,
   User,
   Settings,
+  Calendar,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
@@ -76,13 +78,13 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
   return (
     <SidebarProvider>
-      <Sidebar className="border-r border-purple-100/50">
-        <SidebarHeader className="p-6">
+      <Sidebar className="border-r border-purple-100/50 bg-white">
+        <SidebarHeader className="p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-50 p-1 rounded-lg">
+            <Link href={routespath.DASHBOARD} className="block">
               <Image
                 src={logo}
-                className="w-[32px] h-[32px] object-contain"
+                className="h-auto w-[120px] sm:w-[140px] md:w-[160px] max-w-full object-contain"
                 alt="paralearn logo"
               />
             </div>
@@ -136,11 +138,11 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         </SidebarFooter>
       </Sidebar>
 
-      <main className="flex-1 bg-[#fbfaff] min-h-screen relative">
-        <div className="absolute top-6 left-6 z-50">
-          <SidebarTrigger className="hover:bg-purple-50" />
+      <main className="flex-1 bg-[#fbfaff] min-h-screen relative overflow-x-hidden">
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
         </div>
-        <div className="p-10 w-full max-w-[1600px] mx-auto">{children}</div>
+        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">{children}</div>
       </main>
     </SidebarProvider>
   );

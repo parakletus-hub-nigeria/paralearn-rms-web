@@ -2,64 +2,14 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient, { setAuthToken, removeAuthToken } from "@/lib/api";
 import { tokenManager } from "@/lib/tokenManager";
 import { routespath } from "@/lib/routepath";
-import { saveSubdomainToStorage } from "@/lib/subdomainManager";
-
-const normalizeRoles = (roles: any): string[] => {
-  if (!roles) return [];
-  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles;
-  if (Array.isArray(roles)) {
-    return roles
-      .map((r) => r?.role?.name || r?.name || r)
-      .filter((v) => typeof v === "string");
-  }
-  return [];
-};
-
-const pickRedirectPath = (roles: string[]): string => {
-  if (roles.includes("teacher")) return routespath.TEACHER_DASHBOARD;
-  if (roles.includes("admin")) return routespath.DASHBOARD;
-  if (roles.includes("student")) return "/student/dashboard";
-  return routespath.DASHBOARD;
-};
-
-const extractTokenAndUser = (raw: any): { token: string | null; user: any } => {
-  const dataLayer = raw?.data || raw;
-  const token =
-    raw?.access_token ||
-    raw?.accessToken ||
-    raw?.data?.access_token ||
-    raw?.data?.accessToken ||
-    dataLayer?.access_token ||
-    dataLayer?.accessToken ||
-    dataLayer?.data?.access_token ||
-    dataLayer?.data?.accessToken ||
-    null;
-
-  const user =
-    raw?.user ||
-    raw?.data?.user ||
-    dataLayer?.user ||
-    dataLayer?.data?.user ||
-    null;
-
-  return { token, user };
-};
-
-const extractSubdomainFromUser = (user: any, raw: any): string | null => {
-  // ONLY from backend response (no localStorage / url fallback here)
-  return (
-    user?.subdomain ||
-    user?.school?.subdomain ||
-    raw?.data?.school?.subdomain ||
-    raw?.school?.subdomain ||
-    null
-  );
-};
+import { getSubdomain, saveSubdomainToStorage, extractSubdomainFromURL, getSubdomainFromStorage } from "@/lib/subdomainManager";
+import { store } from "@/reduxToolKit/store";
+import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
 // Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",
   async (
-    credentials: { email: string; password: string },
+    credentials: { email: string; password: string; skipSessionCheck?: boolean; redirectTo?: string },
     { rejectWithValue }
   ) => {
     try {
@@ -107,12 +57,52 @@ export const loginUser = createAsyncThunk(
 
       // Store subdomain in localStorage and Redux
       saveSubdomainToStorage(subdomain);
-
-      // Redirect to subdomain URL with dashboard path
+      
+      // Determine redirect path
+      let redirectPath: string;
+      
+      // If explicit redirect path provided (e.g., from signup), use it
+      if (credentials.redirectTo) {
+        redirectPath = credentials.redirectTo;
+      } 
+      // If skipSessionCheck is true (e.g., for new signups), go to setup
+      else if (credentials.skipSessionCheck) {
+        redirectPath = "/setup";
+      }
+      // Otherwise, check if academic session is set up
+      else {
+        redirectPath = routespath.DASHBOARD; // Default to dashboard
+        
+        try {
+          // Try to fetch current session to check if setup is complete
+          // Use a timeout to prevent blocking login for too long
+          const sessionResponse = await Promise.race([
+            apiClient.get(`/api/proxy${routespath.API_GET_CURRENT_SESSION}`),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("Session check timeout")), 3000)
+            )
+          ]) as any;
+          
+          // If session exists and is valid, go to dashboard
+          if (sessionResponse?.data?.success && sessionResponse?.data?.data?.sessionDetails) {
+            redirectPath = routespath.DASHBOARD;
+          } else {
+            // No session found, redirect to setup wizard
+            redirectPath = "/setup";
+          }
+        } catch (sessionError: any) {
+          // If fetching session fails (404, timeout, or no session), redirect to setup
+          // This is safe - if session check fails, assume setup is needed
+          console.log("No academic session found or check timed out, redirecting to setup:", sessionError);
+          redirectPath = "/setup";
+        }
+      }
+      
+      // Redirect to subdomain URL with appropriate path
       if (typeof window !== "undefined") {
         const currentHost = window.location.host;
         const currentProtocol = window.location.protocol;
-
+        
         // // Check if we're already on the subdomain URL
         // const hostParts = currentHost.split(".");
         // const isAlreadyOnSubdomain = hostParts[0] === subdomain && hostParts.length > 1;
@@ -121,31 +111,28 @@ export const loginUser = createAsyncThunk(
         if (true) {
 
           // Construct subdomain URL
-          // For localhost: subdomain.localhost:port
-          // For production: subdomain.domain.com
+          const subdomainStr = subdomain || "default"; // Ensure subdomain is string
           let newHost: string;
 
           if (currentHost.includes("localhost") || currentHost.includes("127.0.0.1")) {
             // Local development
             const port = currentHost.includes(":") ? currentHost.split(":")[1] : "";
-            newHost = port ? `${subdomain}.localhost:${port}` : `${subdomain}.localhost`;
+            newHost = port ? `${subdomainStr}.localhost:${port}` : `${subdomainStr}.localhost`;
           } else {
             // Production - extract base domain
             const hostParts = currentHost.split(".");
             if (hostParts.length >= 2) {
-              // Get the last two parts (e.g., "example.com" from "app.example.com")
               const baseDomain = hostParts.slice(-2).join(".");
-              newHost = `${subdomain}.${baseDomain}`;
+              newHost = `${subdomainStr}.${baseDomain}`;
             } else {
-              // Fallback
-              newHost = `${subdomain}.${currentHost}`;
+              newHost = `${subdomainStr}.${currentHost}`;
             }
           }
-
-          // Redirect to subdomain URL with role dashboard path
-          const newUrl = `${currentProtocol}//${newHost}${redirectTo}`;
-
-          // Redirect to subdomain URL with dashboard
+          
+          // Redirect to subdomain URL with appropriate path
+          const newUrl = `${currentProtocol}//${newHost}${redirectPath}`;
+          
+          // Redirect to subdomain URL
           window.location.href = newUrl;
 
           // Return early since we're redirecting
@@ -157,7 +144,6 @@ export const loginUser = createAsyncThunk(
             },
             subdomain: subdomain,
             redirecting: true,
-            redirectTo,
           };
         }
       }
@@ -169,7 +155,6 @@ export const loginUser = createAsyncThunk(
           roles,
         },
         subdomain: subdomain,
-        redirectTo,
       };
     } catch (error: any) {
       const errorMessage =
@@ -311,14 +296,6 @@ export const signupUser = createAsyncThunk(
     try {
       const response = await apiClient.post(routespath.API_SIGNUP, userData);
       const { accessToken, user } = response.data;
-
-      if (!accessToken) {
-        return rejectWithValue("No token received from server");
-      }
-
-      // Store token in cookies
-      await setAuthToken(accessToken);
-
       return {
         accessToken,
         user: user || {},
@@ -416,7 +393,12 @@ export const fetchAllUsers = createAsyncThunk(
         error.message ||
         "Failed to fetch users";
 
-      console.error("[Fetch All Users Error]", errorMessage);
+      // Only log non-subdomain errors to reduce console noise
+      // Subdomain errors are expected in some scenarios and will be handled by the UI
+      if (!errorMessage.toLowerCase().includes("subdomain")) {
+        console.error("[Fetch All Users Error]", errorMessage);
+      }
+      
       return rejectWithValue(errorMessage);
     }
   }

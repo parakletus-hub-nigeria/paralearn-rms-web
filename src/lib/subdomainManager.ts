@@ -7,7 +7,7 @@ const SUBDOMAIN_KEY = "adminSubdomain";
 /**
  * Extract subdomain from URL
  * Splits the hostname by '.' and gets the first part
- * Example: 'subdomain.pl.ng' -> 'subdomain'
+ * Example: 'subdomain.pln.ng' -> 'subdomain'
  * Example: 'subdomain.localhost' -> 'subdomain'
  */
 export const extractSubdomainFromURL = (): string | null => {

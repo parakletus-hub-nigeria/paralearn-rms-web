@@ -14,53 +14,85 @@ import {
   ArrowRight
 } from "lucide-react";
 import Image from "next/image";
-import logo from "../../../public/log.png";
+import logo from "../../../public/mainLogo.svg";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ComingSoonModal from "./ComingSoonModal";
+import { ScrollReveal } from "./ScrollReveal";
+
+const COMING_SOON_HREFS = [
+  "/features",
+  "/careers",
+  "/blog",
+  "/partners",
+  "/documentation",
+  "/help",
+  "/privacy",
+  "/terms",
+  "/security",
+  "/cookies",
+];
 
 const Footer = () => {
   const [email, setEmail] = useState("");
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [comingSoonTitle, setComingSoonTitle] = useState("Coming Soon");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitted email:", email);
+    toast.info("Newsletter signup coming soon. We will notify you when it is available.");
     setEmail("");
+  };
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, label?: string) => {
+    if (href === "/support") {
+      e.preventDefault();
+      window.open("https://wa.me/2348148876125", "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (COMING_SOON_HREFS.includes(href)) {
+      e.preventDefault();
+      setComingSoonTitle(label ?? "Coming Soon");
+      setComingSoonOpen(true);
+    }
   };
 
   const footerLinks = {
     product: [
-      { label: "Features", href: "#features" },
-      { label: "Pricing", href: "#pricing" },
-      { label: "For Schools", href: "#schools" },
-      { label: "CBT System", href: "#cbt" },
+      { label: "Features", href: "/features" },
+      { label: "Pricing", href: "/contact" },
+      // { label: "For Schools", href: "#schools" },
+      // { label: "CBT System", href: "#cbt" },
     ],
     company: [
       { label: "About Us", href: "/about" },
-      { label: "Careers", href: "#careers" },
-      { label: "Blog", href: "#blog" },
-      { label: "Partners", href: "#partners" },
+      { label: "Careers", href: "/careers" },
+      { label: "Blog", href: "/blog" },
+      { label: "Partners", href: "/partners" },
     ],
     resources: [
-      { label: "Documentation", href: "#docs" },
-      { label: "Help Center", href: "#help" },
-      { label: "Contact Support", href: "#support" },
-      { label: "Community", href: "#community" },
+      { label: "Documentation", href: "/documentation" },
+      { label: "Help Center", href: "/help" },
+      { label: "Contact Support", href: "/support" },
+      // { label: "Community", href: "#community" },
     ],
     legal: [
-      { label: "Privacy Policy", href: "#privacy" },
-      { label: "Terms of Service", href: "#terms" },
-      { label: "Security", href: "#security" },
-      { label: "Cookie Policy", href: "#cookies" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Security", href: "/security" },
+      { label: "Cookie Policy", href: "/cookies" },
     ],
   };
 
   const socialLinks = [
-    { icon: Twitter, href: "#", label: "Twitter" },
+    { icon: Twitter, href: "https://x.com/paralearn?t=3ViWKpFjN_J4apAcsrzu0Q&s=09", label: "Twitter" },
     { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Instagram, href: "#", label: "Instagram" },
+    { icon: Instagram, href: "https://www.instagram.com/paralearn.io?igsh=Nzh5eXRpdHhtcHU5", label: "Instagram" },
     { icon: Linkedin, href: "https://www.linkedin.com/company/paralearn/", label: "LinkedIn" },
   ];
 
   return (
-    <footer className="relative bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-t border-slate-200 dark:border-slate-800">
+    <footer id="footer" className="relative bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-t border-slate-200 dark:border-slate-800">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 dark:opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_1px_1px,rgb(100,27,196)_1px,transparent_0)] bg-[length:24px_24px]" />
@@ -68,6 +100,7 @@ const Footer = () => {
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-12 lg:px-24 py-16 md:py-20">
         {/* Newsletter Section */}
+        <ScrollReveal animation="reveal" delay="0s">
         <div className="mb-16 md:mb-20">
           <div className="bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-500/10 dark:from-primary/20 dark:via-purple-500/20 dark:to-indigo-500/20 rounded-3xl p-8 md:p-12 border border-primary/20 dark:border-primary/30 shadow-xl">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
@@ -105,8 +138,10 @@ const Footer = () => {
             </div>
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Main Footer Content */}
+        <ScrollReveal animation="reveal" delay="0.1s">
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 md:gap-10 lg:gap-12 mb-12">
           {/* Brand Column */}
           <div className="col-span-2 lg:col-span-1 space-y-4 md:space-y-6">
@@ -129,19 +164,19 @@ const Footer = () => {
               <div className="flex items-start gap-2 md:gap-3">
                 <MapPin className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0 mt-0.5" />
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                  Lagos, Nigeria
+                  Port Harcourt, Rivers State
                 </p>
               </div>
               <div className="flex items-center gap-2 md:gap-3">
                 <Phone className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
-                <a href="tel:+234123456789" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
-                  +234 123 456 789
+                <a href="tel:+2348148876125" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
+                +234 814887 6125
                 </a>
               </div>
               <div className="flex items-center gap-2 md:gap-3">
                 <Mail className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
-                <a href="mailto:hello@paralearn.com" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors break-all">
-                  hello@paralearn.com
+                <a href="mailto:paralearn.io@gmail.com" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors break-all">
+                  paralearn.io@gmail.com
                 </a>
               </div>
             </div>
@@ -173,15 +208,33 @@ const Footer = () => {
               Product
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
-              {footerLinks.product.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {footerLinks.product.map((link, index) => {
+                const isExternal = link.href.startsWith('http');
+                const isHash = link.href.startsWith('#');
+                if (isExternal || isHash) {
+                  return (
+                    <a
+                      key={index}
+                      href={link.href}
+                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
 
@@ -191,15 +244,33 @@ const Footer = () => {
               Company
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
-              {footerLinks.company.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {footerLinks.company.map((link, index) => {
+                const isExternal = link.href.startsWith('http');
+                const isHash = link.href.startsWith('#');
+                if (isExternal || isHash) {
+                  return (
+                    <a
+                      key={index}
+                      href={link.href}
+                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
 
@@ -209,15 +280,33 @@ const Footer = () => {
               Resources
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
-              {footerLinks.resources.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {footerLinks.resources.map((link, index) => {
+                const isExternal = link.href.startsWith('http');
+                const isHash = link.href.startsWith('#');
+                if (isExternal || isHash) {
+                  return (
+                    <a
+                      key={index}
+                      href={link.href}
+                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
 
@@ -227,20 +316,40 @@ const Footer = () => {
               Legal
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
-              {footerLinks.legal.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {footerLinks.legal.map((link, index) => {
+                const isExternal = link.href.startsWith('http');
+                const isHash = link.href.startsWith('#');
+                if (isExternal || isHash) {
+                  return (
+                    <a
+                      key={index}
+                      href={link.href}
+                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  );
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href, link.label)}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Bottom Bar */}
+        <ScrollReveal animation="reveal" delay="0.15s">
         <div className="pt-8 border-t border-slate-200 dark:border-slate-800">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6">
@@ -260,7 +369,10 @@ const Footer = () => {
             </div>
           </div>
         </div>
+        </ScrollReveal>
       </div>
+      <ToastContainer position="bottom-right" />
+      <ComingSoonModal open={comingSoonOpen} onOpenChange={setComingSoonOpen} title={comingSoonTitle} />
     </footer>
   );
 };

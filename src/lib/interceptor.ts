@@ -127,7 +127,10 @@ export const apiFetch = async (
   try {
     return await makeRequest(accessToken || "");
   } catch (error: any) {
-    console.error("[API Fetch Error]", error);
+    // Only log non-404 errors to reduce console noise
+    if (!error.message?.includes("Cannot GET") && !error.message?.includes("404")) {
+      console.error("[API Fetch Error]", error);
+    }
     throw error;
   }
 };

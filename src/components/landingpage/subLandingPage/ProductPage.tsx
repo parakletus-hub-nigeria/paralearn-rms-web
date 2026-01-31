@@ -1,9 +1,8 @@
 "use client";
 
-import { ScrollReveal } from "./ScrollReveal";
-import { 
-  Laptop,
-  Smartphone,
+import { ScrollReveal } from "../ScrollReveal";
+import { LandingLayout } from "../LandingLayout";
+import {
   FileSpreadsheet,
   Wand2,
   Shield,
@@ -21,18 +20,18 @@ const ProductPage = () => {
   const commandCenterFeatures = [
     {
       icon: FileSpreadsheet,
-      title: "The \"Magic\" Broadsheet",
-      description: "Forget Excel formulas. As scores are uploaded by teachers, your Master Broadsheet populates in real-time. View class performance at a glance, identify struggling students instantly, and approve an entire class's results with one click."
+      title: "The Magic Broadsheet",
+      description: "Forget Excel formulas. As scores are uploaded by teachers, your Master Broadsheet populates in real-time. View class performance at a glance, identify struggling students instantly, and approve an entire class results with one click."
     },
     {
       icon: Wand2,
       title: "School Onboarding Wizard",
-      description: "Setting up a digital infrastructure shouldn't take weeks. Our 4-step wizard helps you configure your Academic Year, Classes, Subjects, and unique Grading Systems in under 30 minutes."
+      description: "Setting up a digital infrastructure should not take weeks. Our 4-step wizard helps you configure your Academic Year, Classes, Subjects, and unique Grading Systems in under 30 minutes."
     },
     {
       icon: Shield,
       title: "Audit-Ready Security",
-      description: "Every score change, every approval, and every login is logged. Protect your institution's reputation with a system that ensures the grades on the report card match the grades in the exam hall."
+      description: "Every score change, every approval, and every login is logged. Protect your institution reputation with a system that ensures the grades on the report card match the grades in the exam hall."
     }
   ];
 
@@ -68,7 +67,7 @@ const ProductPage = () => {
   ];
 
   return (
-    <>
+    <LandingLayout className="min-h-screen">
       {/* Hero Section */}
       <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30">
         <div className="absolute inset-0 opacity-20 dark:opacity-10">
@@ -82,13 +81,6 @@ const ProductPage = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
                 Goal
               </h2>
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-primary" />
-                <div className="w-16 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-              </div>
             </div>
           </ScrollReveal>
 
@@ -104,7 +96,7 @@ const ProductPage = () => {
             <ScrollReveal animation="reveal" delay="0.2s">
               <div className="space-y-6">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4">
-                  One Ecosystem. Two Specialized Experiences.
+                  One Ecosystem, two Specialized Experiences.
                 </h1>
                 <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                   ParaLearn splits the workload intelligently. Administrators command from the web; teachers and students engage from their devices.
@@ -125,16 +117,12 @@ const ProductPage = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <ScrollReveal animation="reveal" delay="0.1s">
             <div className="text-center mb-12 md:mb-16 lg:mb-20">
+              <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-widest text-primary font-semibold mb-2 md:mb-3">
+                Part 1
+              </p>
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
-                Part 1: The Command Center (For Admins)
+                The Command Center (For Admins)
               </h2>
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-primary" />
-                <div className="w-16 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-              </div>
             </div>
           </ScrollReveal>
 
@@ -184,16 +172,12 @@ const ProductPage = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <ScrollReveal animation="reveal" delay="0.1s">
             <div className="text-center mb-12 md:mb-16 lg:mb-20">
+              <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-widest text-primary font-semibold mb-2 md:mb-3">
+                Part 2
+              </p>
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
-                Part 2: The Classroom Companion (For Teachers & Students)
+                The Classroom Companion (For Teachers & Students)
               </h2>
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-primary" />
-                <div className="w-16 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-                <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-              </div>
             </div>
           </ScrollReveal>
 
@@ -278,16 +262,16 @@ const ProductPage = () => {
       {/* CTA Section */}
       <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-20 md:py-32 lg:py-40 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white dark:from-slate-900 dark:via-slate-900/50 dark:to-slate-900">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] bg-gradient-to-r from-primary/5 via-purple-500/5 to-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
-        
+
         <div className="max-w-5xl mx-auto relative z-10 text-center">
           <ScrollReveal animation="reveal" delay="0s">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white mb-8 md:mb-12">
               See how ParaLearn fits your school.
             </h2>
-            
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6">
               <Link href="/auth/signup">
-                <Button 
+                <Button
                   size="lg"
                   className="h-12 sm:h-14 md:h-14 px-6 sm:px-8 md:px-10 rounded-2xl text-sm sm:text-base md:text-base font-black shadow-2xl shadow-primary/50 transition-all duration-300 bg-gradient-to-r from-primary via-purple-600 to-indigo-600 relative overflow-hidden group w-full sm:w-auto touch-manipulation active:scale-95"
                 >
@@ -310,7 +294,7 @@ const ProductPage = () => {
           </ScrollReveal>
         </div>
       </section>
-    </>
+    </LandingLayout>
   );
 };
 

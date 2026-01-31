@@ -57,6 +57,9 @@ apiClient.interceptors.request.use(
 
       // Log request in development
       if (process.env.NODE_ENV === "development") {
+        if (!token) {
+          console.warn("[API Request] WARNING: No auth token found for request", config.url);
+        }
         console.log("[API Request]", {
           method: config.method?.toUpperCase(),
           url: config.url,
@@ -112,7 +115,7 @@ apiClient.interceptors.response.use(
       if (isRefreshRequest) {
         tokenManager.removeToken();
         import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
-          getStore().dispatch(logoutUser());
+          getStore()?.dispatch(logoutUser());
         });
         return Promise.reject(error);
       }
@@ -123,7 +126,7 @@ apiClient.interceptors.response.use(
         tokenManager.removeToken();
         // Use dynamic import to avoid circular dependency
         import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
-          getStore().dispatch(logoutUser());
+          getStore()?.dispatch(logoutUser());
         });
         
         if (typeof window !== "undefined") {
@@ -164,7 +167,7 @@ apiClient.interceptors.response.use(
 
           // Update Redux state - use dynamic import to avoid circular dependency
           const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
-          getStore().dispatch(updateAccessToken({ accessToken: newToken }));
+          getStore()?.dispatch(updateAccessToken({ accessToken: newToken }));
 
           // Update the original request with new token
           if (config.headers) {
@@ -187,7 +190,7 @@ apiClient.interceptors.response.use(
         tokenManager.removeToken();
         // Use dynamic import to avoid circular dependency
         import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
-          getStore().dispatch(logoutUser());
+          getStore()?.dispatch(logoutUser());
         });
 
         // Redirect to login page
@@ -221,15 +224,34 @@ apiClient.interceptors.response.use(
       console.error("[API] Network Error:", error.message);
     }
 
-    // Log all errors in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("[API Error]", {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: config?.url,
-        data: error.response?.data,
-        message: error.message,
-      });
+    // Check if this is a subdomain-related error (expected in some scenarios)
+    const errorMessage = 
+      "";
+    const isSubdomainError = errorMessage.toLowerCase().includes("subdomain") || 
+                            errorMessage.toLowerCase().includes("invalid subdomain");
+
+    // Log all errors in development (only if there's meaningful data and not expected subdomain errors)
+    if (process.env.NODE_ENV === "development" && !isSubdomainError) {
+      const errorInfo: any = {
+        message: error.message || "Unknown error",
+      };
+      
+      if (error.response) {
+        errorInfo.status = error.response.status;
+        errorInfo.statusText = error.response.statusText;
+        errorInfo.url = config?.url;
+        if (error.response.data) {
+          errorInfo.data = error.response.data;
+        }
+      } else if (error.request) {
+        errorInfo.type = "Network Error";
+        errorInfo.url = config?.url;
+      }
+      
+      // Only log if we have meaningful information
+      if (errorInfo.status || errorInfo.data || errorInfo.message !== "Unknown error") {
+        console.error("[API Error]", errorInfo);
+      }
     }
 
     return Promise.reject(error);
@@ -241,19 +263,18 @@ export const setAuthToken = async (token: string): Promise<void> => {
   tokenManager.setToken(token);
   // Sync with Redux state - use dynamic import to avoid circular dependency
   const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
-  getStore().dispatch(updateAccessToken({ accessToken: token }));
+  getStore()?.dispatch(updateAccessToken({ accessToken: token }));
 };
 
 export const removeAuthToken = async (): Promise<void> => {
   tokenManager.removeToken();
   // Sync with Redux state - clear token - use dynamic import to avoid circular dependency
   const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
-  getStore().dispatch(updateAccessToken({ accessToken: null }));
+  getStore()?.dispatch(updateAccessToken({ accessToken: null }));
 };
 
 export const isAuthenticated = (): boolean => {
-  const state = getStore().getState();
-  return tokenManager.hasToken() || !!state.user.accessToken;
+  return tokenManager.hasToken() || !!getStore()?.getState()?.user?.accessToken;
 };
 
 export default apiClient;

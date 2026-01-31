@@ -5,8 +5,16 @@ import {
   fetchAllSessions,
   fetchCurrentSession,
   activateTerm,
+  onboardingSetup,
+  createClass,
+  createSubject,
+  updateGradingScale,
   AcademicSession,
   CurrentSessionResponse,
+  OnboardingSetupResponse,
+  CreateClassResponse,
+  CreateSubjectResponse,
+  UpdateGradingScaleResponse,
 } from "./setUpThunk";
 
 interface SetUpState {
@@ -21,6 +29,12 @@ interface SetUpState {
     session: AcademicSession | null;
     term: { id: string; term: string; isActive: boolean } | null;
   } | null;
+  // Onboarding setup state
+  onboardingSetupData: OnboardingSetupResponse | null;
+  // Individual step data
+  createdClasses: CreateClassResponse[];
+  createdSubjects: CreateSubjectResponse[];
+  gradingScaleData: UpdateGradingScaleResponse | null;
 }
 
 const initialState: SetUpState = {
@@ -31,6 +45,10 @@ const initialState: SetUpState = {
   currentSession: null,
   createdSession: null,
   activateTermData: null,
+  onboardingSetupData: null,
+  createdClasses: [],
+  createdSubjects: [],
+  gradingScaleData: null,
 };
 
 const setUpSlice = createSlice({
@@ -48,6 +66,14 @@ const setUpSlice = createSlice({
     },
     clearActivateTermData: (state) => {
       state.activateTermData = null;
+    },
+    clearOnboardingSetupData: (state) => {
+      state.onboardingSetupData = null;
+    },
+    clearWizardData: (state) => {
+      state.createdClasses = [];
+      state.createdSubjects = [];
+      state.gradingScaleData = null;
     },
   },
 
@@ -149,6 +175,76 @@ const setUpSlice = createSlice({
         state.error = (action.payload as string) || "Failed to activate term";
         state.success = false;
       });
+
+    // Onboarding Setup
+    builder
+      .addCase(onboardingSetup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(onboardingSetup.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+        state.onboardingSetupData = action.payload;
+      })
+      .addCase(onboardingSetup.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to complete onboarding setup";
+        state.success = false;
+      });
+
+    // Create Class
+    builder
+      .addCase(createClass.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createClass.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        state.createdClasses.push(action.payload);
+      })
+      .addCase(createClass.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to create class";
+      });
+
+    // Create Subject
+    builder
+      .addCase(createSubject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createSubject.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        state.createdSubjects.push(action.payload);
+      })
+      .addCase(createSubject.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to create subject";
+      });
+
+    // Update Grading Scale
+    builder
+      .addCase(updateGradingScale.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(updateGradingScale.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+        state.gradingScaleData = action.payload;
+      })
+      .addCase(updateGradingScale.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to update grading scale";
+        state.success = false;
+      });
   },
 });
 
@@ -157,6 +253,8 @@ export const {
   clearSuccess,
   clearCreatedSession,
   clearActivateTermData,
+  clearOnboardingSetupData,
+  clearWizardData,
 } = setUpSlice.actions;
 
 // Export thunks for use in components
@@ -165,6 +263,10 @@ export {
   fetchAllSessions,
   fetchCurrentSession,
   activateTerm,
+  onboardingSetup,
+  createClass,
+  createSubject,
+  updateGradingScale,
 };
 const setUpReducer=setUpSlice.reducer;
 export default setUpReducer

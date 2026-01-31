@@ -158,14 +158,14 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
       name: "guardianName",
       label: "Guardian Name",
       type: "text",
-      placeholder: "Enter guardian's name",
+      placeholder: "Enter guardian name",
       required: true,
     },
     {
       name: "guardianPhone",
       label: "Guardian Phone",
       type: "tel",
-      placeholder: "Enter guardian's phone",
+      placeholder: "Enter guardian phone",
       required: true,
     },
   ];
@@ -253,6 +253,7 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
 }
 
 export function AddTeacherDialog({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -644,14 +645,14 @@ export function StudentDialog({
       name: "guardianName",
       label: "Guardian Name",
       type: "text",
-      placeholder: "Enter guardian's name",
+      placeholder: "Enter guardian name",
       required: true,
     },
     {
       name: "guardianPhone",
       label: "Guardian Phone",
       type: "tel",
-      placeholder: "Enter guardian's phone",
+      placeholder: "Enter guardian phone",
       required: true,
     },
   ];
@@ -664,7 +665,7 @@ export function StudentDialog({
           <DialogHeader>
             <p className="text-lg font-bold">Edit Student Details</p>
             <DialogDescription>
-              Update the student's information below
+              Update the student information below
             </DialogDescription>
           </DialogHeader>
 

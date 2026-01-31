@@ -14,7 +14,7 @@ export const useGradientOnScroll = () => {
       setScrollPosition(scrollPercent);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 

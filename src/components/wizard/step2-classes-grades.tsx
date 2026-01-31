@@ -10,8 +10,9 @@ import { GraduationCap, Plus, X } from "lucide-react"
 interface Class {
   id: string
   name: string
+  level: number
+  stream: string
   capacity: string
-  gradeLevel: string
 }
 
 interface Step2Props {
@@ -24,8 +25,9 @@ export function Step2ClassesGrades({ classes, setClasses }: Step2Props) {
     const newClass: Class = {
       id: Date.now().toString(),
       name: "",
+      level: 1,
+      stream: "A",
       capacity: "",
-      gradeLevel: "",
     }
     setClasses([...classes, newClass])
   }
@@ -34,7 +36,7 @@ export function Step2ClassesGrades({ classes, setClasses }: Step2Props) {
     setClasses(classes.filter((cls) => cls.id !== id))
   }
 
-  const updateClass = (id: string, field: keyof Class, value: string) => {
+  const updateClass = (id: string, field: keyof Class, value: string | number) => {
     setClasses(classes.map((cls) => (cls.id === id ? { ...cls, [field]: value } : cls)))
   }
 
@@ -73,33 +75,40 @@ export function Step2ClassesGrades({ classes, setClasses }: Step2Props) {
                     placeholder="Enter class name"
                     value={cls.name}
                     onChange={(e) => updateClass(cls.id, "name", e.target.value)}
+                    className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
                   />
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label>Class capacity</Label>
+                    <Label>Level</Label>
+                    <Input
+                      type="number"
+                      placeholder="Enter level"
+                      value={cls.level}
+                      onChange={(e) => updateClass(cls.id, "level", parseInt(e.target.value) || 1)}
+                      className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
+                      min="1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Stream</Label>
+                    <Input
+                      placeholder="Enter stream (e.g., A, B)"
+                      value={cls.stream}
+                      onChange={(e) => updateClass(cls.id, "stream", e.target.value.toUpperCase())}
+                      className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
+                      maxLength={1}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Capacity</Label>
                     <Input
                       type="number"
                       placeholder="Enter capacity"
                       value={cls.capacity}
                       onChange={(e) => updateClass(cls.id, "capacity", e.target.value)}
+                      className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Grade Level</Label>
-                    <Select value={cls.gradeLevel} onValueChange={(value) => updateClass(cls.id, "gradeLevel", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select grade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Grade 1">Grade 1</SelectItem>
-                        <SelectItem value="Grade 2">Grade 2</SelectItem>
-                        <SelectItem value="Grade 3">Grade 3</SelectItem>
-                        <SelectItem value="Grade 4">Grade 4</SelectItem>
-                        <SelectItem value="Grade 5">Grade 5</SelectItem>
-                        <SelectItem value="Grade 6">Grade 6</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
               </div>

@@ -685,6 +685,7 @@ export const UsersPage = () => {
           </div>
         </div>
       )}
+      </div>
 
       {/* Click outside to close action menu */}
       {actionMenuOpen && (

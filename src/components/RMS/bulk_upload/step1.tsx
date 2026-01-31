@@ -1,8 +1,10 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 import { Upload, Download, FileUp, ArrowRight } from "lucide-react";
 import Papaparse from "papaparse";
 import * as XLSX from "xlsx";
+import logo from "../../../../public/mainLogo.svg";
 
 const Step_One = ({
   fileContent,
@@ -36,8 +38,24 @@ const Step_One = ({
   const handleDrop = (e: any) => {
     e.preventDefault();
     setIsDragging(false);
-    // Handle file drop logic here
-    console.log(e.dataTransfer.files);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const fileName = file.name.toLowerCase();
+      
+      // Check if file type is valid
+      if (
+        fileName.endsWith(".csv") ||
+        fileName.endsWith(".xlsx") ||
+        fileName.endsWith(".xls")
+      ) {
+        // Create a synthetic event to reuse handleFileSelect logic
+        const syntheticEvent = {
+          target: { files: [file] },
+        };
+        handleFileSelect(syntheticEvent);
+      }
+    }
   };
 
   const onButtonClick = () => {
@@ -100,89 +118,123 @@ const Step_One = ({
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4 space-y-6 font-sans">
-      {/* 1. Header Section */}
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 flex flex-col items-center text-center">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-sm">
-            1
+    <div className="max-w-2xl mx-auto w-full space-y-6">
+      {/* Upload File Card */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#641BC4] to-[#8538E0] text-white flex items-center justify-center font-bold text-base shadow-md">
+              1
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                Upload File
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600">
+                Upload {uploadType} data in bulk
+              </p>
+            </div>
           </div>
-          <h2 className="text-lg font-bold text-gray-900">Upload File</h2>
-        </div>
-        <p className="text-sm text-gray-600">
-          Upload {uploadType} data in bulk
-        </p>
-      </div>
-
-      <div
-        className={`border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center transition-colors
-        ${
-          isDragging
-            ? "border-purple-600 bg-purple-50"
-            : "border-purple-300 bg-white"
-        }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        {/* 5. The Hidden Input Field */}
-        <input
-          type="file"
-          className="hidden"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          accept=".csv, .xlsx, .xls" // Limits selection to these types
-        />
-
-        <div className="mb-4 text-gray-600">
-          <Upload size={40} strokeWidth={1.5} />
         </div>
 
-        <p className="font-semibold text-gray-900 mb-1">
-          Drag and drop your file here
-        </p>
-        <p className="text-sm text-gray-500 mb-6">
-          CSV or Excel format (.csv, .xlsx, .xls)
-        </p>
+        <div className="p-6 sm:p-8">
+          <div
+            className={`border-2 border-dashed rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center transition-all duration-300 min-h-[280px] sm:min-h-[320px]
+            ${
+              isDragging
+                ? "border-[#641BC4] bg-purple-50 scale-[1.02]"
+                : "border-purple-300 bg-slate-50/50 hover:border-purple-400 hover:bg-purple-50/50"
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept=".csv, .xlsx, .xls"
+            />
 
-        {/* 6. Button triggers the Ref */}
-        <button
-          onClick={onButtonClick}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-md text-sm font-medium transition-colors"
-          type="button"
-          disabled={loading}
-        >
-          Select Files
-        </button>
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="relative w-20 h-20 flex items-center justify-center">
+                  <Image
+                    src={logo}
+                    alt="Loading"
+                    width={80}
+                    height={80}
+                    className="animate-pulse drop-shadow-lg"
+                    priority
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6 text-purple-600">
+                  <Upload size={48} strokeWidth={1.5} className="sm:w-14 sm:h-14" />
+                </div>
+
+                <p className="text-base sm:text-lg font-semibold text-slate-900 mb-2 text-center">
+                  Drag and drop your file here
+                </p>
+                <p className="text-xs sm:text-sm text-slate-500 mb-8 text-center max-w-sm">
+                  CSV or Excel format (.csv, .xlsx, .xls)
+                </p>
+
+                <button
+                  onClick={onButtonClick}
+                  className="bg-gradient-to-r from-[#641BC4] to-[#8538E0] hover:from-[#5a2ba8] hover:to-[#7530c7] text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  disabled={loading}
+                >
+                  Select Files
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* 3. Need Help / Template Section */}
-      <div className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h3 className="font-bold text-gray-900 text-sm mb-2">Need Help?</h3>
-        <p className="text-sm text-gray-600 mb-5 leading-relaxed">
-          Download our template to see the exact format and required columns for
-          your upload.
-        </p>
+      {/* Need Help Card */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 sm:p-8">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <FileUp className="w-5 h-5 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-slate-900 text-base sm:text-lg mb-2">
+              Need Help?
+            </h3>
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              Download our template to see the exact format and required columns
+              for your upload.
+            </p>
 
-        <button className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-2.5 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors">
-          <Download size={18} />
-          Download
-        </button>
+            <button className="w-full sm:w-auto border-2 border-slate-300 hover:border-[#641BC4] hover:bg-purple-50 text-slate-700 hover:text-[#641BC4] py-2.5 px-6 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all">
+              <Download size={18} />
+              Download Template
+            </button>
+          </div>
+        </div>
       </div>
-      <div className="w-[100%] flex justify-evenly">
+
+      {/* Next Button */}
+      <div className="flex justify-center pt-4">
         <button
           onClick={() => {
             setStep(step + 1);
           }}
-          disabled={!unpacked}
-          style={
-            !unpacked
-              ? { backgroundColor: "#a166f0" }
-              : { backgroundColor: "#641BC4" }
-          }
-          className="w-[35%] rounded-[12px] bg-[#641BC4] font-semibold text-white h-[52px] flex flex-row items-center justify-center cursor-pointer"
+          disabled={!unpacked || loading}
+          className={`w-full sm:w-auto min-w-[200px] rounded-xl font-semibold text-white h-12 sm:h-14 flex flex-row items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg ${
+            !unpacked || loading
+              ? "bg-purple-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-[#641BC4] to-[#8538E0] hover:from-[#5a2ba8] hover:to-[#7530c7]"
+          }`}
         >
-          Next <ArrowRight className="mx-[10px]" />
+          Next
+          <ArrowRight className="w-5 h-5" />
         </button>
       </div>
     </div>
