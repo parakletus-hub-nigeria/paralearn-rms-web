@@ -1,10 +1,8 @@
 "use client";
-import { ReactNode, useState } from "react";
-import { useDispatch } from "react-redux";
+import { ReactNode, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { logout } from "@/state/user/userSlice";
 import { toast } from "react-toastify";
-import tokenManager from "@/lib/tokenManager";
 import {
   Sidebar,
   SidebarContent,
@@ -16,31 +14,33 @@ import {
 import Image from "next/image";
 import logo from "../../images/IMG-20201027-WA0000_2-removebg-preview 1.png";
 import {
+  BookOpenCheck,
+  Calendar,
+  ClipboardList,
   Home,
   UserCircle,
   BookOpen,
   DownloadIcon,
+  MessageSquareText,
+  UserPlus,
   User,
   Settings,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
+import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { logoutUser } from "@/reduxToolKit/user/userThunks";
+import { usePathname } from "next/navigation";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
-  const [selectedPath, setSelectedPath] = useState("/dashboard");
-  const dispatch = useDispatch();
+  const pathname = usePathname();
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const { user } = useSelector((s: RootState) => s.user);
 
   const handleLogout = async () => {
     try {
-      // Clear Redux state
-      dispatch(logout());
-
-      // Clear token from cookie
-      tokenManager.removeToken();
-
-      // Clear localStorage
-      localStorage.clear();
+      await dispatch(logoutUser()).unwrap();
 
       // Show success message
       toast.success("Logged out successfully");
@@ -55,14 +55,24 @@ const SideBar = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const sideBarContent = [
-    { label: "Dashboard", path: routespath.DASHBOARD, icon: Home },
-    { label: "Users", path: "/RMS/users", icon: UserCircle },
-    { label: "Report Cards", path: routespath.REPORT, icon: BookOpen },
-    { label: "Bulk Upload", path: "/RMS/bulk_upload", icon: DownloadIcon },
-    { label: "Profile", path: "/profile", icon: User },
-    { label: "Settings", path: "/settings", icon: Settings },
-  ];
+  const sideBarContent = useMemo(
+    () => [
+      { label: "Dashboard", path: routespath.DASHBOARD, icon: Home },
+      { label: "Users", path: routespath.USERS, icon: UserCircle },
+      { label: "Enrollments", path: routespath.ENROLLMENTS, icon: UserPlus },
+      { label: "Classes", path: routespath.CLASSES, icon: BookOpenCheck },
+      { label: "Subjects", path: routespath.SUBJECTS, icon: BookOpen },
+      { label: "Report Cards", path: routespath.REPORT, icon: BookOpen },
+      { label: "Comments", path: routespath.COMMENTS, icon: MessageSquareText },
+      { label: "Attendance", path: routespath.ATTENDANCE, icon: Calendar },
+      { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon },
+      { label: "Academic", path: routespath.ACADEMIC, icon: Calendar },
+      { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings },
+      { label: "Profile", path: "/profile", icon: User },
+      { label: "Settings", path: "/settings", icon: Settings },
+    ],
+    []
+  );
 
   return (
     <SidebarProvider>
@@ -76,21 +86,23 @@ const SideBar = ({ children }: { children: ReactNode }) => {
                 alt="paralearn logo"
               />
             </div>
-            <p className="text-[#641BC4] font-bold text-lg tracking-tight">
-              PARA LEARN
-            </p>
+            <div className="flex flex-col leading-tight">
+              <p className="text-[#641BC4] font-bold text-lg tracking-tight">PARA LEARN</p>
+              <p className="text-xs text-slate-500 font-medium">
+                Admin{user?.firstName ? ` • ${user.firstName}` : ""}
+              </p>
+            </div>
           </div>
         </SidebarHeader>
 
         <SidebarContent className="px-4">
           <nav className="flex flex-col gap-1.5 mt-4">
             {sideBarContent.map((item, index) => {
-              const isSelected = selectedPath === item.path;
+              const isSelected = pathname === item.path;
               return (
                 <Link
                   key={index}
                   href={item.path}
-                  onClick={() => setSelectedPath(item.path)}
                   className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${
                     isSelected
                       ? "bg-[var(--purple-light)] text-[var(--brand-primary)] shadow-sm"

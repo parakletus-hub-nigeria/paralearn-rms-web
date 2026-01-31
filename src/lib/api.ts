@@ -22,7 +22,7 @@ const getStore = () => {
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "",
-  timeout: 30000,
+  timeout: 200000,
   withCredentials: true, // Important for cookies
   headers: {
     "Content-Type": "application/json",
@@ -42,10 +42,16 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
 
+      // Don't attach tenant header to auth login.
+      // (Login must work even before we know tenant/subdomain.)
+      const isAuthLogin = (config.url || "").includes(routespath.API_LOGIN);
+
       // Get subdomain with fallback priority: Redux -> localStorage -> URL
-      const subdomain = getSubdomain(state.user.subdomain);
-      
-      if (subdomain) {
+      const reduxSubdomain = state.user?.subdomain;
+      const subdomain = isAuthLogin ? null : getSubdomain(reduxSubdomain);
+
+      // Attach tenant header for all non-login requests (including refresh/logout)
+      if (subdomain && !isAuthLogin) {
         config.headers["X-Tenant-Subdomain"] = subdomain;
       }
 
@@ -56,6 +62,8 @@ apiClient.interceptors.request.use(
           url: config.url,
           hasAuth: !!token,
           subdomain: subdomain || "none",
+          reduxSubdomain: reduxSubdomain || "none",
+          localStorage: typeof window !== "undefined" ? localStorage.getItem("adminSubdomain") : "N/A",
         });
       }
 
@@ -91,6 +99,24 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized with token refresh
     if (error.response?.status === 401) {
+      const url = config?.url || "";
+      const isLoginRequest = url.includes(routespath.API_LOGIN);
+      const isRefreshRequest = url.includes(routespath.API_REFRESH);
+
+      // If login fails (401), do NOT attempt refresh. Just return the login error.
+      if (isLoginRequest) {
+        return Promise.reject(error);
+      }
+
+      // If refresh itself fails, don't try to refresh again.
+      if (isRefreshRequest) {
+        tokenManager.removeToken();
+        import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
+          getStore().dispatch(logoutUser());
+        });
+        return Promise.reject(error);
+      }
+
       // Prevent infinite retry loops
       if (config._retry) {
         console.warn("[API] Refresh token failed, redirecting to login");

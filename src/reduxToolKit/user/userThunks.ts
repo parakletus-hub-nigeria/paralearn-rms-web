@@ -2,8 +2,59 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient, { setAuthToken, removeAuthToken } from "@/lib/api";
 import { tokenManager } from "@/lib/tokenManager";
 import { routespath } from "@/lib/routepath";
-import { getSubdomain, saveSubdomainToStorage, extractSubdomainFromURL, getSubdomainFromStorage } from "@/lib/subdomainManager";
-import { store } from "@/reduxToolKit/store";
+import { saveSubdomainToStorage } from "@/lib/subdomainManager";
+
+const normalizeRoles = (roles: any): string[] => {
+  if (!roles) return [];
+  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles;
+  if (Array.isArray(roles)) {
+    return roles
+      .map((r) => r?.role?.name || r?.name || r)
+      .filter((v) => typeof v === "string");
+  }
+  return [];
+};
+
+const pickRedirectPath = (roles: string[]): string => {
+  if (roles.includes("teacher")) return routespath.TEACHER_DASHBOARD;
+  if (roles.includes("admin")) return routespath.DASHBOARD;
+  if (roles.includes("student")) return "/student/dashboard";
+  return routespath.DASHBOARD;
+};
+
+const extractTokenAndUser = (raw: any): { token: string | null; user: any } => {
+  const dataLayer = raw?.data || raw;
+  const token =
+    raw?.access_token ||
+    raw?.accessToken ||
+    raw?.data?.access_token ||
+    raw?.data?.accessToken ||
+    dataLayer?.access_token ||
+    dataLayer?.accessToken ||
+    dataLayer?.data?.access_token ||
+    dataLayer?.data?.accessToken ||
+    null;
+
+  const user =
+    raw?.user ||
+    raw?.data?.user ||
+    dataLayer?.user ||
+    dataLayer?.data?.user ||
+    null;
+
+  return { token, user };
+};
+
+const extractSubdomainFromUser = (user: any, raw: any): string | null => {
+  // ONLY from backend response (no localStorage / url fallback here)
+  return (
+    user?.subdomain ||
+    user?.school?.subdomain ||
+    raw?.data?.school?.subdomain ||
+    raw?.school?.subdomain ||
+    null
+  );
+};
 // Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",
@@ -16,17 +67,16 @@ export const loginUser = createAsyncThunk(
         `/api/proxy${routespath.API_LOGIN}`,
         credentials
       );
-      
+
       // Log the full response for debugging
       console.log("[Login Response]", response);
       console.log("[Login Response Data]", response.data);
 
-      // Handle different response structures
-      const responseData = response.data?.data || response.data;
-      const { accessToken: responseToken, user, school} = responseData;
+      const { token: tokenFromResponse, user: userFromResponse } =
+        extractTokenAndUser(response.data);
 
       // Try to get token from response first, then from cookies (set by backend)
-      let accessToken = responseToken || responseData?.accessToken || tokenManager.getToken();
+      let accessToken = tokenFromResponse || tokenManager.getToken();
 
       // If still no token, wait a bit for cookie to be set (backend might set it as httpOnly cookie)
       if (!accessToken) {
@@ -34,8 +84,6 @@ export const loginUser = createAsyncThunk(
         await new Promise((resolve) => setTimeout(resolve, 100));
         accessToken = tokenManager.getToken();
       }
-      console.log('response',responseData)
-
       if (!accessToken) {
         return rejectWithValue("No token received from server");
       }
@@ -48,21 +96,10 @@ export const loginUser = createAsyncThunk(
         await setAuthToken(accessToken);
       }
 
-      // Extract subdomain ONLY from backend response user object
-      // Check multiple possible locations in the response structure
-      let subdomain: string | null = null;
-      
-      if (response.data?.data?.school?.subdomain) {
-        // Structure: { success: true, data: { school: { subdomain: "...", ... }, ... } }
-        subdomain = response.data.data.school.subdomain;
-      } else if (response.data?.school?.subdomain) {
-        // Structure: { success: true, school: { subdomain: "...", ... }, ... }
-        subdomain = response.data.school.subdomain;
-      } else if (school?.subdomain) {
-        // Direct access from destructured school
-        subdomain = school.subdomain;
-      }
-      
+      const roles = normalizeRoles(userFromResponse?.roles);
+      const redirectTo = pickRedirectPath(roles);
+      const subdomain = extractSubdomainFromUser(userFromResponse, response.data);
+
       // If subdomain not found in user object, return error
       if (!subdomain) {
         return rejectWithValue("Subdomain not found in user response. Please contact support.");
@@ -70,16 +107,16 @@ export const loginUser = createAsyncThunk(
 
       // Store subdomain in localStorage and Redux
       saveSubdomainToStorage(subdomain);
-      
+
       // Redirect to subdomain URL with dashboard path
       if (typeof window !== "undefined") {
         const currentHost = window.location.host;
         const currentProtocol = window.location.protocol;
-        
+
         // // Check if we're already on the subdomain URL
         // const hostParts = currentHost.split(".");
         // const isAlreadyOnSubdomain = hostParts[0] === subdomain && hostParts.length > 1;
-        
+
         // if (!isAlreadyOnSubdomain) {
         if (true) {
 
@@ -87,7 +124,7 @@ export const loginUser = createAsyncThunk(
           // For localhost: subdomain.localhost:port
           // For production: subdomain.domain.com
           let newHost: string;
-          
+
           if (currentHost.includes("localhost") || currentHost.includes("127.0.0.1")) {
             // Local development
             const port = currentHost.includes(":") ? currentHost.split(":")[1] : "";
@@ -104,28 +141,35 @@ export const loginUser = createAsyncThunk(
               newHost = `${subdomain}.${currentHost}`;
             }
           }
-          
-          // Redirect to subdomain URL with dashboard path
-          const dashboardPath = routespath.DASHBOARD;
-          const newUrl = `${currentProtocol}//${newHost}${dashboardPath}`;
-          
+
+          // Redirect to subdomain URL with role dashboard path
+          const newUrl = `${currentProtocol}//${newHost}${redirectTo}`;
+
           // Redirect to subdomain URL with dashboard
           window.location.href = newUrl;
-          
+
           // Return early since we're redirecting
           return {
             accessToken,
-            user: user || {},
+            user: {
+              ...(userFromResponse || {}),
+              roles,
+            },
             subdomain: subdomain,
             redirecting: true,
+            redirectTo,
           };
         }
       }
 
       return {
         accessToken,
-        user: user || {},
+        user: {
+          ...(userFromResponse || {}),
+          roles,
+        },
         subdomain: subdomain,
+        redirectTo,
       };
     } catch (error: any) {
       const errorMessage =
@@ -172,7 +216,8 @@ export const logoutUser = createAsyncThunk(
     try {
       try {
         // Attempt to notify backend of logout
-        await apiClient.post(routespath.API_LOGOUT);
+        // Must go through proxy rewrite to backend
+        await apiClient.get(`/api/proxy${routespath.API_LOGOUT}`);
       } catch (error) {
         // Even if logout endpoint fails, we still want to clear local state
         console.warn("[Logout] Backend logout failed, clearing local auth");
@@ -342,13 +387,13 @@ export const fetchAllUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiClient.get("/api/proxy/users");
-      
+
       if (!response.data) {
         return rejectWithValue("No users data received");
       }
 
       const users = response.data.data || response.data;
-      
+
       // Separate students and teachers
       const students = users.filter(
         (item: any) => item.roles?.[0]?.role?.name === "student"

@@ -10,10 +10,12 @@ import tokenManager from "@/lib/tokenManager";
 import { updateAccessToken } from "@/reduxToolKit/user/userSlice";
 import { apiFetch } from "@/lib/interceptor";
 import { Spinner } from "@/components/ui/spinner";
+import { getSubdomain } from "@/lib/subdomainManager";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   // const accesstoken = useSelector((state: any) => state.user.accessToken);
   const accesstoken = useSelector((state: any) => state.user.accessToken);
+  const reduxSubdomain = useSelector((state: any) => state.user.subdomain);
   const router = useRouter();
   const pathName = usePathname();
   const dispatch = useDispatch();
@@ -32,13 +34,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           // If still no token, try to refresh
           if (!currentToken) {
             try {
-              const refreshResponse = await apiFetch(
-                `/api/proxy${routespath.API_REFRESH}`,
-                { method: "GET", credentials: "include" }
-              );
+              // Call refresh endpoint directly (do NOT use apiFetch here),
+              // so we don't trigger refresh-on-refresh recursion and we can handle 500s cleanly.
+              const subdomain = getSubdomain(reduxSubdomain);
+              const refreshResponse = await fetch(`/api/proxy${routespath.API_REFRESH}`, {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...(subdomain ? { "X-Tenant-Subdomain": subdomain } : {}),
+                },
+              });
 
               if (!refreshResponse.ok) {
-                throw new Error("Refresh token failed");
+                // 500 here means backend error; for the user it still behaves like "please login again"
+                throw new Error(`Refresh token failed (HTTP ${refreshResponse.status})`);
               }
 
               const refresh = await refreshResponse.json();
@@ -81,13 +91,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         if (currentToken && decodeToken(currentToken) === false) {
           // Token expired, try to refresh
           try {
-            const refreshResponse = await apiFetch(
-              `/api/proxy${routespath.API_REFRESH}`,
-              { method: "GET", credentials: "include" }
-            );
+            const subdomain = getSubdomain(reduxSubdomain);
+            const refreshResponse = await fetch(`/api/proxy${routespath.API_REFRESH}`, {
+              method: "GET",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+                ...(subdomain ? { "X-Tenant-Subdomain": subdomain } : {}),
+              },
+            });
 
             if (!refreshResponse.ok) {
-              throw new Error("Refresh token failed");
+              throw new Error(`Refresh token failed (HTTP ${refreshResponse.status})`);
             }
 
             const refresh = await refreshResponse.json();

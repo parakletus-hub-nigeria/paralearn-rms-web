@@ -15,6 +15,7 @@ import { AppDispatch } from "@/reduxToolKit/store";
 const Signin = () => {
   const [data, setData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [loginMode, setLoginMode] = useState<"admin" | "teacher">("admin");
   // const [loading, setLoading] = useState(false);
   // const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch<AppDispatch>();
@@ -27,8 +28,14 @@ const Signin = () => {
   };
 
   const isValid = () => {
-    const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRe.test(data.email) && data.password.length >= 8;
+    if (loginMode === "admin") {
+      const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return emailRe.test(data.email) && data.password.length >= 8;
+    }
+    // Teacher/Student login:
+    // - username: school subdomain (e.g. brightfuture)
+    // - password: user code (e.g. TCH-001 / STU-S-26-00001)
+    return data.email.trim().length >= 2 && data.password.trim().length >= 3;
   };
 
   const submit = async () => {
@@ -44,7 +51,7 @@ const Signin = () => {
         }
         
         toast.success("Logged in successfully!");
-        router.push(routespath.DASHBOARD);
+        router.push(result.redirectTo || routespath.DASHBOARD);
       } else {
         toast.error("Login failed. No token received.");
       }
@@ -61,31 +68,66 @@ const Signin = () => {
       <div className="border-[1px] border-[#641BC4] rounded-[6px] w-[95%] sm:w-[45%] flex flex-col items-center justify-between py-[40px] bg-[#EDEAFB] mt-[50px]">
         <div className="flex flex-col items-center mb-6">
           <p className="text-[20px] font-bold flex flex-row items-center space-x-2">
-            <BiEnvelope className="text-[#641BC4]" /> <span>Admin Login</span>
+            <BiEnvelope className="text-[#641BC4]" />{" "}
+            <span>{loginMode === "admin" ? "Admin Login" : "Teacher Login"}</span>
           </p>
           <p className="text-sm text-gray-700 text-center">
-            Login to your administrator's account to continue
+            {loginMode === "admin"
+              ? "Login to your administrator's account to continue"
+              : "Login with your school subdomain and your teacher code"}
           </p>
         </div>
+
+        <div className="w-full px-4 mb-6">
+          <div className="grid grid-cols-2 gap-2 bg-white/60 p-1 rounded-xl border border-[#641BC4]/30">
+            <button
+              type="button"
+              onClick={() => setLoginMode("admin")}
+              className={`h-11 rounded-lg font-semibold transition-all ${
+                loginMode === "admin"
+                  ? "bg-[#641BC4] text-white shadow-sm"
+                  : "text-slate-700 hover:bg-white"
+              }`}
+            >
+              Admin
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginMode("teacher")}
+              className={`h-11 rounded-lg font-semibold transition-all ${
+                loginMode === "teacher"
+                  ? "bg-[#641BC4] text-white shadow-sm"
+                  : "text-slate-700 hover:bg-white"
+              }`}
+            >
+              Teacher
+            </button>
+          </div>
+        </div>
+
         <div className="w-full space-y-4 px-4">
           <div className="flex flex-col w-full">
             <label htmlFor="email" className="mb-2 text-sm font-medium">
-              Admin Email
+              {loginMode === "admin" ? "Admin Email" : "School Subdomain"}
             </label>
             <input
               id="email"
               name="email"
-              type="email"
+              type={loginMode === "admin" ? "email" : "text"}
               value={data.email}
               onChange={handleChange}
               className="border border-[#641BC4] focus:border-2 focus:outline-none h-11 w-full px-3 rounded-md text-base"
-              placeholder="Enter your email"
+              placeholder={
+                loginMode === "admin"
+                  ? "Enter your email"
+                  : "e.g. brightfuture"
+              }
             />
           </div>
 
           <div className="flex flex-col w-full">
             <label htmlFor="password" className="mb-2 text-sm font-medium">
-              Password
+              {loginMode === "admin" ? "Password" : "Teacher Code"}
             </label>
             <div className="relative">
               <input
@@ -95,7 +137,11 @@ const Signin = () => {
                 value={data.password}
                 onChange={handleChange}
                 className="border border-[#641BC4] focus:border-2 focus:outline-none h-11 w-full px-3 rounded-md text-base pr-10"
-                placeholder="Enter your password"
+                placeholder={
+                  loginMode === "admin"
+                    ? "Enter your password"
+                    : "e.g. TCH-001"
+                }
               />
               <button
                 type="button"

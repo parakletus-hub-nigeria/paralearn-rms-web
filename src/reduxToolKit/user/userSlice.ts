@@ -48,6 +48,40 @@ interface UserState {
   success: boolean;
 }
 
+const USER_KEY = "currentUser";
+
+const normalizeRoles = (roles: any): string[] => {
+  if (!roles) return [];
+  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles;
+  if (Array.isArray(roles)) {
+    return roles
+      .map((r) => r?.role?.name || r?.name || r)
+      .filter((v) => typeof v === "string");
+  }
+  return [];
+};
+
+const getInitialUser = (): UserState["user"] => {
+  if (typeof window === "undefined") {
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
+  }
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    if (!raw) return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
+    const parsed = JSON.parse(raw);
+    return {
+      id: parsed?.id || "",
+      email: parsed?.email || "",
+      firstName: parsed?.firstName || "",
+      lastName: parsed?.lastName || "",
+      schoolId: parsed?.schoolId || "",
+      roles: normalizeRoles(parsed?.roles),
+    };
+  } catch {
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
+  }
+};
+
 const getInitialToken = () => {
   if (typeof window !== "undefined") {
     return tokenManager.getToken() || null;
@@ -69,14 +103,7 @@ const getInitialSubdomain = () => {
 const initialState: UserState = {
   accessToken: getInitialToken() || null,
   subdomain: getInitialSubdomain(),
-  user: {
-    id: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    schoolId: "",
-    roles: [],
-  },
+  user: getInitialUser(),
   users: [],
   students: [],
   teachers: [],
@@ -132,6 +159,18 @@ const userSlice = createSlice({
         state.subdomain = action.payload.subdomain || state.subdomain;
         state.success = true;
         state.error = null;
+        // Persist user snapshot for reloads (roles-based guards)
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(
+              USER_KEY,
+              JSON.stringify({
+                ...action.payload.user,
+                roles: normalizeRoles(action.payload.user?.roles),
+              })
+            );
+          } catch {}
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -175,6 +214,11 @@ const userSlice = createSlice({
         };
         state.error = null;
         state.success = true;
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem(USER_KEY);
+          } catch {}
+        }
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
@@ -332,6 +376,21 @@ const userSlice = createSlice({
       .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUserProfile = action.payload;
+        // Keep `state.user` in sync so RoleGuard can work after refresh.
+        const roles = normalizeRoles(action.payload?.roles);
+        state.user = {
+          id: action.payload?.id || state.user.id,
+          email: action.payload?.email || state.user.email,
+          firstName: action.payload?.firstName || state.user.firstName,
+          lastName: action.payload?.lastName || state.user.lastName,
+          schoolId: action.payload?.schoolId || state.user.schoolId,
+          roles: roles.length ? roles : state.user.roles,
+        };
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(USER_KEY, JSON.stringify(state.user));
+          } catch {}
+        }
         state.error = null;
       })
       .addCase(getCurrentUserProfile.rejected, (state, action) => {
