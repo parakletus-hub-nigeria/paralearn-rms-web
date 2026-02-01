@@ -32,7 +32,9 @@ import {
   Filter,
   AlertCircle,
   Eye,
+  Settings,
 } from "lucide-react";
+import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -148,11 +150,18 @@ export function AdminAssessmentsPage() {
       <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
 
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Assessments Overview</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          View all assessments created by teachers. Assessments are managed by teachers only.
-        </p>
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Assessments Overview</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            View all assessments created by teachers. Assessments are managed by teachers only.
+          </p>
+        </div>
+        <ManageCategoriesDialog>
+          <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
+            <Settings className="w-4 h-4" /> Manage Categories
+          </Button>
+        </ManageCategoriesDialog>
       </div>
 
       {/* Info Banner */}

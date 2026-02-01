@@ -688,3 +688,40 @@ export const fetchStudentComments = createAsyncThunk(
   }
 );
 
+// ---------- Admin: Assessment Categories ----------
+export const fetchAssessmentCategoriesMap = createAsyncThunk(
+  "admin/fetchAssessmentCategories",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.get("/api/proxy/assessment-categories");
+      const data = unwrap(res) || [];
+      return Array.isArray(data) ? data : [];
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch assessment categories");
+    }
+  }
+);
+
+export const createAssessmentCategory = createAsyncThunk(
+  "admin/createAssessmentCategory",
+  async (payload: { name: string; code: string; weight: number; description?: string }, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.post("/api/proxy/assessment-categories", payload);
+      return unwrap(res);
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to create assessment category");
+    }
+  }
+);
+
+export const deleteAssessmentCategory = createAsyncThunk(
+  "admin/deleteAssessmentCategory",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await apiClient.delete(`/api/proxy/assessment-categories/${id}`);
+      return id;
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to delete assessment category");
+    }
+  }
+);

@@ -124,15 +124,15 @@ export const fetchMyAssessments = createAsyncThunk(
          rawCombined.forEach((group: any) => {
            if (group.assessments && Array.isArray(group.assessments)) {
              group.assessments.forEach((assess: any) => {
-               // Determine status if missing (inherit from fetch group? no, assess object has it usually)
-               // But we fetched by status, so we technically know the status, but mixed results...
-               
                flattened.push({
                  ...assess,
+                 // Prioritize group info but fallback to assessment info
                  classId: group.class?.id || assess.classId,
+                 subjectId: group.id || group.subjectId || assess.subjectId, // Use group.id as subjectId if available
                  subject: { 
-                    id: group.code || "unknown", 
-                    name: group.name || "Unknown Subject" 
+                    id: group.id || group.subjectId || group.code || "unknown", 
+                    name: group.name || "Unknown Subject",
+                    code: group.code || group.subjectCode
                  },
                  class: group.class || { id: group.class?.id, name: "Unknown Class" },
                  // Ensure critical UI fields
@@ -150,6 +150,17 @@ export const fetchMyAssessments = createAsyncThunk(
       } else {
          items = rawCombined as Assessment[];
       }
+
+      // FINAL NORMALIZATION: Ensure every item has classId/subjectId matching UI expectations
+      items = items.map((a: any) => ({
+         ...a,
+         classId: a.classId || a.class?.id || a.class?._id,
+         subjectId: a.subjectId || a.subject?.id || a.subject?._id,
+         // Ensure objects exist too for display
+         class: a.class || (a.className ? { name: a.className } : undefined),
+         subject: a.subject || (a.subjectName ? { name: a.subjectName } : undefined),
+      }));
+
 
       // Deduplicate by ID (in case same assessment appears in multiple statuses? Unlikely but safe)
       const byId = new Map<string, Assessment>();
@@ -546,43 +557,39 @@ export const fetchClassStudents = createAsyncThunk(
       
       let students: any[] = [];
 
-      // Attempt 1: GET /users (Primary for Teachers)
-      // This is safer as Teachers might not have permission to view full Class details
+      // Attempt 1: GET /classes/:id (Primary for Teachers now, acts as Class View)
       try {
-        console.log("[fetchClassStudents] calling /users endpoint...");
-        // Ensure we filter by classId AND role=student to be precise
+        console.log("[fetchClassStudents] calling /classes/:id endpoint...");
+        const classRes = await apiClient.get(`/api/proxy/classes/${classId}`);
+        const classData = classRes.data?.data || classRes.data || {};
+        
+        // Extract from classData based on user provided structure
+        if (classData.students && Array.isArray(classData.students)) {
+           students = classData.students;
+           console.log("[fetchClassStudents] Found students in class.students:", students.length);
+           return students; // Return immediately if successful
+        } else if (classData.enrollments && Array.isArray(classData.enrollments)) {
+           students = classData.enrollments.map((e: any) => e.student || e).filter((s:any) => s && (s.id || s.firstName));
+           console.log("[fetchClassStudents] Found students in enrollments:", students.length);
+           return students;
+        }
+      } catch (classErr: any) {
+        console.warn("[fetchClassStudents] /classes endpoint failed:", classErr?.message);
+        // Continue to fallback
+      }
+
+      // Attempt 2: GET /users (Fallback)
+      try {
+        console.log("[fetchClassStudents] Fallback: calling /users endpoint...");
         const usersRes = await apiClient.get(`/api/proxy/users?classId=${classId}&role=student`);
         const usersData = usersRes.data?.data || usersRes.data || [];
         
         if (Array.isArray(usersData) && usersData.length > 0) {
            students = usersData;
            console.log(`[fetchClassStudents] Successfully fetched ${students.length} students from /users`);
-           return students;
-        } else {
-           console.log("[fetchClassStudents] /users returned empty list, trying fallbacks...");
         }
       } catch (userErr: any) {
-        console.warn("[fetchClassStudents] /users endpoint failed:", userErr?.message);
-        // Continue to fallback
-      }
-
-      // Attempt 2: GET /classes/:id (Fallback)
-      // Only try this if users endpoint failed or returned nothing
-      try {
-        console.log("[fetchClassStudents] Fallback: calling /classes/:id endpoint...");
-        const classRes = await apiClient.get(`/api/proxy/classes/${classId}`);
-        const classData = classRes.data?.data || classRes.data || {};
-        
-        // Extract from classData
-        if (classData.students && Array.isArray(classData.students)) {
-           students = classData.students;
-           console.log("[fetchClassStudents] Found students in class.students:", students.length);
-        } else if (classData.enrollments && Array.isArray(classData.enrollments)) {
-           students = classData.enrollments.map((e: any) => e.student || e).filter((s:any) => s && (s.id || s.firstName));
-           console.log("[fetchClassStudents] Found students in enrollments:", students.length);
-        }
-      } catch (classErr: any) {
-        console.warn("[fetchClassStudents] Primary class endpoint failed (likely permission):", classErr?.message);
+         console.warn("[fetchClassStudents] /users endpoint failed:", userErr?.message);
       }
       
       console.log("[fetchClassStudents] Final students count:", students.length);
@@ -606,46 +613,14 @@ export const fetchClassSubjects = createAsyncThunk(
       const data = res.data?.data || res.data || [];
       const allSubjects = Array.isArray(data) ? data : [];
 
-      // CLIENT-SIDE FILTERING FOR ISOLATION
-      // Only show subjects the teacher is actually assigned to in this class.
-      const state: any = getState();
-      const teacherClasses = state.teacher?.classes || [];
+      // Filter by Class ID to ensure we only show subjects for the selected class
+      // regardless of what the API returns.
+      const filteredByClass = allSubjects.filter((s: any) => 
+        s.classId === classId || s.class?.id === classId
+      );
       
-      // If no assignments loaded yet, we can't safely filter. 
-      // But usually they are loaded. If explicit isolation is required, we should perhaps return empty or wait?
-      // For robustness, if teacherClasses is empty, we might return all (assuming loading issue) OR empty (assuming no access).
-      // Given "Isolation" priority: Return empty is safer, but "All" prevents UI breakage if state is missing.
-      // Let's implement strict filtering if assignments exist.
-      
-      if (teacherClasses.length > 0) {
-        // Collect authorized Subject IDs for this class
-        const authorizedSubjectIds = new Set<string>();
-        let hasClassLevelAccess = false;
-
-        teacherClasses.forEach((tc: any) => {
-          // If strictly Class Assignment (Class Teacher), maybe allow all?
-          // For now, let's assume Class Teachers might see all.
-          if (tc.type === "class_assignment" && (tc.classId === classId || tc.class?.id === classId)) {
-             hasClassLevelAccess = true;
-          }
-          
-          // Subject assignments
-          if (tc.subjectId && (tc.classId === classId || tc.class?.id === classId)) {
-            authorizedSubjectIds.add(tc.subjectId);
-          }
-        });
-        
-        if (hasClassLevelAccess) {
-             console.log(`[fetchClassSubjects] Teacher has Class Assignment for ${classId}, showing all ${allSubjects.length} subjects.`);
-             return allSubjects;
-        }
-        
-        const filtered = allSubjects.filter((s: any) => authorizedSubjectIds.has(s.id));
-        console.log(`[fetchClassSubjects] Filtered subjects for class ${classId}: ${filtered.length} / ${allSubjects.length}`);
-        return filtered;
-      }
-      
-      return allSubjects;
+      console.log(`[fetchClassSubjects] Filtered ${allSubjects.length} subjects to ${filteredByClass.length} for class ${classId}`);
+      return filteredByClass;
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to load subjects"
@@ -705,7 +680,8 @@ export const fetchClassReportSummary = createAsyncThunk(
       const res = await apiClient.get(
         `/api/proxy/reports/class/${params.classId}/booklet-preview?session=${encodeURIComponent(
           params.session
-        )}&term=${encodeURIComponent(params.term)}`
+        )}&term=${encodeURIComponent(params.term)}`,
+        { skipGlobalRedirect: true } as any
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {

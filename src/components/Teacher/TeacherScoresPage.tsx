@@ -119,12 +119,35 @@ export function TeacherScoresPage() {
 
   // Filter assessments by class and subject
   const relevantAssessments = useMemo(() => {
+    const selectedSubject = subjects.find((s: any) => s.id === selectedSubjectId);
+    
+    // Normalization helper for names
+    const normalize = (str: string) => str ? str.toLowerCase().replace(/\s+/g, '').trim() : '';
+    
     return assessments.filter((a: any) => {
-      const matchesClass = !selectedClassId || a.classId === selectedClassId;
-      const matchesSubject = !selectedSubjectId || a.subjectId === selectedSubjectId;
-      return matchesClass && matchesSubject;
+      // Class Match (Robust)
+      const matchesClass = !selectedClassId || String(a.classId) === String(selectedClassId) || String(a.class?.id) === String(selectedClassId);
+      
+      if (!matchesClass) return false;
+      if (!selectedSubjectId) return true;
+
+      // Subject Match Strategy (Cascade)
+      // 1. ID Match (Loose)
+      if (String(a.subjectId) === String(selectedSubjectId) || String(a.subject?.id) === String(selectedSubjectId)) return true;
+      
+      // 2. Code Match (if available)
+      if (selectedSubject?.code && (a.subject?.code === selectedSubject.code || a.subjectCode === selectedSubject.code)) return true;
+      
+      // 3. Name Match (Normalized for case/spaces)
+      if (selectedSubject?.name) {
+        const selectedName = normalize(selectedSubject.name);
+        if (a.subject?.name && normalize(a.subject.name) === selectedName) return true;
+        if (a.subjectName && normalize(a.subjectName) === selectedName) return true;
+      }
+      
+      return false;
     });
-  }, [assessments, selectedClassId, selectedSubjectId]);
+  }, [assessments, selectedClassId, selectedSubjectId, subjects]);
 
   // Load existing scores when assessment is selected
   useEffect(() => {
@@ -378,7 +401,7 @@ export function TeacherScoresPage() {
                 disabled={!selectedSubjectId}
               >
                 <SelectTrigger className="h-11 w-[200px] rounded-xl border-slate-200 bg-white">
-                  <SelectValue placeholder="Select Assessment" />
+                  <SelectValue placeholder={loading ? "Loading..." : "Select Assessment"} />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   {relevantAssessments.length === 0 ? (

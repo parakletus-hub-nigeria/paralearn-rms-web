@@ -51,7 +51,7 @@ const Signin = () => {
         }
         
         toast.success("Logged in successfully!");
-        router.push(result.redirectTo || routespath.DASHBOARD);
+        router.push(routespath.DASHBOARD);
       } else {
         toast.error("Login failed. No token received.");
       }

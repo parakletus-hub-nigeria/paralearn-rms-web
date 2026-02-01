@@ -43,7 +43,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   return (
     <>
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={5000} />
       {children}
     </>
   );

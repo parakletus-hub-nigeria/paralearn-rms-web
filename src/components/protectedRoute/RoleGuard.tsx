@@ -32,10 +32,15 @@ export default function RoleGuard({
   const [checkedProfile, setCheckedProfile] = useState(false);
   const didKickoff = useRef(false);
 
-  const ok = useMemo(
-    () => Array.isArray(roles) && roles.some((r: string) => allow.includes(r)),
-    [roles, allow]
-  );
+  const ok = useMemo(() => {
+    if (!Array.isArray(roles)) return false;
+    
+    // Normalize both user roles and allowed roles to lowercase for comparison
+    const normalizedUserRoles = roles.map((r: any) => String(r).toLowerCase());
+    const normalizedAllowedRoles = allow.map(r => r.toLowerCase());
+    
+    return normalizedUserRoles.some((r: string) => normalizedAllowedRoles.includes(r));
+  }, [roles, allow]);
 
   const hasToken = !!(tokenManager.getToken());
 
@@ -66,7 +71,7 @@ export default function RoleGuard({
     if (ok) return;
     const fallback =
       redirectTo ||
-      (roles.includes("teacher") ? routespath.TEACHER_DASHBOARD : routespath.DASHBOARD);
+      (roles.some((r: any) => String(r).toLowerCase() === "teacher") ? routespath.TEACHER_DASHBOARD : routespath.DASHBOARD);
     if (pathname !== fallback) router.replace(fallback);
   }, [ok, router, redirectTo, roles, pathname, mode]);
 

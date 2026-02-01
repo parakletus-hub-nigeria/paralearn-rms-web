@@ -24,7 +24,7 @@ import {
   FileEdit,
   GraduationCap,
 } from "lucide-react";
-import logo from "@/images/IMG-20201027-WA0000_2-removebg-preview 1.png";
+const logo = "/PL2 (1).svg";
 import { routespath } from "@/lib/routepath";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
@@ -68,7 +68,9 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
             <div className="bg-purple-50 p-1 rounded-lg">
               <Image
                 src={logo}
-                className="w-[32px] h-[32px] object-contain"
+                width={930}
+                height={479}
+                className="h-[32px] w-auto object-contain"
                 alt="paralearn logo"
               />
             </div>

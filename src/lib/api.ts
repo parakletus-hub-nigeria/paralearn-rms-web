@@ -208,6 +208,12 @@ apiClient.interceptors.response.use(
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
       console.error("[API] Access Forbidden");
+      
+      // Allow specific requests to bypass global redirect
+      if ((config as any).skipGlobalRedirect) {
+        return Promise.reject(error);
+      }
+
       if (typeof window !== "undefined") {
         window.location.href = "/unauthorized";
       }

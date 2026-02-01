@@ -85,8 +85,8 @@ export function TeacherDashboardPage() {
   const recentAssessments = useMemo(() => {
     return [...assessments]
       .sort((a, b) => {
-        const dateA = new Date(a.createdAt || a.startsAt || 0).getTime();
-        const dateB = new Date(b.createdAt || b.startsAt || 0).getTime();
+        const dateA = new Date(a.startsAt || 0).getTime();
+        const dateB = new Date(b.startsAt || 0).getTime();
         return dateB - dateA;
       })
       .slice(0, 5);

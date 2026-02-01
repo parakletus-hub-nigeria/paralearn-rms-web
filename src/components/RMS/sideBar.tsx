@@ -12,7 +12,7 @@ import {
   SidebarTrigger,
 } from "../ui/sidebar";
 import Image from "next/image";
-import logo from "../../../public/mainLogo.svg";
+const logo = "/PL2 (1).svg";
 
 import {
   BookOpenCheck,
@@ -63,6 +63,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
       { label: "Enrollments", path: routespath.ENROLLMENTS, icon: UserPlus },
       { label: "Classes", path: routespath.CLASSES, icon: BookOpenCheck },
       { label: "Subjects", path: routespath.SUBJECTS, icon: BookOpen },
+      { label: "Assessments", path: routespath.ASSESSMENTS, icon: ClipboardList },
       { label: "Report Cards", path: routespath.REPORT, icon: BookOpen },
       { label: "Comments", path: routespath.COMMENTS, icon: MessageSquareText },
       { label: "Attendance", path: routespath.ATTENDANCE, icon: Calendar },
@@ -83,6 +84,8 @@ const SideBar = ({ children }: { children: ReactNode }) => {
             <Link href={routespath.DASHBOARD} className="block">
               <Image
                 src={logo}
+                width={930}
+                height={479}
                 className="h-auto w-[120px] sm:w-[140px] md:w-[160px] max-w-full object-contain"
                 alt="paralearn logo"
               />

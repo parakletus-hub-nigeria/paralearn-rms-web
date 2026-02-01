@@ -191,6 +191,8 @@ export function TeacherAssessmentsPage() {
       if (!createForm.classId) return toast.error("Please select a class");
       if (!createForm.subjectId) return toast.error("Please select a subject");
       if (!createForm.categoryId) return toast.error("Please select a category");
+      if (!createForm.startsAt) return toast.error("Start date is required");
+      if (!createForm.endsAt) return toast.error("End date is required");
 
       if (createForm.isOnline === "true" && createForm.questions.length === 0) {
         return toast.error("Online assessments must have at least one question");
@@ -647,11 +649,17 @@ export function TeacherAssessmentsPage() {
                       <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {assessmentCategories.map((cat: any) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name} ({cat.weight}%)
-                        </SelectItem>
-                      ))}
+                      {assessmentCategories.length === 0 ? (
+                         <div className="p-2 text-sm text-slate-500 text-center">
+                           No categories found. Ask Admin to create them.
+                         </div>
+                      ) : (
+                        assessmentCategories.map((cat: any) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name} ({cat.weight}%)
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

@@ -413,14 +413,23 @@ export function SchoolSetupWizard() {
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="space-y-6 sm:space-y-8">
           {/* Page Title */}
-          <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              School Setup Wizard
-            </h1>
-            <p className="text-sm sm:text-base text-slate-600">
-              Complete the setup process to get started with your school management system
-            </p>
-          </div>
+            <div className="flex justify-between items-start w-full">
+              <div className="space-y-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                  School Setup Wizard
+                </h1>
+                <p className="text-sm sm:text-base text-slate-600">
+                  Complete the setup process to get started with your school management system
+                </p>
+              </div>
+              <Button 
+                variant="ghost" 
+                onClick={() => router.push(routespath.DASHBOARD)}
+                className="text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+              >
+                Skip Setup
+              </Button>
+            </div>
 
           {/* Wizard Steps */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 sm:p-8">

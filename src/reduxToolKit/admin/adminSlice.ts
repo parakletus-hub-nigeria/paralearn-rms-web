@@ -36,6 +36,9 @@ import {
   updateAssessment,
   updateGradingSystem,
   updateSchoolSettings,
+  fetchAssessmentCategoriesMap,
+  createAssessmentCategory,
+  deleteAssessmentCategory,
 } from "./adminThunks";
 
 type AdminState = {
@@ -62,7 +65,9 @@ type AdminState = {
   // Class details with enrolled students
   selectedClassDetails: any | null;
   // Teacher's assigned classes
+  // Teacher's assigned classes
   teacherClasses: any | null;
+  assessmentCategories: any[];
 };
 
 const initialState: AdminState = {
@@ -83,6 +88,7 @@ const initialState: AdminState = {
   comments: [],
   selectedClassDetails: null,
   teacherClasses: null,
+  assessmentCategories: [],
 };
 
 const adminSlice = createSlice({
@@ -416,6 +422,38 @@ const adminSlice = createSlice({
       })
       .addCase(removeTeacherFromClass.rejected, (state, action) =>
         rejected(state, action, "Failed to remove teacher")
+      );
+  // Assessment Categories
+    builder
+      .addCase(fetchAssessmentCategoriesMap.pending, pending)
+      .addCase(fetchAssessmentCategoriesMap.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assessmentCategories = action.payload;
+      })
+      .addCase(fetchAssessmentCategoriesMap.rejected, (state, action) =>
+        rejected(state, action, "Failed to load assessment categories")
+      );
+
+    builder
+      .addCase(createAssessmentCategory.pending, pending)
+      .addCase(createAssessmentCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assessmentCategories = [action.payload, ...state.assessmentCategories];
+        state.success = "Assessment category created";
+      })
+      .addCase(createAssessmentCategory.rejected, (state, action) =>
+        rejected(state, action, "Failed to create assessment category")
+      );
+
+    builder
+      .addCase(deleteAssessmentCategory.pending, pending)
+      .addCase(deleteAssessmentCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assessmentCategories = state.assessmentCategories.filter((c) => c.id !== action.payload);
+        state.success = "Assessment category deleted";
+      })
+      .addCase(deleteAssessmentCategory.rejected, (state, action) =>
+        rejected(state, action, "Failed to delete assessment category")
       );
   },
 });

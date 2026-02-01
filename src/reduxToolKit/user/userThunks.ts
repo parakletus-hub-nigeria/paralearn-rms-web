@@ -77,30 +77,37 @@ export const loginUser = createAsyncThunk(
       }
       // Otherwise, check if academic session is set up
       else {
-        redirectPath = routespath.DASHBOARD; // Default to dashboard
+        // Use pickRedirectPath to determine the base path (TEACHER_DASHBOARD etc)
+        // If it's a teacher, we want to skip the session check and go straight to dashboard
+        const isTeacher = roles.some((r: any) => String(r).toLowerCase() === "teacher");
         
-        try {
-          // Try to fetch current session to check if setup is complete
-          // Use a timeout to prevent blocking login for too long
-          const sessionResponse = await Promise.race([
-            apiClient.get(`/api/proxy${routespath.API_GET_CURRENT_SESSION}`),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error("Session check timeout")), 3000)
-            )
-          ]) as any;
-          
-          // If session exists and is valid, go to dashboard
-          if (sessionResponse?.data?.success && sessionResponse?.data?.data?.sessionDetails) {
-            redirectPath = routespath.DASHBOARD;
-          } else {
-            // No session found, redirect to setup wizard
-            redirectPath = "/setup";
-          }
-        } catch (sessionError: any) {
-          // If fetching session fails (404, timeout, or no session), redirect to setup
-          // This is safe - if session check fails, assume setup is needed
-          console.log("No academic session found or check timed out, redirecting to setup:", sessionError);
-          redirectPath = "/setup";
+        if (isTeacher) {
+           redirectPath = redirectTo; // Use the path from pickRedirectPath (e.g., TEACHER_DASHBOARD)
+        } else {
+             redirectPath = routespath.DASHBOARD; // Default to dashboard for others before check
+            try {
+              // Try to fetch current session to check if setup is complete
+              // Use a timeout to prevent blocking login for too long
+              const sessionResponse = await Promise.race([
+                apiClient.get(`/api/proxy${routespath.API_GET_CURRENT_SESSION}`),
+                new Promise((_, reject) => 
+                  setTimeout(() => reject(new Error("Session check timeout")), 3000)
+                )
+              ]) as any;
+              
+              // If session exists and is valid, go to dashboard
+              if (sessionResponse?.data?.success && sessionResponse?.data?.data?.sessionDetails) {
+                redirectPath = routespath.DASHBOARD;
+              } else {
+                // No session found, redirect to setup wizard
+                redirectPath = "/setup";
+              }
+            } catch (sessionError: any) {
+              // If fetching session fails (404, timeout, or no session), redirect to setup
+              // This is safe - if session check fails, assume setup is needed
+              console.log("No academic session found or check timed out, redirecting to setup:", sessionError);
+              redirectPath = "/setup";
+            }
         }
       }
       
