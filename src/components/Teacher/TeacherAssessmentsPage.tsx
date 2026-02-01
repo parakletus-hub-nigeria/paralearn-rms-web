@@ -12,6 +12,8 @@ import {
   fetchAcademicCurrent,
   fetchAssessmentCategories,
 } from "@/reduxToolKit/teacher/teacherThunks";
+import { generateTemplate } from "@/lib/templates";
+
 import { TeacherHeader } from "./TeacherHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,8 @@ import {
   CheckCircle,
   AlertCircle,
   PlayCircle,
+  Download,
+  Upload,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import { toast } from "react-toastify";
@@ -738,7 +742,42 @@ export function TeacherAssessmentsPage() {
               {/* Online Questions Builder */}
               {createForm.isOnline === "true" && (
                 <div className="mt-6 pt-6 border-t border-slate-100">
-                  <h3 className="font-bold text-slate-900 mb-4">Questions Builder</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-slate-900">Questions Builder</h3>
+                    <div className="flex gap-2">
+                       <button
+                        onClick={() => generateTemplate("questions")}
+                        className="text-xs flex items-center gap-1 text-slate-500 hover:text-purple-600 font-medium px-2 py-1 rounded-lg hover:bg-purple-50 transition-colors"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Template
+                      </button>
+                      <label className="text-xs flex items-center gap-1 text-slate-500 hover:text-purple-600 font-medium px-2 py-1 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
+                        <Upload className="w-3.5 h-3.5" />
+                        Import
+                        <input
+                          type="file"
+                          accept=".xlsx,.xls,.csv"
+                          className="hidden"
+                          onChange={async (e) => {
+                             if (e.target.files?.[0]) {
+                              // If this were a real file upload during create, we'd need to parse it client side or upload to a temp endpoint.
+                              // Since the thunk 'bulkUploadQuestions' requires an assessmentId, we can only upload AFTER creation.
+                              // So here, we might just parse to JSON if we want to preview, OR warn user "Save assessment first".
+                              // Given the current flow, let's parse CLIENT-SIDE to populate the form!
+                              
+                              toast.info("Client-side Excel parsing for preview coming soon. Please create assessment first, then edit to upload.");
+                             }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4 bg-blue-50 text-blue-700 px-4 py-3 rounded-xl text-sm flex items-start gap-3">
+                     <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                     <p>To bulk upload questions, please <strong>Save</strong> this assessment first, then click <strong>Edit</strong> &gt; <strong>Import Questions</strong>.</p>
+                  </div>
                   
                   <div className="space-y-4 mb-6">
                     {createForm.questions.map((q, idx) => (
@@ -795,6 +834,7 @@ export function TeacherAssessmentsPage() {
                   </div>
                 </div>
               )}
+
 
             </div>
 

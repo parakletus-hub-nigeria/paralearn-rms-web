@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { useState } from "react";
 import {
@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { tokenManager } from "@/lib/tokenManager";
-import { getSubdomain } from "@/lib/subdomainManager";
+import {
+  getSubdomain,
+} from "@/lib/subdomainManager";
+import apiClient from "@/lib/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/reduxToolKit/store";
 
@@ -45,6 +48,7 @@ const Step_Three = ({
   originalFile: File | null;
 }) => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [uploadCount, setUploadCount] = useState(0);
   const { subdomain: reduxSubdomain } = useSelector((state: RootState) => state.user);
 
@@ -71,48 +75,39 @@ const Step_Three = ({
     }
 
     try {
+      setLoading(true);
       // Determine the endpoint based on upload type
       const endpoint =
         uploadType === "student"
-          ? "/api/proxy/bulk/upload-students"
-          : "/api/proxy/bulk/upload-teachers";
+          ? "/api/proxy/bulk/upload/students"
+          : "/api/proxy/bulk/upload/teachers";
 
       // Create FormData for multipart/form-data upload
       const formData = new FormData();
       formData.append("file", originalFile);
 
-      // Get token from tokenManager for authorization
-      const token = tokenManager.getToken();
-
-      // Get subdomain with fallback priority: Redux -> localStorage -> URL
+      // Get subdomain to ensure we have context (though apiClient handles the header)
       const subdomain = getSubdomain(reduxSubdomain);
       if (!subdomain) {
         toast.error("Subdomain not found. Please ensure you are logged in correctly.");
         return;
       }
 
-      // Make the request using fetch (apiFetch doesn't support FormData well)
-      // Note: Don't set Content-Type header - browser will set it with boundary for multipart/form-data
-      const response = await fetch(endpoint, {
-        method: "POST",
+      // Make the request using apiClient to respect global timeout and auth
+      // apiClient interceptors handle token and subdomain
+      const response = await apiClient.post(endpoint, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": subdomain,
+          "Content-Type": "multipart/form-data",
         },
-        body: formData,
       });
 
-      const res = await response.json();
-
-      if (!response.ok) {
-        throw new Error(res.message || `Failed to upload ${uploadType} file`);
-      }
-
-      // Success - show the number of valid records that were uploaded
-      setUploadCount(ValidNumber);
+      const res = response.data;
+      
+      const uploadedCount = res.data?.validCount || res.validCount || 0; 
+      setUploadCount(uploadedCount);
       setShowSuccessDialog(true);
       toast.success(
-        `Successfully uploaded ${ValidNumber} ${uploadType}(s) from file`
+        `Successfully uploaded ${uploadedCount} ${uploadType}(s) from file`
       );
     } catch (error: any) {
       console.error("Bulk upload error:", error);
@@ -120,6 +115,8 @@ const Step_Three = ({
         error.message ||
           `Failed to upload ${uploadType} file. Please try again.`
       );
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -207,9 +204,19 @@ const Step_Three = ({
         <div className="flex gap-3">
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 rounded  cursor-pointer flex space-x-[10px] bg-[#641BC4] text-white"
+            disabled={loading}
+            className={`px-4 py-2 rounded cursor-pointer flex space-x-[10px] items-center text-white ${
+              loading ? "bg-purple-400 cursor-not-allowed" : "bg-[#641BC4]"
+            }`}
           >
-            Submit{" "}
+            {loading ? (
+              <>
+                 <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                 Submitting...
+              </>
+            ) : (
+              "Submit"
+            )}
           </button>
         </div>
       </div>

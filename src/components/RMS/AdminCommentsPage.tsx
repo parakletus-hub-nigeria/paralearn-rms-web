@@ -12,6 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Download, Upload } from "lucide-react";
+import { generateTemplate } from "@/lib/templates";
+
 
 export function AdminCommentsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -246,7 +249,37 @@ export function AdminCommentsPage() {
           <Card className="p-6 md:p-8 rounded-2xl border-slate-100 shadow-sm">
             <p className="text-lg font-bold text-slate-900">Bulk Add Comments</p>
             <p className="text-sm text-slate-500 mt-1">POST /comments/bulk</p>
+            
+            <div className="flex gap-3 mt-4">
+              <Button
+                variant="outline"
+                className="flex-1 h-10 border-slate-200 text-slate-700"
+                onClick={() => generateTemplate("comments")}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Template
+              </Button>
+              <div className="relative flex-1">
+                 <input
+                    type="file" 
+                    accept=".csv,.xlsx"
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        toast.info("File selected. Client-side parsing coming soon.");
+                        // TODO: Parse CSV and fill text area or call upload endpoint
+                      }
+                    }}
+                 />
+                 <Button variant="outline" className="w-full h-10 border-slate-200 text-slate-700">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload File
+                 </Button>
+              </div>
+            </div>
+
             <div className="mt-4 space-y-3">
+
               <Textarea
                 value={bulk.studentIds}
                 onChange={(e) => setBulk((p) => ({ ...p, studentIds: e.target.value }))}

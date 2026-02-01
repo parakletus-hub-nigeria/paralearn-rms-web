@@ -22,7 +22,7 @@ const getStore = () => {
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "",
-  timeout: 200000,
+  timeout: 300000,
   withCredentials: true, // Important for cookies
   headers: {
     "Content-Type": "application/json",

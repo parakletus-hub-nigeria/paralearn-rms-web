@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
+import { fetchAllUsers, deleteUser } from "@/reduxToolKit/user/userThunks";
 import { fetchClasses } from "@/reduxToolKit/admin/adminThunks";
 import { exportStudentsToPDF, exportTeachersToPDF } from "@/lib/pdfExport";
 import { Header } from "@/components/RMS/header";
@@ -19,6 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import {
   Search,
   Download,
@@ -74,7 +81,6 @@ export const UsersPage = () => {
   const [addModalType, setAddModalType] = useState<"student" | "teacher">("student");
   
   // Action menu state
-  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [viewUserModal, setViewUserModal] = useState<UserRow | null>(null);
 
   const ITEMS_PER_PAGE = 8;
@@ -225,21 +231,24 @@ export const UsersPage = () => {
   // Action handlers
   const handleViewUser = (user: UserRow) => {
     setViewUserModal(user);
-    setActionMenuOpen(null);
   };
 
   const handleEditUser = (user: UserRow) => {
     // Navigate to user edit page or open edit modal
     toast.info(`Editing ${user.firstName} ${user.lastName}`);
-    setActionMenuOpen(null);
   };
 
-  const handleDeleteUser = (user: UserRow) => {
+  const handleDeleteUser = async (user: UserRow) => {
     if (confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}?`)) {
-      toast.success(`User ${user.firstName} deleted`);
-      // TODO: Dispatch delete action
+      try {
+        await dispatch(deleteUser(user.dbId)).unwrap();
+        toast.success(`User ${user.firstName} deleted successfully`);
+        // Refresh the list
+        dispatch(fetchAllUsers());
+      } catch (error: any) {
+        toast.error(error || "Failed to delete user");
+      }
     }
-    setActionMenuOpen(null);
   };
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -441,40 +450,28 @@ export const UsersPage = () => {
                         </div>
                       </td>
                       <td className="py-4 px-3 text-center relative">
-                        <button 
-                          className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-                          onClick={() => setActionMenuOpen(actionMenuOpen === user.dbId ? null : user.dbId)}
-                        >
-                          <MoreVertical className="w-4 h-4 text-slate-500" />
-                        </button>
-                        
-                        {/* Action Dropdown Menu */}
-                        {actionMenuOpen === user.dbId && (
-                          <div className="absolute right-4 top-full mt-1 z-50 bg-white rounded-xl shadow-lg border border-slate-100 py-2 min-w-[160px]">
-                            <button
-                              onClick={() => handleViewUser(user)}
-                              className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3"
-                            >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors outline-none">
+                              <MoreVertical className="w-4 h-4 text-slate-500" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="min-w-[160px] rounded-xl border border-slate-100 shadow-lg">
+                            <DropdownMenuItem onClick={() => handleViewUser(user)} className="cursor-pointer gap-2 py-2.5">
                               <Eye className="w-4 h-4 text-slate-400" />
                               View Details
-                            </button>
-                            <button
-                              onClick={() => handleEditUser(user)}
-                              className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3"
-                            >
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer gap-2 py-2.5">
                               <Pencil className="w-4 h-4 text-slate-400" />
                               Edit User
-                            </button>
-                            <hr className="my-1 border-slate-100" />
-                            <button
-                              onClick={() => handleDeleteUser(user)}
-                              className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"
-                            >
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDeleteUser(user)} className="cursor-pointer gap-2 py-2.5 text-red-600 focus:text-red-700 focus:bg-red-50">
                               <Trash2 className="w-4 h-4" />
                               Delete User
-                            </button>
-                          </div>
-                        )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
@@ -687,13 +684,6 @@ export const UsersPage = () => {
       )}
 
 
-      {/* Click outside to close action menu */}
-      {actionMenuOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setActionMenuOpen(null)}
-        />
-      )}
     </div>
   );
 };

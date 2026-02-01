@@ -38,6 +38,8 @@ import {
   Download,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { generateTemplate } from "@/lib/templates";
+
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -319,6 +321,16 @@ export function TeacherScoresPage() {
                   className="pl-10 h-11 w-[220px] rounded-xl border-emerald-400/50 bg-white/20 text-white placeholder:text-emerald-200 focus:bg-white focus:text-slate-900"
                 />
               </div>
+
+              {/* Download Template */}
+              <button
+                onClick={() => generateTemplate("scores")}
+                className="flex items-center gap-2 px-4 h-11 rounded-xl bg-white/20 text-white font-semibold hover:bg-white/30 transition-colors"
+                title="Download Excel Template"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Template</span>
+              </button>
 
               {/* Import Button */}
               <label className="cursor-pointer">

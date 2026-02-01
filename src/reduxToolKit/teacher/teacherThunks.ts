@@ -744,3 +744,24 @@ export const updateTeacherAssessment = createAsyncThunk(
     }
   }
 );
+
+export const bulkUploadQuestions = createAsyncThunk(
+  "teacher/bulkUploadQuestions",
+  async (payload: { assessmentId: string; file: File }, { rejectWithValue }) => {
+    try {
+      const form = new FormData();
+      form.append("file", payload.file);
+      const res = await apiClient.post(
+        `/api/proxy/assessments/${payload.assessmentId}/questions/bulk`,
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      return res.data?.data || res.data || null;
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to upload questions"
+      );
+    }
+  }
+);
+

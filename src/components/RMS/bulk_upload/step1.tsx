@@ -5,6 +5,8 @@ import { Upload, Download, FileUp, ArrowRight } from "lucide-react";
 import Papaparse from "papaparse";
 import * as XLSX from "xlsx";
 import logo from "../../../../public/mainLogo.svg";
+import { toast } from "sonner";
+import { generateTemplate } from "@/lib/templates";
 
 const Step_One = ({
   fileContent,
@@ -117,6 +119,10 @@ const Step_One = ({
     }
   };
 
+  const handleDownloadTemplate = () => {
+    generateTemplate(uploadType === "teacher" ? "teachers" : "students");
+  };
+
   return (
     <div className="max-w-2xl mx-auto w-full space-y-6">
       {/* Upload File Card */}
@@ -212,7 +218,10 @@ const Step_One = ({
               for your upload.
             </p>
 
-            <button className="w-full sm:w-auto border-2 border-slate-300 hover:border-[#641BC4] hover:bg-purple-50 text-slate-700 hover:text-[#641BC4] py-2.5 px-6 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all">
+            <button 
+              onClick={handleDownloadTemplate}
+              className="w-full sm:w-auto border-2 border-slate-300 hover:border-[#641BC4] hover:bg-purple-50 text-slate-700 hover:text-[#641BC4] py-2.5 px-6 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all"
+            >
               <Download size={18} />
               Download Template
             </button>
