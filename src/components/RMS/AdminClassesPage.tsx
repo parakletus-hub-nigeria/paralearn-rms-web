@@ -99,7 +99,7 @@ export function AdminClassesPage() {
     return classes.filter(
       (c) =>
         (c.name || "").toLowerCase().includes(term) ||
-        String(c.level || "").toLowerCase().includes(term)
+        String(c.level ?? "").toLowerCase().includes(term)
     );
   }, [classes, q]);
 

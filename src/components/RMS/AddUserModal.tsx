@@ -38,6 +38,8 @@ export function AddUserModal({
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "">("");
   const [address, setAddress] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+  const [guardianPhone, setGuardianPhone] = useState("");
 
   // Classes data (for teachers)
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
@@ -64,6 +66,8 @@ export function AddUserModal({
     setDateOfBirth("");
     setGender("");
     setAddress("");
+    setGuardianName("");
+    setGuardianPhone("");
     setSelectedClasses([]);
     setSelectedSubjects([]);
   };
@@ -101,33 +105,36 @@ export function AddUserModal({
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
 
-      if (type === "teacher") {
-        // Create teacher
-        await apiClient.post("/api/proxy/teachers", {
-          firstName,
-          lastName,
-          email: email.trim(),
-          phoneNumber: phone.trim() || undefined,
-          dateOfBirth: dateOfBirth || undefined,
-          gender: gender || undefined,
-          address: address.trim() || undefined,
-          classIds: selectedClasses.length > 0 ? selectedClasses : undefined,
-          subjectIds: selectedSubjects.length > 0 ? selectedSubjects : undefined,
-        });
-        toast.success("Teacher added successfully!");
-      } else {
-        // Create student
-        await apiClient.post("/api/proxy/students", {
-          firstName,
-          lastName,
-          email: email.trim(),
-          phoneNumber: phone.trim() || undefined,
-          dateOfBirth: dateOfBirth || undefined,
-          gender: gender || undefined,
-          address: address.trim() || undefined,
-        });
-        toast.success("Student added successfully!");
-      }
+      // @ts-ignore
+      const { apiFetch } = await import("@/lib/interceptor");
+      
+      // Format date to ISO
+      const dateTime = dateOfBirth ? new Date(dateOfBirth).toISOString() : undefined;
+
+      const payload = {
+        firstName,
+        lastName,
+        email: email.trim(),
+        phoneNumber: phone.trim() || undefined, // Student phone
+        dateOfBirth: dateTime,
+        gender: gender || undefined,
+        address: address.trim() || undefined,
+        roles: type === "teacher" ? ["teacher"] : ["student"],
+        // Teacher specific
+        classIds: type === "teacher" && selectedClasses.length > 0 ? selectedClasses : undefined,
+        subjectIds: type === "teacher" && selectedSubjects.length > 0 ? selectedSubjects : undefined,
+        // Student specific
+        guardianName: type === "student" ? guardianName.trim() || undefined : undefined,
+        guardianPhone: type === "student" ? guardianPhone.trim() || undefined : undefined,
+      };
+
+      await apiFetch("/api/proxy/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      toast.success(`${type === "teacher" ? "Teacher" : "Student"} added successfully!`);
       
       onSuccess();
       handleClose();
@@ -320,11 +327,48 @@ export function AddUserModal({
                     className="mt-2 w-full h-12 rounded-xl border border-slate-200 px-4 bg-white text-slate-700"
                   >
                     <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
                   </select>
                 </div>
               </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Address</label>
+                <div className="relative mt-2">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Residential Address"
+                    className="pl-10 h-12 rounded-xl border-slate-200"
+                  />
+                </div>
+              </div>
+
+              {type === "student" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Guardian Name</label>
+                    <Input
+                      value={guardianName}
+                      onChange={(e) => setGuardianName(e.target.value)}
+                      placeholder="Parent/Guardian Name"
+                      className="mt-2 h-12 rounded-xl border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Guardian Phone</label>
+                    <Input
+                      type="tel"
+                      value={guardianPhone}
+                      onChange={(e) => setGuardianPhone(e.target.value)}
+                      placeholder="Guardian Phone"
+                      className="mt-2 h-12 rounded-xl border-slate-200"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Info box */}
               <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
