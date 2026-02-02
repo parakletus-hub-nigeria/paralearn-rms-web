@@ -32,6 +32,12 @@ export default function RoleGuard({
   const [checkedProfile, setCheckedProfile] = useState(false);
   const didKickoff = useRef(false);
 
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const ok = useMemo(() => {
     if (!Array.isArray(roles)) return false;
     
@@ -74,6 +80,18 @@ export default function RoleGuard({
       (roles.some((r: any) => String(r).toLowerCase() === "teacher") ? routespath.TEACHER_DASHBOARD : routespath.DASHBOARD);
     if (pathname !== fallback) router.replace(fallback);
   }, [ok, router, redirectTo, roles, pathname, mode]);
+
+  // Prevent hydration mismatch by showing loading state until mounted
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Spinner className="size-8" />
+          <p className="text-slate-600 font-medium">Checking access...</p>
+        </div>
+      </div>
+    );
+  }
 
   // While roles are being resolved after refresh
   if (hasToken && Array.isArray(roles) && roles.length === 0 && !checkedProfile) {
