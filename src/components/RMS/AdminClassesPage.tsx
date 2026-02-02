@@ -75,7 +75,7 @@ export function AdminClassesPage() {
     capacity: "",
     academicYear: "",
   });
-  const [assignTeacherId, setAssignTeacherId] = useState("");
+  const  [assignTeacherId, setAssignTeacherId] = useState("");
 
   useEffect(() => {
     dispatch(fetchClasses(undefined));
@@ -109,9 +109,9 @@ export function AdminClassesPage() {
       await dispatch(
         createClass({
           name: form.name.trim(),
-          level: form.level.trim() || undefined,
+          level: Number(form.level) || undefined,
           stream: form.stream.trim() || undefined,
-          capacity: form.capacity ? Number(form.capacity) : undefined,
+          capacity: Number(form.capacity) || undefined,
           academicYear: form.academicYear.trim() || undefined,
         })
       ).unwrap();

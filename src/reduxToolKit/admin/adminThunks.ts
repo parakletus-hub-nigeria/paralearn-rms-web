@@ -77,7 +77,7 @@ export const fetchClasses = createAsyncThunk(
 export const createClass = createAsyncThunk(
   "admin/createClass",
   async (
-    payload: { name: string; level?: string; stream?: string; capacity?: number; academicYear?: string },
+    payload: { name: string; level?: number; stream?: string; capacity?: number; academicYear?: string },
     { rejectWithValue }
   ) => {
     try {
