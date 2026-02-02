@@ -7,11 +7,13 @@ import { routespath } from "@/lib/routepath";
  */
 export const normalizeRoles = (roles: any): string[] => {
   if (!roles) return [];
-  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles;
+  if (typeof roles === "string") return [roles.trim()];
+  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles.map(r => r.trim());
   if (Array.isArray(roles)) {
     return roles
       .map((r) => r?.role?.name || r?.name || r)
-      .filter((v) => typeof v === "string");
+      .filter((v) => typeof v === "string")
+      .map((v) => v.trim());
   }
   return [];
 };

@@ -59,7 +59,7 @@ export function TeacherScoresPage() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [existingScores, setExistingScores] = useState<any[]>([]);
-  const [editedScores, setEditedScores] = useState<Map<string, { ca1: string; ca2: string; exam: string }>>(new Map());
+  const [editedScores, setEditedScores] = useState<Map<string, Map<string, string>>>(new Map()); // studentId -> assessmentId -> score
 
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -121,6 +121,8 @@ export function TeacherScoresPage() {
 
   // Filter assessments by class and subject
   const relevantAssessments = useMemo(() => {
+    if (!selectedSubjectId) return [];
+    
     const selectedSubject = subjects.find((s: any) => s.id === selectedSubjectId);
     
     // Normalization helper for names
@@ -129,9 +131,7 @@ export function TeacherScoresPage() {
     return assessments.filter((a: any) => {
       // Class Match (Robust)
       const matchesClass = !selectedClassId || String(a.classId) === String(selectedClassId) || String(a.class?.id) === String(selectedClassId);
-      
       if (!matchesClass) return false;
-      if (!selectedSubjectId) return true;
 
       // Subject Match Strategy (Cascade)
       // 1. ID Match (Loose)
@@ -151,52 +151,77 @@ export function TeacherScoresPage() {
     });
   }, [assessments, selectedClassId, selectedSubjectId, subjects]);
 
-  // Load existing scores when assessment is selected
+  // Load existing scores for ALL relevant assessments in parallel
   useEffect(() => {
-    if (!selectedAssessmentId) {
+    if (relevantAssessments.length === 0) {
       setExistingScores([]);
+      setEditedScores(new Map());
       return;
     }
+
     setLoadingScores(true);
-    dispatch(fetchScoresByAssessmentTeacher(selectedAssessmentId))
-      .unwrap()
-      .then((data) => {
-        setExistingScores(data || []);
-        // Pre-populate editedScores with existing data
-        const scoreMap = new Map<string, { ca1: string; ca2: string; exam: string }>();
-        (data || []).forEach((score: any) => {
-          const studentId = score.studentId || score.student?.id;
+    // Fetch scores for each assessment in parallel
+    Promise.all(
+      relevantAssessments.map(async (assessment: any) => {
+        try {
+          const result = await dispatch(fetchScoresByAssessmentTeacher(assessment.id)).unwrap();
+          return { assessmentId: assessment.id, scores: result || [] };
+        } catch (e) {
+          console.error(`Failed to fetch scores for assessment ${assessment.id}`, e);
+          return { assessmentId: assessment.id, scores: [] };
+        }
+      })
+    ).then((results) => {
+      const allScores = results.flatMap(r => r.scores);
+      setExistingScores(allScores);
+      
+      // Populate editedScores map: StudentId -> AssessmentId -> Score
+      const scoreMap = new Map<string, Map<string, string>>();
+      
+      results.forEach(({ assessmentId, scores }) => {
+        scores.forEach((s: any) => {
+          const studentId = s.studentId || s.student?.id;
           if (studentId) {
-            scoreMap.set(studentId, {
-              ca1: score.ca1?.toString() || score.marksAwarded?.toString() || "",
-              ca2: score.ca2?.toString() || "",
-              exam: score.exam?.toString() || "",
-            });
+            if (!scoreMap.has(studentId)) {
+              scoreMap.set(studentId, new Map());
+            }
+            // Prefer marksAwarded
+            const val = s.marksAwarded?.toString() ?? s.score?.toString() ?? "";
+            scoreMap.get(studentId)!.set(assessmentId, val);
           }
         });
-        setEditedScores(scoreMap);
-      })
-      .catch(() => setExistingScores([]))
-      .finally(() => setLoadingScores(false));
-  }, [dispatch, selectedAssessmentId]);
+      });
+      setEditedScores(scoreMap);
+    }).finally(() => setLoadingScores(false));
+  }, [dispatch, relevantAssessments]);
 
-  // Calculate class average
-  const classAverage = useMemo(() => {
-    const scores = Array.from(editedScores.values());
-    if (scores.length === 0) return 0;
+  // Calculate composite Total per student (sum of all assessment scores)
+  const getStudentTotal = (studentId: string) => {
+    const studentScores = editedScores.get(studentId);
+    if (!studentScores) return 0;
+    
     let total = 0;
+    studentScores.forEach((val) => {
+      total += parseFloat(val) || 0;
+    });
+    return total;
+  };
+
+  // Calculate class average based on Totals
+  const classAverage = useMemo(() => {
+    if (editedScores.size === 0) return 0;
+    let totalSum = 0;
     let count = 0;
-    scores.forEach((s) => {
-      const ca1 = parseFloat(s.ca1) || 0;
-      const ca2 = parseFloat(s.ca2) || 0;
-      const exam = parseFloat(s.exam) || 0;
-      const sum = ca1 + ca2 + exam;
-      if (sum > 0) {
-        total += sum;
+    
+    editedScores.forEach((_, studentId) => {
+      const studentTotal = getStudentTotal(studentId);
+      if (studentTotal > 0) {
+        totalSum += studentTotal;
         count++;
       }
     });
-    return count > 0 ? Math.round(total / count) : 0;
+    
+    return count > 0 ? Math.round(totalSum / count) : 0;
   }, [editedScores]);
 
   // Filter students by search
@@ -210,19 +235,18 @@ export function TeacherScoresPage() {
     );
   }, [students, search]);
 
-  const handleScoreChange = (studentId: string, field: "ca1" | "ca2" | "exam", value: string) => {
+  const handleScoreChange = (studentId: string, assessmentId: string, value: string) => {
     setEditedScores((prev) => {
       const newMap = new Map(prev);
-      const current = newMap.get(studentId) || { ca1: "", ca2: "", exam: "" };
-      newMap.set(studentId, { ...current, [field]: value });
+      if (!newMap.has(studentId)) {
+        newMap.set(studentId, new Map());
+      }
+      // Clone inner map to ensure reactivity
+      const studentScores = new Map(newMap.get(studentId)!);
+      studentScores.set(assessmentId, value);
+      newMap.set(studentId, studentScores);
       return newMap;
     });
-  };
-
-  const getTotal = (studentId: string) => {
-    const scores = editedScores.get(studentId);
-    if (!scores) return 0;
-    return (parseFloat(scores.ca1) || 0) + (parseFloat(scores.ca2) || 0) + (parseFloat(scores.exam) || 0);
   };
 
   const getGrade = (total: number) => {
@@ -235,65 +259,63 @@ export function TeacherScoresPage() {
 
   const handleSaveScores = async () => {
     if (!selectedClassId) return toast.error("Please select a class");
-    if (!selectedAssessmentId) return toast.error("Please select an assessment");
+    if (relevantAssessments.length === 0) return toast.error("No assessments available");
 
-    const scores: Array<{ studentId: string; marksAwarded: number; maxMarks: number }> = [];
+    // Flatten scores to group by Assessment ID
+    // Map<AssessmentId, Array<{studentId, marksAwarded, maxMarks}>>
+    const scoresByAssessment = new Map<string, Array<{ studentId: string; marksAwarded: number; maxMarks: number }>>();
 
-    for (const student of students) {
-      const studentId = student.id || student.studentId;
-      const entry = editedScores.get(studentId);
-      if (entry) {
-        const total = (parseFloat(entry.ca1) || 0) + (parseFloat(entry.ca2) || 0) + (parseFloat(entry.exam) || 0);
-        if (total > 0) {
-          scores.push({
-            studentId,
-            marksAwarded: total,
-            maxMarks: 100,
-          });
+    // Iterate all students and their scores
+    editedScores.forEach((studentScores, studentId) => {
+      studentScores.forEach((val, assessmentId) => {
+        // Find assessment info for maxMarks
+        const assessment = relevantAssessments.find((a: any) => a.id === assessmentId);
+        const maxMarks = assessment?.totalMarks || 100;
+        const marksAwarded = parseFloat(val);
+
+        if (!isNaN(marksAwarded)) {
+           if (!scoresByAssessment.has(assessmentId)) {
+             scoresByAssessment.set(assessmentId, []);
+           }
+           scoresByAssessment.get(assessmentId)!.push({
+             studentId,
+             marksAwarded,
+             maxMarks
+           });
         }
-      }
-    }
+      });
+    });
 
-    if (scores.length === 0) return toast.error("No scores to save");
+    if (scoresByAssessment.size === 0) return toast.error("No scores to save");
 
     setSaving(true);
     try {
-      await dispatch(uploadOfflineScores({ assessmentId: selectedAssessmentId, scores })).unwrap();
-      toast.success(`Saved ${scores.length} score(s) successfully`);
+      // Execute uploads in parallel
+      const uploadPromises = Array.from(scoresByAssessment.entries()).map(([assessmentId, scores]) => {
+         return dispatch(uploadOfflineScores({ assessmentId, scores })).unwrap();
+      });
+
+      await Promise.all(uploadPromises);
+      toast.success(`Detailed scores saved successfully for ${uploadPromises.length} assessments`);
     } catch (e: any) {
-      toast.error(e || "Failed to save scores");
+      toast.error(e || "Failed to save some scores");
     } finally {
       setSaving(false);
     }
   };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!selectedAssessmentId) {
-      toast.error("Please select an assessment first");
-      e.target.value = "";
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await dispatch(bulkUploadScoresExcel({ assessmentId: selectedAssessmentId, file })).unwrap();
-      toast.success("Scores imported successfully");
-    } catch (e: any) {
-      toast.error(e || "Failed to import scores");
-    } finally {
-      setSaving(false);
-      e.target.value = "";
-    }
+    // Current backend bulk upload is per-assessment based on file.
+    // Matrix import is complex without a robust parser that matches columns to assessment IDs.
+    // For now, we will disable this or restrict it to single assessment selection, but UI has changed.
+    // Alternative: We can ask user which assessment this file is for?
+    // Implementing simple single-file import is tricky in matrix view without more UI.
+    toast.info("Bulk import is currently supported per-assessment in detailed view.");
   };
 
-  const selectedClass = uniqueClasses.find((c: any) => c.id === selectedClassId);
   const selectedSubject = subjects.find((s: any) => s.id === selectedSubjectId);
-  const selectedAssessment = relevantAssessments.find((a: any) => a.id === selectedAssessmentId);
 
-  const unsavedCount = editedScores.size;
+  const totalEntries = Array.from(editedScores.values()).reduce((acc, map) => acc + map.size, 0);
 
   return (
     <div className="w-full">
@@ -304,7 +326,7 @@ export function TeacherScoresPage() {
         <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold">Score Entry</h1>
+              <h1 className="text-2xl font-bold">Score Sheet</h1>
               <p className="text-emerald-100 text-sm mt-1">
                 {selectedSubject?.name || "Select a subject"} • {selectedTerm} • {new Date().getFullYear()}/{new Date().getFullYear() + 1}
               </p>
@@ -322,30 +344,8 @@ export function TeacherScoresPage() {
                 />
               </div>
 
-              {/* Download Template */}
-              <button
-                onClick={() => generateTemplate("scores")}
-                className="flex items-center gap-2 px-4 h-11 rounded-xl bg-white/20 text-white font-semibold hover:bg-white/30 transition-colors"
-                title="Download Excel Template"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Template</span>
-              </button>
-
-              {/* Import Button */}
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept=".xlsx,.xls,.csv"
-                  onChange={handleImport}
-                  className="hidden"
-                  disabled={saving}
-                />
-                <div className="flex items-center gap-2 px-4 h-11 rounded-xl bg-white/20 text-white font-semibold hover:bg-white/30 transition-colors">
-                  <Upload className="w-4 h-4" />
-                  Import Excel
-                </div>
-              </label>
+              {/* Import Button - Disabled/Hidden for now as explained */}
+              {/* <label className="cursor-pointer">...</label> */}
             </div>
           </div>
         </div>
@@ -361,7 +361,6 @@ export function TeacherScoresPage() {
               <Select value={selectedClassId} onValueChange={(v) => {
                 setSelectedClassId(v);
                 setSelectedSubjectId("");
-                setSelectedAssessmentId("");
               }}>
                 <SelectTrigger className="h-11 w-[160px] rounded-xl border-slate-200 bg-white">
                   <SelectValue placeholder="Select Class" />
@@ -383,10 +382,7 @@ export function TeacherScoresPage() {
               </span>
               <Select 
                 value={selectedSubjectId} 
-                onValueChange={(v) => {
-                  setSelectedSubjectId(v);
-                  setSelectedAssessmentId("");
-                }} 
+                onValueChange={setSelectedSubjectId} 
                 disabled={!selectedClassId || loadingSubjects}
               >
                 <SelectTrigger className="h-11 w-[180px] rounded-xl border-slate-200 bg-white">
@@ -398,33 +394,6 @@ export function TeacherScoresPage() {
                       {subj.name}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Assessment */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                <ClipboardList className="w-3.5 h-3.5" /> Assessment
-              </span>
-              <Select 
-                value={selectedAssessmentId} 
-                onValueChange={setSelectedAssessmentId} 
-                disabled={!selectedSubjectId}
-              >
-                <SelectTrigger className="h-11 w-[200px] rounded-xl border-slate-200 bg-white">
-                  <SelectValue placeholder={loading ? "Loading..." : "Select Assessment"} />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {relevantAssessments.length === 0 ? (
-                    <div className="px-3 py-2 text-sm text-slate-500">No assessments found</div>
-                  ) : (
-                    relevantAssessments.map((a: any) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.title}
-                      </SelectItem>
-                    ))
-                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -469,13 +438,16 @@ export function TeacherScoresPage() {
               <GraduationCap className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500 font-medium">Select a class to view students</p>
             </div>
-          ) : !selectedAssessmentId ? (
+          ) : !selectedSubjectId ? (
+            <div className="text-center py-20">
+              <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">Select a subject to view assessments</p>
+            </div>
+          ) : relevantAssessments.length === 0 ? (
             <div className="text-center py-20">
               <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">Select an assessment to enter scores</p>
-              <p className="text-sm text-slate-400 mt-1">
-                Choose a class, subject, and assessment from the filters above
-              </p>
+              <p className="text-slate-500 font-medium">No assessments found for this subject</p>
+              <p className="text-sm text-slate-400 mt-1">Create an assessment to start grading</p>
             </div>
           ) : filteredStudents.length === 0 ? (
             <div className="text-center py-20">
@@ -485,23 +457,28 @@ export function TeacherScoresPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-800 text-white">
-                  <th className="text-left font-semibold py-4 px-5 text-sm">S/N</th>
-                  <th className="text-left font-semibold py-4 px-3 text-sm">STUDENT ID</th>
-                  <th className="text-left font-semibold py-4 px-3 text-sm">STUDENT NAME</th>
-                  <th className="text-center font-semibold py-4 px-3 text-sm">CA 1 (20)</th>
-                  <th className="text-center font-semibold py-4 px-3 text-sm">CA 2 (20)</th>
-                  <th className="text-center font-semibold py-4 px-3 text-sm">EXAM (60)</th>
-                  <th className="text-center font-semibold py-4 px-3 text-sm">TOTAL</th>
-                  <th className="text-center font-semibold py-4 px-3 text-sm">GRADE</th>
+                  <th className="text-left font-semibold py-4 px-5 text-sm w-[60px]">S/N</th>
+                  <th className="text-left font-semibold py-4 px-3 text-sm min-w-[120px]">STUDENT ID</th>
+                  <th className="text-left font-semibold py-4 px-3 text-sm min-w-[200px]">STUDENT NAME</th>
+                  {/* Dynamic Assessment Columns */}
+                  {relevantAssessments.map((assessment: any) => (
+                    <th key={assessment.id} className="text-center font-semibold py-4 px-3 text-sm min-w-[100px]">
+                      <div className="flex flex-col items-center">
+                        <span>{assessment.title}</span>
+                        <span className="text-[10px] opacity-70">({assessment.totalMarks || 100})</span>
+                      </div>
+                    </th>
+                  ))}
+                  <th className="text-center font-semibold py-4 px-3 text-sm w-[100px] border-l border-slate-700">TOTAL</th>
+                  <th className="text-center font-semibold py-4 px-3 text-sm w-[80px]">GRADE</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredStudents.map((student: any, idx: number) => {
                   const studentId = student.id || student.studentId;
                   const displayId = student.studentId || student.admissionNo || `—`;
-                  const scores = editedScores.get(studentId) || { ca1: "", ca2: "", exam: "" };
-                  const total = getTotal(studentId);
-                  const { grade, color, textColor } = getGrade(total);
+                  const studentTotal = getStudentTotal(studentId);
+                  const { grade, color, textColor } = getGrade(studentTotal);
 
                   return (
                     <tr
@@ -515,46 +492,34 @@ export function TeacherScoresPage() {
                           {student.firstName} {student.lastName}
                         </span>
                       </td>
-                      <td className="py-4 px-3 text-center">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="20"
-                          value={scores.ca1}
-                          onChange={(e) => handleScoreChange(studentId, "ca1", e.target.value)}
-                          placeholder="—"
-                          className="h-10 w-[70px] rounded-lg text-center mx-auto border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
-                        />
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="20"
-                          value={scores.ca2}
-                          onChange={(e) => handleScoreChange(studentId, "ca2", e.target.value)}
-                          placeholder="—"
-                          className="h-10 w-[70px] rounded-lg text-center mx-auto border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
-                        />
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="60"
-                          value={scores.exam}
-                          onChange={(e) => handleScoreChange(studentId, "exam", e.target.value)}
-                          placeholder="—"
-                          className="h-10 w-[70px] rounded-lg text-center mx-auto border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
-                        />
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <span className={`font-bold text-lg ${total > 0 ? textColor : "text-slate-400"}`}>
-                          {total > 0 ? total : "—"}
+                      
+                      {/* Dynamic Assessment Inputs */}
+                      {relevantAssessments.map((assessment: any) => {
+                        const score = editedScores.get(studentId)?.get(assessment.id) || "";
+                        const max = assessment.totalMarks || 100;
+                        
+                        return (
+                          <td key={assessment.id} className="py-4 px-3 text-center">
+                            <Input
+                              type="number"
+                              min="0"
+                              max={max}
+                              value={score}
+                              onChange={(e) => handleScoreChange(studentId, assessment.id, e.target.value)}
+                              placeholder="—"
+                              className="h-10 w-[70px] rounded-lg text-center mx-auto border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                            />
+                          </td>
+                        );
+                      })}
+
+                      <td className="py-4 px-3 text-center border-l border-slate-100 bg-slate-50/50">
+                        <span className={`font-bold text-lg ${studentTotal > 0 ? textColor : "text-slate-400"}`}>
+                          {studentTotal > 0 ? studentTotal : "—"}
                         </span>
                       </td>
-                      <td className="py-4 px-3 text-center">
-                        {total > 0 ? (
+                      <td className="py-4 px-3 text-center bg-slate-50/50">
+                        {studentTotal > 0 ? (
                           <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-white font-bold text-sm ${color}`}>
                             {grade}
                           </span>
@@ -571,14 +536,14 @@ export function TeacherScoresPage() {
         </div>
 
         {/* Footer */}
-        {selectedClassId && selectedAssessmentId && filteredStudents.length > 0 && (
+        {selectedClassId && selectedSubjectId && filteredStudents.length > 0 && (
           <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {unsavedCount > 0 ? (
+              {totalEntries > 0 ? (
                 <>
                   <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
                   <span className="text-sm text-slate-600">
-                    {unsavedCount} student(s) with scores entered
+                    Ready to save scores
                   </span>
                 </>
               ) : (
@@ -592,14 +557,14 @@ export function TeacherScoresPage() {
               <Button
                 variant="outline"
                 className="h-11 px-5 rounded-xl"
-                disabled={unsavedCount === 0}
+                disabled={totalEntries === 0}
                 onClick={() => setEditedScores(new Map())}
               >
                 Clear All
               </Button>
               <Button
                 onClick={handleSaveScores}
-                disabled={saving || unsavedCount === 0}
+                disabled={saving || totalEntries === 0}
                 className="h-11 px-6 rounded-xl text-white font-semibold gap-2"
                 style={{ backgroundColor: primaryColor }}
               >

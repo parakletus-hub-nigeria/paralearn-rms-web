@@ -52,7 +52,12 @@ export const loginUser = createAsyncThunk(
         await setAuthToken(accessToken);
       }
 
+      console.log("[Login Thunk] Token:", accessToken ? "Found" : "Missing");
+      console.log("[Login Thunk] User from response:", userFromResponse);
+
       const roles = normalizeRoles(userFromResponse?.roles);
+      console.log("[Login Thunk] Normalized roles:", roles);
+
       const redirectTo = pickRedirectPath(roles);
       const subdomain = extractSubdomainFromUser(userFromResponse, response.data);
 
