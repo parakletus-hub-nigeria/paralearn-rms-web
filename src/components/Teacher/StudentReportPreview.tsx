@@ -24,6 +24,7 @@ const DEFAULT_PRIMARY = "#641BC4";
 
 interface StudentReportPreviewProps {
   studentId: string;
+  classId: string;
   studentName: string;
   session: string;
   term: string;
@@ -32,6 +33,7 @@ interface StudentReportPreviewProps {
 
 export function StudentReportPreview({
   studentId,
+  classId,
   studentName,
   session,
   term,
@@ -65,7 +67,7 @@ export function StudentReportPreview({
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      await downloadStudentReportCardPdf({ studentId, session, term });
+      await downloadStudentReportCardPdf({ studentId, session, term, classId });
       toast.success("Report downloaded");
     } catch (e: any) {
       toast.error("Failed to download report");

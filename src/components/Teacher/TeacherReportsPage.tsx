@@ -161,13 +161,14 @@ export function TeacherReportsPage() {
 
   // Handlers
   const handleDownloadIndividual = async (student: any) => {
-    if (!selectedSession || !selectedTerm) {
-      return toast.error("Please select session and term");
+    if (!selectedSession || !selectedTerm || !selectedClassId) {
+      return toast.error("Please select class, session and term");
     }
     setDownloadingStudent(student.id);
     try {
       await downloadStudentReportCardPdf({
         studentId: student.id,
+        classId: selectedClassId,
         session: selectedSession,
         term: selectedTerm,
       });

@@ -16,12 +16,13 @@ const tryGetFilenameFromHeaders = (headers: any): string | null => {
 
 export async function downloadStudentReportCardPdf(params: {
   studentId: string;
+  classId: string;
   session: string;
   term: string;
 }) {
   const url = `/api/proxy/reports/student/${encodeURIComponent(
     params.studentId
-  )}/report-card/pdf?session=${encodeURIComponent(params.session)}&term=${encodeURIComponent(
+  )}/${encodeURIComponent(params.classId)}/report-card/pdf?session=${encodeURIComponent(params.session)}&term=${encodeURIComponent(
     params.term
   )}`;
 

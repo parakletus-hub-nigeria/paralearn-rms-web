@@ -133,7 +133,7 @@ export function AdminReportsPage() {
         rank: idx + 1, // Would be calculated from actual scores
         status: Math.random() > 0.2 ? "ready" : "pending" as "ready" | "pending",
       };
-    }).sort((a, b) => b.average - a.average).map((s, idx) => ({ ...s, rank: idx + 1 }));
+    }).sort((a: StudentReport, b: StudentReport) => b.average - a.average).map((s: StudentReport, idx: number) => ({ ...s, rank: idx + 1 }));
   }, [selectedClassDetails]);
 
   // Pagination
@@ -208,7 +208,7 @@ export function AdminReportsPage() {
     }
     setDownloading(studentId);
     try {
-      await downloadStudentReportCardPdf({ studentId, session, term });
+      await downloadStudentReportCardPdf({ studentId, session, term, classId });
       toast.success("Download started");
     } catch (e: any) {
       toast.error(e?.message || "Download failed");

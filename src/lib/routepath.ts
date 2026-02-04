@@ -3,7 +3,6 @@ export const routespath = {
   PROFILE: "/RMS/profile",
   REPORT: "/RMS/report",
   USERS: "/RMS/users",
-  ACADEMIC: "/RMS/academic",
   BULK_UPLOAD: "/RMS/bulk_upload",
   // Admin modules (from TEACHER_ADMIN_GUIDE.md)
   CLASSES: "/RMS/classes",
@@ -45,4 +44,6 @@ export const routespath = {
   API_UPDATE_GRADING_SCALE: "/school-settings/grading",
   // Onboarding Wizard endpoints
   API_ONBOARDING_SETUP: "/onboarding/setup",
+  // Public endpoints
+  API_GET_SUBDOMAINS: "/academic/subdomains",
 };

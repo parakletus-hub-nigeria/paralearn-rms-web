@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "../ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
@@ -25,6 +25,9 @@ interface formData {
     schoolAddress: string
     agreement: boolean
 }
+import apiClient from "@/lib/api";
+
+
 export function PageOne({data,changeData,step,setStep}: any){
     const checkName = (email:string) => {
         const regex = /^[a-zA-Z ]+$/
@@ -35,10 +38,61 @@ export function PageOne({data,changeData,step,setStep}: any){
         }
     }
     const [nameAuth,setNameAuth] = useState(() => checkName(data["schoolName"]))
+    const [subdomainError, setSubdomainError] = useState<string | null>(null);
+    const [existingSubdomains, setExistingSubdomains] = useState<string[]>([]);
+    const [isLoadingSubdomains, setIsLoadingSubdomains] = useState(true);
+
+    useEffect(() => {
+        const fetchSubdomains = async () => {
+             try {
+                // Use the public endpoint to get all subdomains
+                const response = await apiClient.get(`/api/proxy${routespath.API_GET_SUBDOMAINS}`);
+                if (response.data && response.data.success && Array.isArray(response.data.data)) {
+                    setExistingSubdomains(response.data.data);
+                }
+             } catch (error) {
+                console.error("Failed to fetch subdomains:", error);
+                // Fail silently or allow user to proceed if check fails? 
+                // User requirement implies strict check, but if fetch fails we can't check.
+                // For now, valid list remains empty so no blocks, which is safe fallback.
+             } finally {
+                setIsLoadingSubdomains(false);
+             }
+        }
+        fetchSubdomains();
+    }, []);
+
+    // Check subdomain availability whenever data.subdomain changes
+    useEffect(() => {
+        if (!data.subdomain) {
+            setSubdomainError(null);
+            return;
+        }
+
+        const isTaken = existingSubdomains.includes(data.subdomain.toLowerCase());
+        if (isTaken) {
+            setSubdomainError(`Subdomain '${data.subdomain}' is already taken.`);
+        } else {
+            setSubdomainError(null);
+        }
+    }, [data.subdomain, existingSubdomains]);
+
+    const handleContinue = () => {
+        if (!subdomainError) {
+            setStep(step + 1);
+        }
+    };
+
     const checkField = (e : React.ChangeEvent<HTMLInputElement>,name:string) => {
             const regex = /^[a-zA-Z ]+$/;
-            regex.test(data.schoolName) ? setNameAuth(true) : setNameAuth(false)
+            regex.test(e.target.value) ? setNameAuth(true) : setNameAuth(false)
+            
+            // Clear subdomain error when user changes school name (which might change subdomain)
+            if (name === "schoolName") {
+                // Logic handled by useEffect on subdomain change
+            }
     }
+
     const forms = [
         {
             label:"School Name",
@@ -65,10 +119,10 @@ export function PageOne({data,changeData,step,setStep}: any){
                             value={data[form.name]}
                             onChange={(e) => { changeData(e); checkField(e, form.name) }}
                             className="h-11 rounded-lg border-slate-300 bg-slate-50/50 focus:bg-white"
-                            aria-invalid={form.name === "schoolName" && !nameAuth}
+                            aria-invalid={form.name === "schoolName" && !nameAuth && data[form.name] !== ""}
                             readOnly={form.name === "subdomain"}
                         />
-                        {form.name === "schoolName" && !nameAuth && (
+                        {form.name === "schoolName" && !nameAuth && data[form.name] !== "" && (
                             <p className="flex items-center gap-1.5 text-xs text-red-600">
                                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                                 School name should contain only alphabets
@@ -83,18 +137,26 @@ export function PageOne({data,changeData,step,setStep}: any){
                             id="subdomain"
                             name="subdomain"
                             value={data.subdomain}
-                            onChange={(e) => changeData(e)}
-                            readOnly
+                            onChange={(e) => {
+                                changeData(e);
+                                // Error clearing is handled by useEffect
+                            }}
                             className="h-11 flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
                         <span className="flex h-11 items-center bg-slate-100 px-4 text-sm font-medium text-slate-600">.pln.ng</span>
                     </div>
+                     {subdomainError && (
+                        <p className="flex items-center gap-1.5 text-xs text-red-600">
+                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                            {subdomainError}
+                        </p>
+                    )}
                 </div>
                 {step === 1 && (
                     <>
                         <Button
-                            disabled={!nameAuth}
-                            onClick={() => setStep(step + 1)}
+                            disabled={!nameAuth || !!subdomainError || !data.subdomain}
+                            onClick={handleContinue}
                             className="mt-2 h-12 w-full rounded-xl bg-gradient-to-r from-primary via-purple-700 to-primary font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:opacity-95 active:scale-[0.99] disabled:opacity-60"
                         >
                             Continue
@@ -117,7 +179,8 @@ export function PageOne({data,changeData,step,setStep}: any){
 
 export function PageTwo({data,changeData,step,setStep}: any){
     const emailCheck = () => {
-         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+         // Stricter TLD check (2-6 chars) to catch typos like .comwasw
+         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
         if(data["adminEmail"].length > 0 && emailRegex.test(data["adminEmail"])){
             return true
         }else{return false}
@@ -154,7 +217,8 @@ export function PageTwo({data,changeData,step,setStep}: any){
     ]
 
    const checkEmail = (e : React.ChangeEvent<HTMLInputElement>) => {
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  // Stricter TLD check (2-6 chars) to catch typos like .comwasw
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   if(emailRegex.test(e.target.value)){
     setemailAuth(true)
   }else{setemailAuth(false)}

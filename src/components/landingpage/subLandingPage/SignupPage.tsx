@@ -16,6 +16,7 @@ export default function SignupPage() {
     schoolAddress: "",
     agreement: false,
   });
+  const [isSubdomainManuallyEdited, setIsSubdomainManuallyEdited] = useState(false);
 
   function changeData(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value, type, checked } = e.target;
@@ -27,7 +28,11 @@ export default function SignupPage() {
         [name]: newValue,
       };
 
-      if (name === "schoolName" && value) {
+      if (name === "subdomain") {
+        setIsSubdomainManuallyEdited(true);
+      }
+
+      if (name === "schoolName" && value && !isSubdomainManuallyEdited) {
         const words = value.trim().split(/\s+/);
         const subdomain = words
           .map((word) => word.charAt(0).toUpperCase())
