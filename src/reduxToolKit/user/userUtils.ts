@@ -44,13 +44,20 @@ export const extractTokenAndUser = (data: any) => {
 
 /**
  * Extracts tenant/school subdomain from user object or response data.
+ * Handles the response structure: { data: { school: { subdomain: "..." } } }
  */
 export const extractSubdomainFromUser = (user: any, responseData: any): string | null => {
-  // Priority: 1. Response root, 2. User object, 3. Nested objects
-  return (
+  console.log("[extractSubdomainFromUser] Response data:", responseData);
+  console.log("[extractSubdomainFromUser] Checking data.school.subdomain:", responseData?.data?.school?.subdomain);
+  
+  // Priority: 1. Response data.school.subdomain, 2. Response root subdomain, 3. School object subdomain
+  const subdomain = (
+    responseData?.data?.school?.subdomain || 
     responseData?.subdomain || 
-    responseData?.data.school.subdomain ||
-    responseData?.school.subdomain ||
+    responseData?.school?.subdomain ||
     null
   );
+  
+  console.log("[extractSubdomainFromUser] Extracted subdomain:", subdomain);
+  return subdomain;
 };

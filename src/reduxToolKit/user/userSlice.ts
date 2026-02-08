@@ -155,6 +155,7 @@ const userSlice = createSlice({
         state.subdomain = action.payload.subdomain || state.subdomain;
         state.success = true;
         state.error = null;
+        console.log("[userSlice] Login fulfilled. Subdomain stored:", state.subdomain);
         console.log("[userSlice] Login fulfilled. Payload user:", action.payload.user);
         // Persist user snapshot for reloads (roles-based guards)
         if (typeof window !== "undefined") {

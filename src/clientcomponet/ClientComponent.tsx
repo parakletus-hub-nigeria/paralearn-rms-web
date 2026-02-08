@@ -11,7 +11,7 @@ export default function ClientComponent({ children }: { children: React.ReactNod
       {/* All our client-side providers and containers go here */}
       {children}
       <Toaster position="top-right" expand={false} richColors />
-      <ToastContainer />
+      <ToastContainer position="top-right" />
     </StoreProvider>
   );
 }

@@ -2,18 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import {
   fetchTeacherClasses,
   fetchClassStudents,
   fetchAcademicCurrent,
-  fetchClassReportSummary,
-  generateAndNotifyReports,
+  fetchClassReportCards,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { TeacherHeader } from "./TeacherHeader";
-import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -22,25 +24,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Download,
   FileText,
-  Mail,
-  Bell,
-  Search,
-  FileSpreadsheet,
-  Users,
   ChevronLeft,
   ChevronRight,
-  Eye,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
-import { toast } from "react-toastify";
-import {
-  downloadStudentReportCardPdf,
-  downloadCombinedClassReportCards,
-} from "@/lib/reportPdf";
+import apiClient from "@/lib/api";
 
 const DEFAULT_PRIMARY = "#641BC4";
+
+type TabType = "generation" | "download";
 
 export function TeacherReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -51,38 +54,48 @@ export function TeacherReportsPage() {
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
-  const [selectedClassId, setSelectedClassId] = useState("");
-  const [selectedSession, setSelectedSession] = useState("");
-  const [selectedTerm, setSelectedTerm] = useState("");
+  // Tab state
+  const [activeTab, setActiveTab] = useState<TabType>("generation");
+
+  // Filter state
+  const [classId, setClassId] = useState("");
+  const [session, setSession] = useState("");
+  const [term, setTerm] = useState("");
+
+  // Generation tab state
   const [students, setStudents] = useState<any[]>([]);
-  const [reportSummary, setReportSummary] = useState<any>(null);
   const [loadingStudents, setLoadingStudents] = useState(false);
-  const [loadingReports, setLoadingReports] = useState(false);
-  const [downloadingAll, setDownloadingAll] = useState(false);
-  const [downloadingStudent, setDownloadingStudent] = useState<string | null>(null);
-  const [notifying, setNotifying] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
+  const [generatingStudents, setGeneratingStudents] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+
+  // Download tab state
+  const [reportCards, setReportCards] = useState<any[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+  const [downloadingReport, setDownloadingReport] = useState<string | null>(null);
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch initial data
+  // Session options
+  const sessionOptions = ["2023/2024", "2024/2025", "2025/2026"];
+  const termOptions = ["First Term", "Second Term", "Third Term"];
+
+  const teacherId = (user as any)?.id || (user as any)?.teacherId;
+
+  // Initial Fetch
   useEffect(() => {
+    if (!teacherId) return;
     dispatch(fetchAcademicCurrent());
-    const teacherId = (user as any)?.id || (user as any)?.teacherId;
-    if (teacherId) {
-      dispatch(fetchTeacherClasses({ teacherId }));
-    }
-  }, [dispatch, user]);
+    dispatch(fetchTeacherClasses({ teacherId }));
+  }, [dispatch, teacherId]);
 
   // Set defaults from academic current
   useEffect(() => {
-    if (academicCurrent?.session && !selectedSession) {
-      setSelectedSession(academicCurrent.session);
-    }
-    if (academicCurrent?.term && !selectedTerm) {
-      setSelectedTerm(academicCurrent.term);
-    }
-  }, [academicCurrent, selectedSession, selectedTerm]);
+    if (academicCurrent?.session && !session) setSession(academicCurrent.session);
+    if (academicCurrent?.term && !term) setTerm(academicCurrent.term);
+  }, [academicCurrent, session, term]);
 
   // Extract unique classes
   const uniqueClasses = useMemo(() => {
@@ -97,502 +110,592 @@ export function TeacherReportsPage() {
     return Array.from(classMap.values());
   }, [teacherClasses]);
 
-  // Fetch students and report summary when class changes
+  // Fetch data when tab, class, or filters change
   useEffect(() => {
-    if (!selectedClassId || !selectedSession || !selectedTerm) return;
+    if (!classId || !session || !term) return;
 
-    const loadData = async () => {
-      setLoadingStudents(true);
-      setLoadingReports(true);
-      try {
-        // Fetch students
-        const studentData = await dispatch(
-          fetchClassStudents(selectedClassId)
-        ).unwrap();
-        setStudents(studentData || []);
+    if (activeTab === "generation") {
+      fetchStudents();
+    } else {
+      fetchReports();
+    }
+  }, [activeTab, classId, session, term]);
 
-        // Fetch report summary
-        try {
-          const summary = await dispatch(
-            fetchClassReportSummary({
-              classId: selectedClassId,
-              session: selectedSession,
-              term: selectedTerm,
-            })
-          ).unwrap();
-          setReportSummary(summary);
-        } catch (e) {
-          setReportSummary(null);
-        }
-      } catch (e: any) {
-        toast.error("Failed to load students");
-        setStudents([]);
-      } finally {
-        setLoadingStudents(false);
-        setLoadingReports(false);
-      }
-    };
-
-    loadData();
-  }, [dispatch, selectedClassId, selectedSession, selectedTerm]);
-
-  // Get student report data from summary
-  const getStudentReportData = (studentId: string) => {
-    if (!reportSummary?.students) return null;
-    return reportSummary.students.find((s: any) => s.id === studentId || s.studentId === studentId);
+  const fetchStudents = async () => {
+    setLoadingStudents(true);
+    try {
+      const result = await dispatch(fetchClassStudents(classId)).unwrap();
+      setStudents(result || []);
+    } catch (e: any) {
+      toast.error(e || "Failed to load students");
+      setStudents([]);
+    } finally {
+      setLoadingStudents(false);
+    }
   };
 
-  // Filter and paginate students
+  const fetchReports = async () => {
+    setLoadingReports(true);
+    try {
+      const result = await dispatch(
+        fetchClassReportCards({ classId, session, term })
+      ).unwrap();
+      console.log("[TeacherReportsPage] Fetched report cards:", result);
+
+      // Flatten the nested structure: students -> reportCardsAsStudent[]
+      const flattenedReports: any[] = [];
+      if (result && Array.isArray(result)) {
+        result.forEach((student: any) => {
+          const studentReports = student.reportCardsAsStudent || [];
+          studentReports.forEach((report: any) => {
+            flattenedReports.push({
+              ...report,
+              studentName: `${student.firstName || ""} ${student.lastName || ""}`.trim(),
+              studentId: student.id,
+            });
+          });
+        });
+      }
+
+      console.log("[TeacherReportsPage] Flattened report cards:", flattenedReports);
+      setReportCards(flattenedReports);
+    } catch (e: any) {
+      console.error("[TeacherReportsPage] Error fetching reports:", e);
+      toast.error(e || "Failed to load report cards");
+      setReportCards([]);
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  // Filter students by search
   const filteredStudents = useMemo(() => {
-    if (!search.trim()) return students;
-    const q = search.toLowerCase();
+    if (!search) return students;
+    const query = search.toLowerCase();
     return students.filter(
-      (s) =>
-        `${s.firstName} ${s.lastName}`.toLowerCase().includes(q) ||
-        (s.studentId || "").toLowerCase().includes(q)
+      (s: any) =>
+        `${s.firstName} ${s.lastName}`.toLowerCase().includes(query) ||
+        (s.studentId || "").toLowerCase().includes(query)
     );
   }, [students, search]);
 
+  // Pagination
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-  const paginatedStudents = filteredStudents.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedStudents = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredStudents.slice(start, start + itemsPerPage);
+  }, [filteredStudents, currentPage]);
 
-  // Handlers
-  const handleDownloadIndividual = async (student: any) => {
-    if (!selectedSession || !selectedTerm || !selectedClassId) {
-      return toast.error("Please select class, session and term");
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, classId]);
+
+  // Selection handlers
+  const toggleStudentSelection = (studentId: string) => {
+    const newSet = new Set(selectedStudents);
+    if (newSet.has(studentId)) {
+      newSet.delete(studentId);
+    } else {
+      newSet.add(studentId);
     }
-    setDownloadingStudent(student.id);
+    setSelectedStudents(newSet);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedStudents.size === filteredStudents.length) {
+      setSelectedStudents(new Set());
+    } else {
+      setSelectedStudents(new Set(filteredStudents.map((s: any) => s.id)));
+    }
+  };
+
+  // Generate report card for a single student
+  const generateReportCard = async (studentId: string) => {
+    if (!classId || !session || !term) {
+      toast.error("Please select class, session, and term");
+      return;
+    }
+
+    setGeneratingStudents((prev) => new Set(prev).add(studentId));
     try {
-      await downloadStudentReportCardPdf({
-        studentId: student.id,
-        classId: selectedClassId,
-        session: selectedSession,
-        term: selectedTerm,
-      });
-      toast.success(`Downloaded report for ${student.firstName} ${student.lastName}`);
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to download report");
-    } finally {
-      setDownloadingStudent(null);
-    }
-  };
-
-  const handleDownloadCombined = async () => {
-    if (!selectedClassId || !selectedSession || !selectedTerm) {
-      return toast.error("Please select class, session and term");
-    }
-    setDownloadingAll(true);
-    try {
-      await downloadCombinedClassReportCards({
-        classId: selectedClassId,
-        session: selectedSession,
-        term: selectedTerm,
-      });
-      toast.success("Combined class reports downloaded");
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to download combined reports");
-    } finally {
-      setDownloadingAll(false);
-    }
-  };
-
-  const handleExportExcel = async () => {
-    toast.info("Excel export functionality coming soon");
-  };
-
-  const handleNotifyParents = async () => {
-    if (!selectedClassId || !selectedSession || !selectedTerm) {
-      return toast.error("Please select class, session and term");
-    }
-    const studentIds = students.map((s) => s.id);
-    if (studentIds.length === 0) {
-      return toast.error("No students to notify");
-    }
-
-    setNotifying(true);
-    try {
-      await dispatch(
-        generateAndNotifyReports({
-          studentIds,
-          session: selectedSession,
-          term: selectedTerm,
-        })
-      ).unwrap();
-      toast.success("Parents notified successfully");
-    } catch (e: any) {
-      toast.error(e || "Failed to notify parents");
-    } finally {
-      setNotifying(false);
-    }
-  };
-
-  const getStatusBadge = (studentId: string) => {
-    const reportData = getStudentReportData(studentId);
-    if (reportData?.isComplete || reportData?.average) {
-      return (
-        <Badge className="bg-emerald-100 text-emerald-700 gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          Ready
-        </Badge>
+      const res = await apiClient.get(
+        `/api/proxy/reports/student/${studentId}/${classId}/report-card/pdf?session=${encodeURIComponent(session)}&term=${encodeURIComponent(term)}`
       );
+
+      if (res.data?.success) {
+        toast.success(res.data.message || "Report card generation started");
+        // Refresh the list after a short delay
+        setTimeout(() => {
+          if (activeTab === "generation") fetchStudents();
+        }, 2000);
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || "Failed to generate report card");
+    } finally {
+      setGeneratingStudents((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(studentId);
+        return newSet;
+      });
     }
-    return (
-      <Badge className="bg-amber-100 text-amber-700 gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-        Pending
-      </Badge>
-    );
   };
 
-  const selectedClass = uniqueClasses.find((c) => c.id === selectedClassId);
+  // Generate selected report cards
+  const generateSelected = async () => {
+    if (selectedStudents.size === 0) {
+      toast.error("Please select at least one student");
+      return;
+    }
+
+    const studentIds = Array.from(selectedStudents);
+    toast.info(`Generating ${studentIds.length} report cards...`);
+
+    for (const studentId of studentIds) {
+      await generateReportCard(studentId);
+      // Small delay between requests
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    setSelectedStudents(new Set());
+    toast.success("All selected report cards queued for generation");
+  };
+
+  // Generate all report cards
+  const generateAll = async () => {
+    if (filteredStudents.length === 0) {
+      toast.error("No students found");
+      return;
+    }
+
+    const confirmed = confirm(
+      `Generate report cards for all ${filteredStudents.length} students?`
+    );
+    if (!confirmed) return;
+
+    toast.info(`Generating ${filteredStudents.length} report cards...`);
+
+    for (const student of filteredStudents) {
+      await generateReportCard(student.id);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    toast.success("All report cards queued for generation");
+  };
+
+  // Download report card
+  const downloadReportCard = (documentUrl: string, studentName: string) => {
+    setDownloadingReport(documentUrl);
+    try {
+      window.open(documentUrl, "_blank");
+      toast.success(`Opening report card for ${studentName}`);
+    } catch (e) {
+      toast.error("Failed to open report card");
+    } finally {
+      setTimeout(() => setDownloadingReport(null), 1000);
+    }
+  };
+
+  // Get selected class info
+  const selectedClass = useMemo(() => {
+    return uniqueClasses.find((c) => c.id === classId);
+  }, [uniqueClasses, classId]);
+
+  // Get status badge color
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+      case "published":
+        return "bg-green-100 text-green-700";
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
+      case "rejected":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (!bytes) return "N/A";
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    return `${(kb / 1024).toFixed(1)} MB`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "N/A";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <div className="w-full">
       <TeacherHeader />
 
-      <div className="space-y-6">
-        {/* Header with title and filters */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">
-                  Generate & Download Reports
-                </h1>
-                <p className="text-slate-500 mt-1">
-                  Manage and distribute academic performance records
-                  {selectedClass ? ` for ${selectedClass.name}` : ""}
-                </p>
-              </div>
-              <Button
-                onClick={handleNotifyParents}
-                disabled={notifying || !selectedClassId}
-                className="h-11 px-5 rounded-xl text-white gap-2"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {notifying ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Bell className="w-4 h-4" />
-                )}
-                Notify Parents
-              </Button>
-            </div>
-          </div>
-
-          {/* Filters Row */}
-          <div className="px-6 py-4 bg-slate-50/50 flex flex-wrap items-center gap-3">
-            <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-              <SelectTrigger className="h-10 w-[180px] rounded-xl bg-white border-slate-200">
-                <SelectValue placeholder="Select Class" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                {uniqueClasses.map((cls: any) => (
-                  <SelectItem key={cls.id} value={cls.id}>
-                    {cls.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedSession} onValueChange={setSelectedSession}>
-              <SelectTrigger className="h-10 w-[140px] rounded-xl bg-white border-slate-200">
-                <SelectValue placeholder="Session" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value={academicCurrent?.session || "2024/2025"}>
-                  {academicCurrent?.session || "2024/2025"}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-              <SelectTrigger className="h-10 w-[140px] rounded-xl bg-white border-slate-200">
-                <SelectValue placeholder="Term" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="First Term">First Term</SelectItem>
-                <SelectItem value="Second Term">Second Term</SelectItem>
-                <SelectItem value="Third Term">Third Term</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <main className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Report Cards</h1>
+          <p className="text-gray-600 mt-1">
+            Manage student report card generation and downloads
+          </p>
         </div>
 
-        {/* Class-Wide Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Download Combined PDF */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <div className="flex items-start gap-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: `${primaryColor}15` }}
-              >
-                <FileText className="w-6 h-6" style={{ color: primaryColor }} />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-slate-900 text-lg">
-                  Download Combined Class PDF
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Generate a single document containing all student reports for{" "}
-                  {selectedClass?.name || "selected class"}
-                </p>
-                <Button
-                  onClick={handleDownloadCombined}
-                  disabled={downloadingAll || !selectedClassId}
-                  className="mt-4 h-10 px-5 rounded-xl text-white gap-2"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {downloadingAll ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                  Download All PDF
-                </Button>
-              </div>
+        {/* Filters Card */}
+        <Card className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Class</label>
+              <Select value={classId} onValueChange={setClassId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueClasses.map((cls: any) => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
 
-          {/* Download Result Sheet */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-emerald-100">
-                <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-slate-900 text-lg">
-                  Download Result Sheet
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Export students&apos; data to Microsoft Excel format for grading
-                  analysis
-                </p>
-                <Button
-                  onClick={handleExportExcel}
-                  disabled={!selectedClassId}
-                  variant="outline"
-                  className="mt-4 h-10 px-5 rounded-xl gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                >
-                  <FileSpreadsheet className="w-4 h-4" />
-                  Export Result Sheet
-                </Button>
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Session
+              </label>
+              <Select value={session} onValueChange={setSession}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select session" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sessionOptions.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Term</label>
+              <Select value={term} onValueChange={setTerm}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select term" />
+                </SelectTrigger>
+                <SelectContent>
+                  {termOptions.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
+        </Card>
+
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab("generation")}
+              className={`
+                py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                ${
+                  activeTab === "generation"
+                    ? "border-violet-500 text-violet-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }
+              `}
+            >
+              <FileText className="inline-block w-5 h-5 mr-2" />
+              Generate Reports
+            </button>
+            <button
+              onClick={() => setActiveTab("download")}
+              className={`
+                py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                ${
+                  activeTab === "download"
+                    ? "border-violet-500 text-violet-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }
+              `}
+            >
+              <Download className="inline-block w-5 h-5 mr-2" />
+              Download Reports
+            </button>
+          </nav>
         </div>
 
-        {/* Individual Student Reports */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-slate-500" />
-              <span className="font-semibold text-slate-900">
-                Individual Student Reports
-              </span>
-              <Badge variant="secondary" className="rounded-lg">
-                {filteredStudents.length} Students found
-              </Badge>
+        {/* Tab Content */}
+        {!classId || !session || !term ? (
+          <Card className="p-12">
+            <div className="text-center text-gray-500">
+              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">
+                Select class, session, and term to get started
+              </p>
             </div>
-            <div className="relative max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          </Card>
+        ) : activeTab === "generation" ? (
+          // GENERATION TAB
+          <Card className="p-6 space-y-4">
+            {/* Search and Actions */}
+            <div className="flex items-center justify-between gap-4">
               <Input
                 placeholder="Search students..."
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-10 h-10 rounded-xl border-slate-200"
+                onChange={(e) => setSearch(e.target.value)}
+                className="max-w-sm"
               />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={generateSelected}
+                  disabled={selectedStudents.size === 0 || loadingStudents}
+                >
+                  Generate Selected ({selectedStudents.size})
+                </Button>
+                <Button
+                  style={{ backgroundColor: primaryColor }}
+                  onClick={generateAll}
+                  disabled={filteredStudents.length === 0 || loadingStudents}
+                >
+                  Generate All ({filteredStudents.length})
+                </Button>
+              </div>
             </div>
-          </div>
 
-          {/* Students Table */}
-          {loadingStudents ? (
-            <div className="flex items-center justify-center py-16">
-              <div
-                className="animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200"
-                style={{ borderTopColor: primaryColor }}
-              />
-            </div>
-          ) : paginatedStudents.length === 0 ? (
-            <div className="p-10 text-center">
-              <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">
-                {!selectedClassId
-                  ? "Select a class to view students"
-                  : "No students found"}
-              </p>
-            </div>
-          ) : (
-            <>
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="text-left py-3 px-6 text-sm font-semibold text-slate-600">
-                      STUDENT NAME
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-slate-600">
-                      AVERAGE
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-slate-600">
-                      RANK
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-slate-600">
-                      STATUS
-                    </th>
-                    <th className="text-right py-3 px-6 text-sm font-semibold text-slate-600">
-                      ACTIONS
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedStudents.map((student: any, idx: number) => {
-                    const reportData = getStudentReportData(student.id);
-                    const average = reportData?.average || reportData?.overallPercentage || "—";
-                    const rank = reportData?.rank || reportData?.classPosition || "—";
-
-                    return (
-                      <tr
-                        key={student.id || idx}
-                        className={`border-b border-slate-100 last:border-0 ${
-                          idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"
-                        }`}
-                      >
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-medium text-sm"
-                              style={{ backgroundColor: primaryColor }}
+            {/* Students Table */}
+            {loadingStudents ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+              </div>
+            ) : filteredStudents.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p>No students found</p>
+              </div>
+            ) : (
+              <>
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={
+                              selectedStudents.size === filteredStudents.length &&
+                              filteredStudents.length > 0
+                            }
+                            onCheckedChange={toggleSelectAll}
+                          />
+                        </TableHead>
+                        <TableHead>Student ID</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedStudents.map((student: any) => (
+                        <TableRow key={student.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedStudents.has(student.id)}
+                              onCheckedChange={() =>
+                                toggleStudentSelection(student.id)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {student.studentId || "N/A"}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {student.firstName} {student.lastName}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => generateReportCard(student.id)}
+                              disabled={generatingStudents.has(student.id)}
                             >
-                              {(student.firstName?.[0] || "")}{(student.lastName?.[0] || "")}
-                            </div>
-                            <span className="font-medium text-slate-900">
-                              {student.firstName} {student.lastName}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <span className="font-semibold text-slate-900">
-                            {typeof average === "number" ? `${average.toFixed(1)}%` : average}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <span
-                            className={`font-semibold ${
-                              rank === 1 || rank === "1st"
-                                ? "text-amber-600"
-                                : rank === 2 || rank === "2nd"
-                                ? "text-slate-500"
-                                : rank === 3 || rank === "3rd"
-                                ? "text-amber-700"
-                                : "text-slate-600"
-                            }`}
-                          >
-                            {typeof rank === "number" ? `${rank}${getOrdinal(rank)}` : rank}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          {getStatusBadge(student.id)}
-                        </td>
-                        <td className="py-4 px-6 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleDownloadIndividual(student)}
-                              disabled={downloadingStudent === student.id}
-                              className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
-                              title="Download PDF"
-                            >
-                              {downloadingStudent === student.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                              {generatingStudents.has(student.id) ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Generating...
+                                </>
                               ) : (
-                                <Download className="w-4 h-4" />
+                                <>
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  Generate
+                                </>
                               )}
-                            </button>
-                            <button
-                              className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
-                              title="Email to Parent"
-                            >
-                              <Mail className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-sm text-slate-500">
-                    Showing {(currentPage - 1) * itemsPerPage + 1}-
-                    {Math.min(currentPage * itemsPerPage, filteredStudents.length)} of{" "}
-                    {filteredStudents.length} results
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="rounded-lg"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Previous
-                    </Button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1).map(
-                        (page) => (
-                          <button
-                            key={page}
-                            onClick={() => setCurrentPage(page)}
-                            className={`w-8 h-8 rounded-lg text-sm font-medium ${
-                              currentPage === page
-                                ? "text-white"
-                                : "text-slate-600 hover:bg-slate-100"
-                            }`}
-                            style={
-                              currentPage === page
-                                ? { backgroundColor: primaryColor }
-                                : {}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">
+                      Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        filteredStudents.length
+                      )}{" "}
+                      of {filteredStudents.length} students
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <span className="px-4 py-2 text-sm">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </Card>
+        ) : (
+          // DOWNLOAD TAB
+          <Card className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Generated Report Cards</h2>
+              <Button variant="outline" size="sm" onClick={fetchReports}>
+                Refresh
+              </Button>
+            </div>
+
+            {loadingReports ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+              </div>
+            ) : reportCards.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">No report cards found</p>
+                <p className="text-sm mt-2">
+                  Generate report cards in the Generate Reports tab
+                </p>
+              </div>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student Name</TableHead>
+                      <TableHead>Student ID</TableHead>
+                      <TableHead>Class</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>File Size</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {reportCards.map((report: any) => (
+                      <TableRow key={report.id}>
+                        <TableCell className="font-medium">
+                          {report.studentName || "N/A"}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {report.studentId || "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {report.className || selectedClass?.name || "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(report.status)}>
+                            {report.status || "Unknown"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600">
+                          {formatBytes(report.bytes)}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600">
+                          {formatDate(report.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const url =
+                                report.documentUrl ||
+                                report.url ||
+                                report.pdfUrl;
+                              if (url) {
+                                downloadReportCard(url, report.studentName);
+                              } else {
+                                console.error(
+                                  "[TeacherReportsPage] No document URL found for report:",
+                                  report
+                                );
+                                toast.error("Document URL not available");
+                              }
+                            }}
+                            disabled={
+                              (!report.documentUrl &&
+                                !report.url &&
+                                !report.pdfUrl) ||
+                              downloadingReport ===
+                                (report.documentUrl ||
+                                  report.url ||
+                                  report.pdfUrl)
                             }
                           >
-                            {page}
-                          </button>
-                        )
-                      )}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="rounded-lg"
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+                            {downloadingReport ===
+                            (report.documentUrl ||
+                              report.url ||
+                              report.pdfUrl) ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                Open PDF
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </Card>
+        )}
+      </main>
     </div>
   );
-}
-
-// Helper to get ordinal suffix
-function getOrdinal(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0];
 }
