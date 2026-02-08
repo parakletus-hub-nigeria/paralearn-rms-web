@@ -19,7 +19,7 @@ import Link from "next/link";
 
 export const DashboardPage = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { studentCount, teacherCount } = useSelector(
+  const { studentCount, teacherCount, users } = useSelector(
     (state: RootState) => state.user
   );
   const { currentSession } = useSelector(
@@ -27,7 +27,8 @@ export const DashboardPage = () => {
   );
   const [SubjectCount, setSubjectCount] = useState(0);
   const [AssessmentCount, setAssessmentCount] = useState(0);
-  const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
+  const [recentAssessments, setRecentAssessments] = useState<any[]>([]);
+  const [recentReportCards, setRecentReportCards] = useState<any[]>([]);
 
   useEffect(() => {
     // Fetch users using Redux
@@ -42,34 +43,155 @@ export const DashboardPage = () => {
           headers: { "Content-Type": "application/json" },
         });
         const subjectResult = await subjectResp.json();
-        setSubjectCount(subjectResult.data?.length || 0);
+        console.log("[Dashboard] Subjects API response:", subjectResult);
+        
+        // Try different possible response structures
+        const subjectsArray = subjectResult?.data || subjectResult?.subjects || subjectResult;
+        const count = Array.isArray(subjectsArray) ? subjectsArray.length : 0;
+        console.log("[Dashboard] Subjects count:", count);
+        setSubjectCount(count);
       } catch (error: any) {
-        console.warn("Failed to fetch subjects:", error?.message);
+        console.error("[Dashboard] Failed to fetch subjects:", error);
         setSubjectCount(0);
-        // Don't show toast for subjects as it's not critical
       }
 
-      // Fetch assessments count - handle gracefully if endpoint doesn't exist
+      // Fetch assessments count and recent assessments
       try {
-        const assessmentResp = await apiFetch("/api/proxy/assessments", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+        // Backend supports GET /assessments/:status - fetch all statuses and merge
+        const statuses = ["started", "ended", "not_started"];
         
-        // Check if response is ok before parsing
-        if (assessmentResp.ok) {
-          const assessmentResult = await assessmentResp.json();
-          setAssessmentCount(assessmentResult.data?.length || 0);
-        } else if (assessmentResp.status === 404) {
-          // Endpoint doesn't exist yet, set to 0 silently
-          setAssessmentCount(0);
+        const results = await Promise.all(
+          statuses.map(async (status) => {
+            try {
+              const res = await apiFetch(`/api/proxy/assessments/${status}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+              });
+              const data = await res.json();
+              return Array.isArray(data) ? data : [];
+            } catch (e: any) {
+              // Fallback if backend expects query param
+              try {
+                const res = await apiFetch(`/api/proxy/assessments?status=${status}`, {
+                  method: "GET",
+                  headers: { "Content-Type": "application/json" },
+                });
+                const data = await res.json();
+                return Array.isArray(data) ? data : [];
+              } catch {
+                return [];
+              }
+            }
+          })
+        );
+        
+        const allAssessments = results.flat();
+        console.log("[Dashboard] Assessments API response (merged):", allAssessments);
+        console.log("[Dashboard] Assessments count:", allAssessments.length);
+        
+        setAssessmentCount(allAssessments.length);
+        
+        // Get recent 5 assessments sorted by creation date
+        const recent = [...allAssessments]
+          .sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.startsAt || 0).getTime();
+            const dateB = new Date(b.createdAt || b.startsAt || 0).getTime();
+            return dateB - dateA;
+          })
+          .slice(0, 5);
+        
+        console.log("[Dashboard] Recent assessments:", recent);
+        setRecentAssessments(recent);
+      } catch (error: any) {
+        console.error("[Dashboard] Failed to fetch assessments:", error);
+        setAssessmentCount(0);
+        setRecentAssessments([]);
+      }
+
+      // Fetch users and report cards in parallel for faster loading
+      try {
+        // Fetch both users and report cards in parallel
+        const [usersResp, reportResp] = await Promise.all([
+          apiFetch("/api/proxy/users", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }),
+          apiFetch("/api/proxy/reports/report-cards", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          })
+        ]);
+        
+        // Process users data
+        let usersData: any[] = [];
+        if (usersResp.ok) {
+          const usersResult = await usersResp.json();
+          usersData = usersResult?.data || usersResult || [];
+          console.log("[Dashboard] Fetched users data:", usersData.length, "users");
+        }
+        
+        // Process report cards
+        if (reportResp.ok) {
+          const reportResult = await reportResp.json();
+          console.log("[Dashboard] Report cards API response:", reportResult);
+          
+          // The API returns students with nested reportCardsAsStudent array
+          // We need to flatten this structure and match with actual student data
+          const studentsArray = reportResult?.data || reportResult || [];
+          const allReports: any[] = [];
+          
+          if (Array.isArray(studentsArray)) {
+            studentsArray.forEach((student: any) => {
+              const reportCards = student.reportCardsAsStudent || [];
+              reportCards.forEach((reportCard: any) => {
+                allReports.push({
+                  ...reportCard,
+                  studentId: reportCard.studentId,
+                });
+              });
+            });
+          }
+          
+          // Match report cards with students from directly fetched users data
+          const enrichedReports = allReports.map((report) => {
+            const matchingStudent = usersData.find((user: any) => user.id === report.studentId);
+            
+            // Extract class from enrollments
+            let studentClass = null;
+            if (matchingStudent?.enrollments && Array.isArray(matchingStudent.enrollments)) {
+              const activeEnrollment = matchingStudent.enrollments.find((e: any) => e.status === 'active');
+              const enrollment = activeEnrollment || matchingStudent.enrollments[0];
+              studentClass = enrollment?.class;
+            }
+            
+            return {
+              ...report,
+              student: matchingStudent ? {
+                id: matchingStudent.id,
+                code: matchingStudent.studentId || matchingStudent.id,
+                firstName: matchingStudent.firstName,
+                lastName: matchingStudent.lastName,
+                class: studentClass,
+              } : null,
+            };
+          });
+          
+          // Sort by creation date and get recent 10
+          const recent = enrichedReports
+            .sort((a, b) => {
+              const dateA = new Date(a.createdAt || 0).getTime();
+              const dateB = new Date(b.createdAt || 0).getTime();
+              return dateB - dateA;
+            })
+            .slice(0, 10);
+          
+          setRecentReportCards(recent);
         } else {
-          // Other error, set to 0
-          setAssessmentCount(0);
+          setRecentReportCards([]);
         }
       } catch (error: any) {
-        // Silently handle errors for assessments endpoint (might not be implemented)
-        setAssessmentCount(0);
+        console.error("[Dashboard] Failed to fetch report cards:", error);
+        setRecentReportCards([]);
       }
     }
     fetchDashboardData();
@@ -103,92 +225,6 @@ export const DashboardPage = () => {
       figure: AssessmentCount,
       bg_color: "#FFE9CC",
       icon_color: "#F28C1F",
-    },
-  ];
-
-  const upcomingExamsData = [
-    {
-      id: 1,
-      subject: "Biology",
-      studentCount: 28,
-      questionCount: 50,
-      date: "01/08/22",
-      time: "08:00 am",
-    },
-    {
-      id: 2,
-      subject: "Mathematics",
-      studentCount: 28,
-      questionCount: 50,
-      date: "01/08/22",
-      time: "08:00 am",
-    },
-    {
-      id: 3,
-      subject: "English",
-      studentCount: 28,
-      questionCount: 50,
-      date: "01/08/22",
-      time: "08:00 am",
-    },
-  ];
-
-  const tableData = [
-    {
-      id: "S-101",
-      name: "John Doe",
-      class: "1 South",
-      lastUpdated: "01/01/2001",
-      contact: "+234567890456",
-      status: "Published",
-    },
-    {
-      id: "S-101",
-      name: "John Doe",
-      class: "1 South",
-      lastUpdated: "01/01/2001",
-      contact: "+234567890456",
-      status: "Draft",
-    },
-    {
-      id: "S-101",
-      name: "John Doe",
-      class: "1 South",
-      lastUpdated: "01/01/2001",
-      contact: "+234567890456",
-      status: "Draft",
-    },
-    {
-      id: "S-101",
-      name: "John Doe",
-      class: "1 South",
-      lastUpdated: "01/01/2001",
-      contact: "+234567890456",
-      status: "Published",
-    },
-    {
-      id: "S-101",
-      name: "John Doe",
-      class: "1 North",
-      lastUpdated: "01/01/2001",
-      contact: "+234567890456",
-      status: "Published",
-    },
-    {
-      id: "S-101",
-      name: "John Doe",
-      class: "1 East",
-      lastUpdated: "01/01/2001",
-      contact: "+234567890456",
-      status: "Published",
-    },
-    {
-      id: "S-101",
-      name: "John Doe",
-      class: "1 South",
-      lastUpdated: "01/01/2001",
-      contact: "+234567890456",
-      status: "Draft",
     },
   ];
 
@@ -278,121 +314,169 @@ export const DashboardPage = () => {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Upcoming Exams Section */}
+        {/* Recent Assessments Section */}
         <div className="lg:col-span-1 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">Upcoming Exams</h2>
+            <h2 className="text-xl font-bold text-slate-900">Recent Assessments</h2>
+            <Link href={routespath.ASSESSMENTS}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-[#641BC4] hover:bg-[#641BC4] hover:text-white text-xs font-semibold"
+              >
+                View All
+                <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </Link>
           </div>
           <div className="space-y-3">
-            {upcomingExamsData.map((item: any, index: number) => (
-              <Card
-                key={index}
-                className="border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
-              >
-                <div className="flex">
-                  <div className="w-2 bg-gradient-to-b from-[#641BC4] to-[#8538E0]"></div>
-                  <CardContent className="flex-1 p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-slate-900 text-base">
-                        {item.subject}
-                      </h3>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 px-3 text-[#641BC4] hover:bg-[#641BC4] hover:text-white"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
-                    </div>
-                    <div className="space-y-2 mb-3">
-                      <div className="flex items-center gap-4 text-sm text-slate-600">
-                        <span className="font-medium">
-                          {item.studentCount} Students
-                        </span>
-                        <span className="font-medium">
-                          {item.questionCount} Questions
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Clock className="w-3 h-3" />
-                        <span>{item.date}</span>
-                        <span>•</span>
-                        <span>{item.time}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </div>
+            {recentAssessments.length === 0 ? (
+              <Card className="border border-slate-200 shadow-sm">
+                <CardContent className="p-6 text-center">
+                  <p className="text-sm text-slate-500">No assessments yet</p>
+                </CardContent>
               </Card>
-            ))}
+            ) : (
+              recentAssessments.map((item: any, index: number) => (
+                <Card
+                  key={item.id || index}
+                  className="border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                >
+                  <div className="flex">
+                    <div className="w-2 bg-gradient-to-b from-[#641BC4] to-[#8538E0]"></div>
+                    <CardContent className="flex-1 p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-slate-900 text-base line-clamp-1">
+                            {item.title || item.subject?.name || "Untitled Assessment"}
+                          </h3>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {item.subject?.name || "Subject"}
+                          </p>
+                        </div>
+                        <Badge
+                          variant={item.status === "started" ? "default" : "secondary"}
+                          className={
+                            item.status === "started"
+                              ? "bg-green-100 text-green-800 hover:bg-green-100 ml-2"
+                              : item.status === "ended"
+                              ? "bg-amber-100 text-amber-800 hover:bg-amber-100 ml-2"
+                              : "bg-slate-100 text-slate-800 hover:bg-slate-100 ml-2"
+                          }
+                        >
+                          {item.status === "started" ? "Active" : item.status === "ended" ? "Ended" : "Draft"}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-4 text-xs text-slate-600">
+                          <span className="font-medium">
+                            {item.totalMarks || 100} Marks
+                          </span>
+                          {item.duration && (
+                            <span className="font-medium">
+                              {item.duration} mins
+                            </span>
+                          )}
+                        </div>
+                        {item.startsAt && (
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <Clock className="w-3 h-3" />
+                            <span>{new Date(item.startsAt).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         </div>
 
         {/* Report Cards Section */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <h2 className="text-xl font-bold text-slate-900">Report Cards</h2>
-            <Button className="bg-[#9747FF] hover:bg-[#8538E0] text-white shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Generate Report Cards
-            </Button>
+            <h2 className="text-xl font-bold text-slate-900">Recent Report Cards</h2>
+            <Link href={routespath.REPORT}>
+              <Button className="bg-[#9747FF] hover:bg-[#8538E0] text-white shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Generate Report Cards
+              </Button>
+            </Link>
           </div>
 
           {/* Responsive Table Container */}
           <Card className="border border-slate-200 shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gradient-to-r from-[#AD8ED6] to-[#9747FF]">
-                    {tableData.length > 0 &&
-                      Object.keys(tableData[0]).map((key, idx) => (
-                        <th
-                          key={key}
-                          className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider first:rounded-tl-lg last:rounded-tr-lg"
-                        >
-                          {key.charAt(0).toUpperCase() + key.slice(1)}
-                        </th>
-                      ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {tableData.map((row, index) => (
-                    <tr
-                      key={index}
-                      className={`hover:bg-slate-50 transition-colors ${
-                        index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
-                      }`}
-                    >
-                      {Object.entries(row).map(([key, value], cellIndex) => (
-                        <td
-                          key={cellIndex}
-                          className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap"
-                        >
-                          {key === "status" ? (
-                            <Badge
-                              variant={
-                                value === "Published"
-                                  ? "default"
-                                  : "secondary"
-                              }
-                              className={
-                                value === "Published"
-                                  ? "bg-green-100 text-green-800 hover:bg-green-100"
-                                  : "bg-slate-100 text-slate-800 hover:bg-slate-100"
-                              }
-                            >
-                              {value}
-                            </Badge>
-                          ) : (
-                            value
-                          )}
-                        </td>
-                      ))}
+            {recentReportCards.length === 0 ? (
+              <CardContent className="p-8 text-center">
+                <p className="text-sm text-slate-500">No report cards generated yet</p>
+              </CardContent>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-[#AD8ED6] to-[#9747FF]">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider rounded-tl-lg">
+                        Student ID
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                        Class
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                        Session/Term
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider rounded-tr-lg">
+                        Created
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {recentReportCards.map((report: any, index: number) => (
+                      <tr
+                        key={report.id || index}
+                        className={`hover:bg-slate-50 transition-colors ${
+                          index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+                        }`}
+                      >
+                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
+                          {report.student?.code || report.studentId || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-700">
+                          {report.student?.firstName || ""} {report.student?.lastName || report.studentName || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
+                          {report.student?.class?.name || report.className || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
+                          {report.session || "—"} / {report.term || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
+                          <Badge
+                            variant={report.status === "published" ? "default" : "secondary"}
+                            className={
+                              report.status === "published"
+                                ? "bg-green-100 text-green-800 hover:bg-green-100"
+                                : "bg-slate-100 text-slate-800 hover:bg-slate-100"
+                            }
+                          >
+                            {report.status === "published" ? "Published" : "Draft"}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
+                          {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </Card>
         </div>
       </div>
