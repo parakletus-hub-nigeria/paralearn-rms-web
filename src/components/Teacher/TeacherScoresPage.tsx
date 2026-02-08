@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { generateTemplate } from "@/lib/templates";
+import apiClient from "@/lib/api";
 
 
 const DEFAULT_PRIMARY = "#641BC4";
@@ -112,9 +113,45 @@ export function TeacherScoresPage() {
       return;
     }
     setLoadingStudents(true);
+    
+    // First fetch basic student list from class
     dispatch(fetchClassStudents(selectedClassId))
       .unwrap()
-      .then((data) => setStudents(data || []))
+      .then(async (data) => {
+        console.log("[TeacherScores] Fetched students from enrollments:", data);
+        
+        if (data && data.length > 0) {
+          // The enrollment data doesn't include studentId codes
+          // Fetch full user data to get studentId (like "DSA-S-26-0001")
+          try {
+            const userIds = data.map((s: any) => s.id).filter(Boolean);
+            const usersResp = await apiClient.get("/api/proxy/users");
+            
+            const usersData = usersResp.data;
+            const allUsers = usersData?.data || usersData || [];
+            
+            // Merge enrollment data with full user data
+            const enrichedStudents = data.map((student: any) => {
+              const matchingUser = allUsers.find((u: any) => u.id === student.id);
+              return {
+                ...student,
+                ...matchingUser, // This will include studentId field
+              };
+            });
+            
+            console.log("[TeacherScores] Enriched students with user data:", enrichedStudents);
+            if (enrichedStudents.length > 0) {
+              console.log("[TeacherScores] Sample enriched student:", enrichedStudents[0]);
+            }
+            setStudents(enrichedStudents);
+          } catch (error) {
+            console.error("[TeacherScores] Failed to fetch user data:", error);
+            setStudents(data);
+          }
+        } else {
+          setStudents([]);
+        }
+      })
       .catch(() => setStudents([]))
       .finally(() => setLoadingStudents(false));
   }, [dispatch, selectedClassId]);
@@ -323,36 +360,31 @@ export function TeacherScoresPage() {
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <div>
-              <h1 className="text-2xl font-bold">Score Sheet</h1>
-              <p className="text-emerald-100 text-sm mt-1">
+              <h1 className="text-xl sm:text-2xl font-bold">Score Sheet</h1>
+              <p className="text-emerald-100 text-xs sm:text-sm mt-1">
                 {selectedSubject?.name || "Select a subject"} • {selectedTerm} • {new Date().getFullYear()}/{new Date().getFullYear() + 1}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-200" />
-                <Input
-                  placeholder="Search students..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 h-11 w-[220px] rounded-xl border-emerald-400/50 bg-white/20 text-white placeholder:text-emerald-200 focus:bg-white focus:text-slate-900"
-                />
-              </div>
-
-              {/* Import Button - Disabled/Hidden for now as explained */}
-              {/* <label className="cursor-pointer">...</label> */}
+            {/* Search - Full width on mobile */}
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-200" />
+              <Input
+                placeholder="Search students..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 h-10 sm:h-11 w-full sm:w-[220px] rounded-xl border-emerald-400/50 bg-white/20 text-white placeholder:text-emerald-200 focus:bg-white focus:text-slate-900"
+              />
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-100">
-          <div className="flex flex-wrap items-end gap-4">
+        <div className="px-4 sm:px-6 py-4 bg-slate-50/50 border-b border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Class */}
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
@@ -362,7 +394,7 @@ export function TeacherScoresPage() {
                 setSelectedClassId(v);
                 setSelectedSubjectId("");
               }}>
-                <SelectTrigger className="h-11 w-[160px] rounded-xl border-slate-200 bg-white">
+                <SelectTrigger className="h-10 sm:h-11 w-full rounded-xl border-slate-200 bg-white">
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -385,7 +417,7 @@ export function TeacherScoresPage() {
                 onValueChange={setSelectedSubjectId} 
                 disabled={!selectedClassId || loadingSubjects}
               >
-                <SelectTrigger className="h-11 w-[180px] rounded-xl border-slate-200 bg-white">
+                <SelectTrigger className="h-10 sm:h-11 w-full rounded-xl border-slate-200 bg-white">
                   <SelectValue placeholder={loadingSubjects ? "Loading..." : "Select Subject"} />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -402,7 +434,7 @@ export function TeacherScoresPage() {
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Term</span>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                <SelectTrigger className="h-11 w-[140px] rounded-xl border-slate-200 bg-white">
+                <SelectTrigger className="h-10 sm:h-11 w-full rounded-xl border-slate-200 bg-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -414,11 +446,11 @@ export function TeacherScoresPage() {
             </div>
 
             {/* Class Average */}
-            <div className="flex flex-col gap-1.5 ml-auto">
+            <div className="flex flex-col gap-1.5">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Class Average</span>
-              <div className="flex items-center gap-2 h-11 px-4 rounded-xl border border-emerald-200 bg-emerald-50">
-                <span className="text-2xl font-bold text-emerald-600">{classAverage}%</span>
-                <TrendingUp className="w-5 h-5 text-emerald-500" />
+              <div className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 rounded-xl border border-emerald-200 bg-emerald-50">
+                <span className="text-xl sm:text-2xl font-bold text-emerald-600">{classAverage}%</span>
+                <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-500" />
               </div>
             </div>
           </div>
@@ -454,123 +486,222 @@ export function TeacherScoresPage() {
               <p className="text-slate-500 font-medium">No students found in this class</p>
             </div>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="bg-slate-800 text-white">
-                  <th className="text-left font-semibold py-4 px-5 text-sm w-[60px]">S/N</th>
-                  <th className="text-left font-semibold py-4 px-3 text-sm min-w-[120px]">STUDENT ID</th>
-                  <th className="text-left font-semibold py-4 px-3 text-sm min-w-[200px]">STUDENT NAME</th>
-                  {/* Dynamic Assessment Columns */}
-                  {relevantAssessments.map((assessment: any) => (
-                    <th key={assessment.id} className="text-center font-semibold py-4 px-3 text-sm min-w-[100px]">
-                      <div className="flex flex-col items-center">
-                        <span>{assessment.title}</span>
-                        <span className="text-[10px] opacity-70">({assessment.totalMarks || 100})</span>
-                      </div>
-                    </th>
-                  ))}
-                  <th className="text-center font-semibold py-4 px-3 text-sm w-[100px] border-l border-slate-700">TOTAL</th>
-                  <th className="text-center font-semibold py-4 px-3 text-sm w-[80px]">GRADE</th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* Mobile Card View */}
+              <div className="block lg:hidden px-4 pb-4">
                 {filteredStudents.map((student: any, idx: number) => {
-                  const studentId = student.id || student.studentId;
-                  const displayId = student.studentId || student.admissionNo || `—`;
+                  const studentId = student.id;
+                  const displayId = student.studentId || student.code || student.admissionNo || "—";
                   const studentTotal = getStudentTotal(studentId);
                   const { grade, color, textColor } = getGrade(studentTotal);
 
                   return (
-                    <tr
+                    <div
                       key={studentId || idx}
-                      className={`border-b border-slate-100 ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"} hover:bg-slate-100/50 transition-colors`}
+                      className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-3"
                     >
-                      <td className="py-4 px-5 text-sm text-slate-500 font-medium">{idx + 1}</td>
-                      <td className="py-4 px-3 text-sm text-slate-500 font-mono">{displayId}</td>
-                      <td className="py-4 px-3">
-                        <span className="font-semibold text-slate-900">
-                          {student.firstName} {student.lastName}
-                        </span>
-                      </td>
-                      
-                      {/* Dynamic Assessment Inputs */}
-                      {relevantAssessments.map((assessment: any) => {
-                        const score = editedScores.get(studentId)?.get(assessment.id) || "";
-                        const max = assessment.totalMarks || 100;
-                        
-                        return (
-                          <td key={assessment.id} className="py-4 px-3 text-center">
-                            <Input
-                              type="number"
-                              min="0"
-                              max={max}
-                              value={score}
-                              onChange={(e) => handleScoreChange(studentId, assessment.id, e.target.value)}
-                              placeholder="—"
-                              className="h-10 w-[70px] rounded-lg text-center mx-auto border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
-                            />
-                          </td>
-                        );
-                      })}
+                      {/* Student Header */}
+                      <div className="flex items-start justify-between mb-3 pb-3 border-b border-slate-100">
+                        <div className="flex-1">
+                          <div className="text-xs text-slate-400 uppercase tracking-wide mb-1">
+                            Student ID
+                          </div>
+                          <div className="font-mono font-semibold text-slate-700">
+                            {displayId}
+                          </div>
+                        </div>
+                        <div className="text-right text-xs text-slate-500">
+                          {idx + 1}
+                        </div>
+                      </div>
 
-                      <td className="py-4 px-3 text-center border-l border-slate-100 bg-slate-50/50">
-                        <span className={`font-bold text-lg ${studentTotal > 0 ? textColor : "text-slate-400"}`}>
-                          {studentTotal > 0 ? studentTotal : "—"}
-                        </span>
-                      </td>
-                      <td className="py-4 px-3 text-center bg-slate-50/50">
-                        {studentTotal > 0 ? (
-                          <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-white font-bold text-sm ${color}`}>
-                            {grade}
+                      {/* Student Name */}
+                      <div className="mb-4">
+                        <h3 className="font-bold text-lg text-slate-900">
+                          {student.firstName} {student.lastName}
+                        </h3>
+                      </div>
+
+                      {/* Assessment Scores */}
+                      <div className="space-y-3 mb-4">
+                        {relevantAssessments.map((assessment: any) => {
+                          const score = editedScores.get(studentId)?.get(assessment.id) || "";
+                          const max = assessment.totalMarks || 100;
+
+                          return (
+                            <div key={assessment.id} className="space-y-1">
+                              <label className="text-xs text-slate-500">
+                                {assessment.title} ({max})
+                              </label>
+                              <Input
+                                type="number"
+                                min="0"
+                                max={max}
+                                value={score}
+                                onChange={(e) => handleScoreChange(studentId, assessment.id, e.target.value)}
+                                placeholder="Enter score"
+                                className="h-11 rounded-lg text-base border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Total and Grade */}
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase tracking-wide mb-1">
+                            Total Score
+                          </div>
+                          <span className={`font-bold text-2xl ${studentTotal > 0 ? textColor : "text-slate-400"}`}>
+                            {studentTotal > 0 ? studentTotal : "—"}
                           </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                    </tr>
+                        </div>
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase tracking-wide mb-1 text-right">
+                            Grade
+                          </div>
+                          {studentTotal > 0 ? (
+                            <span className={`inline-flex items-center justify-center w-12 h-12 rounded-xl text-white font-bold text-lg ${color}`}>
+                              {grade}
+                            </span>
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+                              <span className="text-slate-400 text-lg">—</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden lg:block relative">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-slate-800 text-white">
+                        <th className="sticky left-0 z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm w-[50px] sm:w-[60px]">S/N</th>
+                        <th className="sticky left-[50px] sm:left-[60px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[100px] sm:min-w-[120px]">ID</th>
+                        <th className="sticky left-[150px] sm:left-[180px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[150px] sm:min-w-[200px]">NAME</th>
+                        {/* Dynamic Assessment Columns */}
+                        {relevantAssessments.map((assessment: any) => (
+                          <th key={assessment.id} className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[90px] sm:min-w-[100px]">
+                            <div className="flex flex-col items-center">
+                              <span className="truncate max-w-[80px] sm:max-w-none">{assessment.title}</span>
+                              <span className="text-[10px] opacity-70">({assessment.totalMarks || 100})</span>
+                            </div>
+                          </th>
+                        ))}
+                        <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[80px] sm:w-[100px] border-l border-slate-700">TOTAL</th>
+                        <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[70px] sm:w-[80px]">GRADE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredStudents.map((student: any, idx: number) => {
+                        const studentId = student.id;
+                        const displayId = student.studentId || student.code || student.admissionNo || "—";
+                        const studentTotal = getStudentTotal(studentId);
+                        const { grade, color, textColor } = getGrade(studentTotal);
+
+                        return (
+                          <tr
+                            key={studentId || idx}
+                            className={`border-b border-slate-100 ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"} hover:bg-slate-100/50 transition-colors`}
+                          >
+                            <td className="sticky left-0 z-10 bg-inherit py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm text-slate-500 font-medium">{idx + 1}</td>
+                            <td className="sticky left-[50px] sm:left-[60px] z-10 bg-inherit py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm text-slate-700 font-mono font-semibold">{displayId}</td>
+                            <td className="sticky left-[150px] sm:left-[180px] z-10 bg-inherit py-3 sm:py-4 px-2 sm:px-3">
+                              <span className="font-semibold text-slate-900 text-xs sm:text-sm">
+                                {student.firstName} {student.lastName}
+                              </span>
+                            </td>
+                            
+                            {/* Dynamic Assessment Inputs */}
+                            {relevantAssessments.map((assessment: any) => {
+                              const score = editedScores.get(studentId)?.get(assessment.id) || "";
+                              const max = assessment.totalMarks || 100;
+                              
+                              return (
+                                <td key={assessment.id} className="py-3 sm:py-4 px-2 sm:px-3 text-center">
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max={max}
+                                    value={score}
+                                    onChange={(e) => handleScoreChange(studentId, assessment.id, e.target.value)}
+                                    placeholder="—"
+                                    className="h-8 sm:h-10 w-[60px] sm:w-[70px] rounded-lg text-xs sm:text-sm text-center mx-auto border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                  />
+                                </td>
+                              );
+                            })}
+
+                            <td className="py-3 sm:py-4 px-2 sm:px-3 text-center border-l border-slate-100 bg-slate-50/50">
+                              <span className={`font-bold text-base sm:text-lg ${studentTotal > 0 ? textColor : "text-slate-400"}`}>
+                                {studentTotal > 0 ? studentTotal : "—"}
+                              </span>
+                            </td>
+                            <td className="py-3 sm:py-4 px-2 sm:px-3 text-center bg-slate-50/50">
+                              {studentTotal > 0 ? (
+                                <span className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-white font-bold text-xs sm:text-sm ${color}`}>
+                                  {grade}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
           )}
         </div>
 
         {/* Footer */}
         {selectedClassId && selectedSubjectId && filteredStudents.length > 0 && (
-          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {totalEntries > 0 ? (
-                <>
-                  <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
-                  <span className="text-sm text-slate-600">
-                    Ready to save scores
-                  </span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="w-4 h-4 text-slate-400" />
-                  <span className="text-sm text-slate-500">No scores entered yet</span>
-                </>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                className="h-11 px-5 rounded-xl"
-                disabled={totalEntries === 0}
-                onClick={() => setEditedScores(new Map())}
-              >
-                Clear All
-              </Button>
-              <Button
-                onClick={handleSaveScores}
-                disabled={saving || totalEntries === 0}
-                className="h-11 px-6 rounded-xl text-white font-semibold gap-2"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <Save className="w-4 h-4" />
-                {saving ? "Saving..." : "Save Scores"}
-              </Button>
+          <div className="px-4 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-3">
+                {totalEntries > 0 ? (
+                  <>
+                    <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-xs sm:text-sm text-slate-600">
+                      Ready to save scores
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 text-slate-400" />
+                    <span className="text-xs sm:text-sm text-slate-500">No scores entered yet</span>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none"
+                  disabled={totalEntries === 0}
+                  onClick={() => setEditedScores(new Map())}
+                >
+                  Clear All
+                </Button>
+                <Button
+                  onClick={handleSaveScores}
+                  disabled={saving || totalEntries === 0}
+                  className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl text-white font-semibold gap-2 text-sm flex-1 sm:flex-none"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? "Saving..." : "Save Scores"}
+                </Button>
+              </div>
             </div>
           </div>
         )}
