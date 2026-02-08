@@ -725,3 +725,40 @@ export const deleteAssessmentCategory = createAsyncThunk(
     }
   }
 );
+
+// Fetch students by class using /users endpoint
+export const fetchStudentsByClass = createAsyncThunk(
+  "admin/fetchStudentsByClass",
+  async (params: { classId: string }, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.get(`/api/proxy/users?classId=${params.classId}&role=student`);
+      const data = res.data?.data || res.data || [];
+      return Array.isArray(data) ? data : [];
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to fetch students"
+      );
+    }
+  }
+);
+
+// Fetch generated report cards for a class
+export const fetchClassReportCards = createAsyncThunk(
+  "admin/fetchClassReportCards",
+  async (params: { classId?: string; session?: string; term?: string }, { rejectWithValue }) => {
+    try {
+      const query = new URLSearchParams();
+      if (params.classId) query.set("classId", params.classId);
+      if (params.session) query.set("session", params.session);
+      if (params.term) query.set("term", params.term);
+      
+      const res = await apiClient.get(`/api/proxy/reports/report-cards?${query}`);
+      const data = res.data?.data || res.data || [];
+      return Array.isArray(data) ? data : [];
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to load report cards"
+      );
+    }
+  }
+);

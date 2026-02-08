@@ -50,6 +50,7 @@ const Step_Three = ({
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadCount, setUploadCount] = useState(0);
+  const [successMessage, setSuccessMessage] = useState("");
   const { subdomain: reduxSubdomain } = useSelector((state: RootState) => state.user);
 
   const invalidCount = validatedFileContent.length - ValidNumber;
@@ -66,6 +67,7 @@ const Step_Three = ({
     setValidatedFileContent([]);
     setValidNumber(0);
     setUploadCount(0);
+    setSuccessMessage("");
   };
 
   const handleSubmit = async () => {
@@ -103,12 +105,15 @@ const Step_Three = ({
 
       const res = response.data;
       
-      const uploadedCount = res.data?.validCount || res.validCount || 0; 
-      setUploadCount(uploadedCount);
+      // New backend returns totalRecords and message for background processing
+      const totalRecords = res.data?.totalRecords || res.totalRecords || ValidNumber;
+      const message = res.data?.message || res.message || 
+        `Creation of ${totalRecords} ${uploadType}s processing in the background. You will receive an email notification when completed.`;
+      
+      setUploadCount(totalRecords);
+      setSuccessMessage(message);
       setShowSuccessDialog(true);
-      toast.success(
-        `Successfully uploaded ${uploadedCount} ${uploadType}(s) from file`
-      );
+      toast.success(message);
     } catch (error: any) {
       console.error("Bulk upload error:", error);
       toast.error(
@@ -231,20 +236,22 @@ const Step_Three = ({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="text-center">
-              <p className="text-gray-700 mb-2">
-                Your bulk upload has been completed successfully.
+              <p className="text-gray-700 mb-4">
+                {successMessage || `Your bulk upload has been submitted successfully.`}
               </p>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <p className="text-2xl font-bold text-green-600">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-2xl font-bold text-blue-600">
                   {uploadCount}
                 </p>
                 <p className="text-sm text-gray-600">
-                  Records uploaded successfully
+                  {uploadType}s queued for processing
                 </p>
               </div>
-              <p className="text-xs text-gray-500">
-                The uploaded {uploadType}s have been added to your system.
-              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-xs text-yellow-800">
+                  <strong>Note:</strong> You will receive an email notification when the processing is complete.
+                </p>
+              </div>
             </div>
             <div className="flex gap-3 justify-center pt-4">
               <Button
