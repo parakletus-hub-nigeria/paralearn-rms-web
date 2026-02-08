@@ -55,27 +55,11 @@ apiClient.interceptors.request.use(
         config.headers["X-Tenant-Subdomain"] = subdomain;
       }
 
-      // Log request in development
+      // Log warnings in development
       if (process.env.NODE_ENV === "development") {
-        if (!token) {
-          console.warn("[API Request] WARNING: No auth token found for request", config.url);
-        }
         if (!subdomain && !isAuthLogin) {
-          console.error("[API Request] ERROR: No subdomain found for non-auth request!", {
-            url: config.url,
-            reduxSubdomain,
-            localStorage: typeof window !== "undefined" ? localStorage.getItem("adminSubdomain") : "N/A",
-          });
+          console.warn("[API Request] Missing subdomain for:", config.url);
         }
-        console.log("[API Request]", {
-          method: config.method?.toUpperCase(),
-          url: config.url,
-          hasAuth: !!token,
-          subdomain: subdomain || "none",
-          reduxSubdomain: state.user?.subdomain || "none",
-          localStorage: typeof window !== "undefined" ? localStorage.getItem("adminSubdomain") : "N/A",
-          hasSubdomainHeader: !!config.headers["X-Tenant-Subdomain"],
-        });
       }
 
       return config;

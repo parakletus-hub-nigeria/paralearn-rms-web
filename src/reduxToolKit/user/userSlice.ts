@@ -61,9 +61,7 @@ const getInitialUser = (): UserState["user"] => {
     const raw = localStorage.getItem(USER_KEY);
     if (!raw) return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
     const parsed = JSON.parse(raw);
-    console.log("[userSlice] Loaded from storage:", parsed);
     const roles = normalizeRoles(parsed?.roles);
-    console.log("[userSlice] Normalized roles:", roles);
     return {
       id: parsed?.id || "",
       email: parsed?.email || "",
@@ -155,8 +153,6 @@ const userSlice = createSlice({
         state.subdomain = action.payload.subdomain || state.subdomain;
         state.success = true;
         state.error = null;
-        console.log("[userSlice] Login fulfilled. Subdomain stored:", state.subdomain);
-        console.log("[userSlice] Login fulfilled. Payload user:", action.payload.user);
         // Persist user snapshot for reloads (roles-based guards)
         if (typeof window !== "undefined") {
           try {
@@ -164,7 +160,6 @@ const userSlice = createSlice({
                 ...action.payload.user,
                 roles: normalizeRoles(action.payload.user?.roles),
             };
-            console.log("[userSlice] Saving to localStorage:", toSave);
             localStorage.setItem(
               USER_KEY,
               JSON.stringify(toSave)

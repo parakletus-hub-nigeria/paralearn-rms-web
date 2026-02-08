@@ -47,17 +47,11 @@ export const extractTokenAndUser = (data: any) => {
  * Handles the response structure: { data: { school: { subdomain: "..." } } }
  */
 export const extractSubdomainFromUser = (user: any, responseData: any): string | null => {
-  console.log("[extractSubdomainFromUser] Response data:", responseData);
-  console.log("[extractSubdomainFromUser] Checking data.school.subdomain:", responseData?.data?.school?.subdomain);
-  
   // Priority: 1. Response data.school.subdomain, 2. Response root subdomain, 3. School object subdomain
-  const subdomain = (
+  return (
     responseData?.data?.school?.subdomain || 
     responseData?.subdomain || 
     responseData?.school?.subdomain ||
     null
   );
-  
-  console.log("[extractSubdomainFromUser] Extracted subdomain:", subdomain);
-  return subdomain;
 };

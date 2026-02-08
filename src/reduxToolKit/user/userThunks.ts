@@ -52,12 +52,7 @@ export const loginUser = createAsyncThunk(
         await setAuthToken(accessToken);
       }
 
-      console.log("[Login Thunk] Token:", accessToken ? "Found" : "Missing");
-      console.log("[Login Thunk] User from response:", userFromResponse);
-
       const roles = normalizeRoles(userFromResponse?.roles);
-      console.log("[Login Thunk] Normalized roles:", roles);
-
       const redirectTo = pickRedirectPath(roles);
       const subdomain = extractSubdomainFromUser(userFromResponse, response.data);
 
@@ -144,6 +139,21 @@ export const loginUser = createAsyncThunk(
               newHost = `${subdomainStr}.${baseDomain}`;
             } else {
               newHost = `${subdomainStr}.${currentHost}`;
+            }
+          }
+          
+          // CRITICAL: Save user data to localStorage BEFORE redirecting
+          // This ensures the data persists after page reload
+          const userToSave = {
+            ...(userFromResponse || {}),
+            roles,
+          };
+          
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("currentUser", JSON.stringify(userToSave));
+            } catch (e) {
+              console.error("[Login Thunk] Failed to save user to localStorage:", e);
             }
           }
           
