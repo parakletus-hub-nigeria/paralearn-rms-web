@@ -36,6 +36,7 @@ export const routespath = {
   API_CREATE_ACADEMIC_SESSION: "/academic/sessions",
   API_GET_ALL_SESSIONS: "/academic/sessions",
   API_GET_CURRENT_SESSION: "/academic/current",
+  API_UPDATE_CURRENT_SESSION: "/academic/sessions/current/update",
   // Class endpoints
   API_CREATE_CLASS: "/classes",
   // Subject endpoints

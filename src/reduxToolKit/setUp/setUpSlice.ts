@@ -8,7 +8,9 @@ import {
   onboardingSetup,
   createClass,
   createSubject,
+
   updateGradingScale,
+  updateCurrentSession,
   AcademicSession,
   CurrentSessionResponse,
   OnboardingSetupResponse,
@@ -245,6 +247,34 @@ const setUpSlice = createSlice({
         state.error = (action.payload as string) || "Failed to update grading scale";
         state.success = false;
       });
+
+
+    // Update Current Session
+    builder
+      .addCase(updateCurrentSession.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(updateCurrentSession.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+        state.currentSession = action.payload; // Assuming the API returns the updated session structure
+        
+        // Update the session in the sessions list as well
+        const updatedSession = action.payload.sessionDetails || action.payload; // Handle potential difference in response structure
+        const index = state.sessions.findIndex(s => s.id === updatedSession.id);
+        if (index !== -1) {
+            // Merge or replace
+             state.sessions[index] = { ...state.sessions[index], ...updatedSession };
+        }
+      })
+      .addCase(updateCurrentSession.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to update academic session";
+        state.success = false;
+      });
   },
 });
 
@@ -267,6 +297,7 @@ export {
   createClass,
   createSubject,
   updateGradingScale,
+  updateCurrentSession,
 };
 const setUpReducer=setUpSlice.reducer;
 export default setUpReducer

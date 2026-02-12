@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { assignTeacherToSubject, createSubject, fetchClasses, fetchSubjects } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
-import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
+import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import apiClient from "@/lib/api";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
@@ -53,7 +53,7 @@ const getColorByIndex = (idx: number) => {
 export function AdminSubjectsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { subjects, classes, loading, error, success } = useSelector((s: RootState) => s.admin);
-  const { teachers } = useSelector((s: RootState) => s.user);
+  const { teachers, tenantInfo } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
@@ -81,6 +81,7 @@ export function AdminSubjectsPage() {
     dispatch(fetchSubjects());
     dispatch(fetchClasses(undefined));
     dispatch(fetchAllUsers());
+    dispatch(getTenantInfo());
   }, [dispatch]);
 
   useEffect(() => {
@@ -373,7 +374,10 @@ export function AdminSubjectsPage() {
 
   return (
     <div className="w-full">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
 
       {/* Page Header */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">

@@ -13,7 +13,7 @@ import {
   removeTeacherFromClass,
 } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
-import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
+import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ const classColors = [
 export function AdminClassesPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { classes, loading, error, success, selectedClassDetails } = useSelector((s: RootState) => s.admin);
-  const { teachers } = useSelector((s: RootState) => s.user);
+  const { teachers, tenantInfo } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
@@ -80,6 +80,7 @@ export function AdminClassesPage() {
   useEffect(() => {
     dispatch(fetchClasses(undefined));
     dispatch(fetchAllUsers());
+    dispatch(getTenantInfo());
   }, [dispatch]);
 
   useEffect(() => {
@@ -220,7 +221,10 @@ export function AdminClassesPage() {
 
   return (
     <div className="w-full">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
 
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">

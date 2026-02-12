@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
+import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { bulkEnrollStudents, fetchClasses, fetchClassDetails, removeStudentFromClass } from "@/reduxToolKit/admin/adminThunks";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
@@ -25,7 +25,7 @@ const DEFAULT_PRIMARY = "#641BC4";
 
 export function AdminEnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { students, loading: usersLoading } = useSelector((s: RootState) => s.user);
+  const { students, loading: usersLoading, tenantInfo } = useSelector((s: RootState) => s.user);
   const { classes, loading: adminLoading, selectedClassDetails } = useSelector((s: RootState) => s.admin);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -39,6 +39,7 @@ export function AdminEnrollmentsPage() {
   useEffect(() => {
     dispatch(fetchAllUsers());
     dispatch(fetchClasses(undefined));
+    dispatch(getTenantInfo());
   }, [dispatch]);
 
   // Load class details when a class is selected
@@ -169,7 +170,10 @@ export function AdminEnrollmentsPage() {
 
   return (
     <div className="w-full">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
 
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">

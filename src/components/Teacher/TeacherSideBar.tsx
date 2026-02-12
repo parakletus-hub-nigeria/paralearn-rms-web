@@ -33,7 +33,7 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const { user } = useSelector((s: RootState) => s.user);
+  const { user, tenantInfo } = useSelector((s: RootState) => s.user);
 
   const items = useMemo(
     () => [
@@ -48,6 +48,15 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
     ],
     []
   );
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
 
   const handleLogout = async () => {
     try {
@@ -65,7 +74,7 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
       <Sidebar className="border-r border-purple-100/50">
         <SidebarHeader className="p-6">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-50 p-1 rounded-lg">
+            <div className="shrink-0 bg-purple-50 p-1 rounded-lg">
               <Image
                 src={logo}
                 width={930}
@@ -75,7 +84,7 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
               />
             </div>
             <div className="flex flex-col leading-tight">
-              <p className="text-[#641BC4] font-bold text-lg tracking-tight">PARA LEARN</p>
+              <p className="text-[#641BC4] font-bold text-lg tracking-tight">{tenantInfo?.name || "PARA LEARN"}</p>
               <p className="text-xs text-slate-500 font-medium">
                 Teacher{user?.firstName ? ` • ${user.firstName}` : ""}
               </p>

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
+import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import {
   fetchClasses,
   fetchStudentsByClass,
@@ -50,7 +51,7 @@ export function AdminReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { currentSession } = useSelector((s: RootState) => s.setUp);
   const { classes, loading, error, success } = useSelector((s: RootState) => s.admin);
-  const { user } = useSelector((s: RootState) => s.user);
+  const { user, tenantInfo } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
@@ -90,6 +91,7 @@ export function AdminReportsPage() {
     if (!hasRole) return;
     dispatch(fetchCurrentSession());
     dispatch(fetchClasses(undefined));
+    dispatch(getTenantInfo());
   }, [dispatch, hasRole]);
 
   // Set defaults from current session
@@ -337,7 +339,10 @@ export function AdminReportsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header schoolLogo={schoolSettings?.schoolLogo || "/PL2 (1).svg"} />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
         <div>

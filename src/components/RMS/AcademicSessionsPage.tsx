@@ -8,7 +8,9 @@ import {
   fetchCurrentSession,
   activateTerm,
   createAcademicSession,
+  updateCurrentSession,
 } from "@/reduxToolKit/setUp/setUpSlice";
+import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { Header } from "@/components/RMS/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +36,7 @@ export const AcademicSessionsPage = () => {
   const { sessions, currentSession, loading } = useSelector(
     (state: RootState) => state.setUp
   );
+  const { tenantInfo } = useSelector((state: RootState) => state.user);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newSession, setNewSession] = useState({
@@ -47,9 +50,31 @@ export const AcademicSessionsPage = () => {
     ],
   });
 
+  // Update Session State
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [updateSessionData, setUpdateSessionData] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentSession && isUpdateModalOpen) {
+      setUpdateSessionData({
+        id: currentSession.sessionDetails.id,
+        session: currentSession.session,
+        startsAt: currentSession.sessionDetails.startsAt.split('T')[0],
+        endsAt: currentSession.sessionDetails.endsAt.split('T')[0],
+        terms: currentSession.sessionDetails.terms.map(t => ({
+          id: t.id,
+          term: t.term,
+          startsAt: t.startsAt.split('T')[0],
+          endsAt: t.endsAt.split('T')[0]
+        }))
+      });
+    }
+  }, [currentSession, isUpdateModalOpen]);
+
   useEffect(() => {
     dispatch(fetchAllSessions());
     dispatch(fetchCurrentSession());
+    dispatch(getTenantInfo());
   }, [dispatch]);
 
   const handleActivateTerm = async (sessionId: string, termId: string) => {
@@ -88,10 +113,43 @@ export const AcademicSessionsPage = () => {
     }
   };
 
+  const handleUpdateSession = async () => {
+    try {
+      if (!updateSessionData) return;
+
+      const formatStartDate = (dateStr: string) => `${dateStr}T00:00:00.000Z`;
+      const formatEndDate = (dateStr: string) => `${dateStr}T23:59:59.000Z`;
+
+      const payload = {
+        id: updateSessionData.id,
+        session: updateSessionData.session,
+        startsAt: formatStartDate(updateSessionData.startsAt),
+        endsAt: formatEndDate(updateSessionData.endsAt),
+        terms: updateSessionData.terms.map((t: any) => ({
+          id: t.id,
+          term: t.term,
+          startsAt: formatStartDate(t.startsAt),
+          endsAt: formatEndDate(t.endsAt),
+        })),
+      };
+
+      await dispatch(updateCurrentSession(payload)).unwrap();
+      toast.success("Academic session updated successfully!");
+      setIsUpdateModalOpen(false);
+      dispatch(fetchCurrentSession());
+      dispatch(fetchAllSessions());
+    } catch (error: any) {
+      toast.error(error || "Failed to update session");
+    }
+  };
+
   return (
     <div className="w-full min-h-screen pb-12 bg-[#FDFDFF]">
       <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 pt-4 md:pt-8">
-        <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+        <Header 
+          schoolLogo={tenantInfo?.logoUrl} 
+          schoolName={tenantInfo?.name || "ParaLearn School"}
+        />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 mt-4">
           <div className="flex-1 min-w-0">
@@ -223,6 +281,110 @@ export const AcademicSessionsPage = () => {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Update Session Modal */}
+          <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
+               <div className="bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-8 text-white">
+                <DialogTitle className="text-2xl font-black font-coolvetica">Update Academic Session</DialogTitle>
+                <DialogDescription className="text-purple-100 font-medium mt-1">
+                  Modify the current academic cycle schedule
+                </DialogDescription>
+              </div>
+              
+              {updateSessionData && (
+                <div className="p-8 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-slate-700 font-bold">Academic Year</Label>
+                      <Input 
+                        value={updateSessionData.session} 
+                        disabled
+                        className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-500 font-medium"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-slate-700 font-bold">Start Date</Label>
+                      <Input 
+                        type="date" 
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
+                        value={updateSessionData.startsAt} 
+                        onChange={(e) => setUpdateSessionData({...updateSessionData, startsAt: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-slate-700 font-bold">End Date</Label>
+                      <Input 
+                        type="date" 
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
+                        value={updateSessionData.endsAt} 
+                        onChange={(e) => setUpdateSessionData({...updateSessionData, endsAt: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-bold text-slate-800 tracking-tight">Terms Configuration</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {updateSessionData.terms.map((term: any, index: number) => (
+                        <div key={index} className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-4 transition-all hover:border-purple-200 hover:shadow-md">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-[#641BC4] font-black text-xs">
+                                {index + 1}
+                              </div>
+                              <span className="font-bold text-slate-800">{term.term}</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Start Date</Label>
+                              <Input 
+                                type="date" 
+                                className="h-10 rounded-lg border-slate-100 bg-slate-50/30 focus:bg-white"
+                                value={term.startsAt}
+                                onChange={(e) => {
+                                  const updatedTerms = [...updateSessionData.terms];
+                                  updatedTerms[index].startsAt = e.target.value;
+                                  setUpdateSessionData({...updateSessionData, terms: updatedTerms});
+                                }}
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">End Date</Label>
+                              <Input 
+                                type="date" 
+                                className="h-10 rounded-lg border-slate-100 bg-slate-50/30 focus:bg-white"
+                                value={term.endsAt}
+                                onChange={(e) => {
+                                  const updatedTerms = [...updateSessionData.terms];
+                                  updatedTerms[index].endsAt = e.target.value;
+                                  setUpdateSessionData({...updateSessionData, terms: updatedTerms});
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="p-8 bg-slate-50 flex justify-end gap-3 border-t border-slate-100">
+                <Button variant="ghost" onClick={() => setIsUpdateModalOpen(false)} className="rounded-xl font-bold text-slate-500 hover:bg-slate-200/50">Cancel</Button>
+                <Button 
+                  onClick={handleUpdateSession}
+                  className="bg-[#641BC4] hover:bg-[#5217a1] rounded-xl px-8 font-bold shadow-lg shadow-purple-200"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Current Active Banner */}
@@ -262,6 +424,12 @@ export const AcademicSessionsPage = () => {
                         <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-200" />
                         <span className="text-xs sm:text-sm font-bold text-white tracking-tight">Ends: {new Date(currentSession.sessionDetails.endsAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric'})}</span>
                       </div>
+                      <Button 
+                        onClick={() => setIsUpdateModalOpen(true)}
+                        className="bg-white/20 hover:bg-white/30 text-white border border-white/20 backdrop-blur-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl font-bold h-auto shadow-lg"
+                      >
+                        Edit Schedule
+                      </Button>
                       <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/10">
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                         <span className="text-xs sm:text-sm font-bold text-white tracking-tight">Online & Processing</span>

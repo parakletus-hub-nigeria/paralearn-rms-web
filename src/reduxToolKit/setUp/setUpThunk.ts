@@ -138,6 +138,49 @@ export const fetchCurrentSession = createAsyncThunk(
   }
 );
 
+// Update Current Academic Session
+export interface UpdateSessionInput {
+  id: string;
+  session: string;
+  startsAt: string;
+  endsAt: string;
+  terms: {
+    id?: string;
+    term: string;
+    startsAt: string;
+    endsAt: string;
+  }[];
+}
+
+export const updateCurrentSession = createAsyncThunk(
+  "setUp/updateCurrentSession",
+  async (data: UpdateSessionInput, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post(
+        `/api/proxy${routespath.API_UPDATE_CURRENT_SESSION}`,
+        data
+      );
+
+      if (response.data?.success === false) {
+        const errorMessage = response.data?.message || "Failed to update academic session";
+        console.error("[Update Academic Session Error]", errorMessage);
+        return rejectWithValue(errorMessage);
+      }
+
+      return response.data.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update academic session";
+
+      console.error("[Update Academic Session Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 // Activate Term
 export const activateTerm = createAsyncThunk(
   "setUp/activateTerm",

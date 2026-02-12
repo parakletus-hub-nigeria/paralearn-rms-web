@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchAllUsers } from "@/reduxToolKit/user/userThunks";
+import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import Link from "next/link";
 
 export const DashboardPage = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { studentCount, teacherCount, users } = useSelector(
+  const { studentCount, teacherCount, users, tenantInfo } = useSelector(
     (state: RootState) => state.user
   );
   const { currentSession } = useSelector(
@@ -34,6 +34,7 @@ export const DashboardPage = () => {
     // Fetch users using Redux
     dispatch(fetchAllUsers());
     dispatch(fetchCurrentSession());
+    dispatch(getTenantInfo());
     
     async function fetchDashboardData() {
       // Fetch subjects count
@@ -232,7 +233,8 @@ export const DashboardPage = () => {
     <div className="w-full space-y-6 pb-8">
       {/* Header Section */}
       <Header 
-        schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
         showGreeting={true}
       />
 
@@ -245,10 +247,10 @@ export const DashboardPage = () => {
             </div>
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <p className="text-purple-100 text-xs font-bold uppercase tracking-wider mb-1">
+                <p className="text-white text-xs font-bold uppercase tracking-wider mb-1">
                   Active Academic Period
                 </p>
-                <h2 className="text-xl sm:text-2xl font-black">
+                <h2 className="text-xl sm:text-2xl font-black text-white">
                   {currentSession.session} — {currentSession.term}
                 </h2>
               </div>

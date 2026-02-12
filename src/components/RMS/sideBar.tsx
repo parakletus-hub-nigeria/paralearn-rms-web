@@ -37,7 +37,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const { user } = useSelector((s: RootState) => s.user);
+  const { user, tenantInfo } = useSelector((s: RootState) => s.user);
 
   const handleLogout = async () => {
     try {
@@ -76,22 +76,31 @@ const SideBar = ({ children }: { children: ReactNode }) => {
     []
   );
 
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
   return (
     <SidebarProvider>
       <Sidebar className="border-r border-purple-100/50 bg-white">
         <SidebarHeader className="p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <Link href={routespath.DASHBOARD} className="block">
+            <Link href={routespath.DASHBOARD} className="block shrink-0">
               <Image
                 src={logo}
                 width={930}
                 height={479}
-                className="h-auto w-[120px] sm:w-[140px] md:w-[160px] max-w-full object-contain"
+                className="h-auto w-[100px] sm:w-[110px] md:w-[120px] max-w-full object-contain"
                 alt="paralearn logo"
               />
             </Link>
             <div className="flex flex-col leading-tight">
-              <p className="text-[#641BC4] font-bold text-lg tracking-tight">PARA LEARN</p>
+              <p className="text-[#641BC4] font-bold text-lg tracking-tight">{tenantInfo?.name || "PARA LEARN"}</p>
               <p className="text-xs text-slate-500 font-medium">
                 Admin{user?.firstName ? ` • ${user.firstName}` : ""}
               </p>

@@ -1,12 +1,21 @@
 import Image from "next/image"
 
-export const Header = ({ schoolLogo, showGreeting = false }: { schoolLogo: string; showGreeting?: boolean }) => {
+export const Header = ({ schoolLogo, schoolName, showGreeting = false }: { schoolLogo?: string; schoolName?: string; showGreeting?: boolean }) => {
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour >= 5 && hour < 12) return "Good morning";
         if (hour >= 12 && hour < 17) return "Good afternoon";
         if (hour >= 17 && hour < 21) return "Good evening";
         return "Good night";
+    };
+
+    const getInitials = (name: string) => {
+        return name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .substring(0, 2)
+            .toUpperCase();
     };
 
     return (
@@ -27,13 +36,19 @@ export const Header = ({ schoolLogo, showGreeting = false }: { schoolLogo: strin
             <div className="relative group/logo">
                 <div className="absolute -inset-2 bg-gradient-to-br from-[#641BC4] to-[#8538E0] rounded-2xl blur-lg opacity-0 group-hover/logo:opacity-20 transition-opacity duration-500" />
                 <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden relative z-10 p-2 group-hover/logo:border-purple-200 transition-colors duration-500">
-                    <Image
-                        src={schoolLogo}
-                        alt="School Logo"
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover/logo:scale-110"
-                    />
+                    {schoolLogo ? (
+                        <Image
+                            src={schoolLogo}
+                            alt="School Logo"
+                            width={64}
+                            height={64}
+                            className="w-full h-full object-contain transition-transform duration-500 group-hover/logo:scale-110"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-purple-100 text-purple-700 font-bold text-xl">
+                            {getInitials(schoolName || "PL")}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

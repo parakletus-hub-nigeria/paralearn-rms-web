@@ -112,7 +112,7 @@ const ComparisonSection = () => {
                       Instant Compilation
                     </h4>
                     <p className="text-slate-600 dark:text-slate-400">
-                      Scores move from teacher phones to the master broadsheet in real-time.
+                      Scores move from teachers' phones to the master broadsheet in real-time.
                     </p>
                   </div>
                   

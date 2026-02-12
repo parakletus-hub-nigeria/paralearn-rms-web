@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchScoresByAssessment, fetchClasses, fetchSubjects, fetchAssessments } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
+import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function AdminScoresPage() {
   const { scores, classes, subjects, assessments, loading, error, success } = useSelector(
     (s: RootState) => s.admin
   );
+  const { tenantInfo } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
@@ -50,6 +52,7 @@ export function AdminScoresPage() {
     dispatch(fetchClasses(undefined));
     dispatch(fetchSubjects());
     dispatch(fetchAssessments());
+    dispatch(getTenantInfo());
   }, [dispatch]);
 
   useEffect(() => {
@@ -148,7 +151,10 @@ export function AdminScoresPage() {
 
   return (
     <div className="w-full">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
 
       {/* Info Banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">

@@ -9,6 +9,7 @@ import {
   fetchAssessments,
   fetchSubjects,
 } from "@/reduxToolKit/admin/adminThunks";
+import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
@@ -76,6 +77,7 @@ export function AdminAssessmentsPage() {
   const { assessments, classes, subjects, loading, error, success } = useSelector(
     (s: RootState) => s.admin
   );
+  const { tenantInfo } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
@@ -88,6 +90,7 @@ export function AdminAssessmentsPage() {
     dispatch(fetchAssessments());
     dispatch(fetchClasses(undefined));
     dispatch(fetchSubjects());
+    dispatch(getTenantInfo());
   }, [dispatch]);
 
   useEffect(() => {
@@ -147,7 +150,10 @@ export function AdminAssessmentsPage() {
 
   return (
     <div className="w-full">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
 
       {/* Page Header */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">

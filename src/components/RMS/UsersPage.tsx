@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchAllUsers, deleteUser } from "@/reduxToolKit/user/userThunks";
+import { fetchAllUsers, deleteUser, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { fetchClasses } from "@/reduxToolKit/admin/adminThunks";
 import { exportStudentsToPDF, exportTeachersToPDF } from "@/lib/pdfExport";
 import { Header } from "@/components/RMS/header";
@@ -67,7 +67,7 @@ type UserRow = {
 export const UsersPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const { students, teachers, loading } = useSelector((s: RootState) => s.user);
+  const { students, teachers, loading, tenantInfo } = useSelector((s: RootState) => s.user);
   const { classes } = useSelector((s: RootState) => s.admin);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
 
@@ -88,6 +88,7 @@ export const UsersPage = () => {
   useEffect(() => {
     dispatch(fetchAllUsers());
     dispatch(fetchClasses(undefined));
+    dispatch(getTenantInfo());
   }, [dispatch]);
 
   // Create a map of class IDs to class names
@@ -272,7 +273,10 @@ export const UsersPage = () => {
 
   return (
     <div className="w-full">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
 
       {/* Page Header */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">

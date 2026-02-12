@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import ProgressBar from "@/components/auth/progressBar";
 import { Header } from "@/components/RMS/header";
 import Step_One from "@/components/RMS/bulk_upload/step1";
@@ -21,6 +24,8 @@ type contentType = {
 };
 
 export const BulkUploadPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { tenantInfo } = useSelector((s: RootState) => s.user);
   const [step, setStep] = useState(1);
   const [fileContent, setFileContent] = useState([]);
   const [originalFile, setOriginalFile] = useState<File | null>(null);
@@ -31,6 +36,10 @@ export const BulkUploadPage = () => {
   const [uploadType, setUploadType] = useState<"student" | "teacher">(
     "student"
   );
+
+  useEffect(() => {
+    dispatch(getTenantInfo());
+  }, [dispatch]);
 
   useEffect(() => {
     let Valid = 0;
@@ -54,7 +63,10 @@ export const BulkUploadPage = () => {
 
   return (
     <div className="w-full min-h-screen pb-8">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
       
       <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
         {/* Page Title */}

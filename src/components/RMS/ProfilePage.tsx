@@ -8,6 +8,7 @@ import {
   getCurrentUserProfile,
   updateUserProfile,
   changePassword,
+  getTenantInfo,
 } from "@/reduxToolKit/user/userThunks";
 import { Header } from "@/components/RMS/header";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import logo from "../../../public/mainLogo.svg";
 
 export const ProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { currentUserProfile, loading, error, success } = useSelector(
+  const { currentUserProfile, loading, error, success, tenantInfo } = useSelector(
     (state: RootState) => state.user
   );
 
@@ -134,7 +135,10 @@ export const ProfilePage = () => {
 
   return (
     <div className="w-full min-h-screen pb-8">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl}
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
       
       <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 mt-6 sm:mt-8">
         <div className="mb-6 sm:mb-8">

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAttendance, recordAttendance } from "@/reduxToolKit/admin/adminThunks";
+import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
@@ -16,6 +17,7 @@ import { RefreshCw, Save } from "lucide-react";
 export function AdminAttendancePage() {
   const dispatch = useDispatch<AppDispatch>();
   const { attendance, loading, error, success } = useSelector((s: RootState) => s.admin);
+  const { tenantInfo } = useSelector((s: RootState) => s.user);
 
   const [filter, setFilter] = useState({
     studentId: "",
@@ -31,6 +33,10 @@ export function AdminAttendancePage() {
     daysPresent: "",
     totalDays: "",
   });
+
+  useEffect(() => {
+    dispatch(getTenantInfo());
+  }, [dispatch]);
 
   useEffect(() => {
     if (error) {
@@ -88,7 +94,10 @@ export function AdminAttendancePage() {
 
   return (
     <div className="w-full">
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
 
       <section className="mb-10 text-center space-y-2">
         <h2 className="text-3xl font-black text-slate-900 tracking-tight">Attendance</h2>
