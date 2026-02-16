@@ -6,10 +6,13 @@ const TOKEN_KEY = "accessToken";
 const getCookieDomain = () => {
   if (typeof window === "undefined") return undefined;
   const hostname = window.location.hostname;
-  
-  // Don't domain for localhost or IP addresses
-  if (hostname === "localhost" || hostname === "127.0.0.1" || /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
-    return undefined;
+  const isLocalhost = hostname === "localhost" || hostname.endsWith(".localhost") || hostname === "127.0.0.1";
+
+  if (isLocalhost) {
+    // Return .localhost to allow sharing across subdomain.localhost and localhost
+    // Note: Some browsers might be picky about 'localhost' vs '.localhost', 
+    // but .localhost is the modern standard for subdomains.
+    return ".localhost";
   }
   
   // For production domains (e.g., school.pln.ng -> .pln.ng)
@@ -36,7 +39,9 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return undefined;
     }
-    return Cookies.get(TOKEN_KEY);
+    const token = Cookies.get(TOKEN_KEY);
+    console.log("[TokenManager] Getting token:", token ? "Token exists" : "NO TOKEN");
+    return token;
   },
 
   // Save the token
@@ -44,6 +49,7 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return;
     }
+    console.log("[TokenManager] Setting token:", token ? token.substring(0, 20) + "..." : "empty");
     Cookies.set(TOKEN_KEY, token, getCookieOptions());
   },
 

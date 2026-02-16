@@ -46,31 +46,15 @@ export const apiFetch = async (
       console.warn("[API Fetch] Token expired, attempting refresh...");
 
       try {
-        // Attempt to refresh token
-        const refreshResponse = await fetch(`/api/proxy${routespath.API_REFRESH}`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { performTokenRefresh } = await import("./authRefresh");
+        const newToken = await performTokenRefresh();
 
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          const newToken = refreshData.accessToken || refreshData.data?.accessToken || tokenManager.getToken();
-
-          if (newToken) {
-            // Update token in cookies
-            tokenManager.setToken(newToken);
-
-            // Update Redux state
-            store.dispatch(updateAccessToken({ accessToken: newToken }));
-
-            console.log("[API Fetch] Token refreshed, retrying request");
-
-            // Retry original request with new token
-            return makeRequest(newToken, true);
-          }
+        if (newToken) {
+          console.log("[API Fetch] Token refreshed, retrying request");
+          // Fetch the fresh token from tokenManager (it was updated by performTokenRefresh)
+          const freshToken = tokenManager.getToken();
+          // Retry original request with the fresh token
+          return makeRequest(freshToken || "", true);
         }
 
         // Refresh failed, clear auth and dispatch logout
@@ -127,8 +111,8 @@ export const apiFetch = async (
   try {
     return await makeRequest(accessToken || "");
   } catch (error: any) {
-    // Only log non-404 errors to reduce console noise
-    if (!error.message?.includes("Cannot GET") && !error.message?.includes("404")) {
+    // Only log non-404 and non-401 (if caught here) errors to reduce console noise
+    if (!error.message?.includes("Cannot GET") && !error.message?.includes("404") && !error.message?.includes("401")) {
       console.error("[API Fetch Error]", error);
     }
     throw error;

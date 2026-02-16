@@ -194,14 +194,14 @@ export function TeacherClassesPage() {
     <div className="w-full min-h-screen pb-20 bg-slate-50/30">
       <TeacherHeader /> {/* Standard Top Bar */}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-8">
         
         {/* Welcome & Stats Header Section */}
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Good day, {(user as any)?.firstName || "Teacher"}!</h1>
-              <p className="text-slate-500 mt-1">Manage your class mastery and student progress.</p>
+              <h1 className="text-3xl font-bold text-slate-900 font-coolvetica">Good day, {(user as any)?.firstName || "Teacher"}!</h1>
+              <p className="text-slate-500 mt-1 font-coolvetica">Manage your class mastery and student progress.</p>
             </div>
             <div className="flex gap-3">
               <Button 

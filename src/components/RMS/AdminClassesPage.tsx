@@ -229,8 +229,8 @@ export function AdminClassesPage() {
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Class Management</h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">Class Management</h1>
+          <p className="text-slate-500 text-sm mt-1 font-coolvetica">
             Create classes, assign teachers, and view enrolled students.
           </p>
         </div>

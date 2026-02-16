@@ -319,12 +319,12 @@ export const DashboardPage = () => {
         {/* Recent Assessments Section */}
         <div className="lg:col-span-1 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">Recent Assessments</h2>
+            <h2 className="text-xl font-bold text-slate-900 font-coolvetica">Recent Assessments</h2>
             <Link href={routespath.ASSESSMENTS}>
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-[#641BC4] hover:bg-[#641BC4] hover:text-white text-xs font-semibold"
+                className="text-[#641BC4] hover:bg-[#641BC4] hover:text-white text-xs font-semibold font-coolvetica"
               >
                 View All
                 <ArrowRight className="w-3 h-3 ml-1" />
@@ -335,7 +335,7 @@ export const DashboardPage = () => {
             {recentAssessments.length === 0 ? (
               <Card className="border border-slate-200 shadow-sm">
                 <CardContent className="p-6 text-center">
-                  <p className="text-sm text-slate-500">No assessments yet</p>
+                  <p className="text-sm text-slate-500 font-coolvetica">No assessments yet</p>
                 </CardContent>
               </Card>
             ) : (
@@ -349,10 +349,10 @@ export const DashboardPage = () => {
                     <CardContent className="flex-1 p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-slate-900 text-base line-clamp-1">
+                          <h3 className="font-semibold text-slate-900 text-base line-clamp-1 font-coolvetica">
                             {item.title || item.subject?.name || "Untitled Assessment"}
                           </h3>
-                          <p className="text-xs text-slate-500 mt-1">
+                          <p className="text-xs text-slate-500 mt-1 font-coolvetica">
                             {item.subject?.name || "Subject"}
                           </p>
                         </div>
@@ -370,7 +370,7 @@ export const DashboardPage = () => {
                         </Badge>
                       </div>
                       <div className="space-y-2">
-                        <div className="flex items-center gap-4 text-xs text-slate-600">
+                        <div className="flex items-center gap-4 text-xs text-slate-600 font-coolvetica">
                           <span className="font-medium">
                             {item.totalMarks || 100} Marks
                           </span>
@@ -381,7 +381,7 @@ export const DashboardPage = () => {
                           )}
                         </div>
                         {item.startsAt && (
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <div className="flex items-center gap-2 text-xs text-slate-500 font-coolvetica">
                             <Clock className="w-3 h-3" />
                             <span>{new Date(item.startsAt).toLocaleDateString()}</span>
                           </div>
@@ -398,7 +398,7 @@ export const DashboardPage = () => {
         {/* Report Cards Section */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <h2 className="text-xl font-bold text-slate-900">Recent Report Cards</h2>
+            <h2 className="text-xl font-bold text-slate-900 font-coolvetica">Recent Report Cards</h2>
             <Link href={routespath.REPORT}>
               <Button className="bg-[#9747FF] hover:bg-[#8538E0] text-white shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />

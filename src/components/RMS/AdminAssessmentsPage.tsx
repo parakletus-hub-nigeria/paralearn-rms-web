@@ -158,8 +158,8 @@ export function AdminAssessmentsPage() {
       {/* Page Header */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Assessments Overview</h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">Assessments Overview</h1>
+          <p className="text-slate-500 text-sm mt-1 font-coolvetica">
             View all assessments created by teachers. Assessments are managed by teachers only.
           </p>
         </div>

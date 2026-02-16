@@ -9,5 +9,12 @@ export function decodeToken(token:string): boolean {
     }catch (error) {
         return false
     }
+}
 
+export function getDecodedTokenPayload(token: string): any {
+    try {
+        return jwtDecode(token);
+    } catch (error) {
+        return null;
+    }
 }

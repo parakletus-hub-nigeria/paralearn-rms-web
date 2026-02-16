@@ -18,6 +18,11 @@ const getStore = () => {
   return storeInstance;
 };
 
+// Import refresh logic
+const getRefreshHelper = () => {
+  return require("./authRefresh").performTokenRefresh;
+};
+
 // Our global axios instance for all API calls
 
 const apiClient: AxiosInstance = axios.create({
@@ -130,40 +135,17 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // Mark request as retried
-      config._retry = true;
-
       try {
         console.log("[API] Attempting to refresh token...");
+        const newToken = await getRefreshHelper()();
 
-        // Try to refresh the token
-        const refreshResponse = await axios.get(
-          `/api/proxy${routespath.API_REFRESH}`,
-          {
-            withCredentials: true,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const refreshData = refreshResponse.data;
-        const newToken =
-          refreshData.accessToken ||
-          refreshData.data?.accessToken ||
-          tokenManager.getToken();
-
-        if (newToken && refreshResponse.status === 200) {
-          // Update token in cookies
-          tokenManager.setToken(newToken);
-
-          // Update Redux state - use dynamic import to avoid circular dependency
-          const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
-          getStore()?.dispatch(updateAccessToken({ accessToken: newToken }));
-
-          // Update the original request with new token
+        if (newToken) {
+          // Fetch the fresh token from tokenManager (it was updated by performTokenRefresh)
+          const freshToken = tokenManager.getToken();
+          
+          // Update the original request with the fresh token
           if (config.headers) {
-            config.headers.Authorization = `Bearer ${newToken}`;
+            config.headers.Authorization = `Bearer ${freshToken}`;
           }
 
           console.log(
@@ -199,16 +181,20 @@ apiClient.interceptors.response.use(
 
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
-      console.error("[API] Access Forbidden");
+      console.error("[API] Access Forbidden for URL:", config.url);
+      console.log("[API] Full error response:", error.response.data);
       
       // Allow specific requests to bypass global redirect
       if ((config as any).skipGlobalRedirect) {
         return Promise.reject(error);
       }
 
+      // TEMPORARILY DISABLED REDIRECT TO SEE LOGS
+      /*
       if (typeof window !== "undefined") {
         window.location.href = "/unauthorized";
       }
+      */
       return Promise.reject(error);
     }
 

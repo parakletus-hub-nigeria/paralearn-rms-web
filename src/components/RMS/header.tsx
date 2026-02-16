@@ -19,7 +19,7 @@ export const Header = ({ schoolLogo, schoolName, showGreeting = false }: { schoo
     };
 
     return (
-        <div className="flex flex-row items-center justify-between mb-8 animate-load-fade-in pt-14 md:pt-0">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-4 animate-load-fade-in pt-4 md:pt-0 gap-4 md:gap-0">
             <div>
                 {showGreeting && (
                     <>

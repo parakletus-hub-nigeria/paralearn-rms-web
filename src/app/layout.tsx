@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import {Inter, Geist, Geist_Mono } from "next/font/google";
+import {Inter, Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import ClientComponent from "@/clientcomponet/ClientComponent";
 
@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter", // Give it a CSS variable name
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
 });
 
 export const metadata: Metadata = {
@@ -39,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-white">
       <body
-        className={`${inter.variable} antialiased`}
+        className={`${inter.variable} ${outfit.variable} antialiased`}
       >
         <ClientComponent>
            {children}

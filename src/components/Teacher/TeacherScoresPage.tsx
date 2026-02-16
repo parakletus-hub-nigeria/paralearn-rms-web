@@ -363,8 +363,8 @@ export function TeacherScoresPage() {
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
           <div className="flex flex-col gap-3 sm:gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold">Score Sheet</h1>
-              <p className="text-emerald-100 text-xs sm:text-sm mt-1">
+              <h1 className="text-xl sm:text-2xl font-bold font-coolvetica">Score Sheet</h1>
+              <p className="text-emerald-100 text-xs sm:text-sm mt-1 font-coolvetica">
                 {selectedSubject?.name || "Select a subject"} • {selectedTerm} • {new Date().getFullYear()}/{new Date().getFullYear() + 1}
               </p>
             </div>

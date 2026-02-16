@@ -3,6 +3,7 @@ import userReducer from "./user/userSlice";
 import setUpReducer from './setUp/setUpSlice';
 import teacherReducer from "./teacher/teacherSlice";
 import adminReducer from "./admin/adminSlice";
+import studentReducer from "./student/studentSlice";
 import { paraApi } from "./api";
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
         setUp: setUpReducer,
         teacher: teacherReducer,
         admin: adminReducer,
+        student: studentReducer,
         [paraApi.reducerPath]: paraApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>

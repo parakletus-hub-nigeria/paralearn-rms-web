@@ -13,23 +13,24 @@ import {
 import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { Header } from "@/components/RMS/header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Plus, CheckCircle2, AlertCircle, Clock, ArrowRight } from "lucide-react";
+import { Calendar, Plus, CheckCircle2, AlertCircle, Clock, ArrowRight, Lock, MoreVertical, Edit2 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { differenceInWeeks, isAfter, isBefore, isWithinInterval } from "date-fns";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export const AcademicSessionsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -50,32 +51,31 @@ export const AcademicSessionsPage = () => {
     ],
   });
 
-  // Update Session State
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [updateSessionData, setUpdateSessionData] = useState<any>(null);
-
-  useEffect(() => {
-    if (currentSession && isUpdateModalOpen) {
-      setUpdateSessionData({
-        id: currentSession.sessionDetails.id,
-        session: currentSession.session,
-        startsAt: currentSession.sessionDetails.startsAt.split('T')[0],
-        endsAt: currentSession.sessionDetails.endsAt.split('T')[0],
-        terms: currentSession.sessionDetails.terms.map(t => ({
-          id: t.id,
-          term: t.term,
-          startsAt: t.startsAt.split('T')[0],
-          endsAt: t.endsAt.split('T')[0]
-        }))
-      });
-    }
-  }, [currentSession, isUpdateModalOpen]);
 
   useEffect(() => {
     dispatch(fetchAllSessions());
     dispatch(fetchCurrentSession());
     dispatch(getTenantInfo());
   }, [dispatch]);
+
+  // Handle opening update modal for a specific term/session
+  const openUpdateModal = (session: any) => {
+    setUpdateSessionData({
+        id: session.id,
+        session: session.session,
+        startsAt: session.startsAt.split('T')[0],
+        endsAt: session.endsAt.split('T')[0],
+        terms: session.terms.map((t: any) => ({
+          id: t.id,
+          term: t.term,
+          startsAt: t.startsAt.split('T')[0],
+          endsAt: t.endsAt.split('T')[0]
+        }))
+      });
+      setIsUpdateModalOpen(true);
+  };
 
   const handleActivateTerm = async (sessionId: string, termId: string) => {
     try {
@@ -143,26 +143,62 @@ export const AcademicSessionsPage = () => {
     }
   };
 
+  // Helper to determine term status and progress
+  const getTermStatus = (term: any, isActiveTerm: boolean) => {
+    const now = new Date();
+    const start = new Date(term.startsAt);
+    const end = new Date(term.endsAt);
+
+    if (isActiveTerm) return "active";
+    if (isAfter(now, end)) return "completed";
+    return "pending";
+  };
+
+  const calculateProgress = (startStr: string, endStr: string) => {
+    const now = new Date();
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    
+    if (isBefore(now, start)) return 0;
+    if (isAfter(now, end)) return 100;
+
+    const totalDuration = end.getTime() - start.getTime();
+    const elapsed = now.getTime() - start.getTime();
+    return Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
+  };
+
+  const getWeekInfo = (startStr: string, endStr: string) => {
+     const now = new Date();
+     const start = new Date(startStr);
+     const end = new Date(endStr);
+
+     const totalWeeks = Math.max(1, differenceInWeeks(end, start));
+     const currentWeek = Math.max(1, differenceInWeeks(now, start));
+     
+     if (isBefore(now, start)) return `Starts in ${differenceInWeeks(start, now)} weeks`;
+     if (isAfter(now, end)) return `Ended ${differenceInWeeks(now, end)} weeks ago`;
+     
+     return `Week ${currentWeek} of ${totalWeeks}`;
+  };
+
+  const activeSessions = sessions.filter(s => s.isActive || new Date(s.endsAt) >= new Date());
+  const archivedSessions = sessions.filter(s => !s.isActive && new Date(s.endsAt) < new Date());
+
   return (
     <div className="w-full min-h-screen pb-12 bg-[#FDFDFF]">
-      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 pt-4 md:pt-8">
+      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 pt-2">
         <Header 
           schoolLogo={tenantInfo?.logoUrl} 
           schoolName={tenantInfo?.name || "ParaLearn School"}
         />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 mt-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 mt-2">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 sm:gap-3 mb-2">
-              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-purple-100/50 text-[#641BC4] shrink-0">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 font-coolvetica truncate">
-                Academic Sessions
+             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 font-coolvetica truncate">
+                Academic Management
               </h1>
-            </div>
-            <p className="text-sm sm:text-base text-slate-500 font-medium line-clamp-1">
-              Oversee and manage your school's structural timeline
+            <p className="text-sm sm:text-base text-slate-500 font-medium line-clamp-1 font-coolvetica">
+              Manage sessions, terms, and academic calendars
             </p>
           </div>
 
@@ -170,7 +206,7 @@ export const AcademicSessionsPage = () => {
             <DialogTrigger asChild>
               <Button className="w-full md:w-auto bg-[#641BC4] hover:bg-[#5217a1] text-white shadow-[0_10px_20px_rgba(100,27,196,0.2)] transition-all duration-300 gap-2 h-11 sm:h-12 px-6 sm:px-8 rounded-xl sm:rounded-2xl active:scale-95 font-bold">
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
-                New Academic Year
+                Create New Session
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
@@ -387,192 +423,216 @@ export const AcademicSessionsPage = () => {
           </Dialog>
         </div>
 
-        {/* Current Active Banner */}
+        {/* Current Session Progress */}
         {currentSession && (
-          <div className="relative mb-12">
-             {/* Decorative Elements */}
-            <div className="absolute -top-6 -right-6 w-32 h-32 bg-purple-300/20 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-indigo-300/20 rounded-full blur-3xl" />
-            
-            <Card className="overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-gradient-to-br from-[#641BC4] to-[#8538E0] relative z-10 group">
-              {/* Subtle mesh/pattern overlay */}
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 pointer-events-none" />
-              
-              <CardContent className="p-0">
-                <div className="flex flex-col md:flex-row relative">
-                  <div className="p-6 sm:p-8 md:p-12 flex-1 relative z-10">
-                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-                        <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-purple-200/80 leading-none mb-1">
-                          Operational System
-                        </span>
-                        <span className="text-xs sm:text-sm font-bold text-white tracking-wide">
-                          Current Active Term
-                        </span>
-                      </div>
-                    </div>
+          <Card className="rounded-[2.5rem] border-slate-100 bg-white shadow-sm mb-12 overflow-hidden">
+             <div className="p-8 pb-4">
+                 <div className="flex justify-between items-center mb-6">
+                     <div>
+                        <h2 className="text-xl font-bold text-slate-900">Current Session Progress</h2>
+                        <p className="text-slate-500 text-sm mt-1">Visual timeline for {currentSession.session}</p>
+                     </div>
+                     <Badge className="bg-[#EDE9FE] text-[#641BC4] hover:bg-[#EDE9FE] border-none px-4 py-1.5 rounded-full font-bold">
+                        {currentSession.session} Session
+                     </Badge>
+                 </div>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                     {/* Timeline connector visual (desktop) */}
+                    <div className="hidden md:block absolute top-[28px] left-[10%] right-[10%] h-[2px] bg-slate-100 -z-0" />
                     
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 font-coolvetica tracking-tight leading-[1.1]">
-                      {currentSession.session} <span className="text-white/40 block sm:inline-block sm:mx-1">—</span> {currentSession.term}
-                    </h2>
-                    
-                    <div className="flex flex-col xs:flex-row flex-wrap gap-3 sm:gap-4 mt-8">
-                      <div className="flex items-center gap-3 bg-black/10 backdrop-blur-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/10">
-                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-200" />
-                        <span className="text-xs sm:text-sm font-bold text-white tracking-tight">Ends: {new Date(currentSession.sessionDetails.endsAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric'})}</span>
-                      </div>
-                      <Button 
-                        onClick={() => setIsUpdateModalOpen(true)}
-                        className="bg-white/20 hover:bg-white/30 text-white border border-white/20 backdrop-blur-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl font-bold h-auto shadow-lg"
-                      >
-                        Edit Schedule
-                      </Button>
-                      <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/10">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-xs sm:text-sm font-bold text-white tracking-tight">Online & Processing</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white/5 backdrop-blur-xl p-6 sm:p-8 md:p-12 flex flex-col justify-center items-start sm:items-center md:items-end border-t md:border-t-0 md:border-l border-white/10 min-w-0 md:min-w-[280px]">
-                    <div className="inline-flex items-center gap-2 bg-emerald-400/20 backdrop-blur-md text-emerald-300 border border-emerald-400/30 px-5 sm:px-6 py-1.5 sm:py-2 rounded-full font-black text-[10px] uppercase tracking-[0.15em] mb-3 sm:mb-4">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                      System Active
-                    </div>
-                    <p className="text-[11px] sm:text-xs text-purple-100 font-medium text-left sm:text-center md:text-right max-w-full sm:max-w-[200px] leading-relaxed opacity-80">
-                      Settings automatically applied to all new assessments and student records.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    {currentSession.sessionDetails.terms.map((term: any) => {
+                        const status = getTermStatus(term, currentSession.termDetails.id === term.id);
+                        const progress = calculateProgress(term.startsAt, term.endsAt);
+                        const weekInfo = getWeekInfo(term.startsAt, term.endsAt);
+
+                        return (
+                            <div key={term.id} className={`relative flex flex-col ${status === 'active' ? 'z-10' : 'z-0'}`}>
+                                <div className={`p-6 rounded-2xl border-2 transition-all duration-300 h-full flex flex-col ${
+                                    status === 'active' 
+                                    ? 'border-[#641BC4] bg-[#FDFDFF] shadow-lg shadow-purple-500/5 ring-4 ring-purple-50' 
+                                    : status === 'completed'
+                                    ? 'border-emerald-100 bg-emerald-50/30'
+                                    : 'border-slate-100 bg-white opacity-80'
+                                }`}>
+                                   
+                                   <div className="flex justify-between items-start mb-4">
+                                       <div className="flex items-center gap-3">
+                                           <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                                               status === 'completed' ? 'bg-emerald-100 text-emerald-600' :
+                                               status === 'active' ? 'bg-[#641BC4] text-white shadow-lg shadow-purple-500/30' :
+                                               'bg-slate-100 text-slate-400'
+                                           }`}>
+                                               {status === 'completed' ? <CheckCircle2 className="w-5 h-5" /> :
+                                                status === 'pending' ? <Lock className="w-4 h-4" /> :
+                                                <Clock className="w-5 h-5 animate-pulse" />}
+                                           </div>
+                                           <div>
+                                               <h3 className={`font-bold ${status === 'active' ? 'text-slate-900' : 'text-slate-500'}`}>{term.term}</h3>
+                                               <Badge variant="outline" className={`mt-1 border-none px-2 py-0.5 text-[10px] uppercase font-black tracking-wider ${
+                                                   status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                   status === 'active' ? 'bg-[#641BC4] text-white' :
+                                                   'bg-slate-100 text-slate-400'
+                                               }`}>
+                                                   {status === 'active' ? 'Active' : status}
+                                               </Badge>
+                                           </div>
+                                       </div>
+                                   </div>
+
+                                   {status === 'active' ? (
+                                       <div className="mt-auto space-y-3">
+                                           <div className="flex justify-between text-xs font-bold text-slate-500">
+                                               <span>{weekInfo}</span>
+                                               <span className="text-[#641BC4]">{Math.round(progress)}%</span>
+                                           </div>
+                                           <Progress value={progress} className="h-2 bg-purple-100" />
+                                            <div className="flex justify-between text-[10px] font-medium text-slate-400 pt-2">
+                                                <span>{new Date(term.startsAt).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
+                                                <span>{new Date(term.endsAt).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}</span>
+                                            </div>
+                                       </div>
+                                   ) : (
+                                       <div className="mt-auto pt-6 border-t border-dashed border-slate-200/50">
+                                            <div className="flex justify-between text-[11px] font-medium text-slate-400">
+                                                <span>{new Date(term.startsAt).toLocaleDateString(undefined, {month:'short', day:'numeric', year: 'numeric'})}</span>
+                                            </div>
+                                       </div>
+                                   )}
+                                </div>
+                            </div>
+                        )
+                    })}
+                 </div>
+             </div>
+          </Card>
         )}
 
-        {/* Sessions List */}
-        <div className="space-y-6 sm:space-y-8 animate-load-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-coolvetica tracking-tight">Academic Year History</h2>
-            <div className="text-[10px] sm:text-sm font-bold text-slate-400 px-3 sm:px-4 py-1 sm:py-1.5 bg-slate-100 rounded-full border border-slate-200/50 self-start sm:self-auto">
-              {sessions.length} Recorded Sessions
-            </div>
-          </div>
-          
-          {sessions.length === 0 && !loading ? (
-            <div className="text-center py-24 bg-white rounded-[2rem] border-2 border-dashed border-slate-100 shadow-sm flex flex-col items-center">
-               <div className="w-20 h-20 rounded-3xl bg-slate-50 flex items-center justify-center mb-6">
-                <AlertCircle className="w-10 h-10 text-slate-200" />
-               </div>
-               <h3 className="text-xl font-bold text-slate-900">No session archives found</h3>
-               <p className="text-slate-500 max-w-[280px] mt-2 font-medium">Initial system state detected. Please create your first academic session to proceed.</p>
-               <Button 
-                variant="outline" 
-                onClick={() => setIsCreateModalOpen(true)}
-                className="mt-8 border-[#641BC4]/20 text-[#641BC4] hover:bg-[#641BC4]/5 font-bold rounded-xl"
-               >
-                 Create Session Now
-               </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-10">
-              {sessions.map((session) => (
-                <div key={session.id} className="relative group">
-                  <Card className="overflow-hidden border-none shadow-[0_15px_60px_rgba(0,0,0,0.03)] bg-white rounded-2xl sm:rounded-[2rem] transition-all duration-500">
-                    <CardHeader className="flex flex-col xs:flex-row items-center justify-between bg-slate-50/80 backdrop-blur-sm py-5 sm:py-6 px-5 sm:px-8 border-b border-slate-100 gap-4">
-                      <div className="flex items-center gap-3 sm:gap-5 w-full xs:w-auto">
-                        <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-lg shadow-slate-200/40 transition-transform group-hover:scale-110 duration-500 shrink-0">
-                          <Calendar className="w-5 h-5 sm:w-7 sm:h-7 text-[#641BC4]" />
-                        </div>
-                        <div className="min-w-0">
-                          <CardTitle className="text-base sm:text-xl font-black text-slate-900 font-coolvetica tracking-tight leading-none mb-1 truncate">Academic Session {session.session}</CardTitle>
-                          <CardDescription className="text-[10px] sm:text-xs font-bold text-[#641BC4]/60 uppercase tracking-widest flex items-center gap-2 truncate">
-                            <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                            {new Date(session.startsAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric'})} — {new Date(session.endsAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric'})}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {session.isActive && (
-                        <div className="relative self-start xs:self-auto ml-13 xs:ml-0">
-                          <div className="absolute inset-0 bg-purple-400 blur-lg opacity-40 animate-pulse" />
-                          <Badge className="bg-[#641BC4] text-white hover:bg-[#641BC4] px-4 sm:px-6 py-1.5 sm:py-2 rounded-full font-black text-[9px] sm:text-[10px] uppercase tracking-widest border-none relative z-10 shadow-xl shadow-purple-500/20 whitespace-nowrap">
-                            Current Session
-                          </Badge>
-                        </div>
-                      )}
-                    </CardHeader>
-                    <CardContent className="p-5 sm:p-8">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                        {session.terms.map((term, tIdx) => {
-                          const isCurrentTerm = currentSession?.termDetails?.id === term.id;
-                          return (
-                            <div 
-                              key={term.id} 
-                              className={`relative p-6 sm:p-8 rounded-2xl sm:rounded-[2rem] border-2 transition-all duration-500 flex flex-col ${
-                                isCurrentTerm 
-                                  ? "border-[#641BC4] bg-[#F9F5FF] shadow-2xl shadow-purple-500/10" 
-                                  : "border-slate-50 bg-white hover:border-purple-200/50 hover:shadow-xl hover:shadow-slate-200/30"
-                              }`}
-                            >
-                               {/* Background number for premium look */}
-                              <div className={`absolute top-4 right-6 sm:right-8 font-black text-4xl sm:text-5xl leading-none select-none pointer-events-none transition-all duration-500 ${isCurrentTerm ? 'text-[#641BC4]/10' : 'text-slate-100'}`}>
-                                {tIdx + 1}
-                              </div>
-
-                              <div className="flex justify-between items-start mb-4 sm:mb-6 relative z-10">
-                                <h4 className={`text-lg sm:text-xl font-black font-coolvetica tracking-tight ${isCurrentTerm ? 'text-[#641BC4]' : 'text-slate-900'}`}>{term.term}</h4>
-                              </div>
-
-                              <div className="space-y-4 mb-6 sm:mb-8 relative z-10">
-                                <div className="flex items-center gap-3">
-                                  <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center transition-colors ${isCurrentTerm ? 'bg-[#641BC4]/10 text-[#641BC4]' : 'bg-slate-50 text-slate-400'}`}>
-                                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className="text-[9px] sm:text-[10px] uppercase font-black text-slate-400 tracking-wider leading-none mb-1">Duration</span>
-                                    <span className={`text-[11px] sm:text-xs font-bold leading-none ${isCurrentTerm ? 'text-[#641BC4]/80' : 'text-slate-600'}`}>
-                                      {new Date(term.startsAt).toLocaleDateString()} — {new Date(term.endsAt).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="mt-auto relative z-10">
-                                {!isCurrentTerm ? (
-                                  <Button 
-                                    size="lg" 
-                                    variant="outline" 
-                                    className="w-full h-10 sm:h-12 rounded-xl sm:rounded-2xl border-slate-200 text-slate-600 font-black text-[10px] sm:text-xs uppercase tracking-widest transition-all hover:bg-[#641BC4] hover:text-white hover:border-[#641BC4] hover:shadow-lg hover:shadow-purple-500/20 active:scale-95"
-                                    onClick={() => handleActivateTerm(session.id, term.id)}
-                                  >
-                                    Activate Term
-                                    <ArrowRight className="w-4 h-4 ml-2" />
-                                  </Button>
-                                ) : (
-                                  <div className="flex flex-col items-center gap-2 py-2">
-                                    <div className="flex items-center gap-2 text-[#641BC4] font-black text-xs uppercase tracking-[0.15em]">
-                                       <div className="w-1.5 h-1.5 rounded-full bg-[#641BC4] animate-ping" />
-                                       Active Context
-                                    </div>
-                                    <div className="h-1 w-12 bg-[#641BC4]/20 rounded-full overflow-hidden">
-                                       <div className="h-full bg-[#641BC4] overflow-hidden" style={{ width: '60%' }} />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
+        <Tabs defaultValue="active" className="w-full">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-50 rounded-lg text-[#641BC4]">
+                        <Calendar className="w-5 h-5" />
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-900">Session & Terms Management</h2>
                 </div>
-              ))}
+                <TabsList className="bg-white p-1 rounded-xl border border-slate-100 shadow-sm">
+                    <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-[#641BC4] data-[state=active]:text-white">Active</TabsTrigger>
+                    <TabsTrigger value="archive" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">Archive</TabsTrigger>
+                </TabsList>
             </div>
-          )}
-        </div>
+
+            <TabsContent value="active" className="space-y-6">
+                {activeSessions.map((session) => (
+                    <Card key={session.id} className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                        <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#641BC4] flex items-center justify-center text-white font-bold text-sm shadow-md shadow-purple-500/20">
+                                    '{session.session.slice(2,4)}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900">{session.session} Academic Session</h3>
+                                    <p className="text-xs text-slate-500 font-medium">Current Active Session • Started {new Date(session.startsAt).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-3 py-1 font-bold">IN PROGRESS</Badge>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900">
+                                            <MoreVertical className="w-4 h-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => openUpdateModal(session)}>Edit Session</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
+                        <div className="divide-y divide-slate-50">
+                            {session.terms.map((term: any) => {
+                                 const status = getTermStatus(term, currentSession?.termDetails?.id === term.id);
+                                 const duration = differenceInWeeks(new Date(term.endsAt), new Date(term.startsAt));
+                                 
+                                 return (
+                                     <div key={term.id} className="p-6 hover:bg-slate-50/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                         <div className="flex items-center gap-4">
+                                             <div className="min-w-[120px]">
+                                                 <span className="font-bold text-slate-900 block">{term.term}</span>
+                                                 {status === 'completed' && <Badge variant="secondary" className="mt-1 bg-slate-100 text-slate-500 border-none text-[10px]">Completed</Badge>}
+                                                 {status === 'active' && <Badge className="mt-1 bg-[#641BC4] text-white hover:bg-[#641BC4] border-none text-[10px]">ACTIVE</Badge>}
+                                                 {status === 'pending' && <Badge variant="outline" className="mt-1 text-slate-400 border-slate-200 text-[10px]">Pending</Badge>}
+                                             </div>
+                                             <div className="h-8 w-[1px] bg-slate-100 hidden md:block" />
+                                             <div className="text-sm text-slate-500 font-medium flex items-center gap-2">
+                                                 <Calendar className="w-3.5 h-3.5" />
+                                                 {new Date(term.startsAt).toLocaleDateString()} - {new Date(term.endsAt).toLocaleDateString()}
+                                             </div>
+                                             <div className="h-8 w-[1px] bg-slate-100 hidden md:block" />
+                                             <div className="text-sm text-slate-500 font-medium flex items-center gap-2">
+                                                 <Clock className="w-3.5 h-3.5" />
+                                                 {duration} Weeks
+                                             </div>
+                                         </div>
+                                         
+                                         <div className="flex items-center gap-3">
+                                             {status === 'active' ? (
+                                                 <Button className="bg-[#641BC4] hover:bg-[#5217a1] text-white font-bold h-9 px-4 rounded-lg text-xs shadow-md shadow-purple-500/20">
+                                                     <Edit2 className="w-3 h-3 mr-2" />
+                                                     Manage
+                                                 </Button>
+                                             ) : (
+                                                 status === 'pending' && (
+                                                     <Button 
+                                                        variant="outline" 
+                                                        className="h-9 px-4 text-xs font-bold text-slate-500 border-slate-200 rounded-lg"
+                                                        onClick={() => handleActivateTerm(session.id, term.id)}
+                                                     >
+                                                         Set Active
+                                                     </Button>
+                                                 )
+                                             )}
+                                             <Button 
+                                                variant="outline" 
+                                                className="h-9 px-4 text-xs font-medium text-slate-500 border-slate-200 rounded-lg hover:text-slate-900"
+                                                onClick={() => openUpdateModal(session)}
+                                             >
+                                                 Edit Dates
+                                             </Button>
+                                         </div>
+                                     </div>
+                                 )
+                            })}
+                        </div>
+                    </Card>
+                ))}
+                {activeSessions.length === 0 && <div className="text-center py-10 text-slate-500">No active sessions found.</div>}
+            </TabsContent>
+
+            <TabsContent value="archive" className="space-y-6">
+                {archivedSessions.map((session) => (
+                    <Card key={session.id} className="border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white opacity-80 hover:opacity-100 transition-opacity">
+                         <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-sm">
+                                    '{session.session.slice(2,4)}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900">{session.session} Academic Session</h3>
+                                    <p className="text-xs text-slate-500 font-medium">Concluded Session • Ended {new Date(session.endsAt).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}</p>
+                                </div>
+                            </div>
+                            <Badge variant="secondary" className="bg-slate-100 text-slate-500 font-bold">ARCHIVED</Badge>
+                        </div>
+                         {/* Minimized view for archives, maybe just summary */}
+                         <div className="p-6">
+                            <p className="text-sm text-slate-500">Session archived. Use the active tab to manage current academic activities.</p>
+                         </div>
+                    </Card>
+                ))}
+                {archivedSessions.length === 0 && <div className="text-center py-10 text-slate-500">No archived sessions found.</div>}
+            </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

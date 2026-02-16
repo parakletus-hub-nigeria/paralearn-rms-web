@@ -24,9 +24,9 @@ const assessmentsApi = paraApi.injectEndpoints({
           : [{ type: "AssessmentList" as const }],
     }),
 
-    // GET /api/proxy/assessments/:id
+    // GET /api/proxy/assessments/details/:id (updated to avoid :status collision)
     getAssessmentById: builder.query<any, string>({
-      query: (id) => ({ url: `/api/proxy/assessments/${id}` }),
+      query: (id) => ({ url: `/api/proxy/assessments/details/${id}` }),
       providesTags: (_r, _e, id) => [{ type: "Assessment", id }],
     }),
 

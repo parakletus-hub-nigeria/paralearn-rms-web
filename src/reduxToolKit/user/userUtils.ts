@@ -7,13 +7,13 @@ import { routespath } from "@/lib/routepath";
  */
 export const normalizeRoles = (roles: any): string[] => {
   if (!roles) return [];
-  if (typeof roles === "string") return [roles.trim()];
-  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles.map(r => r.trim());
+  if (typeof roles === "string") return [roles.trim().toLowerCase()];
+  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles.map(r => r.trim().toLowerCase());
   if (Array.isArray(roles)) {
     return roles
       .map((r) => r?.role?.name || r?.name || r)
       .filter((v) => typeof v === "string")
-      .map((v) => v.trim());
+      .map((v) => v.trim().toLowerCase());
   }
   return [];
 };
@@ -28,7 +28,11 @@ export const pickRedirectPath = (roles: string[]): string => {
     return routespath.TEACHER_DASHBOARD;
   }
   
-  // Default to main dashboard for other roles (admin, student, etc.)
+  if (roles.includes("student")) {
+    return routespath.STUDENT_DASHBOARD;
+  }
+  
+  // Default to main dashboard for other roles (admin, etc.)
   return routespath.DASHBOARD; 
 };
 

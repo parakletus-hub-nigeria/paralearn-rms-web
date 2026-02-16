@@ -114,8 +114,8 @@ export function TeacherDashboardPage() {
         <div className="card-premium p-6 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="space-y-2">
-              <p className="text-slate-400 font-medium">Welcome back,</p>
-              <h1 className="text-2xl md:text-3xl font-bold">
+              <p className="text-slate-400 font-medium font-coolvetica">Welcome back,</p>
+              <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">
                 {(user as any)?.firstName || "Teacher"} {(user as any)?.lastName || ""}
               </h1>
               <div className="flex items-center gap-3 mt-3">

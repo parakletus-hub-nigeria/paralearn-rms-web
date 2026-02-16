@@ -20,6 +20,7 @@ import {
   updateSchoolBranding,
 } from "./userThunks";
 import { normalizeRoles } from "./userUtils";
+import { getDecodedTokenPayload } from "@/lib/jwt-decode";
 
 interface UserState {
   accessToken: string | null;
@@ -59,19 +60,48 @@ const getInitialUser = (): UserState["user"] => {
   }
   try {
     const raw = localStorage.getItem(USER_KEY);
-    if (!raw) return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
-    const parsed = JSON.parse(raw);
-    const roles = normalizeRoles(parsed?.roles);
-    return {
-      id: parsed?.id || "",
-      email: parsed?.email || "",
-      firstName: parsed?.firstName || "",
-      lastName: parsed?.lastName || "",
-      schoolId: parsed?.schoolId || "",
-      roles: roles,
-    };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      console.log("[userSlice] Initializing from localStorage:", parsed);
+      const roles = normalizeRoles(parsed?.roles);
+      return {
+        id: parsed?.id || "",
+        email: parsed?.email || "",
+        firstName: parsed?.firstName || "",
+        lastName: parsed?.lastName || "",
+        schoolId: parsed?.schoolId || "",
+        roles: roles,
+      };
+    }
+    
+    // Fallback: If no localStorage (e.g. after subdomain redirect), check JWT
+    const token = tokenManager.getToken();
+    console.log("[userSlice] Check Token:", token ? `Exists (${token.substring(0, 10)}...)` : "Missing");
+    if (token) {
+      const decoded = getDecodedTokenPayload(token);
+      console.log("[userSlice] Decoded JWT Payload (Full):", JSON.stringify(decoded, null, 2));
+      if (decoded) {
+        const roles = normalizeRoles(decoded.roles || decoded.role);
+        console.log("[userSlice] Normalized Roles from JWT:", roles);
+        const userData = {
+          id: decoded.sub || decoded.id || decoded.userId || "",
+          email: decoded.email || "",
+          firstName: decoded.firstName || "",
+          lastName: decoded.lastName || "",
+          schoolId: decoded.schoolId || "",
+          roles: roles,
+        };
+        console.log("[userSlice] Initial State Roles being applied:", userData.roles);
+        return userData;
+      } else {
+        console.warn("[userSlice] Failed to decode token payload");
+      }
+    }
+
+    console.log("[userSlice] Initializing with empty state (No storage, no token)");
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
   } catch (e) {
-    console.error("[userSlice] Failed to parse storage", e);
+    console.error("[userSlice] Failed to initialize user state", e);
     return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
   }
 };

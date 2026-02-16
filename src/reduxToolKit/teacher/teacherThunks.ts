@@ -28,6 +28,7 @@ export type Assessment = {
   status?: string;
   subject?: { id: string; name: string };
   class?: { id: string; name: string };
+  questions?: any[];
 };
 
 export type CommentType = "subject_teacher" | "class_teacher" | "principal";
@@ -154,6 +155,7 @@ export const fetchMyAssessments = createAsyncThunk(
       // FINAL NORMALIZATION: Ensure every item has classId/subjectId matching UI expectations
       items = items.map((a: any) => ({
          ...a,
+         isOnline: a.assessmentType === "online" || a.isOnline === true || a.isOnline === "true",
          classId: a.classId || a.class?.id || a.class?._id,
          subjectId: a.subjectId || a.subject?.id || a.subject?._id,
          // Ensure objects exist too for display
@@ -362,7 +364,8 @@ export const fetchAssessmentDetail = createAsyncThunk(
   "teacher/fetchAssessmentDetail",
   async (assessmentId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/assessments/${assessmentId}`);
+      // Updated endpoint to avoid collision with :status route
+      const res = await apiClient.get(`/api/proxy/assessments/details/${assessmentId}`);
       const data = res.data?.data || res.data;
       if (!data) return rejectWithValue("Assessment not found");
       return data as Assessment;

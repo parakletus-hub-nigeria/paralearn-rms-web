@@ -11,6 +11,7 @@ import {
   fetchClassSubjects,
   fetchAcademicCurrent,
   fetchAssessmentCategories,
+  updateTeacherAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { generateTemplate } from "@/lib/templates";
 
@@ -47,6 +48,8 @@ import {
   PlayCircle,
   Download,
   Upload,
+  Sparkles,
+  Send,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import { toast } from "react-toastify";
@@ -198,9 +201,9 @@ export function TeacherAssessmentsPage() {
       if (!createForm.startsAt) return toast.error("Start date is required");
       if (!createForm.endsAt) return toast.error("End date is required");
 
-      if (createForm.isOnline === "true" && createForm.questions.length === 0) {
-        return toast.error("Online assessments must have at least one question");
-      }
+      // if (createForm.isOnline === "true" && createForm.questions.length === 0) {
+      //   return toast.error("Online assessments must have at least one question");
+      // }
 
       await dispatch(
         createTeacherAssessment({
@@ -208,11 +211,11 @@ export function TeacherAssessmentsPage() {
           classId: createForm.classId,
           subjectId: createForm.subjectId,
           categoryId: createForm.categoryId,
-          totalMarks: Number(createForm.totalMarks) || 100,
-          duration: Number(createForm.duration) || 60,
+          totalMarks: createForm.totalMarks ? Number(createForm.totalMarks) : 100,
+          duration: createForm.duration ? Number(createForm.duration) : 60,
           session: createForm.session || academicCurrent?.session || "2024/2025",
           term: createForm.term,
-          isOnline: createForm.isOnline === "true",
+          assessmentType: createForm.isOnline === "true" ? "online" : "offline",
           startsAt: createForm.startsAt ? new Date(createForm.startsAt).toISOString() : undefined,
           endsAt: createForm.endsAt ? new Date(createForm.endsAt).toISOString() : undefined,
           instructions: createForm.instructions,
@@ -240,6 +243,18 @@ export function TeacherAssessmentsPage() {
       dispatch(fetchMyAssessments());
     } catch (e: any) {
       toast.error(e || "Failed to create assessment");
+    }
+  };
+
+  const handlePublish = async (id: string) => {
+    try {
+      const res = await dispatch(updateTeacherAssessment({ id, data: { status: "started" } })).unwrap();
+      if (res) {
+        toast.success("Assessment published and is now active!");
+        dispatch(fetchMyAssessments());
+      }
+    } catch (e: any) {
+      toast.error(e || "Failed to publish assessment");
     }
   };
 
@@ -283,8 +298,8 @@ export function TeacherAssessmentsPage() {
         <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">Assessment Management</h1>
-              <p className="text-purple-200 mt-1">
+              <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">Assessment Management</h1>
+              <p className="text-purple-200 mt-1 font-coolvetica">
                 Create, manage, and grade your assessments
               </p>
             </div>
@@ -473,23 +488,47 @@ export function TeacherAssessmentsPage() {
                     </div>
                   </div>
 
-                  {/* Card Footer */}
+                    {/* Card Footer */}
                   <div className="px-5 py-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-2 gap-2">
-                    <Link
-                      href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
-                      className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                      Edit
-                    </Link>
-                    <Link
-                      href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}
-                      className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <BarChart3 className="w-4 h-4" />
-                      Grade
-                    </Link>
+                    {assessment.isOnline ? (
+                      <>
+                      <Link
+                         href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
+                         className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors col-span-2 mb-1"
+                      >
+                         <Sparkles className="w-4 h-4 text-purple-600" />
+                         Draft Questions
+                      </Link>
+                      {status === "not_started" && (
+                        <Button
+                          onClick={() => handlePublish(assessment.id)}
+                          className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
+                          style={{ backgroundColor: primaryColor }}
+                        >
+                          <Send className="w-4 h-4" />
+                          Publish Assessment
+                        </Button>
+                      )}
+                      </>
+                    ) : (
+                        <>
+                        <Link
+                        href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
+                        className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                        </Link>
+                        <Link
+                        href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}
+                        className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors"
+                        style={{ backgroundColor: primaryColor }}
+                        >
+                        <BarChart3 className="w-4 h-4" />
+                        Grade
+                        </Link>
+                        </>
+                    )}
                   </div>
                 </div>
               );
@@ -543,13 +582,35 @@ export function TeacherAssessmentsPage() {
                         </Badge>
                       </td>
                       <td className="py-4 px-5 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
-                            <Button variant="outline" size="sm" className="rounded-lg h-9">
-                              <Edit className="w-4 h-4 mr-1" />
-                              Edit
-                            </Button>
-                          </Link>
+                      <div className="flex items-center justify-end gap-2">
+                          {assessment.isOnline ? (
+                             <div className="flex items-center gap-2">
+                                <Link href={`/teacher/question-drafting?assessmentId=${assessment.id}`}>
+                                    <Button variant="outline" size="sm" className="rounded-lg h-9 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100">
+                                    <Sparkles className="w-4 h-4 mr-1" />
+                                    Questions
+                                    </Button>
+                                </Link>
+                                {status === "not_started" && (
+                                    <Button 
+                                        onClick={() => handlePublish(assessment.id)}
+                                        size="sm" 
+                                        className="rounded-lg h-9 text-white" 
+                                        style={{ backgroundColor: primaryColor }}
+                                    >
+                                        <Send className="w-4 h-4 mr-1" />
+                                        Publish
+                                    </Button>
+                                )}
+                             </div>
+                          ) : (
+                             <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
+                                <Button variant="outline" size="sm" className="rounded-lg h-9">
+                                <Edit className="w-4 h-4 mr-1" />
+                                Edit
+                                </Button>
+                             </Link>
+                          )}
                           <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}>
                             <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
                               <BarChart3 className="w-4 h-4 mr-1" />
@@ -739,99 +800,18 @@ export function TeacherAssessmentsPage() {
                 />
               </div>
 
-              {/* Online Questions Builder */}
+              {/* Online Questions Builder Removed */}
               {createForm.isOnline === "true" && (
                 <div className="mt-6 pt-6 border-t border-slate-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-slate-900">Questions Builder</h3>
-                    <div className="flex gap-2">
-                       <button
-                        onClick={() => generateTemplate("questions")}
-                        className="text-xs flex items-center gap-1 text-slate-500 hover:text-purple-600 font-medium px-2 py-1 rounded-lg hover:bg-purple-50 transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Template
-                      </button>
-                      <label className="text-xs flex items-center gap-1 text-slate-500 hover:text-purple-600 font-medium px-2 py-1 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                        <Upload className="w-3.5 h-3.5" />
-                        Import
-                        <input
-                          type="file"
-                          accept=".xlsx,.xls,.csv"
-                          className="hidden"
-                          onChange={async (e) => {
-                             if (e.target.files?.[0]) {
-                              // If this were a real file upload during create, we'd need to parse it client side or upload to a temp endpoint.
-                              // Since the thunk 'bulkUploadQuestions' requires an assessmentId, we can only upload AFTER creation.
-                              // So here, we might just parse to JSON if we want to preview, OR warn user "Save assessment first".
-                              // Given the current flow, let's parse CLIENT-SIDE to populate the form!
-                              
-                              toast.info("Client-side Excel parsing for preview coming soon. Please create assessment first, then edit to upload.");
-                             }
-                          }}
-                        />
-                      </label>
+                    <div className="bg-purple-50 rounded-xl p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Sparkles className="w-5 h-5 text-purple-600" />
+                            <div>
+                                <h3 className="font-bold text-slate-900 text-sm">AI Question Drafter Available</h3>
+                                <p className="text-xs text-slate-500">Create the assessment first, then click "Draft Questions" to use our new AI tools.</p>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  
-                  <div className="mb-4 bg-blue-50 text-blue-700 px-4 py-3 rounded-xl text-sm flex items-start gap-3">
-                     <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                     <p>To bulk upload questions, please <strong>Save</strong> this assessment first, then click <strong>Edit</strong> &gt; <strong>Import Questions</strong>.</p>
-                  </div>
-                  
-                  <div className="space-y-4 mb-6">
-                    {createForm.questions.map((q, idx) => (
-                      <div key={idx} className="bg-slate-50 p-4 rounded-xl relative border border-slate-200">
-                        <button
-                          onClick={() => removeQuestion(idx)}
-                          className="absolute top-2 right-2 text-slate-400 hover:text-red-500"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                        <p className="font-semibold text-sm">Q{idx + 1}: {q.text}</p>
-                        <p className="text-xs text-slate-500 mt-1">Type: {q.type} • Marks: {q.marks}</p>
-                      </div>
-                    ))}
-                    {createForm.questions.length === 0 && (
-                      <div className="text-center py-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-300 text-slate-500 text-sm">
-                        No questions added yet.
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                    <p className="text-sm font-bold text-slate-700">Add New Question</p>
-                    <Input
-                       placeholder="Question text..."
-                       value={newQuestion.text}
-                       onChange={e => setNewQuestion(p => ({ ...p, text: e.target.value }))}
-                       className="bg-white"
-                    />
-                    <div className="grid grid-cols-2 gap-3">
-                      <Select 
-                        value={newQuestion.type} 
-                        onValueChange={v => setNewQuestion(p => ({ ...p, type: v }))}
-                      >
-                         <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                         <SelectContent>
-                           <SelectItem value="MCQ">Multiple Choice</SelectItem>
-                           <SelectItem value="SHORT_ANSWER">Short Answer</SelectItem>
-                           <SelectItem value="ESSAY">Essay</SelectItem>
-                         </SelectContent>
-                      </Select>
-                      <Input
-                        type="number"
-                        placeholder="Marks"
-                        value={newQuestion.marks}
-                        onChange={e => setNewQuestion(p => ({ ...p, marks: e.target.value }))}
-                        className="bg-white"
-                      />
-                    </div>
-                    {/* Add options logic here if needed, keeping simple for now */}
-                    <Button onClick={addQuestion} size="sm" className="w-full mt-2 bg-slate-900 text-white">
-                      Add Question
-                    </Button>
-                  </div>
                 </div>
               )}
 

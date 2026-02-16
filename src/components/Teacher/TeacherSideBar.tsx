@@ -23,6 +23,7 @@ import {
   User,
   FileEdit,
   GraduationCap,
+  Sparkles,
 } from "lucide-react";
 const logo = "/PL2 (1).svg";
 import { routespath } from "@/lib/routepath";
@@ -40,11 +41,12 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
       { label: "Dashboard", path: routespath.TEACHER_DASHBOARD, icon: Home },
       { label: "Classes", path: routespath.TEACHER_CLASSES, icon: GraduationCap },
       { label: "Assessments", path: routespath.TEACHER_ASSESSMENTS, icon: ClipboardList },
+      { label: "Draft Questions", path: "/teacher/question-drafting", icon: Sparkles },
       { label: "Scores", path: routespath.TEACHER_SCORES, icon: FileEdit },
+      { label: "Attendance", path: routespath.TEACHER_ATTENDANCE, icon: ClipboardList },
       { label: "Comments", path: routespath.TEACHER_COMMENTS, icon: MessageSquareText },
       { label: "Reports", path: routespath.TEACHER_REPORTS, icon: BookOpen },
       { label: "Profile", path: "/profile", icon: User },
-      { label: "Settings", path: "/settings", icon: Settings },
     ],
     []
   );

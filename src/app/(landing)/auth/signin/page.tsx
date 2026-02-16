@@ -11,11 +11,12 @@ import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
 import { loginUser } from "@/reduxToolKit/user/userThunks";
 import { AppDispatch } from "@/reduxToolKit/store";
+import { pickRedirectPath } from "@/reduxToolKit/user/userUtils";
 
 const Signin = () => {
   const [data, setData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [loginMode, setLoginMode] = useState<"admin" | "teacher">("admin");
+  const [loginMode, setLoginMode] = useState<"admin" | "teacher" | "student">("admin");
   // const [loading, setLoading] = useState(false);
   // const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch<AppDispatch>();
@@ -51,7 +52,8 @@ const Signin = () => {
         }
         
         toast.success("Logged in successfully!");
-        router.push(routespath.DASHBOARD);
+        const roles = result.user?.roles || [];
+        router.push(pickRedirectPath(roles));
       } else {
         toast.error("Login failed. No token received.");
       }
@@ -69,21 +71,23 @@ const Signin = () => {
         <div className="flex flex-col items-center mb-6">
           <p className="text-[20px] font-bold flex flex-row items-center space-x-2">
             <BiEnvelope className="text-[#641BC4]" />{" "}
-            <span>{loginMode === "admin" ? "Admin Login" : "Teacher Login"}</span>
+            <span>
+                {loginMode === "admin" ? "Admin Login" : loginMode === "teacher" ? "Teacher Login" : "Student Login"}
+            </span>
           </p>
-          <p className="text-sm text-gray-700 text-center">
+          <p className="text-sm text-gray-700 text-center px-4">
             {loginMode === "admin"
               ? "Login to your administrator's account to continue"
-              : "Login with your school subdomain and your teacher code"}
+              : `Login with your school subdomain and your ${loginMode === "teacher" ? "teacher" : "student"} code`}
           </p>
         </div>
 
         <div className="w-full px-4 mb-6">
-          <div className="grid grid-cols-2 gap-2 bg-white/60 p-1 rounded-xl border border-[#641BC4]/30">
+          <div className="grid grid-cols-3 gap-2 bg-white/60 p-1 rounded-xl border border-[#641BC4]/30">
             <button
               type="button"
               onClick={() => setLoginMode("admin")}
-              className={`h-11 rounded-lg font-semibold transition-all ${
+              className={`h-11 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
                 loginMode === "admin"
                   ? "bg-[#641BC4] text-white shadow-sm"
                   : "text-slate-700 hover:bg-white"
@@ -94,13 +98,24 @@ const Signin = () => {
             <button
               type="button"
               onClick={() => setLoginMode("teacher")}
-              className={`h-11 rounded-lg font-semibold transition-all ${
+              className={`h-11 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
                 loginMode === "teacher"
                   ? "bg-[#641BC4] text-white shadow-sm"
                   : "text-slate-700 hover:bg-white"
               }`}
             >
               Teacher
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginMode("student")}
+              className={`h-11 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
+                loginMode === "student"
+                  ? "bg-[#641BC4] text-white shadow-sm"
+                  : "text-slate-700 hover:bg-white"
+              }`}
+            >
+              Student
             </button>
           </div>
         </div>
@@ -127,7 +142,7 @@ const Signin = () => {
 
           <div className="flex flex-col w-full">
             <label htmlFor="password" className="mb-2 text-sm font-medium">
-              {loginMode === "admin" ? "Password" : "Teacher Code"}
+              {loginMode === "admin" ? "Password" : `${loginMode === "teacher" ? "Teacher" : "Student"} Code`}
             </label>
             <div className="relative">
               <input
@@ -140,7 +155,7 @@ const Signin = () => {
                 placeholder={
                   loginMode === "admin"
                     ? "Enter your password"
-                    : "e.g. TCH-001"
+                    : `e.g. ${loginMode === "teacher" ? "TCH-001" : "STU-001"}`
                 }
               />
               <button

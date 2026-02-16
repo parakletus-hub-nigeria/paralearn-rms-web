@@ -13,7 +13,12 @@ export const routespath = {
   ATTENDANCE: "/RMS/attendance",
   ACADEMIC: "/RMS/academic",
   SCHOOL_SETTINGS: "/RMS/school-settings",
+  BRANDING: "/RMS/branding",
   ENROLLMENTS: "/RMS/enrollments",
+  // Student routes
+  STUDENT_DASHBOARD: "/student/dashboard",
+  STUDENT_EXAM: "/student/exam",
+  STUDENT_LOBBY: "/student/lobby",
   // Teacher routes
   TEACHER_DASHBOARD: "/teacher/dashboard",
   TEACHER_CLASSES: "/teacher/classes",
@@ -21,6 +26,7 @@ export const routespath = {
   TEACHER_SCORES: "/teacher/scores",
   TEACHER_COMMENTS: "/teacher/comments",
   TEACHER_REPORTS: "/teacher/reports",
+  TEACHER_ATTENDANCE: "/teacher/attendance",
   SIGNIN: "/auth/signin",
   SIGNUP: "/auth/signup",
   RESET_PASSWORD: "/auth/reset-password",

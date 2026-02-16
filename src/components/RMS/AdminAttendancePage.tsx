@@ -99,9 +99,9 @@ export function AdminAttendancePage() {
         schoolName={tenantInfo?.name || "ParaLearn School"}
       />
 
-      <section className="mb-10 text-center space-y-2">
-        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Attendance</h2>
-        <p className="text-slate-500 font-medium max-w-xl mx-auto">
+      <section className="mb-6 text-center space-y-2">
+        <h2 className="text-3xl font-black text-slate-900 tracking-tight font-coolvetica">Attendance</h2>
+        <p className="text-slate-500 font-medium max-w-xl mx-auto font-coolvetica">
           Record and view attendance (Guide section 13).
         </p>
       </section>

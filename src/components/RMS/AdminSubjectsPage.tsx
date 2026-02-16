@@ -383,8 +383,8 @@ export function AdminSubjectsPage() {
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Subject Management</h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">Subject Management</h1>
+            <p className="text-slate-500 text-sm mt-1 font-coolvetica">
               Manage curriculum, assign teachers, and organize classes.
             </p>
           </div>

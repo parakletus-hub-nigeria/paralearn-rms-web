@@ -78,11 +78,12 @@ export const loginUser = createAsyncThunk(
       // Otherwise, check if academic session is set up
       else {
         // Use pickRedirectPath to determine the base path (TEACHER_DASHBOARD etc)
-        // If it's a teacher, we want to skip the session check and go straight to dashboard
+        // If it's a teacher or student, we want to skip the session check and go straight to dashboard
         const isTeacher = roles.some((r: any) => String(r).toLowerCase() === "teacher");
+        const isStudent = roles.some((r: any) => String(r).toLowerCase() === "student");
         
-        if (isTeacher) {
-           redirectPath = redirectTo; // Use the path from pickRedirectPath (e.g., TEACHER_DASHBOARD)
+        if (isTeacher || isStudent) {
+           redirectPath = redirectTo; // Use the path from pickRedirectPath (e.g., TEACHER_DASHBOARD / STUDENT_DASHBOARD)
         } else {
              redirectPath = routespath.DASHBOARD; // Default to dashboard for others before check
             try {

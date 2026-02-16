@@ -26,6 +26,7 @@ import {
   UserPlus,
   User,
   Settings,
+  Palette,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
@@ -70,6 +71,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
       { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon },
       { label: "Academic", path: routespath.ACADEMIC, icon: Calendar },
       { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings },
+      { label: "Branding", path: routespath.BRANDING, icon: Palette },
       { label: "Profile", path: "/profile", icon: User },
       { label: "Settings", path: "/settings", icon: Settings },
     ],
