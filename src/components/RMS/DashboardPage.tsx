@@ -295,25 +295,6 @@ export const DashboardPage = () => {
         ))}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-wrap items-center gap-3">
-        <AddStudentDialog>
-          <Button className="bg-[#9747FF] hover:bg-[#8538E0] text-white shadow-md hover:shadow-lg transition-all">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Student
-          </Button>
-        </AddStudentDialog>
-        <AddTeacherDialog>
-          <Button
-            variant="outline"
-            className="border-[#9747FF] text-[#9747FF] hover:bg-[#9747FF] hover:text-white shadow-sm hover:shadow-md transition-all"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Teacher
-          </Button>
-        </AddTeacherDialog>
-      </div>
-
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Assessments Section */}
