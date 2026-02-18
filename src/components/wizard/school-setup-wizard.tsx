@@ -187,14 +187,9 @@ export function SchoolSetupWizard() {
     );
   }, []);
 
-  // Transform component term format to API format
+  // Transform component term format to API format (Identity check mostly)
   const transformTermName = useCallback((termName: string): string => {
-    const termMap: Record<string, string> = {
-      "First Term": "First Term",
-      "Second Term": "Second Term",
-      "Third Term": "Third Term",
-    };
-    return termMap[termName] || termName;
+    return termName.trim();
   }, []);
 
   // Handle Step 1 submission (Create Academic Session)
@@ -601,7 +596,7 @@ export function SchoolSetupWizard() {
         setSubjectDescription={setSubjectDescription}
         classes={classes}
         onAddSubject={(subject) => {
-          setSubjects([...subjects, subject]);
+          setSubjects((prev) => [...prev, subject]);
         }}
       />
     </div>

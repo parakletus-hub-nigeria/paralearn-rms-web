@@ -9,7 +9,8 @@ import { AppDispatch } from "@/reduxToolKit/store";
 import { loginUser } from "@/reduxToolKit/user/userThunks";
 import { AlertCircle, CheckCircle, Check } from "lucide-react";
 import { routespath } from "@/lib/routepath";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
+import { handleError } from "@/lib/error-handler";
 import { Spinner } from "../ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
@@ -416,7 +417,8 @@ export function PageThree({data,changeData,step,setStep}: any){
              setDisable(true);
         } catch (error) {
             console.log(error);
-            toast.error(error instanceof Error ? error.message : "An unexpected error occurred.");
+            console.log(error);
+            handleError(error, "Failed to create account");
         } finally {
             setIsLoading(false)
         }
@@ -476,7 +478,7 @@ export function PageThree({data,changeData,step,setStep}: any){
                             I agree to the ParaLearn RMS Terms of Service and Privacy Policy. I confirm that I have the authority to register this school.
                         </Label>
                     </div>
-                    <ToastContainer />
+
                     {step === 3 && (
                         <div className="mt-4 flex gap-3">
                             <Button

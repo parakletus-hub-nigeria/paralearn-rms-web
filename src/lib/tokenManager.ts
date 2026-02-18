@@ -39,9 +39,7 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return undefined;
     }
-    const token = Cookies.get(TOKEN_KEY);
-    console.log("[TokenManager] Getting token:", token ? "Token exists" : "NO TOKEN");
-    return token;
+    return Cookies.get(TOKEN_KEY);
   },
 
   // Save the token
@@ -49,7 +47,6 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return;
     }
-    console.log("[TokenManager] Setting token:", token ? token.substring(0, 20) + "..." : "empty");
     Cookies.set(TOKEN_KEY, token, getCookieOptions());
   },
 
@@ -58,9 +55,31 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return;
     }
-    // Try both with and without domain to be safe during removal
-    Cookies.remove(TOKEN_KEY, { path: "/" });
-    Cookies.remove(TOKEN_KEY, { path: "/", domain: getCookieDomain() });
+    
+    // Get all possible domain variations
+    const hostname = window.location.hostname;
+    const cookieDomain = getCookieDomain();
+    
+    // Try to remove in all possible configurations
+    const removalConfigs = [
+      { path: "/" }, // No domain (current exact domain)
+      { path: "/", domain: cookieDomain }, // Base domain (.localhost or .pln.ng)
+      { path: "/", domain: hostname }, // Current hostname
+      { path: "/", domain: `.${hostname}` }, // Current hostname with dot prefix
+    ];
+    
+    // Also try without dot for localhost
+    if (hostname === "localhost" || hostname.endsWith(".localhost")) {
+      removalConfigs.push(
+        { path: "/", domain: "localhost" },
+        { path: "/", domain: ".localhost" }
+      );
+    }
+    
+    // Remove token with all configurations
+    removalConfigs.forEach(config => {
+      Cookies.remove(TOKEN_KEY, config);
+    });
   },
 
   // Helper to see if we're logged in
@@ -73,8 +92,16 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return;
     }
-    Cookies.remove(TOKEN_KEY, { path: "/" });
-    Cookies.remove(TOKEN_KEY, { path: "/", domain: getCookieDomain() });
+    
+    // Use the same comprehensive removal as removeToken
+    this.removeToken();
+    
+    // Also manually clear localStorage user data
+    try {
+      localStorage.removeItem("currentUser");
+    } catch (e) {
+      // Silent fail
+    }
   },
 };
 

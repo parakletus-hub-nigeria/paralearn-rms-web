@@ -6,7 +6,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthHeader from "@/components/auth/authHeader";
 import { BiEnvelope } from "react-icons/bi";
 // import { updateUserData } from "@/reduxToolKit/user/userSlice";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
+import { handleError } from "@/lib/error-handler";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
 import { loginUser } from "@/reduxToolKit/user/userThunks";
@@ -58,9 +59,7 @@ const Signin = () => {
         toast.error("Login failed. No token received.");
       }
     } catch (e: any) {
-      toast.error(
-        e || "Login failed. Please check your credentials and try again."
-      );
+      handleError(e, "Login failed. Please check your credentials and try again.");
     }
   };
 
@@ -204,7 +203,6 @@ const Signin = () => {
           </p>
         </div>
       </div>
-      <ToastContainer position="top-right" />
     </div>
   );
 };

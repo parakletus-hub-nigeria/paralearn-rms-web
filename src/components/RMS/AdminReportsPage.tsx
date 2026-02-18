@@ -12,6 +12,7 @@ import {
   fetchClassReportCards,
 } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
+import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,9 +80,22 @@ export function AdminReportsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Session options
-  const sessionOptions = ["2023/2024", "2024/2025", "2025/2026"];
-  const termOptions = ["First Term", "Second Term", "Third Term"];
+  // Get dynamic session/term options
+  const {
+    sessionOptions,
+    getTermsForSession,
+    currentSession: apiCurrentSession,
+    currentTerm: apiCurrentTerm,
+    isLoading: isLoadingSessionData,
+  } = useSessionsAndTerms();
+
+  // Get term options based on selected session
+  const termOptions = useMemo(() => {
+    if (!session) return [];
+    return getTermsForSession(session);
+  }, [session, getTermsForSession]);
+
+
 
   // Wait for user role to be loaded
   const hasRole = user?.roles && user.roles.length > 0;
@@ -89,18 +103,16 @@ export function AdminReportsPage() {
   // Initial Fetch
   useEffect(() => {
     if (!hasRole) return;
-    dispatch(fetchCurrentSession());
+    // Removed fetchCurrentSession as it's handled by the hook
     dispatch(fetchClasses(undefined));
     dispatch(getTenantInfo());
   }, [dispatch, hasRole]);
 
-  // Set defaults from current session
+  // Set defaults from API current session
   useEffect(() => {
-    const s = currentSession?.session;
-    const t = currentSession?.term;
-    if (s && !session) setSession(s);
-    if (t && !term) setTerm(t);
-  }, [currentSession?.session, currentSession?.term, session, term]);
+    if (apiCurrentSession && !session) setSession(apiCurrentSession);
+    if (apiCurrentTerm && !term) setTerm(apiCurrentTerm);
+  }, [apiCurrentSession, apiCurrentTerm, session, term]);
 
   // Fetch data when tab, class, or filters change
   useEffect(() => {
@@ -377,8 +389,8 @@ export function AdminReportsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {sessionOptions.map((opt) => (
-                    <SelectItem key={opt} value={opt}>
-                      {opt}
+                    <SelectItem key={opt.id || opt.value} value={opt.value}>
+                      {opt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -393,8 +405,8 @@ export function AdminReportsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {termOptions.map((opt) => (
-                    <SelectItem key={opt} value={opt}>
-                      {opt}
+                    <SelectItem key={opt.id || opt.value} value={opt.value}>
+                      {opt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

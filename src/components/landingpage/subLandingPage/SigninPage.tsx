@@ -5,7 +5,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthHeader from "@/components/auth/authHeader";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
+import { handleError } from "@/lib/error-handler";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
 import { loginUser } from "@/reduxToolKit/user/userThunks";
@@ -76,10 +77,7 @@ export default function SigninPage() {
         toast.error("Login failed. No token received.");
       }
     } catch (e: any) {
-      toast.error(
-        (typeof e === "string" ? e : (e as Error)?.message) ||
-          "Login failed. Please check your credentials and try again."
-      );
+      handleError(e, "Login failed. Please check your credentials and try again.");
     }
   };
 
@@ -179,7 +177,6 @@ export default function SigninPage() {
           </CardContent>
         </Card>
       </div>
-      <ToastContainer position="top-right" />
     </div>
   );
 }

@@ -29,13 +29,6 @@ export default function RoleGuard({
   const dispatch = useDispatch<AppDispatch>();
   const userState = useSelector((s: any) => s.user);
   const roles = userState?.user?.roles || [];
-  
-  if (typeof window !== 'undefined') {
-    console.log("RoleGuard State Dump:", { 
-      fullUserState: userState,
-      extractedRoles: roles
-    });
-  }
 
   const userLoading = useSelector((s: any) => s.user?.loading);
   const [checkedProfile, setCheckedProfile] = useState(false);
@@ -49,13 +42,12 @@ export default function RoleGuard({
 
   const ok = useMemo(() => {
     if (!Array.isArray(roles)) return false;
+    if (roles.length === 0) return false;
     
     // Normalize both user roles and allowed roles to lowercase for comparison
     const normalizedUserRoles = roles.map((r: any) => String(r).toLowerCase().trim());
     const normalizedAllowedRoles = allow.map(r => r.toLowerCase().trim());
     
-    console.log("RoleGuard Debug:", JSON.stringify({ roles, allow, normalizedUserRoles, normalizedAllowedRoles }, null, 2));
-
     return normalizedUserRoles.some((r: string) => normalizedAllowedRoles.includes(r));
   }, [roles, allow]);
 
@@ -67,6 +59,7 @@ export default function RoleGuard({
     if (ok) return;
     if (didKickoff.current) return;
     if (Array.isArray(roles) && roles.length > 0) return;
+    
     didKickoff.current = true;
     dispatch(getCurrentUserProfile())
       .unwrap()

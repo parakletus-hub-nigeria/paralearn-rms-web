@@ -209,7 +209,7 @@ export const AcademicSessionsPage = () => {
                 Create New Session
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0">
                <div className="bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-8 text-white">
                 <DialogTitle className="text-2xl font-black font-coolvetica">Create Academic Session</DialogTitle>
                 <DialogDescription className="text-purple-100 font-medium mt-1">
@@ -320,7 +320,7 @@ export const AcademicSessionsPage = () => {
 
           {/* Update Session Modal */}
           <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0">
                <div className="bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-8 text-white">
                 <DialogTitle className="text-2xl font-black font-coolvetica">Update Academic Session</DialogTitle>
                 <DialogDescription className="text-purple-100 font-medium mt-1">

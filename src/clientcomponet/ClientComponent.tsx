@@ -13,7 +13,19 @@ export default function ClientComponent({ children }: { children: React.ReactNod
       {children}
       <Toaster position="top-right" expand={false} richColors />
       <ShadcnToaster />
-      <ToastContainer position="top-right" />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        style={{ zIndex: 99999 }}
+      />
     </StoreProvider>
   );
 }

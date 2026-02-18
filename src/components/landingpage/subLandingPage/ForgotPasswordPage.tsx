@@ -5,7 +5,8 @@ import Link from "next/link";
 import AuthHeader from "@/components/auth/authHeader";
 import { BiEnvelope } from "react-icons/bi";
 import { ArrowLeft, KeyRound } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
+import { handleError } from "@/lib/error-handler";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -39,7 +40,7 @@ export default function ForgotPasswordPage() {
         throw new Error(json.message || "An error occurred. Please try again.");
       }
     } catch (e) {
-      toast.error("Failed to send reset link. Please try again later.");
+      handleError(e, "Failed to send reset link. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -47,7 +48,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex flex-col items-center w-[100%] min-h-[100vh]">
-      <ToastContainer />
       <AuthHeader />
       <div className="w-[95%] md:w-[70%] lg:w-[45%] flex flex-col items-center justify-between py-[40px] min-h-[445px] h-auto mt-[30px] mb-[30px]">
         {!submitted ? (

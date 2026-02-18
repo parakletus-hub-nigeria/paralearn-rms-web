@@ -10,6 +10,7 @@ import {
   fetchAcademicCurrent,
   fetchClassReportCards,
 } from "@/reduxToolKit/teacher/teacherThunks";
+import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 import { TeacherHeader } from "./TeacherHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,9 +79,20 @@ export function TeacherReportsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Session options
-  const sessionOptions = ["2023/2024", "2024/2025", "2025/2026"];
-  const termOptions = ["First Term", "Second Term", "Third Term"];
+  // Get dynamic session/term options
+  const {
+    sessionOptions,
+    getTermsForSession,
+    currentSession: apiCurrentSession,
+    currentTerm: apiCurrentTerm,
+    isLoading: isLoadingSessionData,
+  } = useSessionsAndTerms();
+
+  // Get term options based on selected session
+  const termOptions = useMemo(() => {
+    if (!session) return [];
+    return getTermsForSession(session);
+  }, [session, getTermsForSession]);
 
   const teacherId = (user as any)?.id || (user as any)?.teacherId;
 
@@ -91,11 +103,11 @@ export function TeacherReportsPage() {
     dispatch(fetchTeacherClasses({ teacherId }));
   }, [dispatch, teacherId]);
 
-  // Set defaults from academic current
+  // Set defaults from API current session
   useEffect(() => {
-    if (academicCurrent?.session && !session) setSession(academicCurrent.session);
-    if (academicCurrent?.term && !term) setTerm(academicCurrent.term);
-  }, [academicCurrent, session, term]);
+    if (apiCurrentSession && !session) setSession(apiCurrentSession);
+    if (apiCurrentTerm && !term) setTerm(apiCurrentTerm);
+  }, [apiCurrentSession, apiCurrentTerm, session, term]);
 
   // Extract unique classes
   const uniqueClasses = useMemo(() => {
@@ -374,8 +386,8 @@ export function TeacherReportsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {sessionOptions.map((opt) => (
-                    <SelectItem key={opt} value={opt}>
-                      {opt}
+                    <SelectItem key={opt.id || opt.value} value={opt.value}>
+                      {opt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -390,8 +402,8 @@ export function TeacherReportsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {termOptions.map((opt) => (
-                    <SelectItem key={opt} value={opt}>
-                      {opt}
+                    <SelectItem key={opt.id || opt.value} value={opt.value}>
+                      {opt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

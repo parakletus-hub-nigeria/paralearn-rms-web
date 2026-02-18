@@ -14,6 +14,7 @@ import {
   updateTeacherAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { generateTemplate } from "@/lib/templates";
+import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 
 import { TeacherHeader } from "./TeacherHeader";
 import { Input } from "@/components/ui/input";
@@ -116,15 +117,21 @@ export function TeacherAssessmentsPage() {
     }
   }, [dispatch, user]);
 
-  // Pre-fill session from current academic
+  // Get dynamic session/term options
+  const {
+    currentSession,
+    currentTerm,
+  } = useSessionsAndTerms();
+
+  // Pre-fill session from current academic (API)
   useEffect(() => {
-    if (academicCurrent?.session && !createForm.session) {
-      setCreateForm((p) => ({ ...p, session: academicCurrent.session }));
+    if (currentSession && !createForm.session) {
+      setCreateForm((p) => ({ ...p, session: currentSession }));
     }
-    if (academicCurrent?.term && createForm.term === "First Term") {
-      setCreateForm((p) => ({ ...p, term: academicCurrent.term }));
+    if (currentTerm && !createForm.term) {
+      setCreateForm((p) => ({ ...p, term: currentTerm }));
     }
-  }, [academicCurrent, createForm.session, createForm.term]);
+  }, [currentSession, currentTerm, createForm.session, createForm.term]);
 
   // Extract unique classes
   const uniqueClasses = useMemo(() => {
@@ -213,7 +220,7 @@ export function TeacherAssessmentsPage() {
           categoryId: createForm.categoryId,
           totalMarks: createForm.totalMarks ? Number(createForm.totalMarks) : 100,
           duration: createForm.duration ? Number(createForm.duration) : 60,
-          session: createForm.session || academicCurrent?.session || "2024/2025",
+          session: createForm.session || currentSession || "2024/2025",
           term: createForm.term,
           assessmentType: createForm.isOnline === "true" ? "online" : "offline",
           startsAt: createForm.startsAt ? new Date(createForm.startsAt).toISOString() : undefined,
@@ -232,8 +239,8 @@ export function TeacherAssessmentsPage() {
         categoryId: "",
         totalMarks: "100",
         duration: "60",
-        session: academicCurrent?.session || "",
-        term: academicCurrent?.term || "First Term",
+        session: currentSession || "",
+        term: currentTerm || "",
         isOnline: "false",
         startsAt: "",
         endsAt: "",

@@ -12,6 +12,7 @@ import {
   fetchClassStudents,
   fetchClassSubjects,
 } from "@/reduxToolKit/teacher/teacherThunks";
+import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 import { TeacherHeader } from "./TeacherHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -54,8 +55,21 @@ export function TeacherScoresPage() {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
   const [selectedAssessmentId, setSelectedAssessmentId] = useState("");
-  const [selectedTerm, setSelectedTerm] = useState("First Term");
+  const [selectedTerm, setSelectedTerm] = useState("");
   const [search, setSearch] = useState("");
+
+  // Get dynamic session/term options
+  const {
+    allTermOptions,
+    currentTerm: apiCurrentTerm,
+  } = useSessionsAndTerms();
+
+  // Set default term from API
+  useEffect(() => {
+    if (apiCurrentTerm && !selectedTerm) {
+      setSelectedTerm(apiCurrentTerm);
+    }
+  }, [apiCurrentTerm, selectedTerm]);
 
   const [subjects, setSubjects] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
@@ -438,9 +452,11 @@ export function TeacherScoresPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="First Term">1st Term</SelectItem>
-                  <SelectItem value="Second Term">2nd Term</SelectItem>
-                  <SelectItem value="Third Term">3rd Term</SelectItem>
+                  {allTermOptions.map((opt) => (
+                    <SelectItem key={opt.id || opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

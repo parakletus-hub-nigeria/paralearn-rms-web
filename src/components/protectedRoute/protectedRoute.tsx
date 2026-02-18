@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!isAuthorized) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <ToastContainer />
+
         <div className="flex flex-col items-center justify-center gap-4">
           <Spinner className="size-8" />
           <p className="text-lg font-medium text-slate-700">
@@ -43,7 +43,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   return (
     <>
-      <ToastContainer position="top-right" autoClose={5000} />
+
       {children}
     </>
   );
