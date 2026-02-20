@@ -301,17 +301,18 @@ export function AdminAssessmentsPage() {
                   </button>
                 </div>
 
-                {/* Status & Info */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge className={`rounded-lg px-2.5 py-0.5 text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
-                    {statusStyle.label}
-                  </Badge>
-                  <Badge className={`rounded-lg px-2.5 py-0.5 text-xs font-medium ${assessment.isOnline ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"}`}>
-                    {assessment.isOnline ? "Online" : "Offline"}
-                  </Badge>
-                  {assessment.session && (
-                    <span className="text-xs text-slate-500">• {assessment.session}</span>
-                  )}
+                <div className="flex flex-col gap-3 mb-4 mt-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={`rounded-lg px-2.5 py-0.5 text-xs font-medium border-0 ${statusStyle.bg} ${statusStyle.text}`}>
+                      {statusStyle.label}
+                    </Badge>
+                    <Badge className={`rounded-lg px-2.5 py-0.5 text-xs font-medium border-0 ${assessment.isOnline !== false ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"}`}>
+                      {assessment.isOnline !== false ? "Online" : "Offline"}
+                    </Badge>
+                    {assessment.session && (
+                      <span className="text-xs text-slate-400 font-medium tracking-wide">• {assessment.session}</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Stats */}

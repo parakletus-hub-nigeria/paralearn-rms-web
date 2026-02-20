@@ -124,12 +124,28 @@ export default function StudentDashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
-                {assessments.map((assessment, idx) => {
+                {assessments
+                  .filter(a => a.isOnline !== false || (a.status === 'submitted' || a.submission?.status === 'submitted'))
+                  .map((assessment, idx) => {
                   const subjectName = assessment.subject?.name || "General";
                   const isMath = subjectName.toLowerCase().includes('math');
                   const isScience = subjectName.toLowerCase().includes('science') || subjectName.toLowerCase().includes('physics') || subjectName.toLowerCase().includes('chem');
                   const isSubmitted = assessment.status === 'submitted' || assessment.submission?.status === 'submitted';
+                  const isOffline = assessment.isOnline === false;
                   
+                  let statusLabel = "Not Started";
+                  let statusBgClass = "bg-white/50 text-slate-600 border-white";
+                  if (isSubmitted) {
+                    statusLabel = "Completed";
+                    statusBgClass = "bg-emerald-100/80 text-emerald-700 border-emerald-200";
+                  } else if (assessment.status === 'started' || assessment.submission?.status === 'started' || assessment.submission?.status === 'in_progress') {
+                    statusLabel = "In Progress";
+                    statusBgClass = "bg-amber-100/80 text-amber-700 border-amber-200";
+                  } else if (assessment.status === 'ended') {
+                    statusLabel = "Ended";
+                    statusBgClass = "bg-red-100/80 text-red-700 border-red-200";
+                  }
+
                   // Gradient colors based on subject
                   const gradientClass = isMath 
                     ? "from-pink-500 to-rose-500" 
@@ -155,19 +171,15 @@ export default function StudentDashboardPage() {
                       <div className={`absolute -right-10 -top-10 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity bg-current ${iconColorClass}`}></div>
                       
                       <div className={`absolute top-0 left-1/2 transform -translate-x-1/2 bg-gradient-to-r ${gradientClass} text-white text-[10px] font-bold px-3 py-1 rounded-b-lg shadow-md uppercase tracking-wide z-10`}>
-                        {subjectName}
+                        {subjectName} {isOffline ? "(Offline)" : ""}
                       </div>
 
                       <div className="mt-4 flex justify-between items-start mb-6 z-10 relative">
                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm border ${bgIconClass} ${iconColorClass}`}>
                           {isMath ? <Calculator className="w-7 h-7" /> : isScience ? <Beaker className="w-7 h-7" /> : <ClipboardList className="w-7 h-7" />}
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase border shadow-sm backdrop-blur-sm ${
-                          isSubmitted 
-                            ? "bg-emerald-100/80 text-emerald-700 border-emerald-200" 
-                            : "bg-white/50 text-slate-600 border-white"
-                        }`}>
-                          {isSubmitted ? "Completed" : "Not Started"}
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase border shadow-sm backdrop-blur-sm ${statusBgClass}`}>
+                          {statusLabel}
                         </span>
                       </div>
 
@@ -180,10 +192,12 @@ export default function StudentDashboardPage() {
 
                       <div className="mt-auto space-y-4 relative z-10">
                         <div className="flex items-center gap-4 text-slate-600 text-sm font-medium">
-                          <div className="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-lg border border-white/20">
-                            <Clock className={`w-4 h-4 ${iconColorClass}`} />
-                            <span>{assessment.durationMins} Mins</span>
-                          </div>
+                          {!isOffline && (
+                            <div className="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-lg border border-white/20">
+                              <Clock className={`w-4 h-4 ${iconColorClass}`} />
+                              <span>{assessment.durationMins} Mins</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-lg border border-white/20">
                             <CheckCircle className={`w-4 h-4 ${iconColorClass}`} />
                             <span>{assessment.questionCount || "?"} Qs</span>
@@ -194,10 +208,14 @@ export default function StudentDashboardPage() {
                           <Button className="w-full bg-slate-100 hover:bg-slate-200 text-slate-400 font-semibold py-6 rounded-2xl shadow-none cursor-not-allowed">
                             View Result <Lock className="w-4 h-4 ml-2" />
                           </Button>
+                        ) : isOffline ? (
+                           <Button className="w-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-semibold py-6 rounded-2xl shadow-none cursor-not-allowed">
+                            Paper Exam <Lock className="w-4 h-4 ml-2" />
+                          </Button>
                         ) : (
                           <Link href={`/student/lobby?assessmentId=${assessment.id}`} className="block">
                             <Button className={`w-full bg-gradient-to-r ${gradientClass} bg-[length:200%_auto] hover:bg-[position:right_center] text-white py-6 rounded-2xl flex items-center justify-center gap-2 transition-all duration-500 font-bold shadow-lg group-hover:shadow-xl`}>
-                              Enter Lobby
+                              {statusLabel === "In Progress" ? "Resume Exam" : "Enter Lobby"}
                               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </Button>
                           </Link>

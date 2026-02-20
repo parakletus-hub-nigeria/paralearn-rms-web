@@ -90,21 +90,23 @@ const SideBar = ({ children }: { children: ReactNode }) => {
   return (
     <SidebarProvider>
       <Sidebar className="border-r border-purple-100/50 bg-white">
-        <SidebarHeader className="p-4 sm:p-6">
-          <div className="flex items-center gap-3">
+        <SidebarHeader className="p-4 sm:p-5 pb-2">
+          <div className="flex flex-col items-center text-center gap-1 mt-2">
             <Link href={routespath.DASHBOARD} className="block shrink-0">
               <Image
                 src={logo}
                 width={930}
                 height={479}
-                className="h-auto w-[100px] sm:w-[110px] md:w-[120px] max-w-full object-contain"
+                className="h-[64px] sm:h-[72px] w-auto object-contain"
                 alt="paralearn logo"
               />
             </Link>
-            <div className="flex flex-col leading-tight">
-              <p className="text-[#641BC4] font-bold text-lg tracking-tight">{tenantInfo?.name || "PARA LEARN"}</p>
-              <p className="text-xs text-slate-500 font-medium">
-                Admin{user?.firstName ? ` • ${user.firstName}` : ""}
+            <div className="flex flex-col leading-tight w-full px-1">
+              <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
+                {tenantInfo?.name || "PARA LEARN"}
+              </p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
+                <span className="truncate">Admin{user?.firstName ? ` • ${user.firstName}` : ""}</span>
               </p>
             </div>
           </div>

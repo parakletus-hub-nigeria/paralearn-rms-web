@@ -74,21 +74,23 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar className="border-r border-purple-100/50">
-        <SidebarHeader className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="shrink-0 bg-purple-50 p-1 rounded-lg">
+        <SidebarHeader className="p-5 pb-2">
+          <div className="flex flex-col items-center text-center gap-1 mt-1">
+            <div className="block shrink-0">
               <Image
                 src={logo}
                 width={930}
                 height={479}
-                className="h-[32px] w-auto object-contain"
+                className="h-[64px] sm:h-[72px] w-auto object-contain"
                 alt="paralearn logo"
               />
             </div>
-            <div className="flex flex-col leading-tight">
-              <p className="text-[#641BC4] font-bold text-lg tracking-tight">{tenantInfo?.name || "PARA LEARN"}</p>
-              <p className="text-xs text-slate-500 font-medium">
-                Teacher{user?.firstName ? ` • ${user.firstName}` : ""}
+            <div className="flex flex-col leading-tight w-full px-1">
+              <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
+                {tenantInfo?.name || "PARA LEARN"}
+              </p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
+                <span className="truncate">Teacher{user?.firstName ? ` • ${user.firstName}` : ""}</span>
               </p>
             </div>
           </div>

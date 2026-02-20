@@ -98,10 +98,13 @@ export default function LiveExamInterface() {
     if (!assessmentId) return;
     
     // Ensure we send all answers, even if empty strings for unanswered questions
-    const answersToSend = currentAssessment?.questions?.map(q => ({
-      questionId: q.id,
-      value: activeSession.answers[q.id] || ""
-    })) || [];
+    const answersToSend = currentAssessment?.questions?.map(q => {
+      const val = activeSession.answers[q.id];
+      return {
+        questionId: q.id,
+        value: val ? { selected: val } : ""
+      };
+    }) || [];
 
     const submissionData = {
       finishedAt: new Date().toISOString(),

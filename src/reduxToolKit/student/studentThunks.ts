@@ -45,6 +45,7 @@ export interface StudentAssessment {
   } | null;
   status: "not_started" | "started" | "ended" | "submitted";
   hasSubmitted: boolean;
+  isOnline?: boolean;
   questions?: AssessmentQuestion[]; // Added questions property
 }
 
