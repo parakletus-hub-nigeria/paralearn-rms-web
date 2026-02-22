@@ -25,9 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
+import { toast} from "sonner";
 interface FormErrors {
   fullName?: string;
   schoolName?: string;
@@ -545,19 +543,6 @@ const ContactPage = () => {
               </div>
             </div>
           </ScrollReveal>
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-            className="mt-4"
-          />
         </div>
       </section>
 

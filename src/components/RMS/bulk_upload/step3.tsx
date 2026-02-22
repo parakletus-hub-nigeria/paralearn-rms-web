@@ -1,5 +1,5 @@
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast} from "sonner";
 import { useState } from "react";
 import {
   Dialog,

@@ -5,7 +5,7 @@ import Link from "next/link";
 import AuthHeader from "@/components/auth/authHeader";
 import { BiEnvelope } from "react-icons/bi";
 import { ArrowLeft, KeyRound } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { handleError } from "@/lib/error-handler";
 
 export default function ForgotPasswordPage() {

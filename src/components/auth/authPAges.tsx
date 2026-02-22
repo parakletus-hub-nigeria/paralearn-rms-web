@@ -9,7 +9,7 @@ import { AppDispatch } from "@/reduxToolKit/store";
 import { loginUser } from "@/reduxToolKit/user/userThunks";
 import { AlertCircle, CheckCircle, Check } from "lucide-react";
 import { routespath } from "@/lib/routepath";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { handleError } from "@/lib/error-handler";
 import { Spinner } from "../ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";

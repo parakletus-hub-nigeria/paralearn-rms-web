@@ -6,7 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthHeader from "@/components/auth/authHeader";
 import { BiEnvelope } from "react-icons/bi";
 // import { updateUserData } from "@/reduxToolKit/user/userSlice";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { handleError } from "@/lib/error-handler";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";

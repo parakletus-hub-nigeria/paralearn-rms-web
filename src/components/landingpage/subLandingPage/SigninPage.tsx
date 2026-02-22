@@ -5,7 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthHeader from "@/components/auth/authHeader";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { handleError } from "@/lib/error-handler";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";

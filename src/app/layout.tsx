@@ -2,7 +2,6 @@
 import type { Metadata } from "next";
 import {Inter, Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
-import "react-toastify/dist/ReactToastify.css";
 import ClientComponent from "@/clientcomponet/ClientComponent";
 
 const geistSans = Geist({

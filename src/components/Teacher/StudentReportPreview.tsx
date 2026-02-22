@@ -18,7 +18,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { downloadStudentReportCardPdf } from "@/lib/reportPdf";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const DEFAULT_PRIMARY = "#641BC4";
 

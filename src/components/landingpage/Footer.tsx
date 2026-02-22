@@ -15,8 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import logo from "../../../public/mainLogo.svg";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast} from "sonner";
 import ComingSoonModal from "./ComingSoonModal";
 import { ScrollReveal } from "./ScrollReveal";
 

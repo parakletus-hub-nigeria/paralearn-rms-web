@@ -1,7 +1,7 @@
 "use client";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { toast, ToastContainer } from "react-toastify";
+import { toast} from "sonner";
 import { decodeToken } from "@/lib/jwt-decode";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";

@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Trash2, Plus, AlertCircle } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 export function ManageCategoriesDialog({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch<AppDispatch>();

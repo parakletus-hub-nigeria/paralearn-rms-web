@@ -40,7 +40,7 @@ import {
   Search,
   Sun,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { format } from "date-fns";
 
 const ATTENDANCE_STATUS = {

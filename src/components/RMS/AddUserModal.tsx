@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X, User, BookOpen, GraduationCap, Mail, Phone, Info, ChevronRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import apiClient from "@/lib/api";
 
 type Step = "profile" | "classes" | "subjects";

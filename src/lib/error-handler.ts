@@ -1,4 +1,4 @@
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 /**
  * Standardized error handler that extracts error messages from various API/Error shapes
@@ -32,12 +32,7 @@ export const handleError = (error: unknown, fallbackMessage = "An unexpected err
 
   toast.error(message, {
     position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
+    duration: 5000,
   });
   
   return message;
@@ -46,11 +41,6 @@ export const handleError = (error: unknown, fallbackMessage = "An unexpected err
 export const handleSuccess = (message: string) => {
   toast.success(message, {
     position: "top-right",
-    autoClose: 3000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
+    duration: 3000,
   });
 };

@@ -53,7 +53,7 @@ import {
   Send,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const DEFAULT_PRIMARY = "#641BC4";
 

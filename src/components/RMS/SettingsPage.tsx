@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { Settings, Save, Palette, Building2, Globe, Phone, MapPin, Link as LinkIcon } from "lucide-react";
 import logo from "../../../public/mainLogo.svg";
 

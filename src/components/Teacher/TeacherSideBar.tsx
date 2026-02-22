@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { toast } from "react-toastify";
+import { toast, Toaster } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -138,7 +138,10 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
         <div className="absolute top-6 left-6 z-50">
           <SidebarTrigger className="hover:bg-purple-50" />
         </div>
-        <div className="p-10 w-full max-w-[1600px] mx-auto">{children}</div>
+        <div className="p-10 w-full max-w-[1600px] mx-auto">
+          <Toaster position="top-right" expand={false} richColors />
+          {children}
+        </div>
       </main>
     </SidebarProvider>
   );

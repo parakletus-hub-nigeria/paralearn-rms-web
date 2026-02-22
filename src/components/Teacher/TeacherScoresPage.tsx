@@ -38,7 +38,7 @@ import {
   AlertCircle,
   Download,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { generateTemplate } from "@/lib/templates";
 import apiClient from "@/lib/api";
 

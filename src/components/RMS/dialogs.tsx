@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { ReactNode, useState, useRef } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/reduxToolKit/store";
 import { deleteUser, fetchAllUsers } from "@/reduxToolKit/user/userThunks";

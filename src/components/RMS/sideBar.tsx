@@ -2,7 +2,7 @@
 import { ReactNode, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,

@@ -23,7 +23,7 @@ import {
 } from "@/reduxToolKit/setUp/setUpSlice";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import AuthHeader from "@/components/auth/authHeader";
 
 interface Term {

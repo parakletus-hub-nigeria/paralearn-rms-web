@@ -6,7 +6,7 @@ import { Plus, Clock, Eye, ArrowRight } from "lucide-react";
 import { GraduationCap, Users, Book, BookImage, TrendingUp, Calendar } from "lucide-react";
 import { AddStudentDialog, AddTeacherDialog } from "@/components/RMS/dialogs";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
