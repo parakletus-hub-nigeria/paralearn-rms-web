@@ -370,7 +370,6 @@ const Footer = () => {
         </div>
         </ScrollReveal>
       </div>
-      <ToastContainer position="bottom-right" />
       <ComingSoonModal open={comingSoonOpen} onOpenChange={setComingSoonOpen} title={comingSoonTitle} />
     </footer>
   );
