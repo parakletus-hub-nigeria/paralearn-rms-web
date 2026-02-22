@@ -33,6 +33,7 @@ import Link from "next/link";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
 import { usePathname } from "next/navigation";
+import { Toaster } from "sonner";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
@@ -157,7 +158,10 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
           <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
         </div>
-        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">{children}</div>
+        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
+          <Toaster position="top-right" expand={false} richColors />
+          {children}
+        </div>
       </main>
     </SidebarProvider>
   );
