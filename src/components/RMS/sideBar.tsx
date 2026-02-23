@@ -129,11 +129,11 @@ const SidebarContentContainer = ({
   pathname: string;
   handleLogout: () => void;
 }) => {
-  const { open, openMobile } = useSelector((s: RootState) => ({
-    // Note: We can't actually use useSidebar here if we want to determine 
-    // the layout *outside* the Sidebar component perfectly without hydration issues,
-    // but the SidebarProvider is already wrapping this.
-  }));
+  // const { open, openMobile } = useSelector((s: RootState) => ({
+  //   // Note: We can't actually use useSidebar here if we want to determine 
+  //   // the layout *outside* the Sidebar component perfectly without hydration issues,
+  //   // but the SidebarProvider is already wrapping this.
+  // }));
   
   // Actually, we must import useSidebar inside the component
   const { SidebarTrigger: UI_SidebarTrigger, useSidebar } = require("../ui/sidebar");
