@@ -1,6 +1,10 @@
 import Image from "next/image"
+import { useSelector } from "react-redux"
+import { RootState } from "@/reduxToolKit/store"
 
 export const Header = ({ schoolLogo, schoolName, showGreeting = false }: { schoolLogo?: string; schoolName?: string; showGreeting?: boolean }) => {
+    const { user } = useSelector((s: RootState) => s.user);
+
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour >= 5 && hour < 12) return "Good morning";
@@ -24,7 +28,7 @@ export const Header = ({ schoolLogo, schoolName, showGreeting = false }: { schoo
                 {showGreeting && (
                     <>
                         <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 font-coolvetica tracking-tight leading-tight">
-                            {getGreeting()}, <span className="text-[#641BC4]">Admin!</span>
+                            {getGreeting()}, <span className="text-[#641BC4]">{user?.firstName || "there"}!</span>
                         </h1>
                         <p className="text-[11px] sm:text-sm font-medium text-slate-500 mt-1 flex items-center gap-1.5 sm:gap-2">
                             <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shrink-0" />

@@ -60,24 +60,32 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
   const sideBarContent = useMemo(
     () => [
-      { label: "Dashboard", path: routespath.DASHBOARD, icon: Home },
-      { label: "Users", path: routespath.USERS, icon: UserCircle },
-      { label: "Enrollments", path: routespath.ENROLLMENTS, icon: UserPlus },
-      { label: "Classes", path: routespath.CLASSES, icon: BookOpenCheck },
-      { label: "Subjects", path: routespath.SUBJECTS, icon: BookOpen },
-      { label: "Assessments", path: routespath.ASSESSMENTS, icon: ClipboardList },
-      { label: "Report Cards", path: routespath.REPORT, icon: BookOpen },
-      { label: "Comments", path: routespath.COMMENTS, icon: MessageSquareText },
-      { label: "Attendance", path: routespath.ATTENDANCE, icon: Calendar },
-      { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon },
-      { label: "Academic", path: routespath.ACADEMIC, icon: Calendar },
-      { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings },
-      { label: "Branding", path: routespath.BRANDING, icon: Palette },
-      { label: "Profile", path: "/profile", icon: User },
-      { label: "Settings", path: "/settings", icon: Settings },
+      { label: "Dashboard", path: routespath.DASHBOARD, icon: Home, roles: ["admin", "teacher"] },
+      { label: "Users", path: routespath.USERS, icon: UserCircle, roles: ["admin"] },
+      { label: "Enrollments", path: routespath.ENROLLMENTS, icon: UserPlus, roles: ["admin"] },
+      { label: "Classes", path: routespath.CLASSES, icon: BookOpenCheck, roles: ["admin", "teacher"] },
+      { label: "Subjects", path: routespath.SUBJECTS, icon: BookOpen, roles: ["admin", "teacher"] },
+      { label: "Assessments", path: routespath.ASSESSMENTS, icon: ClipboardList, roles: ["admin", "teacher"] },
+      { label: "Report Cards", path: routespath.REPORT, icon: BookOpen, roles: ["admin", "teacher"] },
+      { label: "Comments", path: routespath.COMMENTS, icon: MessageSquareText, roles: ["admin", "teacher"] },
+      { label: "Attendance", path: routespath.ATTENDANCE, icon: Calendar, roles: ["admin", "teacher"] },
+      { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon, roles: ["admin"] },
+      { label: "Academic", path: routespath.ACADEMIC, icon: Calendar, roles: ["admin"] },
+      { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings, roles: ["admin"] },
+      { label: "Branding", path: routespath.BRANDING, icon: Palette, roles: ["admin"] },
+      { label: "Profile", path: "/profile", icon: User, roles: ["admin", "teacher"] },
+      { label: "Settings", path: "/settings", icon: Settings, roles: ["admin", "teacher"] },
     ],
     []
   );
+
+  const filteredContent = useMemo(() => {
+    return sideBarContent.filter(item => {
+      if (!item.roles) return true;
+      const userRoles = user?.roles || [];
+      return item.roles.some(r => userRoles.includes(r));
+    });
+  }, [sideBarContent, user?.roles]);
 
   const getInitials = (name: string) => {
     return name
@@ -107,7 +115,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
                 {tenantInfo?.name || "PARA LEARN"}
               </p>
               <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
-                <span className="truncate">Admin{user?.firstName ? ` • ${user.firstName}` : ""}</span>
+                <span className="truncate">{user?.roles?.[0]?.charAt(0).toUpperCase() + user?.roles?.[0]?.slice(1) || "User"}{user?.firstName ? ` • ${user.firstName}` : ""}</span>
               </p>
             </div>
           </div>
@@ -115,7 +123,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
         <SidebarContent className="px-4">
           <nav className="flex flex-col gap-1.5 mt-4">
-            {sideBarContent.map((item, index) => {
+            {filteredContent.map((item, index) => {
               const isSelected = pathname === item.path;
               return (
                 <Link

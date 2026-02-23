@@ -6,7 +6,7 @@ import RoleGuard from "@/components/protectedRoute/RoleGuard";
 export default function Dashboard() {
   return (
     <ProtectedRoute>
-      <RoleGuard allow={["admin"]}>
+      <RoleGuard allow={["admin", "teacher"]}>
         <SideBar>
           <DashboardPage />
         </SideBar>

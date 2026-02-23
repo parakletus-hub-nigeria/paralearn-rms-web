@@ -7,15 +7,46 @@ import { routespath } from "@/lib/routepath";
  */
 export const normalizeRoles = (roles: any): string[] => {
   if (!roles) return [];
-  if (typeof roles === "string") return [roles.trim().toLowerCase()];
-  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) return roles.map(r => r.trim().toLowerCase());
+  
+  // If roles is already an array of strings
+  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) {
+    return roles.map(r => r.trim().toLowerCase());
+  }
+  
+  // If roles is an array of objects like [{role: {name: 'admin'}}]
   if (Array.isArray(roles)) {
     return roles
       .map((r) => r?.role?.name || r?.name || r)
       .filter((v) => typeof v === "string")
       .map((v) => v.trim().toLowerCase());
   }
-  return [];
+
+  // If roles is a single string
+  if (typeof roles === "string") return [roles.trim().toLowerCase()];
+
+  // If roles is actually a user object containing role flags
+  // These are common in some JWT payloads and backend responses
+  const extractedRoles: string[] = [];
+  
+  // Helper to check for truthy role flags (bool true or string "true")
+  const isTrue = (val: any) => val === true || val === "true" || val === 1;
+
+  if (isTrue(roles.iadmin) || isTrue(roles.isAdmin) || roles.role === "admin") {
+    extractedRoles.push("admin");
+  }
+  if (isTrue(roles.iseditor) || isTrue(roles.isEditor) || roles.role === "editor") {
+    extractedRoles.push("editor");
+  }
+  
+  // Also check for 'teacher' and 'student' flags if they exist
+  if (isTrue(roles.isTeacher) || roles.role === "teacher") {
+    extractedRoles.push("teacher");
+  }
+  if (isTrue(roles.isStudent) || roles.role === "student") {
+    extractedRoles.push("student");
+  }
+  
+  return extractedRoles;
 };
 
 /**
@@ -24,15 +55,15 @@ export const normalizeRoles = (roles: any): string[] => {
 export const pickRedirectPath = (roles: string[]): string => {
   if (!roles || roles.length === 0) return routespath.DASHBOARD;
   
-  if (roles.includes("teacher")) {
-    return routespath.TEACHER_DASHBOARD;
+  if (roles.includes("admin") || roles.includes("editor") || roles.includes("teacher")) {
+    return routespath.DASHBOARD; 
   }
   
   if (roles.includes("student")) {
     return routespath.STUDENT_DASHBOARD;
   }
   
-  // Default to main dashboard for other roles (admin, etc.)
+  // Default to main dashboard
   return routespath.DASHBOARD; 
 };
 
