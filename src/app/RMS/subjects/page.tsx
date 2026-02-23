@@ -6,7 +6,7 @@ import { AdminSubjectsPage } from "@/components/RMS/AdminSubjectsPage";
 export default function SubjectsPage() {
   return (
     <ProtectedRoute>
-      <RoleGuard allow={["admin"]}>
+      <RoleGuard allow={["admin", "teacher"]}>
         <SideBar>
           <AdminSubjectsPage />
         </SideBar>

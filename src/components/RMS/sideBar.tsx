@@ -60,24 +60,32 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
   const sideBarContent = useMemo(
     () => [
-      { label: "Dashboard", path: routespath.DASHBOARD, icon: Home },
-      { label: "Users", path: routespath.USERS, icon: UserCircle },
-      { label: "Enrollments", path: routespath.ENROLLMENTS, icon: UserPlus },
-      { label: "Classes", path: routespath.CLASSES, icon: BookOpenCheck },
-      { label: "Subjects", path: routespath.SUBJECTS, icon: BookOpen },
-      { label: "Assessments", path: routespath.ASSESSMENTS, icon: ClipboardList },
-      { label: "Report Cards", path: routespath.REPORT, icon: BookOpen },
-      { label: "Comments", path: routespath.COMMENTS, icon: MessageSquareText },
-      { label: "Attendance", path: routespath.ATTENDANCE, icon: Calendar },
-      { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon },
-      { label: "Academic", path: routespath.ACADEMIC, icon: Calendar },
-      { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings },
-      { label: "Branding", path: routespath.BRANDING, icon: Palette },
-      { label: "Profile", path: "/profile", icon: User },
-      { label: "Settings", path: "/settings", icon: Settings },
+      { label: "Dashboard", path: routespath.DASHBOARD, icon: Home, roles: ["admin", "teacher"] },
+      { label: "Users", path: routespath.USERS, icon: UserCircle, roles: ["admin"] },
+      { label: "Enrollments", path: routespath.ENROLLMENTS, icon: UserPlus, roles: ["admin"] },
+      { label: "Classes", path: routespath.CLASSES, icon: BookOpenCheck, roles: ["admin", "teacher"] },
+      { label: "Subjects", path: routespath.SUBJECTS, icon: BookOpen, roles: ["admin", "teacher"] },
+      { label: "Assessments", path: routespath.ASSESSMENTS, icon: ClipboardList, roles: ["admin", "teacher"] },
+      { label: "Report Cards", path: routespath.REPORT, icon: BookOpen, roles: ["admin", "teacher"] },
+      { label: "Comments", path: routespath.COMMENTS, icon: MessageSquareText, roles: ["admin", "teacher"] },
+      { label: "Attendance", path: routespath.ATTENDANCE, icon: Calendar, roles: ["admin", "teacher"] },
+      { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon, roles: ["admin"] },
+      { label: "Academic", path: routespath.ACADEMIC, icon: Calendar, roles: ["admin"] },
+      { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings, roles: ["admin"] },
+      { label: "Branding", path: routespath.BRANDING, icon: Palette, roles: ["admin"] },
+      { label: "Profile", path: "/profile", icon: User, roles: ["admin", "teacher"] },
+      { label: "Settings", path: "/settings", icon: Settings, roles: ["admin", "teacher"] },
     ],
     []
   );
+
+  const filteredContent = useMemo(() => {
+    return sideBarContent.filter(item => {
+      if (!item.roles) return true;
+      const userRoles = user?.roles || [];
+      return item.roles.some(r => userRoles.includes(r));
+    });
+  }, [sideBarContent, user?.roles]);
 
   const getInitials = (name: string) => {
     return name
@@ -90,8 +98,54 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
   return (
     <SidebarProvider>
+      <SidebarContentContainer 
+        logo={logo} 
+        tenantInfo={tenantInfo} 
+        user={user} 
+        filteredContent={filteredContent} 
+        pathname={pathname} 
+        handleLogout={handleLogout}
+      >
+        {children}
+      </SidebarContentContainer>
+    </SidebarProvider>
+  );
+};
+
+const SidebarContentContainer = ({ 
+  children, 
+  logo, 
+  tenantInfo, 
+  user, 
+  filteredContent, 
+  pathname, 
+  handleLogout 
+}: { 
+  children: ReactNode;
+  logo: string;
+  tenantInfo: any;
+  user: any;
+  filteredContent: any[];
+  pathname: string;
+  handleLogout: () => void;
+}) => {
+  const { open, openMobile } = useSelector((s: RootState) => ({
+    // Note: We can't actually use useSidebar here if we want to determine 
+    // the layout *outside* the Sidebar component perfectly without hydration issues,
+    // but the SidebarProvider is already wrapping this.
+  }));
+  
+  // Actually, we must import useSidebar inside the component
+  const { SidebarTrigger: UI_SidebarTrigger, useSidebar } = require("../ui/sidebar");
+  const { open: isExpanded, isMobile } = useSidebar();
+
+  return (
+    <>
       <Sidebar className="border-r border-purple-100/50 bg-white">
-        <SidebarHeader className="p-4 sm:p-5 pb-2">
+        <SidebarHeader className="p-4 sm:p-5 pb-2 relative">
+          <div className="absolute top-2 right-2 hidden md:block">
+            <SidebarTrigger className="hover:bg-purple-50 h-8 w-8 text-slate-500" />
+          </div>
           <div className="flex flex-col items-center text-center gap-1 mt-2">
             <Link href={routespath.DASHBOARD} className="block shrink-0">
               <Image
@@ -107,7 +161,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
                 {tenantInfo?.name || "PARA LEARN"}
               </p>
               <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
-                <span className="truncate">Admin{user?.firstName ? ` • ${user.firstName}` : ""}</span>
+                <span className="truncate">{user?.roles?.[0]?.charAt(0).toUpperCase() + user?.roles?.[0]?.slice(1) || "User"}{user?.firstName ? ` • ${user.firstName}` : ""}</span>
               </p>
             </div>
           </div>
@@ -115,7 +169,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
         <SidebarContent className="px-4">
           <nav className="flex flex-col gap-1.5 mt-4">
-            {sideBarContent.map((item, index) => {
+            {filteredContent.map((item, index) => {
               const isSelected = pathname === item.path;
               return (
                 <Link
@@ -155,15 +209,18 @@ const SideBar = ({ children }: { children: ReactNode }) => {
       </Sidebar>
 
       <main className="flex-1 bg-[#fbfaff] min-h-screen relative overflow-x-hidden">
-        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
-          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
-        </div>
+        {/* Only show the 'outside' trigger if the sidebar is NOT expanded or if we are on mobile */}
+        {(!isExpanded || isMobile) && (
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+            <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
+          </div>
+        )}
         <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
           <Toaster position="top-right" expand={false} richColors />
           {children}
         </div>
       </main>
-    </SidebarProvider>
+    </>
   );
 };
 
