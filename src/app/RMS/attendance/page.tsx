@@ -6,7 +6,7 @@ import { AdminAttendancePage } from "@/components/RMS/AdminAttendancePage";
 export default function AttendancePage() {
   return (
     <ProtectedRoute>
-      <RoleGuard allow={["admin"]}>
+      <RoleGuard allow={["admin", "teacher"]}>
         <SideBar>
           <AdminAttendancePage />
         </SideBar>
