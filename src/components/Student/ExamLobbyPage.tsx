@@ -61,6 +61,24 @@ export default function ExamLobbyPage() {
     );
   }
 
+  const isSubmitted = assessment.status === 'submitted' || assessment.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
+  const isEnded = assessment.status === 'ended';
+
+  if (isSubmitted || isEnded) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f3efff] p-6 text-center">
+        <Lock className="w-16 h-16 text-indigo-500 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Assessment Locked</h2>
+        <p className="text-slate-500 mb-6 max-w-md">
+          {isSubmitted 
+            ? "You have already submitted this assessment. Multiple attempts are not permitted." 
+            : "This assessment has ended and is no longer accepting submissions."}
+        </p>
+        <Button onClick={() => router.push('/student/dashboard')}>Return to Dashboard</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#c7d2fe] flex flex-col items-center justify-center p-4 lg:p-8 relative overflow-x-hidden font-sans">
       

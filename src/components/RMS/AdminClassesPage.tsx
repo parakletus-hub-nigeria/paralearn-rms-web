@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
@@ -504,8 +505,8 @@ export function AdminClassesPage() {
       )}
 
       {/* Create Class Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {showCreateModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
@@ -586,12 +587,13 @@ export function AdminClassesPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Assign Teacher Modal */}
-      {showAssignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {showAssignModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAssignModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
@@ -608,12 +610,12 @@ export function AdminClassesPage() {
 
             <div className="px-6 py-5">
               <label className="text-sm font-semibold text-slate-700">Select Teacher</label>
-              <div className="mt-2">
+              <div className="mt-2" style={{ position: "relative", zIndex: 10001 }}>
                 <Select value={assignTeacherId} onValueChange={setAssignTeacherId}>
                   <SelectTrigger className="h-11 w-full rounded-xl">
                     <SelectValue placeholder="Choose a teacher" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl">
+                  <SelectContent className="rounded-xl" style={{ zIndex: 10002 }}>
                     {(teachers || []).map((t: any) => (
                       <SelectItem key={t.id} value={t.id}>
                         {`${t.firstName || ""} ${t.lastName || ""}`.trim() || t.email || t.id}
@@ -638,12 +640,13 @@ export function AdminClassesPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Class Details Modal */}
-      {showDetailsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {showDetailsModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowDetailsModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
@@ -702,7 +705,7 @@ export function AdminClassesPage() {
                       <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
                         <p className="text-sm text-amber-700 font-medium">No teachers assigned yet.</p>
                         <p className="text-xs text-amber-600 mt-1">
-                          Use the &quot;+&quot; button on the class card to assign a class teacher, 
+                          Use the "+" button on the class card to assign a class teacher, 
                           or assign teachers to subjects in the Subjects page.
                         </p>
                       </div>
@@ -714,7 +717,7 @@ export function AdminClassesPage() {
                           const subjectName = t.subjectName || teacher?.subjectName;
                           
                           return (
-                            <div key={`${teacher?.id}-${idx}`} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <div key={`${teacher?.id || "-"}-${idx}`} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                               <div className="flex items-center gap-3">
                                 <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${
                                   isClassTeacher 
@@ -807,7 +810,8 @@ export function AdminClassesPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

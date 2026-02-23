@@ -32,13 +32,21 @@ export default function StudentDashboardPage() {
     dispatch(fetchStudentAssessments());
   }, [dispatch]);
 
-  // Calculate stats
-  const completedCount = assessments.filter(a => a.status === 'submitted' || a.submission?.status === 'submitted').length;
-  /* Fix: strict check for null/undefined to include 0 as valid score */
-  const averageScore = assessments.reduce((acc, curr) => {
-    if (curr.submission?.score != null) return acc + curr.submission.score;
-    return acc;
-  }, 0) / (completedCount || 1);
+  // Pre-filter assessments to drive both the stats and the grid
+  const filteredAssessments = assessments.filter((a) => {
+    const isSubmitted = a.status === 'submitted' || a.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
+    const isEnded = a.status === 'ended';
+    
+    // Don't show 'ended' assessments on the active dashboard.
+    if (isEnded) return false;
+    
+    // Keep the assessment if it's online (isOnline !== false)
+    // Or if it's strictly submitted (so they can see their completed history).
+    return a.isOnline !== false || isSubmitted;
+  });
+
+  const completedCount = filteredAssessments.filter(a => a.status === 'submitted' || a.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt)).length;
+  const upcomingCount = filteredAssessments.length - completedCount;
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] flex flex-col relative font-sans overflow-x-hidden">
@@ -63,7 +71,7 @@ export default function StudentDashboardPage() {
                 Welcome back, {user?.firstName || "Student"}!
               </h1>
               <p className="text-lg md:text-xl text-indigo-100 max-w-2xl mx-auto font-light leading-relaxed">
-                Your academic journey continues. You have <span className="font-bold text-white border-b-2 border-indigo-400 px-1">{assessments.length} assessment{assessments.length !== 1 ? 's' : ''}</span> waiting for you.
+                Your academic journey continues. You have <span className="font-bold text-white border-b-2 border-indigo-400 px-1">{filteredAssessments.length} assessment{filteredAssessments.length !== 1 ? 's' : ''}</span> waiting for you.
               </p>
             </div>
           </div>
@@ -72,27 +80,27 @@ export default function StudentDashboardPage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-2xl p-5 flex items-center gap-4 shadow-lg hover:shadow-xl transition-shadow cursor-default">
+                <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                  <ClipboardList className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Assessments</p>
+                  <p className="text-2xl font-bold text-gray-800">{filteredAssessments.length}</p>
+                </div>
+              </div>
+
+              <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-2xl p-5 flex items-center gap-4 shadow-lg hover:shadow-xl transition-shadow cursor-default">
                 <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
                   <FileText className="w-6 h-6" />
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Upcoming Exams</p>
-                  <p className="text-2xl font-bold text-gray-800">{assessments.length}</p>
+                  <p className="text-2xl font-bold text-gray-800">{upcomingCount}</p>
                 </div>
               </div>
               
               <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-2xl p-5 flex items-center gap-4 shadow-lg hover:shadow-xl transition-shadow cursor-default">
                 <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                  <BarChart3 className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Average Score</p>
-                  <p className="text-2xl font-bold text-gray-800">{Math.round(averageScore)}%</p>
-                </div>
-              </div>
-
-              <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-2xl p-5 flex items-center gap-4 shadow-lg hover:shadow-xl transition-shadow cursor-default">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
                   <CheckSquare className="w-6 h-6" />
                 </div>
                 <div>
@@ -114,7 +122,7 @@ export default function StudentDashboardPage() {
                 <p className="text-red-700 font-medium mb-6">{error}</p>
                 <Button onClick={() => dispatch(fetchStudentAssessments())} className="bg-red-600 hover:bg-red-700 text-white rounded-xl px-8 py-6">Retry Connection</Button>
               </div>
-            ) : assessments.length === 0 ? (
+            ) : filteredAssessments.length === 0 ? (
               <div className="bg-white/40 backdrop-blur-md border border-white/30 p-16 rounded-3xl text-center shadow-lg max-w-3xl mx-auto">
                 <div className="w-24 h-24 bg-white/50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                   <ClipboardList className="w-12 h-12 text-indigo-400" />
@@ -124,13 +132,12 @@ export default function StudentDashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
-                {assessments
-                  .filter(a => a.isOnline !== false || (a.status === 'submitted' || a.submission?.status === 'submitted'))
+                {filteredAssessments
                   .map((assessment, idx) => {
                   const subjectName = assessment.subject?.name || "General";
                   const isMath = subjectName.toLowerCase().includes('math');
                   const isScience = subjectName.toLowerCase().includes('science') || subjectName.toLowerCase().includes('physics') || subjectName.toLowerCase().includes('chem');
-                  const isSubmitted = assessment.status === 'submitted' || assessment.submission?.status === 'submitted';
+                  const isSubmitted = assessment.status === 'submitted' || assessment.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
                   const isOffline = assessment.isOnline === false;
                   
                   let statusLabel = "Not Started";
@@ -138,7 +145,7 @@ export default function StudentDashboardPage() {
                   if (isSubmitted) {
                     statusLabel = "Completed";
                     statusBgClass = "bg-emerald-100/80 text-emerald-700 border-emerald-200";
-                  } else if (assessment.status === 'started' || assessment.submission?.status === 'started' || assessment.submission?.status === 'in_progress') {
+                  } else if (assessment.status === 'started' || assessment.submissions?.some(s => s.status === 'started' || s.status === 'in_progress')) {
                     statusLabel = "In Progress";
                     statusBgClass = "bg-amber-100/80 text-amber-700 border-amber-200";
                   } else if (assessment.status === 'ended') {

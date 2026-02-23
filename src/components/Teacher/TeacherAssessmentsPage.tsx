@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
@@ -80,6 +81,11 @@ export function TeacherAssessmentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [classSubjects, setClassSubjects] = useState<any[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Form State
   const [createForm, setCreateForm] = useState({
@@ -299,7 +305,7 @@ export function TeacherAssessmentsPage() {
   return (
     <div className="w-full">
       <TeacherHeader />
-
+      
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white">
@@ -444,7 +450,7 @@ export function TeacherAssessmentsPage() {
               const status = assessment.status || "draft";
               const statusStyle = getStatusConfig(status);
               const StatusIcon = statusStyle.icon;
-              const duration = assessment.duration || 30;
+              const duration = assessment.durationMinutes ?? assessment.durationMins ?? assessment.duration ?? 30;
 
               return (
                 <div
@@ -478,7 +484,7 @@ export function TeacherAssessmentsPage() {
                     <div className="grid grid-cols-3 gap-3 text-center py-3 border-y border-slate-100">
                       <div>
                         <p className="text-lg font-bold text-slate-900">
-                          {assessment.totalMarks || 100}
+                          {assessment.totalMarks ?? assessment.marks ?? 100}
                         </p>
                         <p className="text-xs text-slate-500">Marks</p>
                       </div>
@@ -488,7 +494,7 @@ export function TeacherAssessmentsPage() {
                       </div>
                       <div>
                         <p className="text-lg font-bold text-slate-900">
-                          {assessment.submissionCount || 0}
+                          {assessment._count?.submissions ?? assessment.submissions?.length ?? assessment.submissionCount ?? 0}
                         </p>
                         <p className="text-xs text-slate-500">Submitted</p>
                       </div>
@@ -581,8 +587,8 @@ export function TeacherAssessmentsPage() {
                         </div>
                       </td>
                       <td className="py-4 px-3 text-slate-600">{getClassName(assessment.classId)}</td>
-                      <td className="py-4 px-3 text-center font-semibold">{assessment.totalMarks || 100}</td>
-                      <td className="py-4 px-3 text-center">{assessment.duration || 30}m</td>
+                      <td className="py-4 px-3 text-center font-semibold">{assessment.totalMarks ?? assessment.marks ?? 100}</td>
+                      <td className="py-4 px-3 text-center">{assessment.durationMinutes ?? assessment.durationMins ?? assessment.duration ?? 30}m</td>
                       <td className="py-4 px-3 text-center">
                         <Badge className={`rounded ${statusStyle.bg} ${statusStyle.text}`}>
                           {statusStyle.label}
@@ -636,8 +642,8 @@ export function TeacherAssessmentsPage() {
       </div>
 
       {/* Create Assessment Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {showCreateModal && isMounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowCreateModal(false)}
@@ -679,7 +685,7 @@ export function TeacherAssessmentsPage() {
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue placeholder="Select Class" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl z-[10000]">
                       {uniqueClasses.map((cls: any) => (
                         <SelectItem key={cls.id} value={cls.id}>
                           {cls.name}
@@ -699,7 +705,7 @@ export function TeacherAssessmentsPage() {
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue placeholder={loadingSubjects ? "Loading..." : "Select Subject"} />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl z-[10000]">
                       {classSubjects.map((subj: any) => (
                         <SelectItem key={subj.id} value={subj.id}>
                           {subj.name}
@@ -720,7 +726,7 @@ export function TeacherAssessmentsPage() {
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl z-[10000]">
                       {assessmentCategories.length === 0 ? (
                          <div className="p-2 text-sm text-slate-500 text-center">
                            No categories found. Ask Admin to create them.
@@ -778,7 +784,7 @@ export function TeacherAssessmentsPage() {
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl z-[10000]">
                       <SelectItem value="false">Offline / Paper-based</SelectItem>
                       <SelectItem value="true">Online</SelectItem>
                     </SelectContent>
@@ -844,7 +850,8 @@ export function TeacherAssessmentsPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

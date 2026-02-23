@@ -211,9 +211,42 @@ export function TeacherScoresPage() {
     }
 
     setLoadingScores(true);
-    // Fetch scores for each assessment in parallel
+
+    // For each assessment, determine strategy:
+    //   - Online (CBT) → read submission scores already embedded in the assessment object
+    //   - Offline      → hit /scores/assessment/:id as usual
     Promise.all(
       relevantAssessments.map(async (assessment: any) => {
+        const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
+
+        if (isOnline) {
+          // CBT scores come from submissions — pick the latest GRADED one per student
+          const submissions: any[] = assessment.submissions || [];
+          const gradedByStudent = new Map<string, any>();
+
+          submissions.forEach((sub: any) => {
+            if (sub.status === "graded" && sub.studentId) {
+              // Keep the most-recently-created graded submission per student
+              const existing = gradedByStudent.get(sub.studentId);
+              if (!existing || new Date(sub.createdAt) > new Date(existing.createdAt)) {
+                gradedByStudent.set(sub.studentId, sub);
+              }
+            }
+          });
+
+          // Convert to a shape compatible with the offline score format
+          const scores = Array.from(gradedByStudent.values()).map((sub: any) => ({
+            studentId: sub.studentId,
+            marksAwarded: sub.score ?? 0,
+            score: sub.score ?? 0,
+            assessmentId: assessment.id
+          }));
+
+          console.log(`[TeacherScores] Online assessment "${assessment.title}" CBT scores:`, scores);
+          return { assessmentId: assessment.id, scores };
+        }
+
+        // Offline — fetch from dedicated scores endpoint
         try {
           const result = await dispatch(fetchScoresByAssessmentTeacher(assessment.id)).unwrap();
           return { assessmentId: assessment.id, scores: result || [] };
@@ -226,7 +259,7 @@ export function TeacherScoresPage() {
       const allScores = results.flatMap(r => r.scores);
       setExistingScores(allScores);
       
-      // Populate editedScores map: StudentId -> AssessmentId -> Score
+      // Populate editedScores map: StudentId → AssessmentId → Score
       const scoreMap = new Map<string, Map<string, string>>();
       
       results.forEach(({ assessmentId, scores }) => {
@@ -236,12 +269,16 @@ export function TeacherScoresPage() {
             if (!scoreMap.has(studentId)) {
               scoreMap.set(studentId, new Map());
             }
-            // Prefer marksAwarded
+            // Prefer marksAwarded, fall back to score
             const val = s.marksAwarded?.toString() ?? s.score?.toString() ?? "";
             scoreMap.get(studentId)!.set(assessmentId, val);
           }
         });
       });
+
+      console.log("[TeacherScores] Final scoreMap:", Object.fromEntries(
+        Array.from(scoreMap.entries()).map(([k, v]) => [k, Object.fromEntries(v)])
+      ));
       setEditedScores(scoreMap);
     }).finally(() => setLoadingScores(false));
   }, [dispatch, relevantAssessments]);

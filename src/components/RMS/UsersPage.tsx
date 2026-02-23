@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
@@ -543,8 +544,8 @@ export const UsersPage = () => {
       />
 
       {/* View User Modal */}
-      {viewUserModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {viewUserModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
             onClick={() => setViewUserModal(null)} 
@@ -684,7 +685,8 @@ export const UsersPage = () => {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
 

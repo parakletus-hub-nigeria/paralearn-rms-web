@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X, User, BookOpen, GraduationCap, Mail, Phone, Info, ChevronRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,8 +156,8 @@ export function AddUserModal({
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return typeof document !== "undefined" ? createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
 
@@ -479,6 +480,5 @@ export function AddUserModal({
           </Button>
         </div>
       </div>
-    </div>
-  );
+    </div>, document.body) : null;
 }

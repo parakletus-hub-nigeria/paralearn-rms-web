@@ -6,9 +6,9 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/proxy/:path*", // When we request /api/proxy...
-        destination:
-        "https://paralearn-backend-b3ezb3e3ged0eyf8.switzerlandnorth-01.azurewebsites.net/:path*", // ...send it here
-        // destination: "http://localhost:3001/:path*"
+        // destination:
+        // "https://paralearn-backend-b3ezb3e3ged0eyf8.switzerlandnorth-01.azurewebsites.net/:path*", // ...send it here
+        destination: "http://localhost:3001/:path*"                                                                                                                                       
       },
     ];
   },

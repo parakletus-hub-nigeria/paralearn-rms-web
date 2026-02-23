@@ -37,14 +37,13 @@ export interface StudentAssessment {
     id: string;
     name: string;
   };
-  submission: {
-    id: string;
+  submissions: {
     status: string;
-    score: number | null;
+    startedAt: string;
     finishedAt: string | null;
-  } | null;
+    durationSecs?: number;
+  }[];
   status: "not_started" | "started" | "ended" | "submitted";
-  hasSubmitted: boolean;
   isOnline?: boolean;
   questions?: AssessmentQuestion[]; // Added questions property
 }

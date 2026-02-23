@@ -104,11 +104,17 @@ const Step_One = ({
           const sheet = workbook.Sheets[sheetName];
 
           // Convert sheet to JSON (Array of Objects)
-          const jsonData = XLSX.utils.sheet_to_json(sheet);
+          // defval: "" → empty cells become "" instead of being omitted (prevents undefined key errors)
+          // raw: false → formats date serial numbers as readable date strings
+          const rawData = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false }) as Record<string, any>[];
+
+          // Filter out completely blank rows that Excel silently appends at the bottom
+          const jsonData = rawData.filter((row) =>
+            Object.values(row).some((v) => String(v).trim() !== "")
+          );
 
           console.log("Excel Data:", jsonData);
           setFileContent(jsonData as any);
-          console.log(fileContent);
           setLoading(false);
           SetUnpacked(true);
         };

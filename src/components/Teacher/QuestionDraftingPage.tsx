@@ -23,7 +23,9 @@ import {
   ChevronRight,
   Loader2,
   FileQuestion,
-  History
+  History,
+  Lightbulb,
+  GripVertical
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -45,6 +47,9 @@ export function QuestionDraftingPage() {
 
   // Draft State
   const [draftQuestions, setDraftQuestions] = useState<any[]>([]);
+
+  // Mobile View State
+  const [activeMobileTab, setActiveMobileTab] = useState<"drafts" | "builder">("drafts");
 
   // Load assessments on mount
   useEffect(() => {
@@ -188,8 +193,14 @@ export function QuestionDraftingPage() {
   };
 
   const handleGenerate = async () => {
-    const apiKey = localStorage.getItem("gemini_api_key");
-    if (!apiKey) return toast.error("Gemini API Key not found in local storage.");
+    // The API key should be securely set in the .env.local file as:
+    // NEXT_PUBLIC_GEMINI_API_KEY=your_key_here
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+    
+    if (!apiKey) {
+      return toast.error("Gemini API Key is missing. Please add NEXT_PUBLIC_GEMINI_API_KEY to your .env.local file.");
+    }
+    
     if (!prompt.trim()) return toast.error("Please enter a prompt.");
 
     setIsGenerating(true);
@@ -262,11 +273,113 @@ export function QuestionDraftingPage() {
     
   const selectedAssessment = assessments.find((a: any) => a.id === selectedAssessmentId);
 
+  const renderAIBuilderContent = () => (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex-1 flex flex-col overflow-hidden">
+        <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-sm">
+                <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+                <h2 className="font-bold text-slate-900 text-lg">AI Builder</h2>
+                <p className="text-xs text-slate-500">Smart question generation</p>
+            </div>
+        </div>
+        
+        <div className="space-y-4 flex-1 flex flex-col overflow-hidden">
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-inner">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">AI Prompt</label>
+                <Textarea 
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="e.g. Generate 5 MCQ questions about Photosynthesis..."
+                    className="w-full bg-transparent border-0 p-0 text-slate-700 placeholder:text-slate-400 focus:ring-0 resize-none text-sm leading-relaxed min-h-[100px]"
+                />
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-200">
+                    <span className="text-xs text-slate-400 font-medium">{prompt.length}/500</span>
+                    <Button 
+                        size="sm"
+                        onClick={handleGenerate}
+                        disabled={isGenerating || !prompt.trim()}
+                        className="h-8 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all active:scale-95"
+                    >
+                        {isGenerating ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <><Sparkles className="w-3.5 h-3.5 mr-1.5" /> Generate</>
+                        )}
+                    </Button>
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar">
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Recent Generations</h3>
+                    {generatedHistory.length > 0 && (
+                       <button 
+                          onClick={() => setGeneratedHistory([])} 
+                          className="text-[10px] text-indigo-600 hover:underline font-bold"
+                       >
+                           Clear
+                       </button>
+                    )}
+                </div>
+                
+                {generatedHistory.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-100 rounded-xl opacity-60">
+                        <Sparkles className="w-8 h-8 text-slate-300 mb-2" />
+                        <p className="text-xs font-medium text-slate-500">No questions generated</p>
+                    </div>
+                ) : (
+                    generatedHistory.map((gen, idx) => (
+                        <div key={idx} className="bg-white rounded-xl p-3 border border-slate-100 hover:border-indigo-200 transition-all shadow-sm">
+                            <div className="flex items-start gap-2 mb-2">
+                                <History className="w-4 h-4 text-indigo-400 mt-0.5" />
+                                <div>
+                                    <p className="text-xs font-medium text-slate-700 line-clamp-2 leading-relaxed">{gen.prompt}</p>
+                                    <p className="text-[10px] text-slate-400 mt-1">{gen.questions.length} Questions generated</p>
+                                </div>
+                            </div>
+                            <div className="space-y-2 mt-3">
+                                {gen.questions.slice(0, 3).map((q, qIdx) => (
+                                    <div key={qIdx} className="flex items-start gap-2 bg-slate-50 rounded-lg p-2 border border-slate-100 relative group/item">
+                                        <div className="flex-1 min-w-0">
+                                            <span className="text-[9px] font-bold text-indigo-600 uppercase tracking-tighter bg-indigo-50 px-1 rounded mb-1 inline-block">
+                                                {q.questionType}
+                                            </span>
+                                            <p className="text-[10px] text-slate-600 line-clamp-1 pr-6">{q.questionText}</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => addQuestionToDraft(q)}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-white border border-slate-200 text-indigo-600 rounded opacity-0 group-hover/item:opacity-100 transition-all hover:border-indigo-600 shadow-sm"
+                                            title="Add to draft"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            <div className="mt-auto pt-2">
+                 <div className="bg-blue-50/80 rounded-xl p-3 border border-blue-100 flex items-start gap-2">
+                    <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-blue-800 leading-relaxed">
+                        <strong>Pro Tip:</strong> Be specific about grade level and difficulty constraints to get the most accurate AI responses.
+                    </p>
+                 </div>
+            </div>
+        </div>
+    </div>
+  );
+
   return (
     <div className="w-full min-h-screen bg-slate-50">
       <TeacherHeader />
       
-      <div className="max-w-[1600px] mx-auto px-4 md:px-6 pb-20">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 pb-32 lg:pb-20">
         {/* Top Controls */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
            <div className="flex-1 w-full flex items-center gap-3">
@@ -324,197 +437,107 @@ export function QuestionDraftingPage() {
         </div>
 
         {selectedAssessmentId ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-220px)] min-h-[600px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start relative">
             
-            {/* Left Sidebar - AI Builder */}
-            <div className="lg:col-span-4 flex flex-col gap-4 h-full overflow-hidden">
-                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 flex-1 flex flex-col overflow-hidden">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100">
-                            <Sparkles className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h2 className="font-bold text-slate-900 font-coolvetica text-xl tracking-tight">AI Builder</h2>
-                            <p className="text-sm text-slate-500">Smart question generation</p>
-                        </div>
-                    </div>
-                    
-                    <div className="space-y-6 flex-1 flex flex-col overflow-hidden">
-                        <div className="space-y-3">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">AI Prompt</label>
-                            <div className="relative group">
-                                <Textarea 
-                                    value={prompt}
-                                    onChange={(e) => setPrompt(e.target.value)}
-                                    placeholder="e.g. Generate 5 MCQ questions about Photosynthesis..."
-                                    className="min-h-[120px] bg-slate-50 border-slate-100 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50 rounded-2xl p-4 text-sm transition-all resize-none"
-                                />
-                                <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                                    <Button 
-                                        size="sm"
-                                        onClick={handleGenerate}
-                                        disabled={isGenerating || !prompt.trim()}
-                                        className="h-9 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-md transition-all active:scale-95"
-                                    >
-                                        {isGenerating ? (
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                        ) : (
-                                            <><Send className="w-4 h-4 mr-2" /> Generate</>
-                                        )}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
+            {/* Desktop Layout - AI Builder Left Sidebar */}
+            <div className="hidden lg:flex lg:col-span-4 sticky top-[100px] h-[calc(100vh-120px)] flex-col gap-4 z-10 box-border">
+                {renderAIBuilderContent()}
+            </div>
 
-                        <div className="flex-1 flex flex-col overflow-hidden">
-                            <div className="flex items-center justify-between mb-4 px-1">
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                    <History className="w-3.5 h-3.5" />
-                                    Recent Generations
-                                </h3>
-                                {generatedHistory.length > 0 && (
-                                    <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                        {generatedHistory.length}
-                                    </span>
-                                )}
-                            </div>
-                            
-                            <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
-                                {generatedHistory.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-100 rounded-3xl opacity-60">
-                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                                            <Sparkles className="w-6 h-6 text-slate-300" />
-                                        </div>
-                                        <p className="text-xs font-medium text-slate-500">No questions generated yet.</p>
-                                        <p className="text-[10px] text-slate-400 mt-1">Enter a prompt above to use AI.</p>
-                                    </div>
-                                ) : (
-                                    generatedHistory.map((gen, idx) => (
-                                        <div key={idx} className="bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-indigo-200 transition-all group">
-                                            <p className="text-[10px] font-bold text-slate-400 mb-2 truncate">"{gen.prompt}"</p>
-                                            <div className="space-y-2">
-                                                {gen.questions.slice(0, 3).map((q, qIdx) => (
-                                                    <div key={qIdx} className="flex items-start gap-2 bg-white rounded-xl p-2.5 border border-slate-100 shadow-sm relative overflow-hidden group/item">
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-1.5 mb-1">
-                                                                <span className="text-[9px] font-bold text-indigo-600 uppercase tracking-tighter bg-indigo-50 px-1 rounded">
-                                                                    {q.questionType}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-[11px] text-slate-600 line-clamp-1 pr-6 font-medium">{q.questionText}</p>
-                                                        </div>
-                                                        <button 
-                                                            onClick={() => addQuestionToDraft(q)}
-                                                            className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600 text-white rounded-lg opacity-0 group-hover/item:opacity-100 transition-all hover:bg-indigo-700 shadow-lg shadow-indigo-100"
-                                                        >
-                                                            <Plus className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                {gen.questions.length > 3 && (
-                                                    <p className="text-[9px] text-center text-slate-400 font-medium">+{gen.questions.length - 3} more questions</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="pt-4 border-t border-slate-100">
-                             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-100 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-md">
-                                        <CheckCircle className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest">Draft Ready</p>
-                                        <p className="text-xl font-bold text-emerald-900 leading-none">{draftQuestions.length}</p>
-                                    </div>
-                                </div>
-                                <Button 
-                                    onClick={addManualQuestion}
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-8 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-bold uppercase tracking-wider"
-                                >
-                                    <Plus className="w-3 h-3 mr-1" /> Add Manual
-                                </Button>
-                             </div>
-                        </div>
-                    </div>
-                </div>
+            {/* Mobile View - AI Builder Overlay Bottom Sheet */}
+            <div className={`
+                lg:hidden fixed inset-x-0 bottom-20 top-[60px] bg-slate-50/60 backdrop-blur-sm z-40 transform transition-transform duration-300 flex flex-col p-4 shadow-2xl
+                ${activeMobileTab === 'builder' ? 'translate-y-0' : 'translate-y-full opacity-0 pointer-events-none'}
+            `}>
+                {renderAIBuilderContent()}
             </div>
 
             {/* Right Content - Drafting Table */}
-            <div className="lg:col-span-8 flex flex-col gap-4 h-full overflow-hidden"> 
-                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 h-full flex flex-col overflow-hidden">
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h2 className="font-bold text-slate-900 font-outfit text-2xl tracking-tight">Drafting Table</h2>
-                            <p className="text-sm text-slate-500">Fine-tune your generated content</p>
-                        </div>
-                        <div className="flex gap-3">
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-10 rounded-xl px-4 text-red-500 hover:bg-red-50 font-bold text-xs uppercase tracking-widest"
-                                onClick={clearDraft}
-                            >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Reset Draft
-                            </Button>
-                        </div>
+            <div className="lg:col-span-8 flex flex-col gap-6 w-full max-w-full"> 
+                <div className="flex items-end justify-between">
+                    <div>
+                        <h1 className="text-xl lg:text-2xl font-bold text-slate-900 mb-1">Drafting Table</h1>
+                        <p className="text-slate-500 text-xs lg:text-sm">Fine-tune your generated content before publishing.</p>
                     </div>
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 hidden lg:flex"
+                        onClick={clearDraft}
+                    >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Reset Draft
+                    </Button>
+                </div>
 
-                    <div className="flex-1 overflow-y-auto space-y-6 pr-2 pb-20">
-                        {draftQuestions.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
-                                <FileQuestion className="w-16 h-16 mb-4 stroke-1" />
-                                <p className="text-sm font-medium">Your draft is empty</p>
-                                <p className="text-xs">Generate questions with AI or add them manually.</p>
+                <div className="space-y-6">
+                    {draftQuestions.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
+                            <div className="w-20 h-20 lg:w-24 lg:h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                                <FileQuestion className="w-8 h-8 lg:w-10 lg:h-10 text-slate-300" />
                             </div>
-                        ) : (
-                            draftQuestions.map((q, idx) => (
-                                <div key={q.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm transition-all hover:shadow-md hover:border-indigo-100 group">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <span className="w-6 h-6 rounded flex items-center justify-center bg-slate-100 text-xs font-bold text-slate-500">
+                            <h3 className="text-base lg:text-lg font-bold text-slate-900 mb-2">Your draft is empty</h3>
+                            <p className="text-slate-500 max-w-sm mb-8 text-xs lg:text-sm">
+                                Generate questions with the AI Builder or add them manually to get started.
+                            </p>
+                        </div>
+                    ) : (
+                        draftQuestions.map((q, idx) => (
+                            <div key={q.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 lg:p-6 group transition-all hover:shadow-md hover:border-indigo-200 relative">
+                                <div className="absolute left-2 lg:left-3 top-1/2 -translate-y-1/2 cursor-grab text-slate-300 hover:text-slate-500 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <GripVertical className="w-5 h-5" />
+                                </div>
+                                <div className="lg:pl-6">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                                            <span className="bg-slate-100 text-slate-500 font-mono text-[10px] lg:text-xs font-bold px-2 py-0.5 lg:py-1 rounded border border-slate-200">
                                                 Q{idx + 1}
                                             </span>
-                                            <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider">
+                                            <span className="px-2 py-0.5 rounded text-[10px] lg:text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
                                                 {q.questionType}
                                             </span>
+                                            <div className="flex items-center gap-1 border-l pl-2 lg:pl-3 ml-0 lg:ml-1 border-slate-200">
+                                                <Input 
+                                                    type="number" 
+                                                    className="w-12 lg:w-14 h-6 text-[10px] lg:text-xs text-center px-1 font-medium bg-slate-50 border-transparent hover:border-slate-200 focus:bg-white" 
+                                                    value={q.marks}
+                                                    onChange={(e) => updateDraftQuestion(q.id, "marks", parseInt(e.target.value) || 1)}
+                                                />
+                                                <span className="text-[10px] lg:text-xs font-medium text-slate-500">Marks</span>
+                                            </div>
                                         </div>
-                                        <button 
-                                            onClick={() => removeQuestion(q.id)}
-                                            className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex items-center gap-1.5 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                onClick={() => removeQuestion(q.id)}
+                                                className="p-1.5 lg:p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div className="mb-4">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Question Text</label>
+                                    <div className="mb-4 lg:mb-5">
                                         <Textarea 
                                             value={q.questionText}
                                             onChange={(e) => updateDraftQuestion(q.id, "questionText", e.target.value)}
-                                            className="font-medium text-slate-900 border-slate-200 bg-slate-50/50 focus:bg-white resize-none min-h-[60px]"
+                                            className="font-medium text-slate-900 border-transparent hover:border-slate-200 bg-transparent focus:bg-white resize-none min-h-[40px] p-2 -ml-2 text-sm lg:text-base leading-relaxed"
                                             placeholder="Type your question here..."
                                         />
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Options</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-3">
                                         {q.options?.map((opt: any, oIdx: number) => (
                                             <div 
                                                 key={oIdx} 
-                                                className={`flex items-center gap-3 p-2 rounded-xl border transition-all ${
-                                                    opt.isCorrect ? "bg-emerald-50 border-emerald-200 ring-1 ring-emerald-200" : "bg-white border-slate-100"
+                                                className={`flex items-center gap-3 p-2.5 lg:p-3 rounded-xl lg:rounded-lg border transition-all cursor-pointer ${
+                                                    opt.isCorrect 
+                                                        ? "border-emerald-500/30 bg-emerald-50/50" 
+                                                        : "border-slate-200 bg-slate-50/50 hover:bg-slate-100"
                                                 }`}
                                             >
                                                 <button 
-                                                    className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
+                                                    className={`shrink-0 w-5 h-5 lg:w-6 lg:h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                                                         opt.isCorrect 
                                                             ? "bg-emerald-500 border-emerald-500 text-white" 
                                                             : "border-slate-300 hover:border-emerald-400"
@@ -522,55 +545,81 @@ export function QuestionDraftingPage() {
                                                     onClick={() => updateOption(q.id, oIdx, "isCorrect", !opt.isCorrect)}
                                                     title={opt.isCorrect ? "Correct Answer" : "Mark as Correct"}
                                                 >
-                                                    {opt.isCorrect && <CheckCircle className="w-3 h-3" />}
+                                                    {opt.isCorrect && <CheckCircle className="w-3 h-3 lg:w-3.5 lg:h-3.5" />}
                                                 </button>
                                                 
                                                 <input 
                                                     type="text"
                                                     value={opt.text}
                                                     onChange={(e) => updateOption(q.id, oIdx, "text", e.target.value)}
-                                                    className="flex-1 bg-transparent border-none text-sm font-medium text-slate-700 placeholder:text-slate-300 focus:ring-0 p-0"
+                                                    className={`flex-1 bg-transparent border-none text-xs lg:text-sm focus:ring-0 p-0 ${opt.isCorrect ? "font-medium text-slate-900" : "text-slate-700"}`}
                                                     placeholder={`Option ${oIdx + 1}`}
                                                 />
                                                 
                                                 {opt.isCorrect && (
-                                                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mr-2">
-                                                        Correct Answer
+                                                    <span className="text-[9px] lg:text-[10px] font-bold text-emerald-600 uppercase tracking-wider mr-1">
+                                                        Correct
                                                     </span>
                                                 )}
                                             </div>
                                         ))}
                                     </div>
-                                    
-                                    <div className="mt-4 flex justify-end items-center gap-3">
-                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-slate-500 font-medium">Marks:</span>
-                                            <Input 
-                                                type="number" 
-                                                className="w-16 h-8 text-center" 
-                                                value={q.marks}
-                                                onChange={(e) => updateDraftQuestion(q.id, "marks", parseInt(e.target.value) || 1)}
-                                            />
-                                         </div>
-                                    </div>
                                 </div>
-                            ))
-                        )}
-                    </div>
+                            </div>
+                        ))
+                    )}
+                    
+                    <button 
+                         onClick={addManualQuestion}
+                         className="w-full py-5 lg:py-6 rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-300 text-slate-400 hover:text-indigo-600 transition-all flex hidden lg:flex col items-center justify-center gap-2 bg-transparent hover:bg-indigo-50/50"
+                    >
+                         <Plus className="w-6 h-6 lg:w-8 lg:h-8" />
+                         <span className="font-medium text-sm">Add Question Manually</span>
+                    </button>
                 </div>
             </div>
             
+            {/* Mobile Nav & FAB Elements */}
+            <button 
+                aria-label="Add Question Manually" 
+                onClick={addManualQuestion}
+                className="fixed bottom-24 right-4 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-xl shadow-indigo-200 flex flex-col items-center justify-center z-30 transition-transform active:scale-95 lg:hidden"
+            >
+                <Plus className="w-6 h-6" />
+            </button>
+
+            <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 h-20 px-6 pb-2 z-50 flex justify-center gap-12 items-center text-[10px] font-bold tracking-wider uppercase lg:hidden shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.05)]">
+                <button 
+                    onClick={() => setActiveMobileTab('drafts')}
+                    className={`flex flex-col items-center justify-center gap-1 w-16 group transition-colors ${activeMobileTab === 'drafts' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                    <div className={`p-1.5 rounded-full transition-colors ${activeMobileTab === 'drafts' ? 'bg-indigo-50 text-indigo-600' : 'group-hover:bg-slate-50 text-slate-400'}`}>
+                        <FileQuestion className="w-6 h-6" />
+                    </div>
+                    <span>Drafts</span>
+                </button>
+                <button 
+                    onClick={() => setActiveMobileTab('builder')}
+                    className={`flex flex-col items-center justify-center gap-1 w-16 transition-colors ${activeMobileTab === 'builder' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                    <div className={`p-1.5 rounded-full transition-colors ${activeMobileTab === 'builder' ? 'bg-indigo-50 text-indigo-600' : 'group-hover:bg-slate-50 text-slate-400'}`}>
+                        <Sparkles className="w-6 h-6" />
+                    </div>
+                    <span>Builder</span>
+                </button>
+            </nav>
+
             </div>
         ) : (
-            <div className="flex flex-col items-center justify-center p-20 text-center bg-white rounded-3xl border border-slate-200 shadow-sm">
-                <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
-                    <Sparkles className="w-10 h-10 text-indigo-500" />
+            <div className="flex flex-col items-center justify-center p-12 lg:p-20 text-center bg-white rounded-3xl border border-slate-200 shadow-sm mt-8">
+                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
+                    <Sparkles className="w-8 h-8 lg:w-10 lg:h-10 text-indigo-500" />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2 font-coolvetica">Start Drafting</h2>
-                <p className="text-slate-500 max-w-md mx-auto mb-8">
+                <h2 className="text-xl lg:text-2xl font-bold text-slate-900 mb-2 font-coolvetica">Start Drafting</h2>
+                <p className="text-slate-500 max-w-sm lg:max-w-md mx-auto mb-8 text-sm lg:text-base">
                     Select an online assessment from the dropdown above to start creating questions with our AI Builder.
                 </p>
-                <Button className="h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold" disabled>
+                <Button className="h-10 lg:h-12 px-6 lg:px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold" disabled>
                     Select an Assessment to Begin
                 </Button>
             </div>

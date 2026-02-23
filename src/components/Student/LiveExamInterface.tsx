@@ -48,12 +48,18 @@ export default function LiveExamInterface() {
 
   // Timer Logic
   useEffect(() => {
-    if (!activeSession.deadline) return;
+    // If activeSession was cleared by a refresh, attempt to recover startedAt from the assessment details
+    const reliableStartedAt = activeSession.startedAt || currentAssessment?.submissions?.[0]?.startedAt || new Date().toISOString();
+    
+    if (!currentAssessment?.durationMins) return;
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      const deadline = new Date(activeSession.deadline!).getTime();
-      const diff = Math.max(0, Math.floor((deadline - now) / 1000));
+      const startedAt = new Date(reliableStartedAt).getTime();
+      const durationMs = currentAssessment.durationMins * 60 * 1000;
+      const explicitDeadline = startedAt + durationMs;
+      
+      const diff = Math.max(0, Math.floor((explicitDeadline - now) / 1000));
       
       setTimeLeft(diff);
 
@@ -63,8 +69,15 @@ export default function LiveExamInterface() {
       }
     }, 1000);
 
+    // Initial setting immediately so it doesn't wait 1s
+    const now = new Date().getTime();
+    const startedAt = new Date(reliableStartedAt).getTime();
+    const durationMs = currentAssessment.durationMins * 60 * 1000;
+    const initialDiff = Math.max(0, Math.floor(((startedAt + durationMs) - now) / 1000));
+    setTimeLeft(initialDiff);
+
     return () => clearInterval(interval);
-  }, [activeSession.deadline]);
+  }, [activeSession.startedAt, currentAssessment?.durationMins, currentAssessment?.submissions]);
 
   // Anti-Malpractice Listeners
   useEffect(() => {
@@ -97,7 +110,7 @@ export default function LiveExamInterface() {
   const onFinalSubmit = async () => {
     if (!assessmentId) return;
     
-    // Ensure we send all answers, even if empty strings for unanswered questions
+    // API docs: MCQ/TrueFalse answers must be `{ selected: choiceId }`, essays are plain strings
     const answersToSend = currentAssessment?.questions?.map(q => {
       const val = activeSession.answers[q.id];
       return {
@@ -106,8 +119,15 @@ export default function LiveExamInterface() {
       };
     }) || [];
 
+    const reliableStartedAt = activeSession.startedAt || currentAssessment?.submissions?.[0]?.startedAt || new Date().toISOString();
+
     const submissionData = {
+      startedAt: reliableStartedAt,
       finishedAt: new Date().toISOString(),
+      deviceMeta: {
+        browser: window.navigator.userAgent,
+        os: window.navigator.platform
+      },
       antiMalpracticeData: {
         tabSwitchCount: activeSession.tabSwitchCount,
         windowBlurCount: activeSession.windowBlurCount,
@@ -116,11 +136,28 @@ export default function LiveExamInterface() {
       answers: answersToSend
     };
 
+    // === DIAGNOSTIC LOGS - remove after debugging ===
+    console.log("[ExamSubmit] Redux answers stored:", JSON.stringify(activeSession.answers, null, 2));
+    console.log("[ExamSubmit] Questions & raw choice IDs from API:", 
+      currentAssessment?.questions?.map(q => ({
+        questionId: q.id,
+        questionText: (q.prompt || q.questionText || "").substring(0, 50),
+        storedAnswer: activeSession.answers[q.id],
+        choices: (q.choices || q.options || []).map((c: any, i: number) => ({
+          idx: i, id: c.id, text: c.text, isCorrect: c.isCorrect
+        }))
+      }))
+    );
+    console.log("[ExamSubmit] Final payload being sent:", JSON.stringify(submissionData, null, 2));
+    // ================================================
+
     try {
-      await dispatch(submitAssessment({ assessmentId, data: submissionData })).unwrap();
+      const result = await dispatch(submitAssessment({ assessmentId, data: submissionData })).unwrap();
+      console.log("[ExamSubmit] Server response:", JSON.stringify(result, null, 2));
       toast.success("Exam submitted successfully!");
       router.push("/student/dashboard");
     } catch (e: any) {
+      console.error("[ExamSubmit] Submission error:", e);
       toast.error(e || "Submission failed. Please try again.");
     }
   };
@@ -136,6 +173,24 @@ export default function LiveExamInterface() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fcfcfc]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+      </div>
+    );
+  }
+
+  const isSubmitted = currentAssessment.status === 'submitted' || currentAssessment.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
+  const isEnded = currentAssessment.status === 'ended';
+
+  if (isSubmitted || isEnded) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcfcfc] p-6 text-center">
+        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Assessment Locked</h2>
+        <p className="text-slate-500 mb-6 max-w-md">
+          {isSubmitted 
+            ? "You have already submitted this assessment. You cannot modify your answers." 
+            : "This assessment has ended and is no longer active."}
+        </p>
+        <Button onClick={() => router.push('/student/dashboard')}>Return to Dashboard</Button>
       </div>
     );
   }
