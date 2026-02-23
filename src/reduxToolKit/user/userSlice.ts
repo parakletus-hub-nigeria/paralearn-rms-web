@@ -81,9 +81,17 @@ const getInitialUser = (): UserState["user"] => {
       const decoded = getDecodedTokenPayload(token);
       console.log("[userSlice] Decoded JWT Payload (Full):", JSON.stringify(decoded, null, 2));
       if (decoded) {
-        const roles = normalizeRoles(decoded.roles || decoded.role);
-        console.log("[userSlice] Normalized Roles from JWT:", roles);
-        const userData = {
+        // Try multiple ways to extract roles from JWT
+        let roles = normalizeRoles(decoded.roles || decoded.role);
+        
+        // If roles is still empty, try passing the entire decoded object 
+        // to normalizeRoles to check for iadmin, iseditor, etc.
+        if (roles.length === 0) {
+          roles = normalizeRoles(decoded);
+        }
+
+        console.log("[userSlice] Initial State Roles being applied:", roles);
+        return {
           id: decoded.sub || decoded.id || decoded.userId || "",
           email: decoded.email || "",
           firstName: decoded.firstName || "",
@@ -91,8 +99,6 @@ const getInitialUser = (): UserState["user"] => {
           schoolId: decoded.schoolId || "",
           roles: roles,
         };
-        console.log("[userSlice] Initial State Roles being applied:", userData.roles);
-        return userData;
       } else {
         console.warn("[userSlice] Failed to decode token payload");
       }
@@ -186,9 +192,15 @@ const userSlice = createSlice({
         // Persist user snapshot for reloads (roles-based guards)
         if (typeof window !== "undefined") {
           try {
+            // Extract roles, fallback to checking user object for flags
+            let roles = normalizeRoles(action.payload.user?.roles);
+            if (roles.length === 0) {
+                roles = normalizeRoles(action.payload.user);
+            }
+            
             const toSave = {
                 ...action.payload.user,
-                roles: normalizeRoles(action.payload.user?.roles),
+                roles,
             };
             localStorage.setItem(
               USER_KEY,
@@ -401,8 +413,15 @@ const userSlice = createSlice({
       .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUserProfile = action.payload;
-        // Keep `state.user` in sync so RoleGuard can work after refresh.
-        const roles = normalizeRoles(action.payload?.roles);
+        
+        // Extract roles from profile response
+        let roles = normalizeRoles(action.payload?.roles);
+        
+        // If roles is empty, try the whole payload for role flags (iadmin, etc)
+        if (roles.length === 0) {
+          roles = normalizeRoles(action.payload);
+        }
+
         state.user = {
           id: action.payload?.id || state.user.id,
           email: action.payload?.email || state.user.email,

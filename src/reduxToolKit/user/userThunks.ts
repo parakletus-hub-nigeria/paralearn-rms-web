@@ -52,7 +52,12 @@ export const loginUser = createAsyncThunk(
         await setAuthToken(accessToken);
       }
 
-      const roles = normalizeRoles(userFromResponse?.roles);
+      // Extract roles using the enhanced normalization logic
+      let roles = normalizeRoles(userFromResponse?.roles);
+      if (roles.length === 0 && userFromResponse) {
+        roles = normalizeRoles(userFromResponse);
+      }
+
       const redirectTo = pickRedirectPath(roles);
       const subdomain = extractSubdomainFromUser(userFromResponse, response.data);
 
