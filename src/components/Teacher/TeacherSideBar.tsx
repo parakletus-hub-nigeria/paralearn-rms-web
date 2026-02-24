@@ -135,10 +135,10 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
       </Sidebar>
 
       <main className="flex-1 bg-[#fbfaff] min-h-screen relative">
-        <div className="absolute top-6 left-6 z-50">
-          <SidebarTrigger className="hover:bg-purple-50" />
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
         </div>
-        <div className="p-10 w-full max-w-[1600px] mx-auto">
+        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
           <Toaster position="top-right" expand={false} richColors />
           {children}
         </div>

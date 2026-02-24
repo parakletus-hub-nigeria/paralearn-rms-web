@@ -7,7 +7,7 @@ export function TeacherHeader() {
   const { user } = useSelector((s: RootState) => s.user);
 
   return (
-    <div className="flex flex-row items-center justify-between mx-[20px] mb-[20px]">
+    <div className="flex flex-row items-center justify-between pl-10 sm:pl-12 md:pl-0 mb-6">
       <p className="text-sm md:text-base">
         Good day{" "}
         <span className="font-semibold text-slate-900">

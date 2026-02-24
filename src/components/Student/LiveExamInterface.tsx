@@ -274,48 +274,67 @@ export default function LiveExamInterface() {
                  {currentQuestion.prompt || currentQuestion.questionText}
               </h2>
 
-              <div className="space-y-4 flex-grow mb-12">
-                {(currentQuestion.choices || currentQuestion.options || []).map((choice: any, idx: number) => {
-                  const choiceId = choice.id || idx.toString();
-                  const isSelected = activeSession.answers[currentQuestion.id] === choiceId;
-                  const letter = String.fromCharCode(65 + idx);
+              {console.log("Current Question:", currentQuestion)}
 
-                  return (
-                    <label 
-                      key={choiceId}
-                      className={`group flex items-start p-5 border rounded-[4px] cursor-pointer shadow-sm relative transition-all duration-200 ${
-                        isSelected 
-                          ? "border-slate-900 bg-slate-50/50" 
-                          : "border-slate-200 bg-white hover:border-slate-400 hover:shadow-md"
-                      }`}
-                    >
-                      <input 
-                        type="radio" 
-                        name={`question-${currentQuestion.id}`}
-                        className="hidden peer"
-                        checked={isSelected}
-                        onChange={() => dispatch(setAnswer({ questionId: currentQuestion.id, value: choiceId }))}
-                      />
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-[2px] font-bold flex items-center justify-center mr-5 text-sm font-sans transition-colors ${
-                        isSelected 
-                          ? "bg-slate-900 text-white" 
-                          : "bg-slate-50 border border-slate-200 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700"
-                      }`}>
-                        {letter}
-                      </div>
-                      <span className={`text-lg pt-0.5 transition-colors ${
-                        isSelected ? "text-slate-900 font-medium" : "text-slate-700 group-hover:text-slate-900"
-                      }`}>
-                        {choice.text}
-                      </span>
-                      {isSelected && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                          <CheckCircle className="w-6 h-6 text-slate-900" />
+              <div className="space-y-4 flex-grow mb-12">
+                {currentQuestion.type === 'ESSAY' ? (
+                  <textarea 
+                    value={activeSession.answers[currentQuestion.id] || ''}
+                    onChange={(e) => dispatch(setAnswer({ questionId: currentQuestion.id, value: e.target.value }))}
+                    placeholder="Type your essay answer here..."
+                    className="w-full min-h-[300px] p-5 text-lg font-medium text-slate-800 resize-y bg-white border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm"
+                  />
+                ) : currentQuestion.type === 'TEXT' ? (
+                  <input
+                    type="text"
+                    value={activeSession.answers[currentQuestion.id] || ''}
+                    onChange={(e) => dispatch(setAnswer({ questionId: currentQuestion.id, value: e.target.value }))}
+                    placeholder="Type your short answer here..."
+                    className="w-full p-5 text-lg font-medium text-slate-800 bg-white border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm"
+                  />
+                ) : (
+                  (currentQuestion.choices || currentQuestion.options || []).map((choice: any, idx: number) => {
+                    const choiceId = choice.id || idx.toString();
+                    const isSelected = activeSession.answers[currentQuestion.id] === choiceId;
+                    const letter = String.fromCharCode(65 + idx);
+
+                    return (
+                      <label 
+                        key={choiceId}
+                        className={`group flex items-start p-5 border rounded-[4px] cursor-pointer shadow-sm relative transition-all duration-200 ${
+                          isSelected 
+                            ? "border-slate-900 bg-slate-50/50" 
+                            : "border-slate-200 bg-white hover:border-slate-400 hover:shadow-md"
+                        }`}
+                      >
+                        <input 
+                          type="radio" 
+                          name={`question-${currentQuestion.id}`}
+                          className="hidden peer"
+                          checked={isSelected}
+                          onChange={() => dispatch(setAnswer({ questionId: currentQuestion.id, value: choiceId }))}
+                        />
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-[2px] font-bold flex items-center justify-center mr-5 text-sm font-sans transition-colors ${
+                          isSelected 
+                            ? "bg-slate-900 text-white" 
+                            : "bg-slate-50 border border-slate-200 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700"
+                        }`}>
+                          {letter}
                         </div>
-                      )}
-                    </label>
-                  );
-                })}
+                        <span className={`text-lg pt-0.5 transition-colors ${
+                          isSelected ? "text-slate-900 font-medium" : "text-slate-700 group-hover:text-slate-900"
+                        }`}>
+                          {choice.text}
+                        </span>
+                        {isSelected && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            <CheckCircle className="w-6 h-6 text-slate-900" />
+                          </div>
+                        )}
+                      </label>
+                    );
+                  })
+                )}
               </div>
 
               <div className="flex justify-between items-center pt-6 border-t border-slate-100 mb-20 md:mb-0">
