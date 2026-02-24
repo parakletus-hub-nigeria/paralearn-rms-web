@@ -262,14 +262,6 @@ export function QuestionDraftingPage() {
   // The custom layout matching the provided HTML mockup
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50 font-sans text-slate-900 w-full fixed inset-0 z-50">
-        
-        {/* Overlay for mobile menus */}
-        {(isStackOpen || isAIOpen) && (
-            <div 
-                className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-20 lg:hidden"
-                onClick={() => {setIsStackOpen(false); setIsAIOpen(false);}}
-            />
-        )}
 
         {/* Top Navigation */}
         <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 shrink-0 z-10">
@@ -332,8 +324,16 @@ export function QuestionDraftingPage() {
 
         <main className="flex flex-1 overflow-hidden relative">
             
+            {/* Overlay for mobile menus */}
+            {(isStackOpen || isAIOpen) && (
+                <div 
+                    className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[40] lg:hidden"
+                    onClick={() => {setIsStackOpen(false); setIsAIOpen(false);}}
+                />
+            )}
+
             {/* Left Sidebar: Question Stack */}
-            <aside className={`w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 lg:relative absolute inset-y-0 left-0 transition-transform duration-300 z-30 ${isStackOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
+            <aside className={`w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 lg:relative absolute inset-y-0 left-0 transition-transform duration-300 z-[50] ${isStackOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
                     <h2 className="text-[11px] md:text-xs font-bold uppercase tracking-wider text-slate-500">Question Stack</h2>
                     <span className="text-[10px] font-semibold bg-[#7f0df2]/10 text-[#7f0df2] px-2 py-1 rounded">{draftQuestions.length} Total</span>
@@ -432,8 +432,8 @@ export function QuestionDraftingPage() {
                                     </span>
                                 </div>
                                 <div className="lg:hidden flex gap-2">
-                                     <button onClick={() => setIsStackOpen(true)} className="px-3 py-1.5 text-xs font-bold bg-slate-100 text-slate-600 rounded-md">Stack</button>
-                                     <button onClick={() => setIsAIOpen(true)} className="px-3 py-1.5 text-xs font-bold bg-indigo-50 text-[#7f0df2] rounded-md flex items-center gap-1"><Sparkles className="w-3 h-3"/> AI</button>
+                                     <button onClick={(e) => { e.stopPropagation(); setIsStackOpen(true); }} className="px-3 py-1.5 text-xs font-bold bg-slate-100 text-slate-600 rounded-md">Stack</button>
+                                     <button onClick={(e) => { e.stopPropagation(); setIsAIOpen(true); }} className="px-3 py-1.5 text-xs font-bold bg-indigo-50 text-[#7f0df2] rounded-md flex items-center gap-1"><Sparkles className="w-3 h-3"/> AI</button>
                                 </div>
                             </div>
                             
@@ -516,7 +516,7 @@ export function QuestionDraftingPage() {
             </section>
 
             {/* Right Panel: AI & Settings */}
-            <aside className={`w-80 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-y-auto custom-scrollbar z-30 transition-transform lg:relative fixed inset-y-0 right-0 ${isAIOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full lg:translate-x-0'}`}>
+            <aside className={`w-80 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-y-auto custom-scrollbar z-[50] transition-transform lg:relative fixed inset-y-0 right-0 ${isAIOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full lg:translate-x-0'}`}>
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10 lg:hidden">
                     <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Settings & AI</h2>
                     <button className="text-slate-400 hover:text-slate-600" onClick={() => setIsAIOpen(false)}>
