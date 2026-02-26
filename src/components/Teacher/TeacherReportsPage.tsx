@@ -136,11 +136,19 @@ export function TeacherReportsPage() {
   const fetchStudents = async () => {
     setLoadingStudents(true);
     try {
-      const result = await dispatch(fetchClassStudents(classId)).unwrap();
-      setStudents(result || []);
+      // Use /users endpoint directly as it returns full user profiles including studentId code
+      const res = await apiClient.get(`/api/proxy/users?classId=${classId}&role=student`);
+      const data = res.data?.data || res.data || [];
+      setStudents(Array.isArray(data) ? data : []);
     } catch (e: any) {
-      toast.error(e || "Failed to load students");
-      setStudents([]);
+      // Fallback to fetchClassStudents thunk
+      try {
+        const result = await dispatch(fetchClassStudents(classId)).unwrap();
+        setStudents(result || []);
+      } catch (e2: any) {
+        toast.error(e2 || "Failed to load students");
+        setStudents([]);
+      }
     } finally {
       setLoadingStudents(false);
     }
@@ -149,21 +157,34 @@ export function TeacherReportsPage() {
   const fetchReports = async () => {
     setLoadingReports(true);
     try {
-      const result = await dispatch(
-        fetchClassReportCards({ classId, session, term })
-      ).unwrap();
+      // Fetch report cards AND full user profiles in parallel
+      const [result, usersRes] = await Promise.all([
+        dispatch(fetchClassReportCards({ classId, session, term })).unwrap(),
+        apiClient.get(`/api/proxy/users?classId=${classId}&role=student`).catch(() => ({ data: [] })),
+      ]);
       console.log("[TeacherReportsPage] Fetched report cards:", result);
+
+      // Build a lookup map: userId -> studentId code
+      const usersData = usersRes.data?.data || usersRes.data || [];
+      const userCodeMap: Record<string, string> = {};
+      if (Array.isArray(usersData)) {
+        usersData.forEach((u: any) => {
+          if (u.id && u.studentId) userCodeMap[u.id] = u.studentId;
+        });
+      }
 
       // Flatten the nested structure: students -> reportCardsAsStudent[]
       const flattenedReports: any[] = [];
       if (result && Array.isArray(result)) {
         result.forEach((student: any) => {
           const studentReports = student.reportCardsAsStudent || [];
+          // Resolve studentId code from lookup, then from student object
+          const studentCode = userCodeMap[student.id] || student.studentId || student.code;
           studentReports.forEach((report: any) => {
             flattenedReports.push({
               ...report,
               studentName: `${student.firstName || ""} ${student.lastName || ""}`.trim(),
-              studentId: student.id,
+              studentId: studentCode,
             });
           });
         });

@@ -220,6 +220,8 @@ export function AdminClassesPage() {
     return Array.isArray(assignments) ? assignments : [];
   }, [selectedClassDetails, selectedClass, teachers]);
 
+
+
   return (
     <div className="w-full">
       <Header 
@@ -437,7 +439,8 @@ export function AdminClassesPage() {
       ) : (
         /* List View */
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px]">
             <thead>
               <tr style={{ backgroundColor: primaryColor }}>
                 <th className="text-left text-white font-semibold text-sm py-4 px-5">Class Name</th>
@@ -501,6 +504,7 @@ export function AdminClassesPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

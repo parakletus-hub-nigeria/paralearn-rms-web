@@ -148,7 +148,7 @@ const assessmentsApi = paraApi.injectEndpoints({
     // POST /api/proxy/assessments/submissions/:sid/answers/:aid/grade
     gradeAnswer: builder.mutation<
       any,
-      { submissionId: string; answerId: string; score: number; feedback?: string }
+      { submissionId: string; answerId: string; marksAwarded: number; comment?: string }
     >({
       query: ({ submissionId, answerId, ...body }) => ({
         url: `/api/proxy/assessments/submissions/${submissionId}/answers/${answerId}/grade`,

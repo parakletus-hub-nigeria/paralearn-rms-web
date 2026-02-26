@@ -505,14 +505,16 @@ export function TeacherAssessmentsPage() {
                   <div className="px-5 py-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-2 gap-2">
                     {assessment.isOnline ? (
                       <>
-                      <Link
-                         href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
-                         className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors col-span-2 mb-1"
-                      >
-                         <Sparkles className="w-4 h-4 text-purple-600" />
-                         Draft Questions
-                      </Link>
-                      {status === "not_started" && (
+                      {status !== "ended" && (
+                        <Link
+                           href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
+                           className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors col-span-2 mb-1"
+                        >
+                           <Sparkles className="w-4 h-4 text-purple-600" />
+                           Draft Questions
+                        </Link>
+                      )}
+                      {status === "not_started" ? (
                         <Button
                           onClick={() => handlePublish(assessment.id)}
                           className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
@@ -521,6 +523,15 @@ export function TeacherAssessmentsPage() {
                           <Send className="w-4 h-4" />
                           Publish Assessment
                         </Button>
+                      ) : (
+                        <Link
+                           href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
+                           className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
+                           style={{ backgroundColor: primaryColor }}
+                        >
+                           <BarChart3 className="w-4 h-4 mr-1" />
+                           Grade Submissions
+                        </Link>
                       )}
                       </>
                     ) : (
@@ -598,13 +609,15 @@ export function TeacherAssessmentsPage() {
                       <div className="flex items-center justify-end gap-2">
                           {assessment.isOnline ? (
                              <div className="flex items-center gap-2">
-                                <Link href={`/teacher/question-drafting?assessmentId=${assessment.id}`}>
-                                    <Button variant="outline" size="sm" className="rounded-lg h-9 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100">
-                                    <Sparkles className="w-4 h-4 mr-1" />
-                                    Questions
-                                    </Button>
-                                </Link>
-                                {status === "not_started" && (
+                                {status !== "ended" && (
+                                  <Link href={`/teacher/question-drafting?assessmentId=${assessment.id}`}>
+                                      <Button variant="outline" size="sm" className="rounded-lg h-9 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100">
+                                      <Sparkles className="w-4 h-4 mr-1" />
+                                      Questions
+                                      </Button>
+                                  </Link>
+                                )}
+                                {status === "not_started" ? (
                                     <Button 
                                         onClick={() => handlePublish(assessment.id)}
                                         size="sm" 
@@ -614,22 +627,31 @@ export function TeacherAssessmentsPage() {
                                         <Send className="w-4 h-4 mr-1" />
                                         Publish
                                     </Button>
+                                ) : (
+                                    <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
+                                      <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
+                                        <BarChart3 className="w-4 h-4 mr-1" />
+                                        Grade
+                                      </Button>
+                                    </Link>
                                 )}
                              </div>
                           ) : (
-                             <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
-                                <Button variant="outline" size="sm" className="rounded-lg h-9">
-                                <Edit className="w-4 h-4 mr-1" />
-                                Edit
-                                </Button>
-                             </Link>
+                             <div className="flex items-center gap-2">
+                               <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
+                                  <Button variant="outline" size="sm" className="rounded-lg h-9">
+                                  <Edit className="w-4 h-4 mr-1" />
+                                  Edit
+                                  </Button>
+                               </Link>
+                               <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}>
+                                 <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
+                                   <BarChart3 className="w-4 h-4 mr-1" />
+                                   Grade
+                                 </Button>
+                               </Link>
+                             </div>
                           )}
-                          <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}>
-                            <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
-                              <BarChart3 className="w-4 h-4 mr-1" />
-                              Grade
-                            </Button>
-                          </Link>
                         </div>
                       </td>
                     </tr>

@@ -270,13 +270,13 @@ export default function LiveExamInterface() {
                 </div>
               </div>
 
-              <h2 className="text-xl md:text-3xl lg:text-4xl font-serif font-medium text-slate-900 mb-12 leading-relaxed">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-serif font-medium text-slate-900 mb-6 md:mb-8 leading-relaxed">
                  {currentQuestion.prompt || currentQuestion.questionText}
               </h2>
 
               {console.log("Current Question:", currentQuestion)}
 
-              <div className="space-y-4 flex-grow mb-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 content-start mb-8 md:mb-12">
                 {currentQuestion.type === 'ESSAY' ? (
                   <textarea 
                     value={activeSession.answers[currentQuestion.id] || ''}
@@ -301,7 +301,7 @@ export default function LiveExamInterface() {
                     return (
                       <label 
                         key={choiceId}
-                        className={`group flex items-start p-5 border rounded-[4px] cursor-pointer shadow-sm relative transition-all duration-200 ${
+                        className={`group flex items-start h-fit p-4 md:p-5 border rounded-[4px] cursor-pointer shadow-sm relative transition-all duration-200 ${
                           isSelected 
                             ? "border-slate-900 bg-slate-50/50" 
                             : "border-slate-200 bg-white hover:border-slate-400 hover:shadow-md"
@@ -321,7 +321,7 @@ export default function LiveExamInterface() {
                         }`}>
                           {letter}
                         </div>
-                        <span className={`text-lg pt-0.5 transition-colors ${
+                        <span className={`text-base md:text-lg pt-0.5 transition-colors pr-6 ${
                           isSelected ? "text-slate-900 font-medium" : "text-slate-700 group-hover:text-slate-900"
                         }`}>
                           {choice.text}

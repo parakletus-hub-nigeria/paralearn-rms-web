@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, UserPlus, X, Download, Users, BarChart3, History, FileText } from "lucide-react";
+import { Search, UserPlus, X, Download, Users, BarChart3, FileText } from "lucide-react";
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -212,18 +212,14 @@ export function AdminEnrollmentsPage() {
 
       {/* Main Content with Tabs */}
       <Tabs defaultValue="enrollment" className="space-y-6">
-        <TabsList className="bg-slate-100 p-1 rounded-xl">
-          <TabsTrigger value="enrollment" className="rounded-lg px-6 data-[state=active]:bg-white">
+        <TabsList className="bg-slate-100 p-1 rounded-xl flex flex-col sm:flex-row h-auto w-full sm:w-fit">
+          <TabsTrigger value="enrollment" className="rounded-lg px-4 sm:px-6 py-2 sm:py-1.5 data-[state=active]:bg-white w-full sm:w-auto">
             <Users className="w-4 h-4 mr-2" />
             Enrollment Portal
           </TabsTrigger>
-          <TabsTrigger value="stats" className="rounded-lg px-6 data-[state=active]:bg-white">
+          <TabsTrigger value="stats" className="rounded-lg px-4 sm:px-6 py-2 sm:py-1.5 data-[state=active]:bg-white w-full sm:w-auto">
             <BarChart3 className="w-4 h-4 mr-2" />
             Class Stats
-          </TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg px-6 data-[state=active]:bg-white">
-            <History className="w-4 h-4 mr-2" />
-            Past Rosters
           </TabsTrigger>
         </TabsList>
 
@@ -415,15 +411,6 @@ export function AdminEnrollmentsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="history" className="mt-6">
-          <Card className="p-8 rounded-2xl border-slate-100 text-center">
-            <History className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900">Past Rosters</h3>
-            <p className="text-slate-500 mt-2">
-              Historical enrollment records coming soon.
-            </p>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );

@@ -483,10 +483,10 @@ export function QuestionDraftingPage() {
                                         <div className="flex items-center gap-2 shrink-0">
                                             <button 
                                                 onClick={() => removeOption(activeQ.id, oIdx)}
-                                                className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-300 hover:text-red-500 transition-all rounded-md hover:bg-red-50 hidden sm:block"
+                                                className="sm:opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 sm:text-slate-300 hover:text-red-500 transition-all rounded-md hover:bg-red-50 flex items-center justify-center shrink-0"
                                                 title="Remove option"
                                             >
-                                                <X className="w-4 h-4" />
+                                                <X className="w-4 h-4 md:w-4 md:h-4" />
                                             </button>
                                             <button 
                                                 onClick={() => updateOption(activeQ.id, oIdx, "isCorrect", !opt.isCorrect)}
@@ -721,6 +721,15 @@ export function QuestionDraftingPage() {
                     )}
                 </div>
             </aside>
+
+            {/* Mobile AI Trigger FAB */}
+            <button
+                onClick={() => setIsAIOpen(true)}
+                className="lg:hidden fixed left-4 bottom-24 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-[#7f0df2] to-[#6b09cc] text-white shadow-xl shadow-[#7f0df2]/40 hover:scale-105 active:scale-95 transition-all"
+                title="Open AI Builder"
+            >
+                <Sparkles className="w-6 h-6" />
+            </button>
         </main>
 
         {/* Footer Bar: Minimalist Sticky */}

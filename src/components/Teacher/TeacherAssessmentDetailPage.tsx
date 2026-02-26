@@ -233,6 +233,7 @@ export function TeacherAssessmentDetailPage() {
                       <TableHead className="text-white font-bold h-14 text-center">Student</TableHead>
                       <TableHead className="text-white font-bold h-14 text-center">Score</TableHead>
                       <TableHead className="text-white font-bold h-14 text-center">Status</TableHead>
+                      <TableHead className="text-white font-bold h-14 text-right pr-6">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -257,12 +258,22 @@ export function TeacherAssessmentDetailPage() {
                             {s?.status || (s?.graded ? "Graded" : "Pending")}
                           </Badge>
                         </TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="bg-[#641BC4]/10 text-[#641BC4] hover:bg-[#641BC4]/20 hover:text-[#641BC4] h-8 rounded-lg font-semibold"
+                            onClick={() => router.push(`/teacher/assessments/${assessmentId}/grade/${s.id}`)}
+                          >
+                            Review
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {!loading && submissions.length === 0 && (
                       <TableRow className="border-none bg-white">
                         <TableCell
-                          colSpan={4}
+                          colSpan={5}
                           className="py-10 text-center text-slate-500 font-medium"
                         >
                           No submissions yet.
@@ -426,7 +437,7 @@ export function TeacherAssessmentDetailPage() {
                     {!loading && scores.length === 0 && (
                       <TableRow className="border-none bg-white">
                         <TableCell
-                          colSpan={4}
+                          colSpan={5}
                           className="py-10 text-center text-slate-500 font-medium"
                         >
                           No scores found for this assessment.

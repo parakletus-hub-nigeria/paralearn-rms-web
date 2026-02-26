@@ -581,8 +581,15 @@ export const fetchClassStudents = createAsyncThunk(
            console.log("[fetchClassStudents] Found students in class.students:", students.length);
            return students; // Return immediately if successful
         } else if (classData.enrollments && Array.isArray(classData.enrollments)) {
-           students = classData.enrollments.map((e: any) => e.student || e).filter((s:any) => s && (s.id || s.firstName));
-           console.log("[fetchClassStudents] Found students in enrollments:", students.length);
+           students = classData.enrollments
+             .map((e: any) => {
+               const base = e.student || e;
+               // The readable student code is on the student user profile itself
+               // DO NOT use e.studentId here - that is the FK UUID pointing to users.id
+               return base;
+             })
+             .filter((s: any) => s && (s.id || s.firstName));
+           console.log("[fetchClassStudents] Found students in enrollments:", students.length, "Sample:", JSON.stringify(students[0]));
            return students;
         }
       } catch (classErr: any) {
