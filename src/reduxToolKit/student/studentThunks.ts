@@ -7,7 +7,8 @@ export interface AssessmentQuestion {
   prompt?: string;
   questionText?: string; // Fallback for prompt
   text?: string;
-  type: "multiple_choice" | "essay" | "boolean"; // Add other types if needed
+  type: "MCQ" | "MULTI_SELECT" | "ESSAY" | "TEXT" | "TRUE_FALSE" | string;
+  questionType?: string;
   choices?: { id: string; text: string }[];
   options?: { id: string; text: string }[]; // Fallback for choices
   marks: number;

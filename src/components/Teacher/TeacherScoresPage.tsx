@@ -220,30 +220,37 @@ export function TeacherScoresPage() {
         const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
 
         if (isOnline) {
-          // CBT scores come from submissions — pick the latest GRADED one per student
-          const submissions: any[] = assessment.submissions || [];
-          const gradedByStudent = new Map<string, any>();
+          try {
+            const res = await apiClient.get(`/api/proxy/assessments/${assessment.id}/submissions`);
+            const submissions = res.data?.data || res.data || [];
+            
+            // CBT scores come from submissions — pick the latest one per student
+            const gradedByStudent = new Map<string, any>();
 
-          submissions.forEach((sub: any) => {
-            if (sub.status === "graded" && sub.studentId) {
-              // Keep the most-recently-created graded submission per student
-              const existing = gradedByStudent.get(sub.studentId);
-              if (!existing || new Date(sub.createdAt) > new Date(existing.createdAt)) {
-                gradedByStudent.set(sub.studentId, sub);
+            submissions.forEach((sub: any) => {
+              if (sub.studentId) {
+                // Keep the most-recently-created submission per student
+                const existing = gradedByStudent.get(sub.studentId);
+                if (!existing || new Date(sub.createdAt) > new Date(existing.createdAt)) {
+                  gradedByStudent.set(sub.studentId, sub);
+                }
               }
-            }
-          });
+            });
 
-          // Convert to a shape compatible with the offline score format
-          const scores = Array.from(gradedByStudent.values()).map((sub: any) => ({
-            studentId: sub.studentId,
-            marksAwarded: sub.score ?? 0,
-            score: sub.score ?? 0,
-            assessmentId: assessment.id
-          }));
+            // Convert to a shape compatible with the offline score format
+            const scores = Array.from(gradedByStudent.values()).map((sub: any) => ({
+              studentId: sub.studentId,
+              marksAwarded: sub.score ?? 0,
+              score: sub.score ?? 0,
+              assessmentId: assessment.id
+            }));
 
-          console.log(`[TeacherScores] Online assessment "${assessment.title}" CBT scores:`, scores);
-          return { assessmentId: assessment.id, scores };
+            console.log(`[TeacherScores] Online assessment "${assessment.title}" CBT scores:`, scores);
+            return { assessmentId: assessment.id, scores };
+          } catch (e) {
+            console.error(`[TeacherScores] Failed to fetch CBT submissions for ${assessment.id}`, e);
+            return { assessmentId: assessment.id, scores: [] };
+          }
         }
 
         // Offline — fetch from dedicated scores endpoint
@@ -348,33 +355,31 @@ export function TeacherScoresPage() {
   const handleSaveScores = async () => {
     if (!selectedClassId) return toast.error("Please select a class");
     if (relevantAssessments.length === 0) return toast.error("No assessments available");
+    if (students.length === 0) return toast.error("No students found");
 
-    // Flatten scores to group by Assessment ID
-    // Map<AssessmentId, Array<{studentId, marksAwarded, maxMarks}>>
+    // Group scores by assessmentId: { assessmentId -> [{studentId, marksAwarded, maxMarks}] }
     const scoresByAssessment = new Map<string, Array<{ studentId: string; marksAwarded: number; maxMarks: number }>>();
 
-    // Iterate all students and their scores
-    editedScores.forEach((studentScores, studentId) => {
-      studentScores.forEach((val, assessmentId) => {
-        // Find assessment info for maxMarks
-        const assessment = relevantAssessments.find((a: any) => a.id === assessmentId);
-        const maxMarks = assessment?.totalMarks || 100;
-        const marksAwarded = parseFloat(val);
+    relevantAssessments.forEach((assessment: any) => {
+      const maxMarks = assessment.totalMarks || 100;
+      const scoresForAssessment: Array<{ studentId: string; marksAwarded: number; maxMarks: number }> = [];
+
+      students.forEach((student: any) => {
+        const studentId = student.id;
+        const rawVal = editedScores.get(studentId)?.get(assessment.id);
+        const marksAwarded = parseFloat(rawVal ?? "");
 
         if (!isNaN(marksAwarded)) {
-           if (!scoresByAssessment.has(assessmentId)) {
-             scoresByAssessment.set(assessmentId, []);
-           }
-           scoresByAssessment.get(assessmentId)!.push({
-             studentId,
-             marksAwarded,
-             maxMarks
-           });
+          scoresForAssessment.push({ studentId, marksAwarded, maxMarks });
         }
       });
+
+      if (scoresForAssessment.length > 0) {
+        scoresByAssessment.set(assessment.id, scoresForAssessment);
+      }
     });
 
-    if (scoresByAssessment.size === 0) return toast.error("No scores to save");
+    if (scoresByAssessment.size === 0) return toast.error("No valid scores to save");
 
     setSaving(true);
     try {
@@ -385,6 +390,8 @@ export function TeacherScoresPage() {
 
       await Promise.all(uploadPromises);
       toast.success(`Detailed scores saved successfully for ${uploadPromises.length} assessments`);
+      
+      // Reload logic omitted to prevent breaking UI state if it fails, but user gets success toast
     } catch (e: any) {
       toast.error(e || "Failed to save some scores");
     } finally {
@@ -580,21 +587,41 @@ export function TeacherScoresPage() {
                         {relevantAssessments.map((assessment: any) => {
                           const score = editedScores.get(studentId)?.get(assessment.id) || "";
                           const max = assessment.totalMarks || 100;
+                          const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
 
                           return (
                             <div key={assessment.id} className="space-y-1">
-                              <label className="text-xs text-slate-500">
+                              <label className="text-xs text-slate-500 flex items-center gap-1.5">
                                 {assessment.title} ({max})
+                                {isOnline && (
+                                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 text-[9px] uppercase tracking-wider font-bold leading-none">
+                                    CBT
+                                  </span>
+                                )}
                               </label>
-                              <Input
-                                type="number"
-                                min="0"
-                                max={max}
-                                value={score}
-                                onChange={(e) => handleScoreChange(studentId, assessment.id, e.target.value)}
-                                placeholder="Enter score"
-                                className="h-11 rounded-lg text-base border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
-                              />
+                              <div
+                                onClick={() => {
+                                  if (isOnline) toast.info("You cannot overwrite CBT scores manually.");
+                                }}
+                              >
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max={max}
+                                  value={score}
+                                  onChange={(e) => {
+                                    if (isOnline) return;
+                                    handleScoreChange(studentId, assessment.id, e.target.value);
+                                  }}
+                                  readOnly={isOnline}
+                                  placeholder="—"
+                                  className={`h-11 rounded-lg text-base ${
+                                    isOnline
+                                      ? "bg-slate-100/70 border-slate-200/60 text-slate-400 cursor-not-allowed"
+                                      : "border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                  }`}
+                                />
+                              </div>
                             </div>
                           );
                         })}
@@ -640,14 +667,24 @@ export function TeacherScoresPage() {
                         <th className="sticky left-[50px] sm:left-[60px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[100px] sm:min-w-[120px]">ID</th>
                         <th className="sticky left-[150px] sm:left-[180px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[150px] sm:min-w-[200px]">NAME</th>
                         {/* Dynamic Assessment Columns */}
-                        {relevantAssessments.map((assessment: any) => (
-                          <th key={assessment.id} className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[90px] sm:min-w-[100px]">
-                            <div className="flex flex-col items-center">
-                              <span className="truncate max-w-[80px] sm:max-w-none">{assessment.title}</span>
-                              <span className="text-[10px] opacity-70">({assessment.totalMarks || 100})</span>
-                            </div>
-                          </th>
-                        ))}
+                        {relevantAssessments.map((assessment: any) => {
+                          const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
+                          return (
+                            <th key={assessment.id} className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[90px] sm:min-w-[100px]">
+                              <div className="flex flex-col items-center">
+                                <span className="truncate max-w-[80px] sm:max-w-none flex items-center justify-center gap-1">
+                                  {assessment.title}
+                                  {isOnline && (
+                                    <span className="px-1 py-0.5 rounded bg-blue-100 text-blue-600 text-[9px] uppercase tracking-wider font-bold leading-none translate-y-[0.5px]">
+                                      CBT
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-[10px] opacity-70">({assessment.totalMarks || 100})</span>
+                              </div>
+                            </th>
+                          );
+                        })}
                         <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[80px] sm:w-[100px] border-l border-slate-700">TOTAL</th>
                         <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[70px] sm:w-[80px]">GRADE</th>
                       </tr>
@@ -676,18 +713,33 @@ export function TeacherScoresPage() {
                             {relevantAssessments.map((assessment: any) => {
                               const score = editedScores.get(studentId)?.get(assessment.id) || "";
                               const max = assessment.totalMarks || 100;
+                              const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
                               
                               return (
                                 <td key={assessment.id} className="py-3 sm:py-4 px-2 sm:px-3 text-center">
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max={max}
-                                    value={score}
-                                    onChange={(e) => handleScoreChange(studentId, assessment.id, e.target.value)}
-                                    placeholder="—"
-                                    className="h-8 sm:h-10 w-[60px] sm:w-[70px] rounded-lg text-xs sm:text-sm text-center mx-auto border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
-                                  />
+                                  <div
+                                    onClick={() => {
+                                      if (isOnline) toast.info("You cannot overwrite CBT scores manually.");
+                                    }}
+                                  >
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      max={max}
+                                      value={score}
+                                      onChange={(e) => {
+                                        if (isOnline) return;
+                                        handleScoreChange(studentId, assessment.id, e.target.value);
+                                      }}
+                                      readOnly={isOnline}
+                                      placeholder="—"
+                                      className={`h-8 sm:h-10 w-[60px] sm:w-[70px] rounded-lg text-xs sm:text-sm text-center mx-auto ${
+                                        isOnline
+                                          ? "bg-slate-100/70 border-slate-200/60 text-slate-400 cursor-not-allowed"
+                                          : "border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                      }`}
+                                    />
+                                  </div>
                                 </td>
                               );
                             })}

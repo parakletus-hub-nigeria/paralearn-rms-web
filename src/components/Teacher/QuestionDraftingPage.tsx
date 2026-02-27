@@ -686,7 +686,8 @@ export function QuestionDraftingPage() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="MCQ" className="text-xs">Multiple Choice MCQ</SelectItem>
+                                        <SelectItem value="MCQ" className="text-xs">Multiple Choice (Single Answer)</SelectItem>
+                                        <SelectItem value="MULTI_SELECT" className="text-xs">Multiple Choice (Multiple Answers)</SelectItem>
                                         <SelectItem value="TEXT" className="text-xs">Short Answer / Text</SelectItem>
                                         <SelectItem value="ESSAY" className="text-xs">Essay</SelectItem>
                                     </SelectContent>

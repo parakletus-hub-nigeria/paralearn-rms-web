@@ -530,10 +530,14 @@ export default function TeacherAttendancePage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 bg-orange-100 text-orange-600 border-2 border-white shadow-sm">
-                            <AvatarImage src={record.student.profilePicture} />
-                            <AvatarFallback className="font-bold">
-                              {getInitials(record.student.firstName, record.student.lastName)}
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                            <AvatarImage src={record?.student?.profilePicture} />
+                            <AvatarFallback>
+                              <img 
+                                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${record?.student?.id || record?.student?.studentId || 'student'}`} 
+                                alt=""
+                                className="w-full h-full bg-slate-100"
+                              />
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -610,10 +614,14 @@ export default function TeacherAttendancePage() {
                   className="bg-white p-4 rounded-3xl border border-slate-100 flex items-center justify-between shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]"
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12 bg-orange-100 text-orange-600 border border-white shadow-sm">
-                      <AvatarImage src={record.student.profilePicture} />
-                      <AvatarFallback className="font-bold">
-                        {getInitials(record.student.firstName, record.student.lastName)}
+                    <Avatar className="h-12 w-12 border border-white shadow-sm">
+                      <AvatarImage src={record?.student?.profilePicture} />
+                      <AvatarFallback>
+                        <img 
+                          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${record?.student?.id || record?.student?.studentId || 'student'}`} 
+                          alt=""
+                          className="w-full h-full bg-slate-100"
+                        />
                       </AvatarFallback>
                     </Avatar>
                     <div>

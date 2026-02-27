@@ -20,6 +20,7 @@ import {
   Flag,
   Grid,
   CheckCircle,
+  Check,
   AlertTriangle,
   Menu
 } from "lucide-react";
@@ -270,11 +271,16 @@ export default function LiveExamInterface() {
                 </div>
               </div>
 
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-serif font-medium text-slate-900 mb-6 md:mb-8 leading-relaxed">
-                 {currentQuestion.prompt || currentQuestion.questionText}
-              </h2>
-
-              {console.log("Current Question:", currentQuestion)}
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-serif font-medium text-slate-900 leading-relaxed">
+                   {currentQuestion.prompt || currentQuestion.questionText}
+                </h2>
+                {(currentQuestion.type === "MULTI_SELECT" || currentQuestion.questionType === "MULTI_SELECT") && (
+                   <p className="text-[13px] font-bold text-indigo-700 mt-3 flex items-center gap-2 bg-indigo-50 border border-indigo-100 w-fit px-3 py-1.5 rounded-lg shadow-sm">
+                     <Check className="w-4 h-4" /> Please select ALL correct options
+                   </p>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 content-start mb-8 md:mb-12">
                 {currentQuestion.type === 'ESSAY' ? (
@@ -295,40 +301,62 @@ export default function LiveExamInterface() {
                 ) : (
                   (currentQuestion.choices || currentQuestion.options || []).map((choice: any, idx: number) => {
                     const choiceId = choice.id || idx.toString();
-                    const isSelected = activeSession.answers[currentQuestion.id] === choiceId;
+                    const isMultiSelect = currentQuestion.type === "MULTI_SELECT" || currentQuestion.questionType === "MULTI_SELECT";
+                    const currentAnswer = activeSession.answers[currentQuestion.id];
+                    let isSelected = false;
+
+                    if (isMultiSelect) {
+                       const arr = Array.isArray(currentAnswer) ? currentAnswer : (currentAnswer ? [currentAnswer] : []);
+                       isSelected = arr.includes(choiceId);
+                    } else {
+                       isSelected = currentAnswer === choiceId;
+                    }
+
                     const letter = String.fromCharCode(65 + idx);
 
                     return (
                       <label 
                         key={choiceId}
-                        className={`group flex items-start h-fit p-4 md:p-5 border rounded-[4px] cursor-pointer shadow-sm relative transition-all duration-200 ${
+                        className={`group flex items-start h-fit p-4 md:p-5 border rounded-xl cursor-pointer shadow-sm relative transition-all duration-200 ${
                           isSelected 
-                            ? "border-slate-900 bg-slate-50/50" 
-                            : "border-slate-200 bg-white hover:border-slate-400 hover:shadow-md"
+                            ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600 shadow-md" 
+                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                         }`}
                       >
                         <input 
-                          type="radio" 
+                          type={isMultiSelect ? "checkbox" : "radio"} 
                           name={`question-${currentQuestion.id}`}
                           className="hidden peer"
                           checked={isSelected}
-                          onChange={() => dispatch(setAnswer({ questionId: currentQuestion.id, value: choiceId }))}
+                          onChange={(e) => {
+                             if (isMultiSelect) {
+                                let arr = Array.isArray(currentAnswer) ? [...currentAnswer] : (currentAnswer ? [currentAnswer] : []);
+                                if (e.target.checked) {
+                                   if (!arr.includes(choiceId)) arr.push(choiceId);
+                                } else {
+                                   arr = arr.filter((id: string) => id !== choiceId);
+                                }
+                                dispatch(setAnswer({ questionId: currentQuestion.id, value: arr }));
+                             } else {
+                                dispatch(setAnswer({ questionId: currentQuestion.id, value: choiceId }));
+                             }
+                          }}
                         />
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-[2px] font-bold flex items-center justify-center mr-5 text-sm font-sans transition-colors ${
+                        <div className={`flex-shrink-0 w-8 h-8 ${isMultiSelect ? 'rounded-md' : 'rounded-full'} font-bold flex items-center justify-center mr-4 text-sm font-sans transition-all ${
                           isSelected 
-                            ? "bg-slate-900 text-white" 
-                            : "bg-slate-50 border border-slate-200 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700"
+                            ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30" 
+                            : "bg-slate-100 border border-slate-200 text-slate-500 group-hover:bg-slate-200"
                         }`}>
-                          {letter}
+                          {isMultiSelect ? (isSelected ? <Check className="w-5 h-5" /> : letter) : letter}
                         </div>
                         <span className={`text-base md:text-lg pt-0.5 transition-colors pr-6 ${
-                          isSelected ? "text-slate-900 font-medium" : "text-slate-700 group-hover:text-slate-900"
+                          isSelected ? "text-slate-900 font-semibold" : "text-slate-700 group-hover:text-slate-900"
                         }`}>
                           {choice.text}
                         </span>
-                        {isSelected && (
+                        {isSelected && !isMultiSelect && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                            <CheckCircle className="w-6 h-6 text-slate-900" />
+                            <CheckCircle className="w-6 h-6 text-indigo-600" />
                           </div>
                         )}
                       </label>
@@ -336,6 +364,7 @@ export default function LiveExamInterface() {
                   })
                 )}
               </div>
+
 
               <div className="flex justify-between items-center pt-6 border-t border-slate-100 mb-20 md:mb-0">
                 <button 

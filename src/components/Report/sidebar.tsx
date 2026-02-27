@@ -2,12 +2,16 @@
 
 import { Home, Users, FileText, Upload, User, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useSelector } from "react-redux"
+import { RootState } from "@/reduxToolKit/store"
 
 interface SidebarProps {
   activeItem?: string
 }
 
 export function Sidebar({ activeItem = "Report Cards" }: SidebarProps) {
+  const { tenantInfo } = useSelector((s: RootState) => s.user);
+  
   const items = [
     { icon: Home, label: "Dashboard" },
     { icon: Users, label: "Users" },
@@ -20,7 +24,9 @@ export function Sidebar({ activeItem = "Report Cards" }: SidebarProps) {
   return (
     <aside className="w-64 bg-background border-r border-border min-h-screen p-6">
       <div className="mb-8">
-        <h1 className="text-xl font-bold text-foreground">PARA LEARN</h1>
+        <h1 className="text-xl font-bold text-[#641BC4]">
+          {tenantInfo?.name || "ParaLearn"}
+        </h1>
       </div>
 
       <nav className="space-y-4">

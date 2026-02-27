@@ -482,6 +482,8 @@ export function StudentDialog({
   props: any;
   onStudentDeleted?: (studentId: string) => void;
 }) {
+  const dispatch = useDispatch<AppDispatch>();
+
   const [formData, setFormData] = useState<any>({
     db_id: props?.db_id || "",
     id: props?.id || props?.email || "",

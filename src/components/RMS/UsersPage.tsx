@@ -399,13 +399,11 @@ export const UsersPage = () => {
                               className="w-10 h-10 rounded-full object-cover"
                             />
                           ) : (
-                            <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(
-                                user.firstName + user.lastName
-                              )}`}
-                            >
-                              {getInitials(user.firstName, user.lastName)}
-                            </div>
+                            <img
+                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.dbId || user?.id || 'user'}`}
+                              alt=""
+                              className="w-10 h-10 rounded-full bg-slate-100"
+                            />
                           )}
                           <div>
                             <p className="font-semibold text-slate-900 text-sm">
@@ -561,13 +559,11 @@ export const UsersPage = () => {
                     className="w-16 h-16 rounded-full object-cover"
                   />
                 ) : (
-                  <div
-                    className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${getAvatarColor(
-                      viewUserModal.firstName + viewUserModal.lastName
-                    )}`}
-                  >
-                    {getInitials(viewUserModal.firstName, viewUserModal.lastName)}
-                  </div>
+                  <img
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${viewUserModal?.dbId || viewUserModal?.id || 'user'}`}
+                    alt=""
+                    className="w-16 h-16 rounded-full bg-slate-100"
+                  />
                 )}
                 <div>
                   <h2 className="text-xl font-bold text-slate-900">
