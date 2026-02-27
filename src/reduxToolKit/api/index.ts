@@ -3,6 +3,12 @@
 // ---------------------------------------------------------------------------
 export { paraApi } from "./baseApi";
 
+// Auth
+export {
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+} from "./endpoints/auth";
+
 // Users
 export {
   useGetUsersQuery,

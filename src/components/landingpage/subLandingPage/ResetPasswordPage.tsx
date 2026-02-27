@@ -5,20 +5,22 @@ import Link from "next/link";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthHeader from "@/components/auth/authHeader";
+import { useResetPasswordMutation } from "@/reduxToolKit/api";
+import { toast } from "sonner";
 
 type ResetPasswordPageProps = {
   code: string;
 };
 
 export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
+  const [resetPassword, { isLoading: loading }] = useResetPasswordMutation();
   const [showPassword, setShowPassword] = useState(false);
-  const [password, setPassword] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [isConfirmPasswordValid, setIsConfirmPasswordValid] = useState(false);
   const [data, setData] = useState({
     password: "",
     confirmPassword: "",
   });
-  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,35 +35,36 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
     const { name, value } = e.target;
     setData((prevData) => {
       const next = { ...prevData, [name]: value };
-      if (name === "password") setPassword(value.length >= 8);
-      if (name === "confirmPassword") setConfirmPassword(value === prevData.password);
+      if (name === "password") {
+        setIsPasswordValid(value.length >= 8);
+        setIsConfirmPasswordValid(value === next.confirmPassword);
+      }
+      if (name === "confirmPassword") {
+        setIsConfirmPasswordValid(value === next.password);
+      }
       return next;
     });
   };
 
   const handleSubmit = async () => {
     setError(null);
-    if (!password || !confirmPassword) {
+    if (!isPasswordValid || !isConfirmPasswordValid) {
       setError("Please ensure both passwords match and are at least 8 characters");
       return;
     }
-    setLoading(true);
+    
     try {
-      const sendReq = await fetch("resetpassword", {
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, code }),
-        method: "POST",
-      });
-      const resp = await sendReq.json();
-      if (!resp.ok) {
-        setError(resp.message || "An error occurred. Please try again.");
-        return;
-      }
+      await resetPassword({ 
+        token: code, 
+        newPassword: data.password 
+      }).unwrap();
+      
       setSubmitted(true);
-    } catch (e) {
-      setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
+      toast.success("Password reset successfully");
+    } catch (e: any) {
+      const errorMsg = e?.message || e?.data?.message || "An error occurred";
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -117,14 +120,14 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
                       {!showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
-                  {form.name === "password" && !password && (
+                  {form.name === "password" && !isPasswordValid && data.password && (
                     <p className="text-red-500 text-sm">
                       Password must be at least 8 characters
                     </p>
                   )}
                   {form.name === "confirmPassword" &&
                     data.confirmPassword &&
-                    !confirmPassword && (
+                    !isConfirmPasswordValid && (
                       <p className="text-red-500 text-sm">Passwords do not match</p>
                     )}
                 </div>
@@ -136,9 +139,9 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
             <div className="w-[100%] flex justify-center">
               <button
                 onClick={handleSubmit}
-                disabled={loading || !password || !confirmPassword}
+                disabled={loading || !isPasswordValid || !isConfirmPasswordValid}
                 style={
-                  loading || !password || !confirmPassword
+                  loading || !isPasswordValid || !isConfirmPasswordValid
                     ? { backgroundColor: "#a166f0" }
                     : { backgroundColor: "#641BC4" }
                 }

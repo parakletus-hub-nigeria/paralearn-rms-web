@@ -1,12 +1,14 @@
 "use client";
 
 import { useDispatch, useSelector } from "react-redux";
+import { useState } from "react";
 import { RootState, AppDispatch } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
 import { Button } from "@/components/ui/button";
 import { LogOut, User, Bell, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
 
 interface StudentHeaderProps {
   transparent?: boolean;
@@ -16,10 +18,18 @@ export function StudentHeader({ transparent = false }: StudentHeaderProps) {
   const { user } = useSelector((s: RootState) => s.user);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    await dispatch(logoutUser());
-    router.push("/auth/signin");
+    setIsLoggingOut(true);
+    try {
+      await dispatch(logoutUser());
+      router.push("/auth/signin");
+    } catch (error) {
+      setIsLoggingOut(false);
+      setIsLogoutModalOpen(false);
+    }
   };
 
   const textColorClass = transparent ? "text-white" : "text-slate-900";
@@ -50,7 +60,7 @@ export function StudentHeader({ transparent = false }: StudentHeaderProps) {
         </nav>
       </div>
 
-      <div className="flex items-center gap-5">
+       <div className="flex items-center gap-5">
         <div className="text-right hidden sm:block">
           <p className={`text-sm font-semibold ${textColorClass}`}>{user?.firstName ? `${user.firstName} ${user.lastName || ""}` : "Student"}</p>
           <p className={`text-[10px] uppercase tracking-wider font-medium ${subTextColorClass}`}>Student Portal</p>
@@ -65,12 +75,18 @@ export function StudentHeader({ transparent = false }: StudentHeaderProps) {
            
            {/* Dropdown Menu (Simplified) */}
            <div className="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-50">
-              <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium">
+              <button onClick={() => setIsLogoutModalOpen(true)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium">
                 <LogOut className="w-4 h-4" /> Sign Out
               </button>
            </div>
         </div>
       </div>
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        loading={isLoggingOut}
+      />
     </div>
   );
 }
