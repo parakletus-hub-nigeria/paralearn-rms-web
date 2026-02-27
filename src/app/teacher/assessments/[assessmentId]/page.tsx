@@ -1,15 +1,12 @@
 import ProtectedRoute from "@/components/protectedRoute/protectedRoute";
-import TeacherSideBar from "@/components/Teacher/TeacherSideBar";
-import { TeacherAssessmentDetailPage } from "@/components/Teacher/TeacherAssessmentDetailPage";
 import RoleGuard from "@/components/protectedRoute/RoleGuard";
+import { TeacherGradingPage } from "@/components/Teacher/TeacherGradingPage";
 
-export default function TeacherAssessmentDetail() {
+export default function GradeAssessmentRedirect() {
   return (
     <ProtectedRoute>
       <RoleGuard allow={["teacher"]} mode="block">
-        <TeacherSideBar>
-          <TeacherAssessmentDetailPage />
-        </TeacherSideBar>
+        <TeacherGradingPage />
       </RoleGuard>
     </ProtectedRoute>
   );

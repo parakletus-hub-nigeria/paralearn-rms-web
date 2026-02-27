@@ -127,7 +127,6 @@ const Step_Three = ({
 
   return (
     <div className="w-full mx-auto p-3 sm:p-4 md:p-6 space-y-6 font-sans flex flex-col items-center">
-      <ToastContainer />
       <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 sm:p-6 flex flex-col items-center text-center w-full sm:w-4/5 md:w-3/5 lg:w-2/5">
         <div className="flex items-center gap-3 mb-1 flex-wrap justify-center">
           <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center  text-sm">

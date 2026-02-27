@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAssessmentDetails, startAssessment } from "@/reduxToolKit/student/studentThunks";
+import { getCurrentUserProfile } from "@/reduxToolKit/user/userThunks";
 import { StudentHeader } from "@/components/Student/StudentHeader";
 import { Button } from "@/components/ui/button";
 import { 
@@ -34,13 +35,60 @@ export default function ExamLobbyPage() {
   const assessmentId = searchParams.get("assessmentId");
 
   const { currentAssessment: assessment, loading, error } = useSelector((s: RootState) => s.student);
-  const { user } = useSelector((s: RootState) => s.user);
+  const { user, currentUserProfile } = useSelector((s: RootState) => s.user);
+
+  const [agreed, setAgreed] = useState(false);
+  const [systemCheck, setSystemCheck] = useState({
+    cam: 'checking', // 'checking' | 'ready' | 'error'
+    mic: 'checking',
+    net: 'checking',
+    ping: 0
+  });
+
+  useEffect(() => {
+    let mounted = true;
+
+    const checkDevices = async () => {
+      // Check Network
+      const start = Date.now();
+      try {
+        // Use a lightweight fetch to check connectivity and ping
+        await fetch('/favicon.ico', { method: 'HEAD', cache: 'no-store' });
+        const ping = Date.now() - start;
+        if (mounted) setSystemCheck((s: any) => ({ ...s, net: 'ready', ping }));
+      } catch (e) {
+        if (mounted) setSystemCheck((s: any) => ({ ...s, net: navigator.onLine ? 'ready' : 'error', ping: 0 }));
+      }
+
+      // Check Media Devices
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (mounted) {
+          setSystemCheck((s: any) => ({ ...s, cam: 'ready', mic: 'ready' }));
+        }
+        // Immediately stop tracks to turn off the camera/mic indicators
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err: any) {
+        console.warn("Device access error:", err);
+        if (mounted) {
+          setSystemCheck((s: any) => ({ ...s, cam: 'error', mic: 'error' }));
+        }
+      }
+    };
+
+    checkDevices();
+
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     if (assessmentId) {
       dispatch(fetchAssessmentDetails(assessmentId));
     }
-  }, [dispatch, assessmentId]);
+    if (!currentUserProfile) {
+      dispatch(getCurrentUserProfile());
+    }
+  }, [dispatch, assessmentId, currentUserProfile]);
 
   if (loading) {
     return (
@@ -57,6 +105,24 @@ export default function ExamLobbyPage() {
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Assessment Unavailable</h2>
         <p className="text-slate-500 mb-6 text-center max-w-md">{error || "The assessment you're looking for was not found."}</p>
         <Button onClick={() => router.push('/student/dashboard')}>Back to Dashboard</Button>
+      </div>
+    );
+  }
+
+  const isSubmitted = assessment.status === 'submitted' || assessment.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
+  const isEnded = assessment.status === 'ended';
+
+  if (isSubmitted || isEnded) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f3efff] p-6 text-center">
+        <Lock className="w-16 h-16 text-indigo-500 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Assessment Locked</h2>
+        <p className="text-slate-500 mb-6 max-w-md">
+          {isSubmitted 
+            ? "You have already submitted this assessment. Multiple attempts are not permitted." 
+            : "This assessment has ended and is no longer accepting submissions."}
+        </p>
+        <Button onClick={() => router.push('/student/dashboard')}>Return to Dashboard</Button>
       </div>
     );
   }
@@ -138,7 +204,7 @@ export default function ExamLobbyPage() {
                        </div>
                        <div>
                           <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Volume</p>
-                          <p className="text-xl font-bold text-slate-800">{assessment.questionCount || "?"} Questions</p>
+                          <p className="text-xl font-bold text-slate-800">{assessment.questions?.length || assessment.questionCount || "?"} Questions</p>
                        </div>
                     </div>
                     <div className="p-5 rounded-2xl bg-white/40 border border-white/60 hover:border-purple-300 transition-all shadow-sm backdrop-blur-sm flex items-start gap-4 group">
@@ -156,7 +222,7 @@ export default function ExamLobbyPage() {
                        </div>
                        <div>
                           <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Pass Criteria</p>
-                          <p className="text-xl font-bold text-slate-800">{assessment.passingMarks || "50%"} Score</p>
+                          <p className="text-xl font-bold text-slate-800">{assessment.passingMarks || "50"}% Score</p>
                        </div>
                     </div>
                     <div className="p-5 rounded-2xl bg-white/40 border border-white/60 hover:border-purple-300 transition-all shadow-sm backdrop-blur-sm flex items-start gap-4 group">
@@ -196,7 +262,7 @@ export default function ExamLobbyPage() {
 
            {/* Right Sidebar - System Check */}
            <div className="lg:w-[420px] bg-white/40 backdrop-blur-md border-t lg:border-t-0 lg:border-l border-white/20 p-8 md:p-10 flex flex-col relative">
-              <div className="flex items-center gap-4 mb-8 p-4 bg-white/50 rounded-2xl border border-white/60 shadow-sm backdrop-blur-md">
+              <div className="flex items-center gap-4 mb-8 p-4 bg-white/50 rounded-2xl border border-white/60 shadow-sm backdrop-blur-sm">
                  <div className="relative">
                     <img alt="Student profile" className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md" src="/avatar-placeholder.png" />
                     <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white"></div>
@@ -205,7 +271,7 @@ export default function ExamLobbyPage() {
                     <h3 className="font-bold text-slate-900 text-lg">{user?.firstName ? `${user.firstName} ${user.lastName || ""}` : "Student"}</h3>
                     <div className="flex items-center gap-1 text-xs text-slate-500 font-semibold tracking-wide">
                        <span className="text-indigo-400 uppercase">ID:</span>
-                       {user?.id?.slice(0, 10).toUpperCase()}
+                       {currentUserProfile?.studentId || currentUserProfile?.teacherId || (user as any)?.studentId || (user as any)?.student?.studentId || user?.id?.slice(0, 10).toUpperCase()}
                     </div>
                  </div>
               </div>
@@ -218,26 +284,38 @@ export default function ExamLobbyPage() {
                           <ShieldCheck className="w-5 h-5 text-emerald-600" />
                           <h3 className="font-bold text-emerald-900 text-sm uppercase tracking-wider">System Status</h3>
                        </div>
-                       <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-emerald-200">READY</span>
+                       {Object.values(systemCheck).includes("checking") ? (
+                         <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-yellow-200">CHECKING...</span>
+                       ) : Object.values(systemCheck).includes("error") ? (
+                         <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-red-200">ISSUES FOUND</span>
+                       ) : (
+                         <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-emerald-200">READY</span>
+                       )}
                     </div>
                     <div className="space-y-4">
                        <div className="flex justify-between items-center text-sm">
                           <div className="flex items-center gap-2 text-emerald-900/70 font-medium">
                              <Camera className="w-4 h-4" /> Webcam
                           </div>
-                          <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span>
+                          {systemCheck.cam === "checking" ? <span className="text-yellow-600 font-bold text-xs bg-yellow-100/50 px-2 py-0.5 rounded animate-pulse">Wait</span> :
+                           systemCheck.cam === "error" ? <span className="text-red-600 font-bold text-xs bg-red-100/50 px-2 py-0.5 rounded">Failed</span> :
+                          <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span>}
                        </div>
                        <div className="flex justify-between items-center text-sm">
                           <div className="flex items-center gap-2 text-emerald-900/70 font-medium">
                              <Mic className="w-4 h-4" /> Microphone
                           </div>
-                          <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span>
+                          {systemCheck.mic === "checking" ? <span className="text-yellow-600 font-bold text-xs bg-yellow-100/50 px-2 py-0.5 rounded animate-pulse">Wait</span> :
+                           systemCheck.mic === "error" ? <span className="text-red-600 font-bold text-xs bg-red-100/50 px-2 py-0.5 rounded">Failed</span> :
+                          <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></span>}
                        </div>
                        <div className="flex justify-between items-center text-sm">
                           <div className="flex items-center gap-2 text-emerald-900/70 font-medium">
                              <Wifi className="w-4 h-4" /> Network
                           </div>
-                          <span className="text-emerald-700 font-bold text-xs bg-emerald-100/50 px-2 py-0.5 rounded">45ms</span>
+                          {systemCheck.net === "checking" ? <span className="text-yellow-600 font-bold text-xs bg-yellow-100/50 px-2 py-0.5 rounded animate-pulse">Wait</span> :
+                           systemCheck.net === "error" ? <span className="text-red-600 font-bold text-xs bg-red-100/50 px-2 py-0.5 rounded">Offline</span> :
+                          <span className="text-emerald-700 font-bold text-xs bg-emerald-100/50 px-2 py-0.5 rounded">{systemCheck.ping}ms</span>}
                        </div>
                     </div>
                  </div>
@@ -245,11 +323,18 @@ export default function ExamLobbyPage() {
 
               <div className="mt-10 space-y-6 relative z-10">
                  <div className="flex items-start gap-3 px-1">
-                    <input className="w-5 h-5 mt-0.5 text-purple-600 border-slate-300 rounded focus:ring-purple-500 custom-checkbox cursor-pointer bg-white/50 backdrop-blur-sm" id="agree" type="checkbox" />
+                    <input 
+                       className="w-5 h-5 mt-0.5 text-purple-600 border-slate-300 rounded focus:ring-purple-500 custom-checkbox cursor-pointer bg-white/50 backdrop-blur-sm" 
+                       id="agree" 
+                       type="checkbox"
+                       checked={agreed}
+                       onChange={(e) => setAgreed(e.target.checked)}
+                    />
                     <label className="text-sm text-slate-700 cursor-pointer select-none leading-tight font-medium" htmlFor="agree">I acknowledge that this session is proctored and recorded.</label>
                  </div>
 
                  <button 
+                    disabled={!agreed}
                     onClick={async () => {
                         if (!assessmentId) return;
                         try {
@@ -260,12 +345,16 @@ export default function ExamLobbyPage() {
                           alert(error || "Failed to start assessment. Please try again.");
                         }
                     }}
-                    className="w-full relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-5 px-6 rounded-2xl shadow-xl shadow-purple-900/20 transition-all transform hover:-translate-y-1 active:scale-[0.98] flex items-center justify-between group border border-white/10"
+                    className={`w-full relative overflow-hidden font-bold py-5 px-6 rounded-2xl transition-all flex items-center justify-between group border ${
+                      !agreed 
+                        ? 'bg-slate-300 text-slate-500 cursor-not-allowed border-slate-400/50' 
+                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-xl shadow-purple-900/20 transform hover:-translate-y-1 active:scale-[0.98] border-white/10'
+                    }`}
                  >
-                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out skew-y-12"></div>
+                    {agreed && <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out skew-y-12"></div>}
                     <span className="text-lg relative z-10">Start Assessment</span>
-                    <div className="bg-white/20 p-1.5 rounded-lg group-hover:bg-white/30 transition-colors relative z-10">
-                       <ArrowRight className="w-4 h-4 text-white block" />
+                    <div className={`p-1.5 rounded-lg transition-colors relative z-10 ${!agreed ? 'bg-slate-400/20' : 'bg-white/20 group-hover:bg-white/30'}`}>
+                       <ArrowRight className={`w-4 h-4 block ${!agreed ? 'text-slate-500' : 'text-white'}`} />
                     </div>
                  </button>
 

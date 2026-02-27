@@ -7,16 +7,18 @@ import { BiEnvelope } from "react-icons/bi";
 import { ArrowLeft, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { handleError } from "@/lib/error-handler";
+import { useForgotPasswordMutation } from "@/reduxToolKit/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [forgotPassword, { isLoading: loading }] = useForgotPasswordMutation();
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
+  // Helper function to validate email
   const isValidEmail = () => {
-    const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRe.test(email);
+    // Basic email validation regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleSubmit = async () => {
@@ -25,24 +27,24 @@ export default function ForgotPasswordPage() {
       setError("Please enter a valid email address");
       return;
     }
-    setLoading(true);
+    
     try {
-      const res = await fetch("/api/proxy/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const json = await res.json();
-      if (res.ok) {
-        setSubmitted(true);
-        setEmail("");
-      } else {
-        throw new Error(json.message || "An error occurred. Please try again.");
+      const response = await forgotPassword({ email }).unwrap();
+      setSubmitted(true);
+      
+      // If the API returns a token in the response as per spec, we could save it here
+      if (response?.data?.token || response?.token) {
+         const token = response?.data?.token || response?.token;
+         console.log("Reset token received:", token);
+         sessionStorage.setItem("resetToken", token);
       }
-    } catch (e) {
-      handleError(e, "Failed to send reset link. Please try again later.");
-    } finally {
-      setLoading(false);
+      
+      setEmail("");
+      toast.success("Reset link sent successfully");
+    } catch (e: any) {
+      const errorMsg = e?.message || e?.data?.message || "Failed to send reset link";
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 

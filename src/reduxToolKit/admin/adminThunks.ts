@@ -54,6 +54,33 @@ export type SchoolStatistics = {
 
 export type ApprovalQueueItem = any;
 
+export interface BookletPreviewStudent {
+  studentId: string;
+  studentName: string;
+  studentIdNumber: string;
+  totalScore: number;
+  possibleScore: number;
+  average: number;
+  overallGrade: string;
+  subjectCount: number;
+  subjectsSubmitted: number;
+  reportStatus?: string | null;
+}
+
+export interface BookletPreviewResponse {
+  className: string;
+  session: string;
+  term: string;
+  totalStudents: number;
+  studentsWithScores: number;
+  students: BookletPreviewStudent[];
+  reportProgress: {
+    totalSubjects: number;
+    subjectsSubmitted: number;
+    percentage: number;
+  };
+}
+
 // ---------- Helpers ----------
 const unwrap = (res: any) => res?.data?.data ?? res?.data ?? null;
 

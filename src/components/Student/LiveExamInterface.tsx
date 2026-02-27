@@ -20,6 +20,7 @@ import {
   Flag,
   Grid,
   CheckCircle,
+  Check,
   AlertTriangle,
   Menu
 } from "lucide-react";
@@ -48,12 +49,18 @@ export default function LiveExamInterface() {
 
   // Timer Logic
   useEffect(() => {
-    if (!activeSession.deadline) return;
+    // If activeSession was cleared by a refresh, attempt to recover startedAt from the assessment details
+    const reliableStartedAt = activeSession.startedAt || currentAssessment?.submissions?.[0]?.startedAt || new Date().toISOString();
+    
+    if (!currentAssessment?.durationMins) return;
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      const deadline = new Date(activeSession.deadline!).getTime();
-      const diff = Math.max(0, Math.floor((deadline - now) / 1000));
+      const startedAt = new Date(reliableStartedAt).getTime();
+      const durationMs = currentAssessment.durationMins * 60 * 1000;
+      const explicitDeadline = startedAt + durationMs;
+      
+      const diff = Math.max(0, Math.floor((explicitDeadline - now) / 1000));
       
       setTimeLeft(diff);
 
@@ -63,8 +70,15 @@ export default function LiveExamInterface() {
       }
     }, 1000);
 
+    // Initial setting immediately so it doesn't wait 1s
+    const now = new Date().getTime();
+    const startedAt = new Date(reliableStartedAt).getTime();
+    const durationMs = currentAssessment.durationMins * 60 * 1000;
+    const initialDiff = Math.max(0, Math.floor(((startedAt + durationMs) - now) / 1000));
+    setTimeLeft(initialDiff);
+
     return () => clearInterval(interval);
-  }, [activeSession.deadline]);
+  }, [activeSession.startedAt, currentAssessment?.durationMins, currentAssessment?.submissions]);
 
   // Anti-Malpractice Listeners
   useEffect(() => {
@@ -97,7 +111,7 @@ export default function LiveExamInterface() {
   const onFinalSubmit = async () => {
     if (!assessmentId) return;
     
-    // Ensure we send all answers, even if empty strings for unanswered questions
+    // API docs: MCQ/TrueFalse answers must be `{ selected: choiceId }`, essays are plain strings
     const answersToSend = currentAssessment?.questions?.map(q => {
       const val = activeSession.answers[q.id];
       return {
@@ -106,8 +120,15 @@ export default function LiveExamInterface() {
       };
     }) || [];
 
+    const reliableStartedAt = activeSession.startedAt || currentAssessment?.submissions?.[0]?.startedAt || new Date().toISOString();
+
     const submissionData = {
+      startedAt: reliableStartedAt,
       finishedAt: new Date().toISOString(),
+      deviceMeta: {
+        browser: window.navigator.userAgent,
+        os: window.navigator.platform
+      },
       antiMalpracticeData: {
         tabSwitchCount: activeSession.tabSwitchCount,
         windowBlurCount: activeSession.windowBlurCount,
@@ -116,11 +137,28 @@ export default function LiveExamInterface() {
       answers: answersToSend
     };
 
+    // === DIAGNOSTIC LOGS - remove after debugging ===
+    console.log("[ExamSubmit] Redux answers stored:", JSON.stringify(activeSession.answers, null, 2));
+    console.log("[ExamSubmit] Questions & raw choice IDs from API:", 
+      currentAssessment?.questions?.map(q => ({
+        questionId: q.id,
+        questionText: (q.prompt || q.questionText || "").substring(0, 50),
+        storedAnswer: activeSession.answers[q.id],
+        choices: (q.choices || q.options || []).map((c: any, i: number) => ({
+          idx: i, id: c.id, text: c.text, isCorrect: c.isCorrect
+        }))
+      }))
+    );
+    console.log("[ExamSubmit] Final payload being sent:", JSON.stringify(submissionData, null, 2));
+    // ================================================
+
     try {
-      await dispatch(submitAssessment({ assessmentId, data: submissionData })).unwrap();
+      const result = await dispatch(submitAssessment({ assessmentId, data: submissionData })).unwrap();
+      console.log("[ExamSubmit] Server response:", JSON.stringify(result, null, 2));
       toast.success("Exam submitted successfully!");
       router.push("/student/dashboard");
     } catch (e: any) {
+      console.error("[ExamSubmit] Submission error:", e);
       toast.error(e || "Submission failed. Please try again.");
     }
   };
@@ -136,6 +174,24 @@ export default function LiveExamInterface() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fcfcfc]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+      </div>
+    );
+  }
+
+  const isSubmitted = currentAssessment.status === 'submitted' || currentAssessment.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
+  const isEnded = currentAssessment.status === 'ended';
+
+  if (isSubmitted || isEnded) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcfcfc] p-6 text-center">
+        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Assessment Locked</h2>
+        <p className="text-slate-500 mb-6 max-w-md">
+          {isSubmitted 
+            ? "You have already submitted this assessment. You cannot modify your answers." 
+            : "This assessment has ended and is no longer active."}
+        </p>
+        <Button onClick={() => router.push('/student/dashboard')}>Return to Dashboard</Button>
       </div>
     );
   }
@@ -215,53 +271,100 @@ export default function LiveExamInterface() {
                 </div>
               </div>
 
-              <h2 className="text-xl md:text-3xl lg:text-4xl font-serif font-medium text-slate-900 mb-12 leading-relaxed">
-                 {currentQuestion.prompt || currentQuestion.questionText}
-              </h2>
-
-              <div className="space-y-4 flex-grow mb-12">
-                {(currentQuestion.choices || currentQuestion.options || []).map((choice: any, idx: number) => {
-                  const choiceId = choice.id || idx.toString();
-                  const isSelected = activeSession.answers[currentQuestion.id] === choiceId;
-                  const letter = String.fromCharCode(65 + idx);
-
-                  return (
-                    <label 
-                      key={choiceId}
-                      className={`group flex items-start p-5 border rounded-[4px] cursor-pointer shadow-sm relative transition-all duration-200 ${
-                        isSelected 
-                          ? "border-slate-900 bg-slate-50/50" 
-                          : "border-slate-200 bg-white hover:border-slate-400 hover:shadow-md"
-                      }`}
-                    >
-                      <input 
-                        type="radio" 
-                        name={`question-${currentQuestion.id}`}
-                        className="hidden peer"
-                        checked={isSelected}
-                        onChange={() => dispatch(setAnswer({ questionId: currentQuestion.id, value: choiceId }))}
-                      />
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-[2px] font-bold flex items-center justify-center mr-5 text-sm font-sans transition-colors ${
-                        isSelected 
-                          ? "bg-slate-900 text-white" 
-                          : "bg-slate-50 border border-slate-200 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700"
-                      }`}>
-                        {letter}
-                      </div>
-                      <span className={`text-lg pt-0.5 transition-colors ${
-                        isSelected ? "text-slate-900 font-medium" : "text-slate-700 group-hover:text-slate-900"
-                      }`}>
-                        {choice.text}
-                      </span>
-                      {isSelected && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                          <CheckCircle className="w-6 h-6 text-slate-900" />
-                        </div>
-                      )}
-                    </label>
-                  );
-                })}
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-serif font-medium text-slate-900 leading-relaxed">
+                   {currentQuestion.prompt || currentQuestion.questionText}
+                </h2>
+                {(currentQuestion.type === "MULTI_SELECT" || currentQuestion.questionType === "MULTI_SELECT") && (
+                   <p className="text-[13px] font-bold text-indigo-700 mt-3 flex items-center gap-2 bg-indigo-50 border border-indigo-100 w-fit px-3 py-1.5 rounded-lg shadow-sm">
+                     <Check className="w-4 h-4" /> Please select ALL correct options
+                   </p>
+                )}
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 content-start mb-8 md:mb-12">
+                {currentQuestion.type === 'ESSAY' ? (
+                  <textarea 
+                    value={activeSession.answers[currentQuestion.id] || ''}
+                    onChange={(e) => dispatch(setAnswer({ questionId: currentQuestion.id, value: e.target.value }))}
+                    placeholder="Type your essay answer here..."
+                    className="w-full min-h-[300px] p-5 text-lg font-medium text-slate-800 resize-y bg-white border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm"
+                  />
+                ) : currentQuestion.type === 'TEXT' ? (
+                  <input
+                    type="text"
+                    value={activeSession.answers[currentQuestion.id] || ''}
+                    onChange={(e) => dispatch(setAnswer({ questionId: currentQuestion.id, value: e.target.value }))}
+                    placeholder="Type your short answer here..."
+                    className="w-full p-5 text-lg font-medium text-slate-800 bg-white border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm"
+                  />
+                ) : (
+                  (currentQuestion.choices || currentQuestion.options || []).map((choice: any, idx: number) => {
+                    const choiceId = choice.id || idx.toString();
+                    const isMultiSelect = currentQuestion.type === "MULTI_SELECT" || currentQuestion.questionType === "MULTI_SELECT";
+                    const currentAnswer = activeSession.answers[currentQuestion.id];
+                    let isSelected = false;
+
+                    if (isMultiSelect) {
+                       const arr = Array.isArray(currentAnswer) ? currentAnswer : (currentAnswer ? [currentAnswer] : []);
+                       isSelected = arr.includes(choiceId);
+                    } else {
+                       isSelected = currentAnswer === choiceId;
+                    }
+
+                    const letter = String.fromCharCode(65 + idx);
+
+                    return (
+                      <label 
+                        key={choiceId}
+                        className={`group flex items-start h-fit p-4 md:p-5 border rounded-xl cursor-pointer shadow-sm relative transition-all duration-200 ${
+                          isSelected 
+                            ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600 shadow-md" 
+                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input 
+                          type={isMultiSelect ? "checkbox" : "radio"} 
+                          name={`question-${currentQuestion.id}`}
+                          className="hidden peer"
+                          checked={isSelected}
+                          onChange={(e) => {
+                             if (isMultiSelect) {
+                                let arr = Array.isArray(currentAnswer) ? [...currentAnswer] : (currentAnswer ? [currentAnswer] : []);
+                                if (e.target.checked) {
+                                   if (!arr.includes(choiceId)) arr.push(choiceId);
+                                } else {
+                                   arr = arr.filter((id: string) => id !== choiceId);
+                                }
+                                dispatch(setAnswer({ questionId: currentQuestion.id, value: arr }));
+                             } else {
+                                dispatch(setAnswer({ questionId: currentQuestion.id, value: choiceId }));
+                             }
+                          }}
+                        />
+                        <div className={`flex-shrink-0 w-8 h-8 ${isMultiSelect ? 'rounded-md' : 'rounded-full'} font-bold flex items-center justify-center mr-4 text-sm font-sans transition-all ${
+                          isSelected 
+                            ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30" 
+                            : "bg-slate-100 border border-slate-200 text-slate-500 group-hover:bg-slate-200"
+                        }`}>
+                          {isMultiSelect ? (isSelected ? <Check className="w-5 h-5" /> : letter) : letter}
+                        </div>
+                        <span className={`text-base md:text-lg pt-0.5 transition-colors pr-6 ${
+                          isSelected ? "text-slate-900 font-semibold" : "text-slate-700 group-hover:text-slate-900"
+                        }`}>
+                          {choice.text}
+                        </span>
+                        {isSelected && !isMultiSelect && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            <CheckCircle className="w-6 h-6 text-indigo-600" />
+                          </div>
+                        )}
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+
 
               <div className="flex justify-between items-center pt-6 border-t border-slate-100 mb-20 md:mb-0">
                 <button 

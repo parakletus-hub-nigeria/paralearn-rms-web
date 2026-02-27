@@ -201,13 +201,16 @@ export function PageTwo({data,changeData,step,setStep}: any){
     }
     const [emailAuth, setemailAuth] = useState(emailCheck())
     const [showPassword, setshowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [passwordAuth, setPasswordAuth] = useState(passwordCheck())
+    const [confirmPassword, setConfirmPassword] = useState("")
     const [passwordErrors, setPasswordErrors] = useState({
         length: false,
         uppercase: false,
         specialChar: false,
         number: false
     })
+    const passwordsMatch = confirmPassword === data.password && confirmPassword !== ""
     const forms = [
         {
             label:"Admin Email",
@@ -332,6 +335,44 @@ export function PageTwo({data,changeData,step,setStep}: any){
                         <p className="text-xs text-slate-500">Create a strong password with at least 8 characters, one uppercase letter, one number, and one special character</p>
                     )}
                 </div>
+
+                {/* Confirm Password */}
+                <div className="space-y-1.5">
+                    <Label htmlFor="confirmPassword" className="text-slate-700">Confirm Password</Label>
+                    <div className="relative">
+                        <Input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Re-enter your password"
+                            className="h-11 rounded-lg border-slate-300 bg-slate-50/50 pr-10 focus:bg-white"
+                            aria-invalid={confirmPassword !== "" && !passwordsMatch}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                        >
+                            {showConfirmPassword ? <FaEye className="h-4 w-4" /> : <FaEyeSlash className="h-4 w-4" />}
+                        </button>
+                    </div>
+                    {confirmPassword !== "" && !passwordsMatch && (
+                        <p className="flex items-center gap-1.5 text-xs text-red-600">
+                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                            Passwords do not match
+                        </p>
+                    )}
+                    {confirmPassword !== "" && passwordsMatch && (
+                        <p className="flex items-center gap-1.5 text-xs text-emerald-600">
+                            <Check className="h-3.5 w-3.5 shrink-0" />
+                            Passwords match
+                        </p>
+                    )}
+                </div>
+
                 {step === 2 && (
                     <div className="mt-4 flex gap-3">
                         <Button
@@ -343,7 +384,7 @@ export function PageTwo({data,changeData,step,setStep}: any){
                             Back
                         </Button>
                         <Button
-                            disabled={!emailAuth || !passwordAuth}
+                            disabled={!emailAuth || !passwordAuth || !passwordsMatch}
                             onClick={() => setStep(step + 1)}
                             className="h-12 flex-1 rounded-xl bg-gradient-to-r from-primary via-purple-700 to-primary font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:opacity-95 active:scale-[0.99] disabled:opacity-60"
                         >
@@ -428,7 +469,7 @@ export function PageThree({data,changeData,step,setStep}: any){
    {
             label:"Phone Number",
             name:"phoneNumber",
-            type:"number",
+            type:"tel",
             subtext:"Enter your phone number"
         },
         {
@@ -452,7 +493,7 @@ export function PageThree({data,changeData,step,setStep}: any){
                             <Label htmlFor={form.name} className="text-slate-700">{form.label}</Label>
                             <Input
                                 id={form.name}
-                                type={form.type as "text" | "number"}
+                                type={form.type as "text" | "number" | "tel"}
                                 name={form.name}
                                 value={data[form.name]}
                                 onChange={(e) => {

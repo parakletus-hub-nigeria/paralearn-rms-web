@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -29,12 +29,15 @@ const logo = "/PL2 (1).svg";
 import { routespath } from "@/lib/routepath";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
+import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
 
 export default function TeacherSideBar({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { user, tenantInfo } = useSelector((s: RootState) => s.user);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const items = useMemo(
     () => [
@@ -61,12 +64,15 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
   };
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await dispatch(logoutUser()).unwrap();
       toast.success("Logged out successfully");
       router.push(routespath.SIGNIN);
     } catch (e: any) {
       toast.error(e || "Logout failed");
+      setIsLoggingOut(false);
+      setIsLogoutModalOpen(false);
       router.push(routespath.SIGNIN);
     }
   };
@@ -87,7 +93,7 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
             </div>
             <div className="flex flex-col leading-tight w-full px-1">
               <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
-                {tenantInfo?.name || "PARA LEARN"}
+                {tenantInfo?.name || "ParaLearn"}
               </p>
               <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
                 <span className="truncate">Teacher{user?.firstName ? ` • ${user.firstName}` : ""}</span>
@@ -126,7 +132,7 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
 
         <SidebarFooter className="p-4">
           <button
-            onClick={handleLogout}
+            onClick={() => setIsLogoutModalOpen(true)}
             className="w-full flex items-center justify-center py-3 px-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 cursor-pointer"
           >
             Logout
@@ -135,14 +141,20 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
       </Sidebar>
 
       <main className="flex-1 bg-[#fbfaff] min-h-screen relative">
-        <div className="absolute top-6 left-6 z-50">
-          <SidebarTrigger className="hover:bg-purple-50" />
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
         </div>
-        <div className="p-10 w-full max-w-[1600px] mx-auto">
+        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
           <Toaster position="top-right" expand={false} richColors />
           {children}
         </div>
       </main>
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        loading={isLoggingOut}
+      />
     </SidebarProvider>
   );
 }

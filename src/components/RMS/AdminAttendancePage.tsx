@@ -84,16 +84,27 @@ export function AdminAttendancePage() {
 
   const [bulkUpdate, { isLoading: isSaving }] = useBulkUpdateAttendanceMutation();
 
-  // Reset draft when class or date changes or data reloads
-  useEffect(() => {
-    setDraftAttendance({});
-  }, [selectedClassId, dateStr]);
+  // Reset draft when class or date changes (only on actual changes, not re-renders)
+  const prevClassIdRef = { current: selectedClassId };
+  const prevDateRef = { current: dateStr };
 
-  // Initialize draft from existing data (optional, but good for consistency)
+  // Pre-fill draft from existing attendance data (matching teacher implementation)
   useEffect(() => {
     if (attendanceData) {
-       // logic to potentially pre-fill draft if needed, or just rely on 'getEffectiveRecord'
-       // For now, we'll rely on getEffectiveRecord merging data.
+      setDraftAttendance((prev) => {
+        const next = { ...prev };
+        let hasChanges = false;
+        attendanceData.forEach((record: any) => {
+          if (!next[record.enrollmentId] && record.attendance) {
+            next[record.enrollmentId] = {
+              status: record.attendance.status,
+              remarks: record.attendance.remarks || "",
+            };
+            hasChanges = true;
+          }
+        });
+        return hasChanges ? next : prev;
+      });
     }
   }, [attendanceData]);
 
@@ -256,7 +267,10 @@ export function AdminAttendancePage() {
             <div className="relative w-full md:w-64">
                 <Select
                     value={selectedClassId}
-                    onValueChange={(val) => setSelectedClassId(val)}
+                    onValueChange={(val) => {
+                      setSelectedClassId(val);
+                      setDraftAttendance({}); // Clear draft when switching class
+                    }}
                 >
                     <SelectTrigger className="pl-4 h-11 bg-slate-50 border-slate-200 rounded-xl font-bold text-slate-700 w-full">
                     <SelectValue placeholder="Select Class" />
@@ -292,7 +306,12 @@ export function AdminAttendancePage() {
                         <Calendar
                             mode="single"
                             selected={currentDate}
-                            onSelect={(date) => date && setCurrentDate(date as Date)}
+                            onSelect={(date) => {
+                              if (date) {
+                                setCurrentDate(date as Date);
+                                setDraftAttendance({}); // Clear draft when switching date
+                              }
+                            }}
                             disabled={(date) =>
                                 date > new Date() || date < new Date("1900-01-01")
                             }
@@ -353,9 +372,15 @@ export function AdminAttendancePage() {
                       <TableCell className="font-bold text-slate-400 pl-8">{String(index + 1).padStart(2, "0")}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 bg-orange-100 text-orange-600 border-2 border-white shadow-sm">
-                            <AvatarImage src={record.student.profilePicture} />
-                            <AvatarFallback className="font-bold">{getInitials(record.student.firstName, record.student.lastName)}</AvatarFallback>
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                            <AvatarImage src={record?.student?.profilePicture} />
+                            <AvatarFallback>
+                              <img 
+                                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${record?.student?.id || record?.student?.studentId || 'student'}`} 
+                                alt=""
+                                className="w-full h-full bg-slate-100"
+                              />
+                            </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-bold text-slate-900">{record.student.firstName} {record.student.lastName}</p>

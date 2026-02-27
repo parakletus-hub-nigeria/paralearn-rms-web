@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -34,14 +34,18 @@ import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
 import { usePathname } from "next/navigation";
 import { Toaster } from "sonner";
+import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { user, tenantInfo } = useSelector((s: RootState) => s.user);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await dispatch(logoutUser()).unwrap();
 
@@ -55,6 +59,8 @@ const SideBar = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout");
+      setIsLoggingOut(false);
+      setIsLogoutModalOpen(false);
     }
   };
 
@@ -104,10 +110,16 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         user={user} 
         filteredContent={filteredContent} 
         pathname={pathname} 
-        handleLogout={handleLogout}
+        handleLogout={() => setIsLogoutModalOpen(true)}
       >
         {children}
       </SidebarContentContainer>
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        loading={isLoggingOut}
+      />
     </SidebarProvider>
   );
 };
@@ -129,11 +141,11 @@ const SidebarContentContainer = ({
   pathname: string;
   handleLogout: () => void;
 }) => {
-  const { open, openMobile } = useSelector((s: RootState) => ({
-    // Note: We can't actually use useSidebar here if we want to determine 
-    // the layout *outside* the Sidebar component perfectly without hydration issues,
-    // but the SidebarProvider is already wrapping this.
-  }));
+  // const { open, openMobile } = useSelector((s: RootState) => ({
+  //   // Note: We can't actually use useSidebar here if we want to determine 
+  //   // the layout *outside* the Sidebar component perfectly without hydration issues,
+  //   // but the SidebarProvider is already wrapping this.
+  // }));
   
   // Actually, we must import useSidebar inside the component
   const { SidebarTrigger: UI_SidebarTrigger, useSidebar } = require("../ui/sidebar");
@@ -158,7 +170,7 @@ const SidebarContentContainer = ({
             </Link>
             <div className="flex flex-col leading-tight w-full px-1">
               <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
-                {tenantInfo?.name || "PARA LEARN"}
+                {tenantInfo?.name || "ParaLearn"}
               </p>
               <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
                 <span className="truncate">{user?.roles?.[0]?.charAt(0).toUpperCase() + user?.roles?.[0]?.slice(1) || "User"}{user?.firstName ? ` • ${user.firstName}` : ""}</span>

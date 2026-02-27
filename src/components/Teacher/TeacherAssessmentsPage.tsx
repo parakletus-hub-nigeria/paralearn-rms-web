@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
@@ -34,6 +35,7 @@ import {
   Calendar,
   Users,
   Clock,
+  RefreshCcw,
   FileText,
   Edit,
   BarChart3,
@@ -67,7 +69,16 @@ const statusConfig: Record<string, { bg: string; text: string; icon: typeof Chec
 
 export function TeacherAssessmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { assessments, teacherClasses, academicCurrent, assessmentCategories, loading } = useSelector((s: RootState) => s.teacher);
+  const { 
+    assessments, 
+    teacherClasses, 
+    academicCurrent, 
+    assessmentCategories, 
+    loading,
+    assessmentsLoading,
+    classesLoading,
+    categoriesLoading
+  } = useSelector((s: RootState) => s.teacher);
   const { user } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -80,6 +91,11 @@ export function TeacherAssessmentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [classSubjects, setClassSubjects] = useState<any[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Form State
   const [createForm, setCreateForm] = useState({
@@ -107,14 +123,19 @@ export function TeacherAssessmentsPage() {
     correctAnswer: "",
   });
 
-  useEffect(() => {
-    dispatch(fetchAcademicCurrent());
-    dispatch(fetchMyAssessments());
-    dispatch(fetchAssessmentCategories());
+  const refreshData = (force = false) => {
+    if (force || !academicCurrent) dispatch(fetchAcademicCurrent());
+    if (force || assessments.length === 0) dispatch(fetchMyAssessments());
+    if (force || assessmentCategories.length === 0) dispatch(fetchAssessmentCategories());
+    
     const teacherId = (user as any)?.id || (user as any)?.teacherId;
-    if (teacherId) {
+    if (teacherId && (force || teacherClasses.length === 0)) {
       dispatch(fetchTeacherClasses({ teacherId }));
     }
+  };
+
+  useEffect(() => {
+    refreshData();
   }, [dispatch, user]);
 
   // Get dynamic session/term options
@@ -299,26 +320,38 @@ export function TeacherAssessmentsPage() {
   return (
     <div className="w-full">
       <TeacherHeader />
-
+      
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">Assessment Management</h1>
-              <p className="text-purple-200 mt-1 font-coolvetica">
-                Create, manage, and grade your assessments
-              </p>
-            </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">Assessment Management</h1>
+                <p className="text-purple-200 mt-1 font-coolvetica">
+                  Create, manage, and grade your assessments
+                </p>
+              </div>
 
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Create Assessment
-            </Button>
-          </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => refreshData(true)}
+                  disabled={assessmentsLoading || classesLoading}
+                  variant="outline"
+                  className="h-12 w-12 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 p-0"
+                  title="Refresh Data"
+                >
+                  <RefreshCcw className={`w-5 h-5 ${assessmentsLoading ? 'animate-spin' : ''}`} />
+                </Button>
+                
+                <Button
+                  onClick={() => setShowCreateModal(true)}
+                  className="h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Create Assessment
+                </Button>
+              </div>
+            </div>
 
           {/* Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
@@ -413,7 +446,7 @@ export function TeacherAssessmentsPage() {
         </div>
 
         {/* Assessment Cards */}
-        {loading ? (
+        {assessmentsLoading && assessments.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <div
               className="animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200"
@@ -444,7 +477,7 @@ export function TeacherAssessmentsPage() {
               const status = assessment.status || "draft";
               const statusStyle = getStatusConfig(status);
               const StatusIcon = statusStyle.icon;
-              const duration = assessment.duration || 30;
+              const duration = assessment.durationMinutes ?? assessment.durationMins ?? assessment.duration ?? 30;
 
               return (
                 <div
@@ -478,7 +511,7 @@ export function TeacherAssessmentsPage() {
                     <div className="grid grid-cols-3 gap-3 text-center py-3 border-y border-slate-100">
                       <div>
                         <p className="text-lg font-bold text-slate-900">
-                          {assessment.totalMarks || 100}
+                          {assessment.totalMarks ?? assessment.marks ?? 100}
                         </p>
                         <p className="text-xs text-slate-500">Marks</p>
                       </div>
@@ -488,7 +521,7 @@ export function TeacherAssessmentsPage() {
                       </div>
                       <div>
                         <p className="text-lg font-bold text-slate-900">
-                          {assessment.submissionCount || 0}
+                          {assessment._count?.submissions ?? assessment.submissions?.length ?? assessment.submissionCount ?? 0}
                         </p>
                         <p className="text-xs text-slate-500">Submitted</p>
                       </div>
@@ -499,14 +532,16 @@ export function TeacherAssessmentsPage() {
                   <div className="px-5 py-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-2 gap-2">
                     {assessment.isOnline ? (
                       <>
-                      <Link
-                         href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
-                         className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors col-span-2 mb-1"
-                      >
-                         <Sparkles className="w-4 h-4 text-purple-600" />
-                         Draft Questions
-                      </Link>
-                      {status === "not_started" && (
+                      {status !== "ended" && (
+                        <Link
+                           href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
+                           className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors col-span-2 mb-1"
+                        >
+                           <Sparkles className="w-4 h-4 text-purple-600" />
+                           Draft Questions
+                        </Link>
+                      )}
+                      {status === "not_started" ? (
                         <Button
                           onClick={() => handlePublish(assessment.id)}
                           className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
@@ -515,6 +550,15 @@ export function TeacherAssessmentsPage() {
                           <Send className="w-4 h-4" />
                           Publish Assessment
                         </Button>
+                      ) : (
+                        <Link
+                           href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
+                           className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
+                           style={{ backgroundColor: primaryColor }}
+                        >
+                           <BarChart3 className="w-4 h-4 mr-1" />
+                           Grade Submissions
+                        </Link>
                       )}
                       </>
                     ) : (
@@ -581,8 +625,8 @@ export function TeacherAssessmentsPage() {
                         </div>
                       </td>
                       <td className="py-4 px-3 text-slate-600">{getClassName(assessment.classId)}</td>
-                      <td className="py-4 px-3 text-center font-semibold">{assessment.totalMarks || 100}</td>
-                      <td className="py-4 px-3 text-center">{assessment.duration || 30}m</td>
+                      <td className="py-4 px-3 text-center font-semibold">{assessment.totalMarks ?? assessment.marks ?? 100}</td>
+                      <td className="py-4 px-3 text-center">{assessment.durationMinutes ?? assessment.durationMins ?? assessment.duration ?? 30}m</td>
                       <td className="py-4 px-3 text-center">
                         <Badge className={`rounded ${statusStyle.bg} ${statusStyle.text}`}>
                           {statusStyle.label}
@@ -592,13 +636,15 @@ export function TeacherAssessmentsPage() {
                       <div className="flex items-center justify-end gap-2">
                           {assessment.isOnline ? (
                              <div className="flex items-center gap-2">
-                                <Link href={`/teacher/question-drafting?assessmentId=${assessment.id}`}>
-                                    <Button variant="outline" size="sm" className="rounded-lg h-9 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100">
-                                    <Sparkles className="w-4 h-4 mr-1" />
-                                    Questions
-                                    </Button>
-                                </Link>
-                                {status === "not_started" && (
+                                {status !== "ended" && (
+                                  <Link href={`/teacher/question-drafting?assessmentId=${assessment.id}`}>
+                                      <Button variant="outline" size="sm" className="rounded-lg h-9 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100">
+                                      <Sparkles className="w-4 h-4 mr-1" />
+                                      Questions
+                                      </Button>
+                                  </Link>
+                                )}
+                                {status === "not_started" ? (
                                     <Button 
                                         onClick={() => handlePublish(assessment.id)}
                                         size="sm" 
@@ -608,22 +654,31 @@ export function TeacherAssessmentsPage() {
                                         <Send className="w-4 h-4 mr-1" />
                                         Publish
                                     </Button>
+                                ) : (
+                                    <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
+                                      <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
+                                        <BarChart3 className="w-4 h-4 mr-1" />
+                                        Grade
+                                      </Button>
+                                    </Link>
                                 )}
                              </div>
                           ) : (
-                             <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
-                                <Button variant="outline" size="sm" className="rounded-lg h-9">
-                                <Edit className="w-4 h-4 mr-1" />
-                                Edit
-                                </Button>
-                             </Link>
+                             <div className="flex items-center gap-2">
+                               <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
+                                  <Button variant="outline" size="sm" className="rounded-lg h-9">
+                                  <Edit className="w-4 h-4 mr-1" />
+                                  Edit
+                                  </Button>
+                               </Link>
+                               <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}>
+                                 <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
+                                   <BarChart3 className="w-4 h-4 mr-1" />
+                                   Grade
+                                 </Button>
+                               </Link>
+                             </div>
                           )}
-                          <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}>
-                            <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
-                              <BarChart3 className="w-4 h-4 mr-1" />
-                              Grade
-                            </Button>
-                          </Link>
                         </div>
                       </td>
                     </tr>
@@ -636,8 +691,8 @@ export function TeacherAssessmentsPage() {
       </div>
 
       {/* Create Assessment Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {showCreateModal && isMounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowCreateModal(false)}
@@ -679,7 +734,7 @@ export function TeacherAssessmentsPage() {
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue placeholder="Select Class" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl z-[10000]">
                       {uniqueClasses.map((cls: any) => (
                         <SelectItem key={cls.id} value={cls.id}>
                           {cls.name}
@@ -699,7 +754,7 @@ export function TeacherAssessmentsPage() {
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue placeholder={loadingSubjects ? "Loading..." : "Select Subject"} />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl z-[10000]">
                       {classSubjects.map((subj: any) => (
                         <SelectItem key={subj.id} value={subj.id}>
                           {subj.name}
@@ -720,7 +775,7 @@ export function TeacherAssessmentsPage() {
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl z-[10000]">
                       {assessmentCategories.length === 0 ? (
                          <div className="p-2 text-sm text-slate-500 text-center">
                            No categories found. Ask Admin to create them.
@@ -778,7 +833,7 @@ export function TeacherAssessmentsPage() {
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl z-[10000]">
                       <SelectItem value="false">Offline / Paper-based</SelectItem>
                       <SelectItem value="true">Online</SelectItem>
                     </SelectContent>
@@ -844,7 +899,8 @@ export function TeacherAssessmentsPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

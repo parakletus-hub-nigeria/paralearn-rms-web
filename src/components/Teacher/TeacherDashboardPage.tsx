@@ -109,10 +109,10 @@ export function TeacherDashboardPage() {
     <div className="w-full">
       <TeacherHeader />
 
-      <div className="px-[20px] md:px-0 space-y-6">
+      <div className="space-y-6">
         {/* Welcome Section with Academic Period */}
-        <div className="card-premium p-6 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="card-premium p-5 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 md:gap-6">
             <div className="space-y-2">
               <p className="text-slate-400 font-medium font-coolvetica">Welcome back,</p>
               <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">
@@ -140,7 +140,7 @@ export function TeacherDashboardPage() {
                 return (
                   <div
                     key={stat.label}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm"
+                    className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm"
                   >
                     <div
                       className="w-10 h-10 rounded-lg flex items-center justify-center"
@@ -160,10 +160,10 @@ export function TeacherDashboardPage() {
         </div>
 
         {/* Assessment Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
             { label: "Active", value: stats.activeAssessments, bg: "#DFF9D8", fg: "#16A34A", icon: TrendingUp },
-            { label: "Pending Grading", value: stats.pendingGrading, bg: "#FEF3C7", fg: "#D97706", icon: Clock },
+            { label: "Pending", value: stats.pendingGrading, bg: "#FEF3C7", fg: "#D97706", icon: Clock },
             { label: "Not Started", value: stats.notStarted, bg: "#F0E5FF", fg: "#9747FF", icon: FileText },
             { label: "Total", value: stats.totalAssessments, bg: "#DBE9FF", fg: "#2563EB", icon: Layers },
           ].map((c) => {
@@ -171,12 +171,12 @@ export function TeacherDashboardPage() {
             return (
               <div
                 key={c.label}
-                className="rounded-2xl p-5 border border-slate-100 shadow-sm"
+                className="rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm flex flex-col justify-center"
                 style={{ backgroundColor: c.bg }}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                     style={{ backgroundColor: `${c.fg}20` }}
                   >
                     <Icon className="w-5 h-5" style={{ color: c.fg }} />
@@ -185,7 +185,7 @@ export function TeacherDashboardPage() {
                     {c.value}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-slate-700">{c.label} Assessments</p>
+                <p className="text-xs sm:text-sm font-semibold text-slate-700 truncate">{c.label} {c.label !== "Total" && "Exams"}</p>
               </div>
             );
           })}
@@ -194,92 +194,104 @@ export function TeacherDashboardPage() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quick Actions */}
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             <Link
               href={routespath.TEACHER_ASSESSMENTS}
-              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-6 hover:shadow-lg hover:border-purple-200 transition-all"
+              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 md:p-6 hover:shadow-lg hover:border-purple-200 transition-all flex flex-col h-full"
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-3 md:mb-4">
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0"
                   style={{ backgroundColor: `${primaryColor}15` }}
                 >
-                  <ClipboardList className="w-6 h-6" style={{ color: primaryColor }} />
+                  <ClipboardList className="w-5 h-5 md:w-6 md:h-6" style={{ color: primaryColor }} />
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-purple-500 transition-colors" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Assessments</h3>
-              <p className="text-sm text-slate-500">Create, manage, and grade assessments</p>
+              <div className="mt-auto">
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Assessments</h3>
+                <p className="text-xs text-slate-500 leading-tight">Create & grade exams</p>
+              </div>
             </Link>
 
             <Link
               href={routespath.TEACHER_SCORES}
-              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-6 hover:shadow-lg hover:border-emerald-200 transition-all"
+              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 md:p-6 hover:shadow-lg hover:border-emerald-200 transition-all flex flex-col h-full"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-emerald-600" />
+              <div className="flex items-start justify-between mb-3 md:mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-emerald-600" />
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 transition-colors" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Enter Scores</h3>
-              <p className="text-sm text-slate-500">Input and manage student scores</p>
+              <div className="mt-auto">
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Enter Scores</h3>
+                <p className="text-xs text-slate-500 leading-tight">Input student marks</p>
+              </div>
             </Link>
 
             <Link
               href={routespath.TEACHER_COMMENTS}
-              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-6 hover:shadow-lg hover:border-blue-200 transition-all"
+              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 md:p-6 hover:shadow-lg hover:border-blue-200 transition-all flex flex-col h-full"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <MessageSquareText className="w-6 h-6 text-blue-600" />
+              <div className="flex items-start justify-between mb-3 md:mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                  <MessageSquareText className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Comments</h3>
-              <p className="text-sm text-slate-500">Add remarks for students</p>
+              <div className="mt-auto">
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Comments</h3>
+                <p className="text-xs text-slate-500 leading-tight">Add remarks</p>
+              </div>
             </Link>
 
             <Link
               href={routespath.TEACHER_REPORTS}
-              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-6 hover:shadow-lg hover:border-orange-200 transition-all"
+              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 md:p-6 hover:shadow-lg hover:border-orange-200 transition-all flex flex-col h-full"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-orange-600" />
+              <div className="flex items-start justify-between mb-3 md:mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-orange-600" />
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-orange-500 transition-colors" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Reports</h3>
-              <p className="text-sm text-slate-500">View and download report cards</p>
+              <div className="mt-auto">
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Reports</h3>
+                <p className="text-xs text-slate-500 leading-tight">Download cards</p>
+              </div>
             </Link>
 
             <Link
               href={routespath.TEACHER_CLASSES}
-              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-6 hover:shadow-lg hover:border-cyan-200 transition-all"
+              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 md:p-6 hover:shadow-lg hover:border-cyan-200 transition-all flex flex-col h-full"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-cyan-50 flex items-center justify-center">
-                  <GraduationCap className="w-6 h-6 text-cyan-600" />
+              <div className="flex items-start justify-between mb-3 md:mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-cyan-50 flex items-center justify-center shrink-0">
+                  <GraduationCap className="w-5 h-5 md:w-6 md:h-6 text-cyan-600" />
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-cyan-500 transition-colors" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">My Classes</h3>
-              <p className="text-sm text-slate-500">View assigned classes & students</p>
+              <div className="mt-auto">
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Classes</h3>
+                <p className="text-xs text-slate-500 leading-tight">View groups</p>
+              </div>
             </Link>
 
             <Link
               href={routespath.TEACHER_CLASSES}
-              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-6 hover:shadow-lg hover:border-rose-200 transition-all"
+              className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 md:p-6 hover:shadow-lg hover:border-rose-200 transition-all flex flex-col h-full"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center">
-                  <Users className="w-6 h-6 text-rose-600" />
+              <div className="flex items-start justify-between mb-3 md:mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-rose-50 flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5 md:w-6 md:h-6 text-rose-600" />
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-rose-500 transition-colors" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Students</h3>
-              <p className="text-sm text-slate-500">View all your students</p>
+              <div className="mt-auto">
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Students</h3>
+                <p className="text-xs text-slate-500 leading-tight">View directory</p>
+              </div>
             </Link>
           </div>
 

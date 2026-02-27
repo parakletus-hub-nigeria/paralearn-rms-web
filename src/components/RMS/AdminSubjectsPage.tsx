@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
@@ -668,8 +669,8 @@ export function AdminSubjectsPage() {
       </div>
 
       {/* Create Subject Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {showCreateModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
@@ -705,12 +706,12 @@ export function AdminSubjectsPage() {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700">Class</label>
-                  <div className="mt-2">
+                  <div className="mt-2" style={{ position: "relative", zIndex: 10001 }}>
                     <Select value={form.classId} onValueChange={(v) => setForm((p) => ({ ...p, classId: v }))}>
                       <SelectTrigger className="h-11 w-full rounded-xl">
                         <SelectValue placeholder="Select class" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl">
+                      <SelectContent className="rounded-xl" style={{ zIndex: 10002 }}>
                         {classes.map((c) => (
                           <SelectItem key={c.id} value={c.id}>
                             {c.name} {c.level ? `(${c.level})` : ""}
@@ -747,12 +748,13 @@ export function AdminSubjectsPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Assign Teacher Modal */}
-      {showAssignModal && selectedSubject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {showAssignModal && selectedSubject && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAssignModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
@@ -769,12 +771,12 @@ export function AdminSubjectsPage() {
 
             <div className="px-6 py-5">
               <label className="text-sm font-semibold text-slate-700">Select Teacher</label>
-              <div className="mt-2">
+              <div className="mt-2" style={{ position: "relative", zIndex: 10001 }}>
                 <Select value={assignTeacherId} onValueChange={setAssignTeacherId}>
                   <SelectTrigger className="h-11 w-full rounded-xl">
                     <SelectValue placeholder="Choose a teacher" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl max-h-[300px]">
+                  <SelectContent className="rounded-xl max-h-[300px]" style={{ zIndex: 10002 }}>
                     {(teachers || []).map((t: any) => {
                       const name = `${t.firstName || ""} ${t.lastName || ""}`.trim();
                       return (
@@ -808,7 +810,8 @@ export function AdminSubjectsPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

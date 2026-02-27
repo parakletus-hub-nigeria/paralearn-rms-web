@@ -55,12 +55,16 @@ export const normalizeRoles = (roles: any): string[] => {
 export const pickRedirectPath = (roles: string[]): string => {
   if (!roles || roles.length === 0) return routespath.DASHBOARD;
   
-  if (roles.includes("admin") || roles.includes("editor") || roles.includes("teacher")) {
-    return routespath.DASHBOARD; 
+  if (roles.includes("teacher")) {
+    return routespath.TEACHER_DASHBOARD;
   }
   
   if (roles.includes("student")) {
     return routespath.STUDENT_DASHBOARD;
+  }
+  
+  if (roles.includes("admin") || roles.includes("editor")) {
+    return routespath.DASHBOARD;
   }
   
   // Default to main dashboard

@@ -94,8 +94,11 @@ export const fetchMyAssessments = createAsyncThunk(
              console.log(`[fetchMyAssessments] Fetching /assessments/${status}...`);
              const res = await apiClient.get(`/api/proxy/assessments/${status}`);
              const data = res.data?.data || res.data || [];
-             console.log(`[fetchMyAssessments] /assessments/${status} returned ${Array.isArray(data) ? data.length : 0} items`);
-             if (Array.isArray(data)) return data;
+             console.log(`[DEBUG] Raw GET /assessments/${status} API Response:`, JSON.stringify(data, null, 2));
+             if (Array.isArray(data)) {
+                 // Tag the top-level items with the status to preserve it during flattening
+                 return data.map((item: any) => ({ ...item, _fetchedStatus: status }));
+             }
              return [];
           } catch (e: any) {
              console.error(`[fetchMyAssessments] Failed to fetch /assessments/${status}:`, e?.message);
@@ -126,22 +129,24 @@ export const fetchMyAssessments = createAsyncThunk(
            if (group.assessments && Array.isArray(group.assessments)) {
              group.assessments.forEach((assess: any) => {
                flattened.push({
-                 ...assess,
-                 // Prioritize group info but fallback to assessment info
+                 ...assess, // 1. Keep everything the backend provides (id, totalMarks, durationMins, submissions, isPublished, etc)
+                 
+                 // 2. Layer UI-specific fallbacks and overrides to satisfy Redux UI expectations
                  classId: group.class?.id || assess.classId,
-                 subjectId: group.id || group.subjectId || assess.subjectId, // Use group.id as subjectId if available
+                 subjectId: group.id || group.subjectId || assess.subjectId, 
                  subject: { 
                     id: group.id || group.subjectId || group.code || "unknown", 
                     name: group.name || "Unknown Subject",
                     code: group.code || group.subjectCode
                  },
                  class: group.class || { id: group.class?.id, name: "Unknown Class" },
-                 // Ensure critical UI fields
+                 
                  title: assess.title || "Untitled Assessment",
-                 totalMarks: assess.totalMarks,
-                 duration: assess.duration,
-                 status: assess.status || "active",
-                 isOnline: assess.assessmentType === "online" || assess.isOnline,
+                 totalMarks: assess.totalMarks ?? assess.marks ?? assess.totalScore,
+                 duration: assess.durationMins ?? assess.durationMinutes ?? assess.duration,
+                 status: assess.status || group._fetchedStatus || "active",
+                 isOnline: assess.assessmentType === "online" || assess.isOnline === true || assess.isOnline === "true",
+                 submissionCount: assess.submissionCount ?? assess._count?.submissions ?? assess.submissions?.length ?? 0,
                });
              });
            }
@@ -158,6 +163,10 @@ export const fetchMyAssessments = createAsyncThunk(
          isOnline: a.assessmentType === "online" || a.isOnline === true || a.isOnline === "true",
          classId: a.classId || a.class?.id || a.class?._id,
          subjectId: a.subjectId || a.subject?.id || a.subject?._id,
+         duration: a.durationMins ?? a.durationMinutes ?? a.duration,
+         status: a.status || a._fetchedStatus || "active",
+         totalMarks: a.totalMarks ?? a.marks ?? a.totalScore,
+         submissionCount: a.submissionCount ?? a._count?.submissions ?? a.submissions?.length ?? 0,
          // Ensure objects exist too for display
          class: a.class || (a.className ? { name: a.className } : undefined),
          subject: a.subject || (a.subjectName ? { name: a.subjectName } : undefined),
@@ -447,9 +456,14 @@ export const uploadOfflineScores = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
+      const payload = {
+        scores: params.scores,
+        // Optional defaultMaxMarks can be omitted if per-student is provided
+      };
+      
       const res = await apiClient.post(
         `/api/proxy/assessments/${params.assessmentId}/scores`,
-        { scores: params.scores }
+        payload
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
@@ -572,8 +586,15 @@ export const fetchClassStudents = createAsyncThunk(
            console.log("[fetchClassStudents] Found students in class.students:", students.length);
            return students; // Return immediately if successful
         } else if (classData.enrollments && Array.isArray(classData.enrollments)) {
-           students = classData.enrollments.map((e: any) => e.student || e).filter((s:any) => s && (s.id || s.firstName));
-           console.log("[fetchClassStudents] Found students in enrollments:", students.length);
+           students = classData.enrollments
+             .map((e: any) => {
+               const base = e.student || e;
+               // The readable student code is on the student user profile itself
+               // DO NOT use e.studentId here - that is the FK UUID pointing to users.id
+               return base;
+             })
+             .filter((s: any) => s && (s.id || s.firstName));
+           console.log("[fetchClassStudents] Found students in enrollments:", students.length, "Sample:", JSON.stringify(students[0]));
            return students;
         }
       } catch (classErr: any) {

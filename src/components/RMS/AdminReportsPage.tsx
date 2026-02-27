@@ -13,6 +13,8 @@ import {
 } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
+import { useGetBookletPreviewQuery } from "@/reduxToolKit/api/endpoints/reports";
+// import { BookletPreview } from "@/components/RMS/BookletPreview";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +48,7 @@ import apiClient from "@/lib/api";
 
 const DEFAULT_PRIMARY = "#641BC4";
 
-type TabType = "generation" | "download";
+type TabType = "generation" | "download" | "preview";
 
 export function AdminReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -95,7 +97,16 @@ export function AdminReportsPage() {
     return getTermsForSession(session);
   }, [session, getTermsForSession]);
 
-
+  // Booklet preview data hook
+  const {
+    data: previewData,
+    isLoading: loadingPreview,
+    error: previewError,
+    refetch: refetchPreview,
+  } = useGetBookletPreviewQuery(
+    { classId, session, term },
+    { skip: !classId || !session || !term || activeTab !== "preview" }
+  );
 
   // Wait for user role to be loaded
   const hasRole = user?.roles && user.roles.length > 0;
@@ -444,6 +455,19 @@ export function AdminReportsPage() {
               <Download className="inline-block w-5 h-5 mr-2" />
               Download Reports
             </button>
+            <button
+              onClick={() => setActiveTab("preview")}
+              className={`
+                py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                ${activeTab === "preview"
+                  ? "border-violet-500 text-violet-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }
+              `}
+            >
+              <FileText className="inline-block w-5 h-5 mr-2" />
+              Booklet Preview
+            </button>
           </nav>
         </div>
 
@@ -585,7 +609,7 @@ export function AdminReportsPage() {
               </>
             )}
           </Card>
-        ) : (
+        ) : activeTab === "download" ? (
           // DOWNLOAD TAB
           <Card className="p-6 space-y-4">
             <div className="flex items-center justify-between">
@@ -674,6 +698,19 @@ export function AdminReportsPage() {
                 </Table>
               </div>
             )}
+          </Card>
+        ) : (
+          // PREVIEW TAB
+          <Card className="p-6">
+            {/* <BookletPreview
+              data={previewData}
+              isLoading={loadingPreview}
+              error={previewError}
+              onRefresh={refetchPreview}
+            /> */}
+            <div className="p-8 text-center text-slate-500">
+              Booklet Preview component is currently unavailable.
+            </div>
           </Card>
         )}
       </main>

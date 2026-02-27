@@ -8,8 +8,6 @@ import {
   fetchUserData,
   refreshAuthToken,
   signupUser,
-  requestPasswordReset,
-  confirmPasswordReset,
   fetchAllUsers,
   fetchUserById,
   deleteUser,
@@ -32,6 +30,7 @@ interface UserState {
     lastName: string;
     schoolId: string;
     roles: string[];
+    avatar?: string;
   };
   // Users list state
   users: any[];
@@ -56,7 +55,7 @@ const USER_KEY = "currentUser";
 
 const getInitialUser = (): UserState["user"] => {
   if (typeof window === "undefined") {
-    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
   }
   try {
     const raw = localStorage.getItem(USER_KEY);
@@ -71,6 +70,7 @@ const getInitialUser = (): UserState["user"] => {
         lastName: parsed?.lastName || "",
         schoolId: parsed?.schoolId || "",
         roles: roles,
+        avatar: parsed?.avatar || parsed?.profilePicture || "",
       };
     }
     
@@ -98,6 +98,7 @@ const getInitialUser = (): UserState["user"] => {
           lastName: decoded.lastName || "",
           schoolId: decoded.schoolId || "",
           roles: roles,
+          avatar: decoded.avatar || decoded.profilePicture || "",
         };
       } else {
         console.warn("[userSlice] Failed to decode token payload");
@@ -105,10 +106,10 @@ const getInitialUser = (): UserState["user"] => {
     }
 
     console.log("[userSlice] Initializing with empty state (No storage, no token)");
-    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
   } catch (e) {
-    console.error("[userSlice] Failed to initialize user state", e);
-    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [] };
+    console.warn("[userSlice] Failed to initialize user state", e);
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
   }
 };
 
@@ -154,6 +155,7 @@ type User = {
     lastName: string,
     schoolId: string,
     roles: string[],
+    avatar?: string,
   }
 
 const userSlice = createSlice({
@@ -310,39 +312,6 @@ const userSlice = createSlice({
         state.success = false;
       });
 
-    // Forgot password flow
-    builder
-      .addCase(requestPasswordReset.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(requestPasswordReset.fulfilled, (state) => {
-        state.loading = false;
-        state.success = true;
-        state.error = null;
-      })
-      .addCase(requestPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          (action.payload as string) || "Password reset request failed";
-      });
-
-    // New password confirmation
-    builder
-      .addCase(confirmPasswordReset.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(confirmPasswordReset.fulfilled, (state) => {
-        state.loading = false;
-        state.success = true;
-        state.error = null;
-      })
-      .addCase(confirmPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          (action.payload as string) || "Password reset confirmation failed";
-      });
 
     // Fetch all users
     builder
@@ -429,6 +398,7 @@ const userSlice = createSlice({
           lastName: action.payload?.lastName || state.user.lastName,
           schoolId: action.payload?.schoolId || state.user.schoolId,
           roles: roles.length ? roles : state.user.roles,
+          avatar: action.payload?.avatar || action.payload?.profilePicture || state.user.avatar,
         };
         if (typeof window !== "undefined") {
           try {

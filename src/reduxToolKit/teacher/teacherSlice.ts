@@ -39,6 +39,9 @@ type TeacherState = {
   comments: TeacherComment[];
   bookletPreview: any | null;
   loading: boolean;
+  assessmentsLoading: boolean;
+  classesLoading: boolean;
+  categoriesLoading: boolean;
   error: string | null;
   success: string | null;
 };
@@ -57,6 +60,9 @@ const initialState: TeacherState = {
   comments: [],
   bookletPreview: null,
   loading: false,
+  assessmentsLoading: false,
+  classesLoading: false,
+  categoriesLoading: false,
   error: null,
   success: null,
 };
@@ -93,29 +99,29 @@ const teacherSlice = createSlice({
 
     builder
       .addCase(fetchMyAssessments.pending, (state) => {
-        state.loading = true;
+        state.assessmentsLoading = true;
         state.error = null;
       })
       .addCase(fetchMyAssessments.fulfilled, (state, action) => {
-        state.loading = false;
+        state.assessmentsLoading = false;
         state.assessments = action.payload;
       })
       .addCase(fetchMyAssessments.rejected, (state, action) => {
-        state.loading = false;
+        state.assessmentsLoading = false;
         state.error = (action.payload as string) || "Failed to load assessments";
       });
 
     builder
       .addCase(fetchTeacherClasses.pending, (state) => {
-        state.loading = true;
+        state.classesLoading = true;
         state.error = null;
       })
       .addCase(fetchTeacherClasses.fulfilled, (state, action) => {
-        state.loading = false;
+        state.classesLoading = false;
         state.teacherClasses = action.payload;
       })
       .addCase(fetchTeacherClasses.rejected, (state, action) => {
-        state.loading = false;
+        state.classesLoading = false;
         state.error = (action.payload as string) || "Failed to load teacher classes";
       });
 
@@ -334,14 +340,14 @@ const teacherSlice = createSlice({
     // Assessment Categories
     builder
       .addCase(fetchAssessmentCategories.pending, (state) => {
-        state.loading = true;
+        state.categoriesLoading = true;
       })
       .addCase(fetchAssessmentCategories.fulfilled, (state, action) => {
-        state.loading = false;
+        state.categoriesLoading = false;
         state.assessmentCategories = action.payload;
       })
       .addCase(fetchAssessmentCategories.rejected, (state) => {
-        state.loading = false;
+        state.categoriesLoading = false;
         // Non-critical, just empty list
         state.assessmentCategories = [];
       });

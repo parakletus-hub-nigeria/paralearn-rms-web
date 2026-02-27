@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, UserPlus, X, Download, Users, BarChart3, History, FileText } from "lucide-react";
+import { Search, UserPlus, X, Download, Users, BarChart3, FileText } from "lucide-react";
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -212,18 +212,14 @@ export function AdminEnrollmentsPage() {
 
       {/* Main Content with Tabs */}
       <Tabs defaultValue="enrollment" className="space-y-6">
-        <TabsList className="bg-slate-100 p-1 rounded-xl">
-          <TabsTrigger value="enrollment" className="rounded-lg px-6 data-[state=active]:bg-white">
+        <TabsList className="bg-slate-100 p-1 rounded-xl flex flex-col sm:flex-row h-auto w-full sm:w-fit">
+          <TabsTrigger value="enrollment" className="rounded-lg px-4 sm:px-6 py-2 sm:py-1.5 data-[state=active]:bg-white w-full sm:w-auto">
             <Users className="w-4 h-4 mr-2" />
             Enrollment Portal
           </TabsTrigger>
-          <TabsTrigger value="stats" className="rounded-lg px-6 data-[state=active]:bg-white">
+          <TabsTrigger value="stats" className="rounded-lg px-4 sm:px-6 py-2 sm:py-1.5 data-[state=active]:bg-white w-full sm:w-auto">
             <BarChart3 className="w-4 h-4 mr-2" />
             Class Stats
-          </TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg px-6 data-[state=active]:bg-white">
-            <History className="w-4 h-4 mr-2" />
-            Past Rosters
           </TabsTrigger>
         </TabsList>
 
@@ -276,8 +272,12 @@ export function AdminEnrollmentsPage() {
                           className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(student.firstName + student.lastName)}`}>
-                              {getInitials(student.firstName, student.lastName)}
+                            <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-100 shadow-sm">
+                              <img 
+                                src={student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.id || student.studentId}`} 
+                                alt=""
+                                className="w-full h-full object-cover bg-slate-50"
+                              />
                             </div>
                             <div>
                               <p className="font-semibold text-slate-900">
@@ -359,11 +359,15 @@ export function AdminEnrollmentsPage() {
                             key={student.id} 
                             className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(student.firstName + student.lastName)}`}>
-                                {getInitials(student.firstName, student.lastName)}
-                              </div>
-                              <div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-100 shadow-sm">
+                              <img 
+                                src={student?.profilePicture || student?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student?.id || student?.studentId || 'student'}`} 
+                                alt=""
+                                className="w-full h-full object-cover bg-slate-50"
+                              />
+                            </div>
+                            <div>
                                 <p className="font-semibold text-slate-900">
                                   {student.firstName} {student.lastName}
                                 </p>
@@ -415,15 +419,6 @@ export function AdminEnrollmentsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="history" className="mt-6">
-          <Card className="p-8 rounded-2xl border-slate-100 text-center">
-            <History className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900">Past Rosters</h3>
-            <p className="text-slate-500 mt-2">
-              Historical enrollment records coming soon.
-            </p>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );
