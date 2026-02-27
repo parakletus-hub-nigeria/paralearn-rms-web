@@ -75,15 +75,19 @@ export default function RoleGuard({
   }, [hasToken, roles, userLoading]);
 
   useEffect(() => {
-    // only auto-redirect in redirect mode
-    // default to block to avoid “empty screen” confusion
+    // only auto-redirect in redirect mode or if no token exists
+    if (!hasToken && mounted) {
+      router.replace(routespath.SIGNIN);
+      return;
+    }
+
     if (mode !== "redirect") return;
     if (ok) return;
     const fallback =
       redirectTo ||
       (roles.some((r: any) => String(r).toLowerCase() === "teacher") ? routespath.TEACHER_DASHBOARD : routespath.DASHBOARD);
     if (pathname !== fallback) router.replace(fallback);
-  }, [ok, router, redirectTo, roles, pathname, mode]);
+  }, [ok, router, redirectTo, roles, pathname, mode, hasToken, mounted]);
 
   // Prevent hydration mismatch by showing loading state until mounted
   if (!mounted) {
@@ -110,6 +114,12 @@ export default function RoleGuard({
   }
 
   if (!ok) {
+    // If we don't have a token, we are likely logging out or already logged out.
+    // Don't show the unauthorized UI, just return null and let the redirect handle it.
+    if (!hasToken) {
+      return null;
+    }
+
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="max-w-lg w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">

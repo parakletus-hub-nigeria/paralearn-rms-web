@@ -53,9 +53,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
       toast.success("Logged out successfully");
 
       // Redirect to signin page
-      setTimeout(() => {
-        router.push(routespath.SIGNIN);
-      }, 1000);
+      router.push(routespath.SIGNIN);
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout");
