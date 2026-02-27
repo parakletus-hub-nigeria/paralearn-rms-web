@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -29,12 +29,15 @@ const logo = "/PL2 (1).svg";
 import { routespath } from "@/lib/routepath";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
+import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
 
 export default function TeacherSideBar({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { user, tenantInfo } = useSelector((s: RootState) => s.user);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const items = useMemo(
     () => [
@@ -61,12 +64,15 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
   };
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await dispatch(logoutUser()).unwrap();
       toast.success("Logged out successfully");
       router.push(routespath.SIGNIN);
     } catch (e: any) {
       toast.error(e || "Logout failed");
+      setIsLoggingOut(false);
+      setIsLogoutModalOpen(false);
       router.push(routespath.SIGNIN);
     }
   };
@@ -126,7 +132,7 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
 
         <SidebarFooter className="p-4">
           <button
-            onClick={handleLogout}
+            onClick={() => setIsLogoutModalOpen(true)}
             className="w-full flex items-center justify-center py-3 px-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 cursor-pointer"
           >
             Logout
@@ -143,6 +149,12 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        loading={isLoggingOut}
+      />
     </SidebarProvider>
   );
 }

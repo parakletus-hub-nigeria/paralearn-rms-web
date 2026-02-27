@@ -8,8 +8,6 @@ import {
   fetchUserData,
   refreshAuthToken,
   signupUser,
-  requestPasswordReset,
-  confirmPasswordReset,
   fetchAllUsers,
   fetchUserById,
   deleteUser,
@@ -314,39 +312,6 @@ const userSlice = createSlice({
         state.success = false;
       });
 
-    // Forgot password flow
-    builder
-      .addCase(requestPasswordReset.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(requestPasswordReset.fulfilled, (state) => {
-        state.loading = false;
-        state.success = true;
-        state.error = null;
-      })
-      .addCase(requestPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          (action.payload as string) || "Password reset request failed";
-      });
-
-    // New password confirmation
-    builder
-      .addCase(confirmPasswordReset.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(confirmPasswordReset.fulfilled, (state) => {
-        state.loading = false;
-        state.success = true;
-        state.error = null;
-      })
-      .addCase(confirmPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          (action.payload as string) || "Password reset confirmation failed";
-      });
 
     // Fetch all users
     builder

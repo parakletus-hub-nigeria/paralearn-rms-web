@@ -10,20 +10,22 @@ import AuthHeader from "@/components/auth/authHeader";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/reduxToolKit/store";
 import { confirmPasswordReset } from "@/reduxToolKit/user/userThunks";
+import { useResetPasswordMutation } from "@/reduxToolKit/api";
+import { toast } from "sonner";
 
 type ResetPasswordPageProps = {
   code: string;
 };
 
 export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
+  const [resetPassword, { isLoading: loading }] = useResetPasswordMutation();
   const [showPassword, setShowPassword] = useState(false);
-  const [password, setPassword] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [isConfirmPasswordValid, setIsConfirmPasswordValid] = useState(false);
   const [data, setData] = useState({
     password: "",
     confirmPassword: "",
   });
-  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
@@ -38,8 +40,13 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
     const { name, value } = e.target;
     setData((prevData) => {
       const next = { ...prevData, [name]: value };
-      if (name === "password") setPassword(value.length >= 8);
-      if (name === "confirmPassword") setConfirmPassword(value === prevData.password);
+      if (name === "password") {
+        setIsPasswordValid(value.length >= 8);
+        setIsConfirmPasswordValid(value === next.confirmPassword);
+      }
+      if (name === "confirmPassword") {
+        setIsConfirmPasswordValid(value === next.password);
+      }
       return next;
     });
   };
@@ -122,14 +129,14 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
                       {!showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
-                  {form.name === "password" && !password && (
+                  {form.name === "password" && !isPasswordValid && data.password && (
                     <p className="text-red-500 text-sm">
                       Password must be at least 8 characters
                     </p>
                   )}
                   {form.name === "confirmPassword" &&
                     data.confirmPassword &&
-                    !confirmPassword && (
+                    !isConfirmPasswordValid && (
                       <p className="text-red-500 text-sm">Passwords do not match</p>
                     )}
                 </div>
@@ -139,9 +146,9 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
             <div className="w-[100%] flex justify-center">
               <button
                 onClick={handleSubmit}
-                disabled={loading || !password || !confirmPassword}
+                disabled={loading || !isPasswordValid || !isConfirmPasswordValid}
                 style={
-                  loading || !password || !confirmPassword
+                  loading || !isPasswordValid || !isConfirmPasswordValid
                     ? { backgroundColor: "#a166f0" }
                     : { backgroundColor: "#641BC4" }
                 }

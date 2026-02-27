@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -34,14 +34,18 @@ import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
 import { usePathname } from "next/navigation";
 import { Toaster } from "sonner";
+import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { user, tenantInfo } = useSelector((s: RootState) => s.user);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await dispatch(logoutUser()).unwrap();
 
@@ -49,12 +53,12 @@ const SideBar = ({ children }: { children: ReactNode }) => {
       toast.success("Logged out successfully");
 
       // Redirect to signin page
-      setTimeout(() => {
-        router.push(routespath.SIGNIN);
-      }, 1000);
+      router.push(routespath.SIGNIN);
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout");
+      setIsLoggingOut(false);
+      setIsLogoutModalOpen(false);
     }
   };
 
@@ -104,10 +108,16 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         user={user} 
         filteredContent={filteredContent} 
         pathname={pathname} 
-        handleLogout={handleLogout}
+        handleLogout={() => setIsLogoutModalOpen(true)}
       >
         {children}
       </SidebarContentContainer>
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        loading={isLoggingOut}
+      />
     </SidebarProvider>
   );
 };

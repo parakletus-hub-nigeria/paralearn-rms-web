@@ -347,50 +347,6 @@ export const signupUser = createAsyncThunk(
   }
 );
 
-// Start the password reset process
-export const requestPasswordReset = createAsyncThunk(
-  "user/requestPasswordReset",
-  async (email: string, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.post(routespath.API_FORGOT_PASSWORD, {
-        email,
-      });
-      return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        "Password reset request failed";
-
-      console.error("[Password Reset Request Error]", errorMessage);
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
-// Finalize the password reset with the new password
-export const confirmPasswordReset = createAsyncThunk(
-  "user/confirmPasswordReset",
-  async (data: { token: string; newPassword: string }, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.post(
-        routespath.API_RESET_PASSWORD,
-        data
-      );
-      return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        "Password reset confirmation failed";
-
-      console.error("[Password Reset Confirmation Error]", errorMessage);
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
 
 // Fetch all users (students and teachers)
 export const fetchAllUsers = createAsyncThunk(
