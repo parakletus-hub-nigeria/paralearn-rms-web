@@ -4,7 +4,12 @@ import { KeyRound, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast } from "sonner";
+import { handleError } from "@/lib/error-handler";
 import AuthHeader from "@/components/auth/authHeader";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/reduxToolKit/store";
+import { confirmPasswordReset } from "@/reduxToolKit/user/userThunks";
 
 type ResetPasswordPageProps = {
   code: string;
@@ -20,7 +25,7 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
 
   const exp = false;
 
@@ -40,26 +45,26 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
   };
 
   const handleSubmit = async () => {
-    setError(null);
     if (!password || !confirmPassword) {
-      setError("Please ensure both passwords match and are at least 8 characters");
+      toast.error("Please ensure both passwords match and are at least 8 characters");
       return;
     }
     setLoading(true);
     try {
-      const sendReq = await fetch("resetpassword", {
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, code }),
-        method: "POST",
-      });
-      const resp = await sendReq.json();
-      if (!resp.ok) {
-        setError(resp.message || "An error occurred. Please try again.");
-        return;
+      const resultAction = await dispatch(confirmPasswordReset({
+        token: code,
+        newPassword: data.password
+      }));
+
+      if (confirmPasswordReset.fulfilled.match(resultAction)) {
+        setSubmitted(true);
+        toast.success("Password reset successfully");
+      } else {
+        const message = resultAction.payload as string || "An error occurred. Please try again.";
+        toast.error(message);
       }
-      setSubmitted(true);
     } catch (e) {
-      setError("Network error. Please try again.");
+      handleError(e, "Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -129,8 +134,6 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
                     )}
                 </div>
               ))}
-
-              {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
 
             <div className="w-[100%] flex justify-center">

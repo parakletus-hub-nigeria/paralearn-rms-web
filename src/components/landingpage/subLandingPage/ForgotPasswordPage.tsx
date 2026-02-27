@@ -7,12 +7,15 @@ import { BiEnvelope } from "react-icons/bi";
 import { ArrowLeft, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { handleError } from "@/lib/error-handler";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/reduxToolKit/store";
+import { requestPasswordReset } from "@/reduxToolKit/user/userThunks";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   const isValidEmail = () => {
     const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -20,24 +23,19 @@ export default function ForgotPasswordPage() {
   };
 
   const handleSubmit = async () => {
-    setError(null);
     if (!isValidEmail()) {
-      setError("Please enter a valid email address");
+      toast.error("Please enter a valid email address");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/proxy/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const json = await res.json();
-      if (res.ok) {
+      const resultAction = await dispatch(requestPasswordReset(email));
+      if (requestPasswordReset.fulfilled.match(resultAction)) {
         setSubmitted(true);
-        setEmail("");
+        toast.success("Reset link sent successfully");
       } else {
-        throw new Error(json.message || "An error occurred. Please try again.");
+        const message = resultAction.payload as string || "An error occurred. Please try again.";
+        toast.error(message);
       }
     } catch (e) {
       handleError(e, "Failed to send reset link. Please try again later.");
@@ -75,8 +73,6 @@ export default function ForgotPasswordPage() {
                   className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"
                 />
               </div>
-
-              {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
 
             <div className="w-[100%] flex justify-center">
