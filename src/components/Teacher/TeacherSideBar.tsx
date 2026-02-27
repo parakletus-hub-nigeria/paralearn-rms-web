@@ -87,7 +87,7 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
             </div>
             <div className="flex flex-col leading-tight w-full px-1">
               <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
-                {tenantInfo?.name || "PARA LEARN"}
+                {tenantInfo?.name || "ParaLearn"}
               </p>
               <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
                 <span className="truncate">Teacher{user?.firstName ? ` • ${user.firstName}` : ""}</span>

@@ -15,8 +15,12 @@ export function TeacherHeader() {
         </span>
         !
       </p>
-      <div className="w-10 h-10 bg-[var(--green-light)] rounded-full flex items-center justify-center border border-slate-100 shadow-sm">
-        <span className="text-[10px] font-bold text-emerald-700">LOGO</span>
+      <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-100 shadow-sm">
+        <img 
+          src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'teacher'}`} 
+          alt="Teacher Avatar"
+          className="w-full h-full object-cover bg-slate-50"
+        />
       </div>
     </div>
   );

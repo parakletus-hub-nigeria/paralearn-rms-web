@@ -14,7 +14,7 @@ import {
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 import { useGetBookletPreviewQuery } from "@/reduxToolKit/api/endpoints/reports";
-import { BookletPreview } from "@/components/RMS/BookletPreview";
+// import { BookletPreview } from "@/components/RMS/BookletPreview";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -702,12 +702,15 @@ export function AdminReportsPage() {
         ) : (
           // PREVIEW TAB
           <Card className="p-6">
-            <BookletPreview
+            {/* <BookletPreview
               data={previewData}
               isLoading={loadingPreview}
               error={previewError}
               onRefresh={refetchPreview}
-            />
+            /> */}
+            <div className="p-8 text-center text-slate-500">
+              Booklet Preview component is currently unavailable.
+            </div>
           </Card>
         )}
       </main>

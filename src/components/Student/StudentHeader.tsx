@@ -59,7 +59,11 @@ export function StudentHeader({ transparent = false }: StudentHeaderProps) {
         <div className="relative group">
            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-green-400 to-emerald-600 opacity-75 blur-sm group-hover:opacity-100 transition-opacity"></div>
            <button className="relative w-11 h-11 rounded-full border-2 border-slate-900 p-[2px] bg-slate-900 overflow-hidden">
-             <img alt="Avatar" className="rounded-full w-full h-full object-cover" src="/avatar-placeholder.png" />
+             <img 
+               alt="Avatar" 
+               className="rounded-full w-full h-full object-cover bg-slate-200" 
+               src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'guest'}`} 
+             />
              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
            </button>
            

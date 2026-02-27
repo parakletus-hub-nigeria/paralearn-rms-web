@@ -456,9 +456,14 @@ export const uploadOfflineScores = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
+      const payload = {
+        scores: params.scores,
+        // Optional defaultMaxMarks can be omitted if per-student is provided
+      };
+      
       const res = await apiClient.post(
         `/api/proxy/assessments/${params.assessmentId}/scores`,
-        { scores: params.scores }
+        payload
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {

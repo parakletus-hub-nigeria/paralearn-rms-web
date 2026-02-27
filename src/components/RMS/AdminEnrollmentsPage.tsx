@@ -272,8 +272,12 @@ export function AdminEnrollmentsPage() {
                           className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(student.firstName + student.lastName)}`}>
-                              {getInitials(student.firstName, student.lastName)}
+                            <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-100 shadow-sm">
+                              <img 
+                                src={student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.id || student.studentId}`} 
+                                alt=""
+                                className="w-full h-full object-cover bg-slate-50"
+                              />
                             </div>
                             <div>
                               <p className="font-semibold text-slate-900">
@@ -355,11 +359,15 @@ export function AdminEnrollmentsPage() {
                             key={student.id} 
                             className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(student.firstName + student.lastName)}`}>
-                                {getInitials(student.firstName, student.lastName)}
-                              </div>
-                              <div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-100 shadow-sm">
+                              <img 
+                                src={student?.profilePicture || student?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student?.id || student?.studentId || 'student'}`} 
+                                alt=""
+                                className="w-full h-full object-cover bg-slate-50"
+                              />
+                            </div>
+                            <div>
                                 <p className="font-semibold text-slate-900">
                                   {student.firstName} {student.lastName}
                                 </p>

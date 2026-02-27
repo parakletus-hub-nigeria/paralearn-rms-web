@@ -35,6 +35,7 @@ import {
   Calendar,
   Users,
   Clock,
+  RefreshCcw,
   FileText,
   Edit,
   BarChart3,
@@ -68,7 +69,16 @@ const statusConfig: Record<string, { bg: string; text: string; icon: typeof Chec
 
 export function TeacherAssessmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { assessments, teacherClasses, academicCurrent, assessmentCategories, loading } = useSelector((s: RootState) => s.teacher);
+  const { 
+    assessments, 
+    teacherClasses, 
+    academicCurrent, 
+    assessmentCategories, 
+    loading,
+    assessmentsLoading,
+    classesLoading,
+    categoriesLoading
+  } = useSelector((s: RootState) => s.teacher);
   const { user } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -113,14 +123,19 @@ export function TeacherAssessmentsPage() {
     correctAnswer: "",
   });
 
-  useEffect(() => {
-    dispatch(fetchAcademicCurrent());
-    dispatch(fetchMyAssessments());
-    dispatch(fetchAssessmentCategories());
+  const refreshData = (force = false) => {
+    if (force || !academicCurrent) dispatch(fetchAcademicCurrent());
+    if (force || assessments.length === 0) dispatch(fetchMyAssessments());
+    if (force || assessmentCategories.length === 0) dispatch(fetchAssessmentCategories());
+    
     const teacherId = (user as any)?.id || (user as any)?.teacherId;
-    if (teacherId) {
+    if (teacherId && (force || teacherClasses.length === 0)) {
       dispatch(fetchTeacherClasses({ teacherId }));
     }
+  };
+
+  useEffect(() => {
+    refreshData();
   }, [dispatch, user]);
 
   // Get dynamic session/term options
@@ -309,22 +324,34 @@ export function TeacherAssessmentsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">Assessment Management</h1>
-              <p className="text-purple-200 mt-1 font-coolvetica">
-                Create, manage, and grade your assessments
-              </p>
-            </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">Assessment Management</h1>
+                <p className="text-purple-200 mt-1 font-coolvetica">
+                  Create, manage, and grade your assessments
+                </p>
+              </div>
 
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Create Assessment
-            </Button>
-          </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => refreshData(true)}
+                  disabled={assessmentsLoading || classesLoading}
+                  variant="outline"
+                  className="h-12 w-12 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 p-0"
+                  title="Refresh Data"
+                >
+                  <RefreshCcw className={`w-5 h-5 ${assessmentsLoading ? 'animate-spin' : ''}`} />
+                </Button>
+                
+                <Button
+                  onClick={() => setShowCreateModal(true)}
+                  className="h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Create Assessment
+                </Button>
+              </div>
+            </div>
 
           {/* Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
@@ -419,7 +446,7 @@ export function TeacherAssessmentsPage() {
         </div>
 
         {/* Assessment Cards */}
-        {loading ? (
+        {assessmentsLoading && assessments.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <div
               className="animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200"
