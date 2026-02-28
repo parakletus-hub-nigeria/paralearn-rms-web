@@ -162,9 +162,7 @@ export function TeacherReportsPage() {
         dispatch(fetchClassReportCards({ classId, session, term })).unwrap(),
         apiClient.get(`/api/proxy/users?classId=${classId}&role=student`).catch(() => ({ data: [] })),
       ]);
-      console.log("[TeacherReportsPage] Fetched report cards:", result);
 
-      // Build a lookup map: userId -> studentId code
       const usersData = usersRes.data?.data || usersRes.data || [];
       const userCodeMap: Record<string, string> = {};
       if (Array.isArray(usersData)) {
@@ -173,12 +171,10 @@ export function TeacherReportsPage() {
         });
       }
 
-      // Flatten the nested structure: students -> reportCardsAsStudent[]
       const flattenedReports: any[] = [];
       if (result && Array.isArray(result)) {
         result.forEach((student: any) => {
           const studentReports = student.reportCardsAsStudent || [];
-          // Resolve studentId code from lookup, then from student object
           const studentCode = userCodeMap[student.id] || student.studentId || student.code;
           studentReports.forEach((report: any) => {
             flattenedReports.push({
@@ -190,7 +186,6 @@ export function TeacherReportsPage() {
         });
       }
 
-      console.log("[TeacherReportsPage] Flattened report cards:", flattenedReports);
       setReportCards(flattenedReports);
     } catch (e: any) {
       console.error("[TeacherReportsPage] Error fetching reports:", e);

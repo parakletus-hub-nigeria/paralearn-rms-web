@@ -215,8 +215,6 @@ export function AdminClassesPage() {
       }
     }
     
-    console.log("[AdminClassesPage] Class details:", selectedClassDetails);
-    console.log("[AdminClassesPage] Teacher assignments found:", assignments);
     return Array.isArray(assignments) ? assignments : [];
   }, [selectedClassDetails, selectedClass, teachers]);
 
@@ -320,11 +318,6 @@ export function AdminClassesPage() {
                                  cls.teacherAssignments?.length ?? 
                                  cls.teachers?.length ?? 
                                  0;
-            
-            // Debug log to see class structure
-            if (idx === 0) {
-              console.log("[AdminClassesPage] Sample class data:", cls);
-            }
 
             return (
               <div

@@ -6,44 +6,44 @@ import AuthHeader from "@/components/auth/authHeader";
 import { BiEnvelope } from "react-icons/bi";
 import { ArrowLeft, KeyRound } from "lucide-react";
 import { toast } from "sonner";
-import { handleError } from "@/lib/error-handler";
 import { useForgotPasswordMutation } from "@/reduxToolKit/api";
+import { getSubdomain } from "@/lib/subdomainManager";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [subdomainFallback, setSubdomainFallback] = useState("");
   const [forgotPassword, { isLoading: loading }] = useForgotPasswordMutation();
-  const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  // Detect if we're on bare localhost with no natural subdomain
+  const naturalSubdomain = typeof window !== "undefined" ? getSubdomain() : null;
+  const needsSubdomainInput = !naturalSubdomain;
 
   // Helper function to validate email
   const isValidEmail = () => {
-    // Basic email validation regex
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleSubmit = async () => {
-    setError(null);
     if (!isValidEmail()) {
-      setError("Please enter a valid email address");
+      toast.error("Please enter a valid email address");
       return;
     }
-    
+
+    if (needsSubdomainInput && !subdomainFallback.trim()) {
+      toast.error("Please enter your school subdomain");
+      return;
+    }
+
     try {
-      const response = await forgotPassword({ email }).unwrap();
+      await forgotPassword({
+        email,
+        subdomain: needsSubdomainInput ? subdomainFallback.trim() : undefined,
+      }).unwrap();
       setSubmitted(true);
-      
-      // If the API returns a token in the response as per spec, we could save it here
-      if (response?.data?.token || response?.token) {
-         const token = response?.data?.token || response?.token;
-         console.log("Reset token received:", token);
-         sessionStorage.setItem("resetToken", token);
-      }
-      
-      setEmail("");
       toast.success("Reset link sent successfully");
     } catch (e: any) {
-      const errorMsg = e?.message || e?.data?.message || "Failed to send reset link";
-      setError(errorMsg);
+      const errorMsg = e?.data?.message || e?.message || "Failed to send reset link";
       toast.error(errorMsg);
     }
   };
@@ -65,6 +65,24 @@ export default function ForgotPasswordPage() {
                 </p>
               </div>
 
+              {needsSubdomainInput && (
+                <div className="flex flex-col w-[100%]">
+                  <label htmlFor="subdomainFallback">School Subdomain</label>
+                  <input
+                    id="subdomainFallback"
+                    name="subdomainFallback"
+                    type="text"
+                    value={subdomainFallback}
+                    onChange={(e) => setSubdomainFallback(e.target.value)}
+                    placeholder="e.g. brightfuture"
+                    className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Required because you accessed the general portal
+                  </p>
+                </div>
+              )}
+
               <div className="flex flex-col w-[100%]">
                 <label htmlFor="email">Email Address</label>
                 <input
@@ -77,16 +95,14 @@ export default function ForgotPasswordPage() {
                   className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"
                 />
               </div>
-
-              {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
 
             <div className="w-[100%] flex justify-center">
               <button
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || (needsSubdomainInput && !subdomainFallback.trim())}
                 style={
-                  isValidEmail()
+                  isValidEmail() && !(needsSubdomainInput && !subdomainFallback.trim())
                     ? { backgroundColor: "#641BC4" }
                     : { backgroundColor: "#a166f0" }
                 }

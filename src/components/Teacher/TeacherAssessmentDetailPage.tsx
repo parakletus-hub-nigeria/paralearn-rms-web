@@ -14,6 +14,7 @@ import {
   fetchAssessmentSubmissions,
   fetchScoresByAssessmentTeacher,
   publishAssessment,
+  deleteTeacherAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { clearTeacherError, clearTeacherSuccess } from "@/reduxToolKit/teacher/teacherSlice";
 import { TeacherHeader } from "./TeacherHeader";
@@ -22,7 +23,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Upload, Edit, X, Save } from "lucide-react";
+import { ArrowLeft, Upload, Edit, X, Save, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 export function TeacherAssessmentDetailPage() {
@@ -84,6 +85,19 @@ export function TeacherAssessmentDetailPage() {
   const handlePublish = async (publish: boolean) => {
     if (!assessmentId) return;
     await dispatch(publishAssessment({ assessmentId, publish })).unwrap();
+  };
+
+  const handleDelete = async () => {
+    if (!assessmentId) return;
+    if (confirm("Are you sure you want to delete this assessment? This action cannot be undone.")) {
+      try {
+        await dispatch(deleteTeacherAssessment(assessmentId)).unwrap();
+        toast.success("Assessment deleted successfully");
+        router.push("/teacher/assessments");
+      } catch (e: any) {
+        toast.error(e || "Failed to delete assessment");
+      }
+    }
   };
 
   const handleBulkUpload = async () => {
@@ -184,13 +198,22 @@ export function TeacherAssessmentDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
-             <Button
+            <Button
               onClick={() => setShowEditModal(true)}
               variant="outline"
               className="h-11 rounded-xl border-slate-200"
             >
               <Edit className="w-4 h-4 mr-2" />
               Edit
+            </Button>
+            <Button
+              onClick={handleDelete}
+              variant="outline"
+              disabled={loading}
+              className="h-11 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
             </Button>
             <Button
               onClick={() => handlePublish(true)}

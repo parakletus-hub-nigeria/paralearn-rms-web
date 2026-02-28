@@ -185,20 +185,30 @@ export default function TeacherAttendancePage() {
   };
 
   const handleMarkAllPresent = () => {
-    if (!attendanceData) return;
+    // FIX #10: Apply only to the currently filtered/visible students
+    if (!filteredData || filteredData.length === 0) return;
     const updates: Record<string, Partial<AttendanceRecord>> = {};
-    attendanceData.forEach((record: any) => {
+    filteredData.forEach((record: any) => {
       updates[record.enrollmentId] = {
         ...draftAttendance[record.enrollmentId],
         status: "PRESENT",
       };
     });
     setDraftAttendance((prev) => ({ ...prev, ...updates }));
-    toast.success("Marked all students as Present");
+    toast.success(
+      filteredData.length === (attendanceData?.length || 0)
+        ? "Marked all students as Present"
+        : `Marked ${filteredData.length} visible students as Present`
+    );
   };
 
   const handleSave = async () => {
     if (!attendanceData) return;
+    // FIX #5: Don't blast the API with all-ABSENT if teacher hasn't touched anything
+    if (Object.keys(draftAttendance).length === 0) {
+      toast.warning("No attendance changes to save. Please mark at least one student.");
+      return;
+    }
     try {
       const records = attendanceData.map((record: any) => {
         const effective = getEffectiveRecord(record);
@@ -217,7 +227,7 @@ export default function TeacherAttendancePage() {
       toast.success("Attendance saved successfully");
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to save attendance");
+      toast.error(error?.data?.message || error?.message || "Failed to save attendance");
     }
   };
 
@@ -430,7 +440,14 @@ export default function TeacherAttendancePage() {
                   type="date"
                   value={historyDateStr}
                   max={format(subDays(today, 1), "yyyy-MM-dd")}
-                  onChange={(e) => setHistoryDateStr(e.target.value)}
+                  onChange={(e) => {
+                    // FIX #4: reject future dates that some browsers allow past max attr
+                    if (e.target.value >= todayStr) {
+                      toast.error("Cannot view attendance for today or future dates in History mode.");
+                      return;
+                    }
+                    setHistoryDateStr(e.target.value);
+                  }}
                   className="h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 w-full md:w-auto"
                 />
               </div>

@@ -70,7 +70,6 @@ export default function SigninPage() {
           }
         } catch (sessionError: any) {
           // If fetching session fails (likely means no session exists), go to setup
-          console.log("No academic session found, redirecting to setup:", sessionError);
           router.push("/setup");
         }
       } else {

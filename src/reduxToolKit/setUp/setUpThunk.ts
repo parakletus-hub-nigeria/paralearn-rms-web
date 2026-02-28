@@ -391,16 +391,7 @@ export const onboardingSetup = createAsyncThunk(
     const endpoint = `/api/proxy${routespath.API_ONBOARDING_SETUP}`;
     
     try {
-      // Log the request for debugging
-      if (process.env.NODE_ENV === "development") {
-        console.log("[Onboarding Setup Request]", {
-          endpoint,
-          url: endpoint,
-          method: "POST",
-          dataKeys: Object.keys(data),
-        });
-      }
-
+      // Log removed
       const response = await apiClient.post(endpoint, data);
 
       // Check if backend returned success: false with a message

@@ -118,7 +118,6 @@ export const validateUserRow = (row: any, rowIndex: number) => {
   // Only these three fields are required
   const isValid = isEmailValid && isFirstNameValid && isLastNameValid;
 
-  console.log([isEmailValid, isFirstNameValid, isLastNameValid]);
   return {
     rowIndex,
     isValid,

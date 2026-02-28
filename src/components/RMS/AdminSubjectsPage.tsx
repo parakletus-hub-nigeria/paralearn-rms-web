@@ -138,12 +138,10 @@ export function AdminSubjectsPage() {
           try {
             const response = await apiClient.get(`/api/proxy/subjects/${subject.id}?include=teachers,teacherAssignments`);
             subjectData = response.data?.data || response.data;
-            console.log(`[fetchSubjectDetails] Subject ${subject.id} (with include):`, subjectData);
           } catch (e) {
             // Attempt 2: Get basic subject details
             const response = await apiClient.get(`/api/proxy/subjects/${subject.id}`);
             subjectData = response.data?.data || response.data;
-            console.log(`[fetchSubjectDetails] Subject ${subject.id} (basic):`, subjectData);
           }
           
           // If no teacher data in subject, try to get it from the class endpoint
@@ -151,14 +149,12 @@ export function AdminSubjectsPage() {
             try {
               const classResponse = await apiClient.get(`/api/proxy/classes/${subject.classId}`);
               const classData = classResponse.data?.data || classResponse.data;
-              console.log(`[fetchSubjectDetails] Class ${subject.classId} data:`, classData);
               
               // Check if the class has subject-teacher assignments
               if (classData?.subjects) {
                 const matchingSubject = classData.subjects.find((s: any) => s.id === subject.id);
                 if (matchingSubject) {
                   subjectData = { ...subjectData, ...matchingSubject };
-                  console.log(`[fetchSubjectDetails] Found subject in class data:`, matchingSubject);
                 }
               }
               
@@ -170,11 +166,10 @@ export function AdminSubjectsPage() {
                 );
                 if (subjectAssignments.length > 0) {
                   subjectData.teacherAssignments = subjectAssignments;
-                  console.log(`[fetchSubjectDetails] Found teacher assignments from class:`, subjectAssignments);
                 }
               }
             } catch (classError: any) {
-              console.log(`Failed to fetch class data for subject ${subject.id}:`, classError?.message);
+              // Ignore class fetch error
             }
           }
           
@@ -182,7 +177,7 @@ export function AdminSubjectsPage() {
             newMap.set(subject.id, subjectData);
           }
         } catch (e: any) {
-          console.log(`Failed to fetch details for subject ${subject.id}:`, e?.message);
+          // Ignore general fetch error
         }
       }
       

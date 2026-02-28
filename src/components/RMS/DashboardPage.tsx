@@ -44,12 +44,10 @@ export const DashboardPage = () => {
           headers: { "Content-Type": "application/json" },
         });
         const subjectResult = await subjectResp.json();
-        console.log("[Dashboard] Subjects API response:", subjectResult);
         
         // Try different possible response structures
         const subjectsArray = subjectResult?.data || subjectResult?.subjects || subjectResult;
         const count = Array.isArray(subjectsArray) ? subjectsArray.length : 0;
-        console.log("[Dashboard] Subjects count:", count);
         setSubjectCount(count);
       } catch (error: any) {
         console.error("[Dashboard] Failed to fetch subjects:", error);
@@ -87,8 +85,6 @@ export const DashboardPage = () => {
         );
         
         const allAssessments = results.flat();
-        console.log("[Dashboard] Assessments API response (merged):", allAssessments);
-        console.log("[Dashboard] Assessments count:", allAssessments.length);
         
         setAssessmentCount(allAssessments.length);
         
@@ -101,7 +97,6 @@ export const DashboardPage = () => {
           })
           .slice(0, 5);
         
-        console.log("[Dashboard] Recent assessments:", recent);
         setRecentAssessments(recent);
       } catch (error: any) {
         console.error("[Dashboard] Failed to fetch assessments:", error);
@@ -128,13 +123,11 @@ export const DashboardPage = () => {
         if (usersResp.ok) {
           const usersResult = await usersResp.json();
           usersData = usersResult?.data || usersResult || [];
-          console.log("[Dashboard] Fetched users data:", usersData.length, "users");
         }
         
         // Process report cards
         if (reportResp.ok) {
           const reportResult = await reportResp.json();
-          console.log("[Dashboard] Report cards API response:", reportResult);
           
           // The API returns students with nested reportCardsAsStudent array
           // We need to flatten this structure and match with actual student data

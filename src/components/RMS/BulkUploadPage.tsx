@@ -48,7 +48,6 @@ export const BulkUploadPage = () => {
     if (fileContent.length > 0) {
       fileContent.forEach((Content: contentType, index) => {
         const { isValid } = validateUserRow(Content, index);
-        console.log(isValid);
         if (isValid) {
           ValidArray.push({ ...Content, validationStatus: true });
           Valid += 1;

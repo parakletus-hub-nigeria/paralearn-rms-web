@@ -54,11 +54,12 @@ apiClient.interceptors.request.use(
       const isAuthLogin = (config.url || "").includes(routespath.API_LOGIN);
 
       // Get subdomain with fallback priority: Redux -> localStorage -> URL
-      const reduxSubdomain = state.user?.subdomain;
-      const subdomain = isAuthLogin ? null : getSubdomain(reduxSubdomain);
+      const reduxSubdomain = state?.user?.subdomain;
+      const subdomain = getSubdomain(reduxSubdomain);
 
       // Attach tenant header for all non-login requests (including refresh/logout)
-      if (subdomain && !isAuthLogin) {
+      // Special case: Forgot password and Signup ALSO need tenant context to know where to send mail/create user
+      if (subdomain) {
         config.headers["X-Tenant-Subdomain"] = subdomain;
       }
 
@@ -84,13 +85,7 @@ apiClient.interceptors.request.use(
 // Handle responses and global errors (like 401s)
 apiClient.interceptors.response.use(
   (response) => {
-    // Log response in development
-    if (process.env.NODE_ENV === "development") {
-      console.log("[API Response]", {
-        status: response.status,
-        url: response.config.url,
-      });
-    }
+    // Dev log removed
 
     return response;
   },
@@ -138,7 +133,6 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        console.log("[API] Attempting to refresh token...");
         const newToken = await getRefreshHelper()();
 
         if (newToken) {
@@ -149,10 +143,6 @@ apiClient.interceptors.response.use(
           if (config.headers) {
             config.headers.Authorization = `Bearer ${freshToken}`;
           }
-
-          console.log(
-            "[API] Token refreshed successfully, retrying original request"
-          );
 
           // Retry the original request with new token
           return apiClient(config);
@@ -184,7 +174,6 @@ apiClient.interceptors.response.use(
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
       console.error("[API] Access Forbidden for URL:", config.url);
-      console.log("[API] Full error response:", error.response.data);
       
       // Allow specific requests to bypass global redirect
       if ((config as any).skipGlobalRedirect) {
@@ -236,7 +225,7 @@ apiClient.interceptors.response.use(
       
       // Only log if we have meaningful information
       if (errorInfo.status || errorInfo.data || errorInfo.message !== "Unknown error") {
-        console.error("[API Error]", errorInfo);
+        console.warn("[API Error]", errorInfo); // Changed to warn to prevent Next.js overlay intercept
       }
     }
 

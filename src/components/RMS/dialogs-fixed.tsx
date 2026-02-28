@@ -327,7 +327,6 @@ type props = {
 
 export function StudentDialog({children,props} : {children : ReactNode,props:any}) {
   const [formData, setFormData] = useState(props as object);
-    console.log(props)
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -338,12 +337,10 @@ export function StudentDialog({children,props} : {children : ReactNode,props:any
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
     // submission will be added here
   };
 
   const handleDelete = () => {
-    console.log("Deleting student:", formData);
     // delete will be added here
   };
 

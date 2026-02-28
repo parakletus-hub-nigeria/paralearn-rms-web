@@ -149,19 +149,13 @@ export const fetchClassDetails = createAsyncThunk(
   "admin/fetchClassDetails",
   async (classId: string, { rejectWithValue }) => {
     try {
-      // Fetch class details
       const classRes = await apiClient.get(`/api/proxy/classes/${classId}`);
       const classData = unwrap(classRes) || classRes.data || {};
-      console.log("[fetchClassDetails] Class data:", classData);
 
-      // Also fetch subjects for this class to get subject teachers
       let subjectTeachers: any[] = [];
       try {
         const subjectsRes = await apiClient.get(`/api/proxy/subjects?classId=${classId}`);
         const subjects = unwrap(subjectsRes) || subjectsRes.data || [];
-        console.log("[fetchClassDetails] Subjects for class:", subjects);
-        
-        // Extract teachers from subjects
         if (Array.isArray(subjects)) {
           for (const subject of subjects) {
             const teachers = subject.teacherAssignments || subject.teachers || [];
@@ -169,7 +163,6 @@ export const fetchClassDetails = createAsyncThunk(
               for (const ta of teachers) {
                 const teacher = ta.teacher || ta;
                 if (teacher && teacher.id) {
-                  // Add subject info to teacher
                   subjectTeachers.push({
                     ...ta,
                     teacher: { ...teacher, subjectName: subject.name },
@@ -182,18 +175,16 @@ export const fetchClassDetails = createAsyncThunk(
             }
           }
         }
-      } catch (subjectErr) {
-        console.log("[fetchClassDetails] Could not fetch subjects:", subjectErr);
+      } catch {
+        // Subject fetch failed — proceed without subject teachers
       }
 
-      // Merge class teachers with subject teachers
       const classTeachers = classData.teacherAssignments || classData.teachers || [];
       const allTeachers = [
         ...classTeachers.map((t: any) => ({ ...t, type: "class_teacher" })),
         ...subjectTeachers
       ];
 
-      // Deduplicate teachers by ID
       const teacherMap = new Map();
       for (const t of allTeachers) {
         const teacherId = t.teacher?.id || t.id;
@@ -202,14 +193,11 @@ export const fetchClassDetails = createAsyncThunk(
         }
       }
 
-      const result = {
+      return {
         ...classData,
         teacherAssignments: Array.from(teacherMap.values()),
         subjectTeachers: subjectTeachers,
       };
-      
-      console.log("[fetchClassDetails] Final result with teachers:", result);
-      return result;
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch class details");
     }
@@ -231,16 +219,13 @@ export const bulkEnrollStudents = createAsyncThunk(
       } catch (bulkError: any) {
         // If bulk endpoint fails (404), try single enrollment endpoint (TEACHER_ADMIN_GUIDE: POST /classes/:classId/enroll)
         if (bulkError?.response?.status === 404) {
-          console.log("[bulkEnrollStudents] Bulk endpoint not found, trying individual enrollments");
           const results = [];
           for (const studentId of payload.studentIds) {
             try {
-              const res = await apiClient.post(`/api/proxy/classes/${payload.classId}/enroll`, {
-                studentId,
-              });
+              const res = await apiClient.post(`/api/proxy/classes/${payload.classId}/enroll`, { studentId });
               results.push(unwrap(res));
-            } catch (singleError: any) {
-              console.log(`[bulkEnrollStudents] Failed to enroll student ${studentId}:`, singleError?.message);
+            } catch {
+              // Individual enroll failed — skip and continue
             }
           }
           return { 
@@ -310,12 +295,6 @@ export const fetchSubjects = createAsyncThunk(
         res = await apiClient.get("/api/proxy/subjects");
       }
       const data = unwrap(res) || [];
-      console.log("[fetchSubjects] Raw response:", res.data);
-      console.log("[fetchSubjects] Unwrapped data:", data);
-      // Log first subject to see structure
-      if (Array.isArray(data) && data.length > 0) {
-        console.log("[fetchSubjects] First subject structure:", JSON.stringify(data[0], null, 2));
-      }
       return Array.isArray(data) ? (data as SubjectItem[]) : [];
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch subjects");
@@ -423,12 +402,24 @@ export const createAssessment = createAsyncThunk(
 
 export const updateAssessment = createAsyncThunk(
   "admin/updateAssessment",
-  async (payload: { assessmentId: string; data: any }, { rejectWithValue }) => {
+  async (payload: { id: string; data: Partial<AssessmentItem> }, { rejectWithValue }) => {
     try {
-      const res = await apiClient.patch(`/api/proxy/assessments/${payload.assessmentId}`, payload.data);
+      const res = await apiClient.patch(`/api/proxy/assessments/${payload.id}`, payload.data);
       return unwrap(res) as AssessmentItem;
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to update assessment");
+    }
+  }
+);
+
+export const deleteAssessment = createAsyncThunk(
+  "admin/deleteAssessment",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await apiClient.delete(`/api/proxy/assessments/${id}`);
+      return id;
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to delete assessment");
     }
   }
 );

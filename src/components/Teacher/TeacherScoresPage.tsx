@@ -132,31 +132,15 @@ export function TeacherScoresPage() {
     dispatch(fetchClassStudents(selectedClassId))
       .unwrap()
       .then(async (data) => {
-        console.log("[TeacherScores] Fetched students from enrollments:", data);
-        
         if (data && data.length > 0) {
-          // The enrollment data doesn't include studentId codes
-          // Fetch full user data to get studentId (like "DSA-S-26-0001")
           try {
-            const userIds = data.map((s: any) => s.id).filter(Boolean);
             const usersResp = await apiClient.get("/api/proxy/users");
-            
             const usersData = usersResp.data;
             const allUsers = usersData?.data || usersData || [];
-            
-            // Merge enrollment data with full user data
             const enrichedStudents = data.map((student: any) => {
               const matchingUser = allUsers.find((u: any) => u.id === student.id);
-              return {
-                ...student,
-                ...matchingUser, // This will include studentId field
-              };
+              return { ...student, ...matchingUser };
             });
-            
-            console.log("[TeacherScores] Enriched students with user data:", enrichedStudents);
-            if (enrichedStudents.length > 0) {
-              console.log("[TeacherScores] Sample enriched student:", enrichedStudents[0]);
-            }
             setStudents(enrichedStudents);
           } catch (error) {
             console.error("[TeacherScores] Failed to fetch user data:", error);
@@ -245,7 +229,6 @@ export function TeacherScoresPage() {
               assessmentId: assessment.id
             }));
 
-            console.log(`[TeacherScores] Online assessment "${assessment.title}" CBT scores:`, scores);
             return { assessmentId: assessment.id, scores };
           } catch (e) {
             console.error(`[TeacherScores] Failed to fetch CBT submissions for ${assessment.id}`, e);
@@ -283,10 +266,10 @@ export function TeacherScoresPage() {
         });
       });
 
-      console.log("[TeacherScores] Final scoreMap:", Object.fromEntries(
-        Array.from(scoreMap.entries()).map(([k, v]) => [k, Object.fromEntries(v)])
-      ));
       setEditedScores(scoreMap);
+    }).catch(() => {
+      // FIX #6: Promise.all outer catch — show error instead of silently leaving empty
+      toast.error("Failed to load scores. Please refresh and try again.");
     }).finally(() => setLoadingScores(false));
   }, [dispatch, relevantAssessments]);
 
@@ -331,14 +314,21 @@ export function TeacherScoresPage() {
   }, [students, search]);
 
   const handleScoreChange = (studentId: string, assessmentId: string, value: string) => {
+    // Clamp to valid range [0, totalMarks]
+    const assessment = relevantAssessments.find((a: any) => a.id === assessmentId);
+    const max = assessment?.totalMarks || 100;
+    const numVal = parseFloat(value);
+    const clamped = !isNaN(numVal)
+      ? String(Math.min(max, Math.max(0, numVal)))
+      : value;
+
     setEditedScores((prev) => {
       const newMap = new Map(prev);
       if (!newMap.has(studentId)) {
         newMap.set(studentId, new Map());
       }
-      // Clone inner map to ensure reactivity
       const studentScores = new Map(newMap.get(studentId)!);
-      studentScores.set(assessmentId, value);
+      studentScores.set(assessmentId, clamped);
       newMap.set(studentId, studentScores);
       return newMap;
     });
@@ -393,7 +383,7 @@ export function TeacherScoresPage() {
       
       // Reload logic omitted to prevent breaking UI state if it fails, but user gets success toast
     } catch (e: any) {
-      toast.error(e || "Failed to save some scores");
+      toast.error(e?.data?.message || e?.message || "Failed to save some scores");
     } finally {
       setSaving(false);
     }

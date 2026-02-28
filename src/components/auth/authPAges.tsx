@@ -444,8 +444,6 @@ export function PageThree({data,changeData,step,setStep}: any){
             const res = await registerAdmin.json()
             if(!registerAdmin.ok) throw new Error(res.message || "Failed to create account. Please try again.")
 
-             console.log(res);
-             
              // Account created successfully - show success dialog and prompt for manual sign-in
              toast.success("Account created successfully!");
              
@@ -457,8 +455,7 @@ export function PageThree({data,changeData,step,setStep}: any){
              // Open the success dialog
              setDisable(true);
         } catch (error) {
-            console.log(error);
-            console.log(error);
+            console.error(error);
             handleError(error, "Failed to create account");
         } finally {
             setIsLoading(false)

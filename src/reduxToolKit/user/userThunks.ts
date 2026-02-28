@@ -24,10 +24,6 @@ export const loginUser = createAsyncThunk(
         credentials
       );
 
-      // Log the full response for debugging
-      console.log("[Login Response]", response);
-      console.log("[Login Response Data]", response.data);
-
       const { token: tokenFromResponse, user: userFromResponse } =
         extractTokenAndUser(response.data);
 
@@ -110,8 +106,6 @@ export const loginUser = createAsyncThunk(
               }
             } catch (sessionError: any) {
               // If fetching session fails (404, timeout, or no session), redirect to setup
-              // This is safe - if session check fails, assume setup is needed
-              console.log("No academic session found or check timed out, redirecting to setup:", sessionError);
               redirectPath = "/setup";
             }
         }

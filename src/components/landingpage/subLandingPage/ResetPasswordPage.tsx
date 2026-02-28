@@ -4,9 +4,10 @@ import { KeyRound, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast } from "sonner";
 import AuthHeader from "@/components/auth/authHeader";
 import { useResetPasswordMutation } from "@/reduxToolKit/api";
-import { toast } from "sonner";
+import { getSubdomain } from "@/lib/subdomainManager";
 
 type ResetPasswordPageProps = {
   code: string;
@@ -20,9 +21,13 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
   const [data, setData] = useState({
     password: "",
     confirmPassword: "",
+    subdomainFallback: "",
   });
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // Check if we have a natural subdomain
+  const naturalSubdomain = typeof window !== 'undefined' ? getSubdomain() : null;
+  const needsSubdomainInput = !naturalSubdomain;
 
   const exp = false;
 
@@ -47,23 +52,29 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
   };
 
   const handleSubmit = async () => {
-    setError(null);
+    if (needsSubdomainInput && !data.subdomainFallback.trim()) {
+      toast.error("Please enter your school subdomain");
+      return;
+    }
+
     if (!isPasswordValid || !isConfirmPasswordValid) {
-      setError("Please ensure both passwords match and are at least 8 characters");
+      toast.error("Please ensure both passwords match and are at least 8 characters");
       return;
     }
     
     try {
-      await resetPassword({ 
-        token: code, 
-        newPassword: data.password 
+      // Pass the manually entered subdomain if we needed it,
+      // otherwise the interceptor handles it
+      await resetPassword({
+        token: code,
+        newPassword: data.password,
+        subdomain: needsSubdomainInput ? data.subdomainFallback.trim() : undefined
       }).unwrap();
-      
+
       setSubmitted(true);
       toast.success("Password reset successfully");
     } catch (e: any) {
-      const errorMsg = e?.message || e?.data?.message || "An error occurred";
-      setError(errorMsg);
+      const errorMsg = e?.data?.message || e?.message || "Failed to reset password";
       toast.error(errorMsg);
     }
   };
@@ -99,6 +110,22 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
                 </p>
               </div>
 
+              {needsSubdomainInput && (
+                <div className="flex flex-col w-[100%] pb-2">
+                  <label htmlFor="subdomainFallback">School Subdomain</label>
+                  <input
+                    id="subdomainFallback"
+                    name="subdomainFallback"
+                    type="text"
+                    value={data.subdomainFallback}
+                    onChange={handleChange}
+                    placeholder="e.g. brightfuture"
+                    className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Required because you accessed the general portal</p>
+                </div>
+              )}
+
               {formData.map((form) => (
                 <div key={form.name} className="flex flex-col w-[100%]">
                   <label htmlFor={form.name}>{form.label}</label>
@@ -132,16 +159,14 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
                     )}
                 </div>
               ))}
-
-              {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
 
-            <div className="w-[100%] flex justify-center">
+            <div className="w-[100%] flex justify-center mt-2">
               <button
                 onClick={handleSubmit}
-                disabled={loading || !isPasswordValid || !isConfirmPasswordValid}
+                disabled={loading || !isPasswordValid || !isConfirmPasswordValid || (needsSubdomainInput && !data.subdomainFallback)}
                 style={
-                  loading || !isPasswordValid || !isConfirmPasswordValid
+                  loading || !isPasswordValid || !isConfirmPasswordValid || (needsSubdomainInput && !data.subdomainFallback)
                     ? { backgroundColor: "#a166f0" }
                     : { backgroundColor: "#641BC4" }
                 }

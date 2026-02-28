@@ -80,7 +80,6 @@ const Step_One = ({
           skipEmptyLines: true,
           complete: (results) => {
             // results.data is your Array of Objects
-            console.log("CSV Data:", results.data);
             setFileContent(results.data as any);
             setLoading(false);
             SetUnpacked(true);
@@ -113,7 +112,6 @@ const Step_One = ({
             Object.values(row).some((v) => String(v).trim() !== "")
           );
 
-          console.log("Excel Data:", jsonData);
           setFileContent(jsonData as any);
           setLoading(false);
           SetUnpacked(true);
