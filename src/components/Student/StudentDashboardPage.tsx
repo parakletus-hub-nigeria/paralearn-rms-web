@@ -34,18 +34,19 @@ export default function StudentDashboardPage() {
 
   // Pre-filter assessments to drive both the stats and the grid
   const filteredAssessments = assessments.filter((a) => {
-    const isSubmitted = a.status === 'submitted' || a.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
+    const isSubmitted = a.status === 'submitted' || a.submissions?.some(
+      s => s.status === 'submitted' && !!s.finishedAt  // Requires BOTH (tightened)
+    );
     const isEnded = a.status === 'ended';
-    
-    // Don't show 'ended' assessments on the active dashboard.
     if (isEnded) return false;
-    
-    // Keep the assessment if it's online (isOnline !== false)
-    // Or if it's strictly submitted (so they can see their completed history).
     return a.isOnline !== false || isSubmitted;
   });
 
-  const completedCount = filteredAssessments.filter(a => a.status === 'submitted' || a.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt)).length;
+  const completedCount = filteredAssessments.filter(a =>
+    a.status === 'submitted' || a.submissions?.some(
+      s => s.status === 'submitted' && !!s.finishedAt
+    )
+  ).length;
   const upcomingCount = filteredAssessments.length - completedCount;
 
   return (
@@ -65,7 +66,8 @@ export default function StudentDashboardPage() {
           <div className="relative pt-16 pb-24 text-center px-4">
             <div className="max-w-4xl mx-auto space-y-4">
               <span className="inline-block py-1 px-3 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-100 text-xs font-semibold tracking-wider uppercase mb-2 backdrop-blur-sm shadow-sm">
-                Academic Session 2024/2025
+                {/* FIX #11: Removed hardcoded year — use dynamic value when API provides it */}
+                Online Assessment Platform
               </span>
               <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4 drop-shadow-sm tracking-tight">
                 Welcome back, {user?.firstName || "Student"}!

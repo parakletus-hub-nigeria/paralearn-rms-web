@@ -61,19 +61,8 @@ export const fetchStudentAssessments = createAsyncThunk(
   "student/fetchAssessments",
   async (_, { rejectWithValue, getState }) => {
     try {
-      const state = getState() as any;
-      const user = state.user?.user;
-      console.log(`[fetchStudentAssessments] User:`, user);
-      
-      // Endpoint: GET /assessments/student/published
-      // Returns published assessments filtered by student's enrolled classes
       const response = await apiClient.get(`/api/proxy/assessments/student/published`);
-      
-      console.log(`[fetchStudentAssessments] Response:`, response.data);
-      
-      // Extract assessments from response
       const assessments = response.data?.data || response.data || [];
-      
       return assessments;
     } catch (error: any) {
       console.error(`[fetchStudentAssessments] Error:`, error.response?.data || error.message);

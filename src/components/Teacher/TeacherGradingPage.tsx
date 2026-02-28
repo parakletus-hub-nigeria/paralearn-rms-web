@@ -80,24 +80,41 @@ export function TeacherGradingPage() {
     if (submission && submission.answers) {
       const initialState: Record<string, { marksAwarded: string; comment: string }> = {};
       submission.answers.forEach((ans: any) => {
+        // Normalize: backend may return grade under marksAwarded, score, or grade field
+        const earned = ans.marksAwarded ?? ans.score ?? ans.grade;
         initialState[ans.id] = {
-          marksAwarded: ans.marksAwarded?.toString() || ans.score?.toString() || "0",
-          comment: ans.comment || "",
+          marksAwarded: earned !== null && earned !== undefined ? String(earned) : "0",
+          comment: ans.comment || ans.teacherComment || "",
         };
       });
       setGradingState(initialState);
     }
   }, [submission]);
 
+  // Determine if a question is a theory/manual-grading type (must match renderer logic)
+  const isTheoryQuestion = (q: any) =>
+    ["theory", "essay", "short_answer", "text"].some(
+      (t) =>
+        String(q?.type || "").toLowerCase() === t ||
+        String(q?.questionType || "").toLowerCase() === t
+    );
+
   const handleSaveProgress = async () => {
     if (!submission?.answers?.length) return;
     setIsSavingAll(true);
     let errorCount = 0;
 
+    // Only grade theory-type answers (auto-graded MCQ answers don't need saving)
     const answersToGrade = submission.answers.filter((ans: any) => {
-       const q = selectedAssessment?.questions?.find((q: any) => q.id === ans.questionId);
-       return q && (q.type === "theory" || q.type === "short_answer" || q.questionType === "theory");
+      const q = selectedAssessment?.questions?.find((q: any) => q.id === ans.questionId);
+      return q && isTheoryQuestion(q);
     });
+
+    if (answersToGrade.length === 0) {
+      toast.info("No theory questions to grade.");
+      setIsSavingAll(false);
+      return;
+    }
 
     const promises = answersToGrade.map(async (ans: any) => {
       const data = gradingState[ans.id];
@@ -109,9 +126,9 @@ export function TeacherGradingPage() {
           marksAwarded: Number(data.marksAwarded || 0),
           comment: data.comment,
         }).unwrap();
-      } catch (err) {
+      } catch (err: any) {
         errorCount++;
-        console.error("Failed to save grade for", ans.id, err);
+        console.error("[SaveProgress] Failed to save grade for answer", ans.id, err?.data || err);
       }
     });
 
@@ -120,9 +137,8 @@ export function TeacherGradingPage() {
 
     if (errorCount === 0) {
       toast.success("Progress saved successfully");
-      dispatch(fetchAssessmentSubmissions(assessmentId));
     } else {
-      toast.error(`Saved with ${errorCount} errors. Please try again.`);
+      toast.error(`Saved with ${errorCount} error(s). Check console for details.`);
     }
   };
 
@@ -188,7 +204,7 @@ export function TeacherGradingPage() {
 
   const currentTotalCalculated = submission?.answers?.reduce((acc: number, ans: any) => {
     const st = gradingState[ans.id];
-    return acc + (Number(st?.marksAwarded) || Number(ans.marksAwarded) || Number(ans.score) || 0);
+    return acc + (Number(st?.marksAwarded) || Number(ans.marksAwarded) || Number(ans.score) || Number(ans.grade) || 0);
   }, 0) || submission?.score || 0;
 
   return (
@@ -355,12 +371,25 @@ export function TeacherGradingPage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 bg-violet-50/50 px-5 py-2.5 rounded-xl border border-violet-100">
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Current Score</p>
-                    <p className="text-2xl font-bold text-violet-500 leading-none">
-                      {currentTotalCalculated} <span className="text-sm font-medium text-slate-400">/ {selectedAssessment?.totalMarks || 100}</span>
-                    </p>
+                <div className="flex items-center gap-4">
+                  {submission?.antiMalpracticeData && (submission.antiMalpracticeData.tabSwitchCount > 0 || submission.antiMalpracticeData.windowBlurCount > 0) && (
+                    <div className="hidden md:flex items-center gap-3 bg-red-50 px-4 py-2 rounded-xl border border-red-200">
+                       <AlertTriangle className="w-5 h-5 text-red-500" />
+                       <div className="text-left">
+                         <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mb-0.5">Security Flags</p>
+                         <p className="text-xs font-semibold text-red-800">
+                           {submission.antiMalpracticeData.tabSwitchCount} Tab {submission.antiMalpracticeData.tabSwitchCount === 1 ? 'Switch' : 'Switches'} • {submission.antiMalpracticeData.windowBlurCount} Focus Lost
+                         </p>
+                       </div>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4 bg-violet-50/50 px-5 py-2.5 rounded-xl border border-violet-100">
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Current Score</p>
+                      <p className="text-2xl font-bold text-violet-500 leading-none">
+                        {currentTotalCalculated} <span className="text-sm font-medium text-slate-400">/ {selectedAssessment?.totalMarks || 100}</span>
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -435,7 +464,9 @@ export function TeacherGradingPage() {
                     }
                   }
 
-                  const state = gradingState[answerId as string] || { marksAwarded: answerDoc?.score?.toString() || answerDoc?.marksAwarded?.toString() || "0", comment: answerDoc?.comment || "" };
+                  // Normalize the persisted grade from whichever field the backend returns it under
+                  const persistedGrade = answerDoc?.marksAwarded ?? answerDoc?.score ?? answerDoc?.grade;
+                  const state = gradingState[answerId as string] || { marksAwarded: persistedGrade !== null && persistedGrade !== undefined ? String(persistedGrade) : "0", comment: answerDoc?.comment || answerDoc?.teacherComment || "" };
                   const maxMarks = question.marks || 1;
                   const dbScoreObj = answerDoc?.score ?? answerDoc?.marksAwarded;
                   const earnedMarks = isTheory 
@@ -518,16 +549,19 @@ export function TeacherGradingPage() {
                           <span className="bg-violet-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm shadow-violet-500/30 uppercase tracking-wider">Q{idx + 1}</span>
                           Theory
                         </h3>
-                        {answerDoc?.marksAwarded !== undefined && answerDoc?.marksAwarded !== null ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-100 text-blue-800">
-                            Graded: {answerDoc?.marksAwarded || 0}/{maxMarks}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                            Needs Grading
-                          </span>
-                        )}
+                        {(() => {
+                          const savedGrade = answerDoc?.marksAwarded ?? answerDoc?.score ?? answerDoc?.grade;
+                          return savedGrade !== undefined && savedGrade !== null ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-100 text-blue-800">
+                              Graded: {savedGrade}/{maxMarks}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                              Needs Grading
+                            </span>
+                          );
+                        })()}
                       </div>
                       <div className="p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
                         <div className="lg:col-span-7 space-y-4">
@@ -609,7 +643,7 @@ export function TeacherGradingPage() {
                           <div className="flex flex-col">
                             <Button 
                               onClick={async () => {
-                                  if (!answerId) return toast.error("Cannot save, answer ID missing.");
+                                  if (!answerId) return toast.error("Cannot save: answer ID is missing. Try refreshing the page.");
                                   try {
                                       await gradeAnswer({
                                           submissionId,
@@ -617,10 +651,11 @@ export function TeacherGradingPage() {
                                           marksAwarded: Number(state.marksAwarded || 0),
                                           comment: state.comment,
                                       }).unwrap();
-                                      toast.success("Saved grade to database.");
-                                      dispatch(fetchAssessmentSubmissions(assessmentId));
+                                      toast.success("Grade saved successfully.");
                                   } catch (err: any) {
-                                      toast.error(err?.data?.message || "Failed to save");
+                                      const msg = err?.data?.message || err?.message || "Failed to save grade";
+                                      toast.error(msg);
+                                      console.error("[SaveAnswer] Error:", err?.data || err);
                                   }
                               }}
                               disabled={isGrading}

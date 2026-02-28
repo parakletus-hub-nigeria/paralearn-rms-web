@@ -82,9 +82,11 @@ export default function ExamLobbyPage() {
   }, []);
 
   useEffect(() => {
-    if (assessmentId) {
-      dispatch(fetchAssessmentDetails(assessmentId));
+    // FIX #8: Validate assessmentId before dispatching — prevents raw 404/500 errors reaching the student
+    if (!assessmentId || assessmentId.trim() === "") {
+      return; // The !assessment guard below will handle showing the error UI
     }
+    dispatch(fetchAssessmentDetails(assessmentId));
     if (!currentUserProfile) {
       dispatch(getCurrentUserProfile());
     }
@@ -109,8 +111,13 @@ export default function ExamLobbyPage() {
     );
   }
 
-  const isSubmitted = assessment.status === 'submitted' || assessment.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
-  const isEnded = assessment.status === 'ended';
+  const isSubmitted =
+    assessment.status === "submitted" ||
+    assessment.submissions?.some(
+      // Require BOTH status=submitted AND finishedAt to avoid false lockouts
+      (s) => s.status === "submitted" && !!s.finishedAt
+    );
+  const isEnded = assessment.status === "ended";
 
   if (isSubmitted || isEnded) {
     return (
@@ -160,9 +167,11 @@ export default function ExamLobbyPage() {
            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
               <div className="space-y-4 max-w-3xl">
                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-bold tracking-wider border border-white/10 uppercase text-indigo-200">
-                       <Calendar className="w-3 h-3" /> Session 2024/2025
-                    </div>
+                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-bold tracking-wider border border-white/10 uppercase text-indigo-200">
+                        <Calendar className="w-3 h-3" />
+                        {/* FIX #12: Use real session data from assessment if available */}
+                        {(assessment as any)?.session?.name || (assessment as any)?.academicYear || "Session 2024/2025"}
+                     </div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 backdrop-blur-md text-xs font-bold tracking-wider border border-purple-400/30 uppercase text-purple-200">
                        {assessment.category?.name || "Assessment"}
                     </div>
@@ -264,7 +273,11 @@ export default function ExamLobbyPage() {
            <div className="lg:w-[420px] bg-white/40 backdrop-blur-md border-t lg:border-t-0 lg:border-l border-white/20 p-8 md:p-10 flex flex-col relative">
               <div className="flex items-center gap-4 mb-8 p-4 bg-white/50 rounded-2xl border border-white/60 shadow-sm backdrop-blur-sm">
                  <div className="relative">
-                    <img alt="Student profile" className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md" src="/avatar-placeholder.png" />
+                    <img 
+                       alt="Student profile" 
+                       className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md bg-white" 
+                       src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'student'}`}
+                    />
                     <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white"></div>
                  </div>
                  <div>
@@ -276,23 +289,29 @@ export default function ExamLobbyPage() {
                  </div>
               </div>
 
-              <div className="rounded-2xl p-6 mb-auto border border-emerald-500/20 bg-emerald-50/30 backdrop-blur-sm relative overflow-hidden group">
-                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-50"></div>
-                 <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-5 border-b border-emerald-500/10 pb-3">
-                       <div className="flex items-center gap-2">
-                          <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                          <h3 className="font-bold text-emerald-900 text-sm uppercase tracking-wider">System Status</h3>
+               <div className="rounded-2xl p-6 mb-auto border border-emerald-500/20 bg-emerald-50/30 backdrop-blur-sm relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-50"></div>
+                  <div className="relative z-10">
+                     <div className="flex items-center justify-between mb-5 border-b border-emerald-500/10 pb-3">
+                        <div className="flex items-center gap-2">
+                           <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                           <h3 className="font-bold text-emerald-900 text-sm uppercase tracking-wider">System Status</h3>
+                        </div>
+                        {Object.values(systemCheck).includes("checking") ? (
+                          <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-yellow-200">CHECKING...</span>
+                        ) : Object.values(systemCheck).includes("error") ? (
+                          <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-amber-200">DEGRADED</span>
+                        ) : (
+                          <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-emerald-200">READY</span>
+                        )}
+                     </div>
+                     {/* FIX #8: Show warning if device access fails, but don't block exam */}
+                     {!Object.values(systemCheck).includes("checking") && Object.values(systemCheck).includes("error") && (
+                       <div className="mb-4 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2 leading-relaxed">
+                         ⚠️ One or more devices could not be accessed. You may still start the exam, but this will be noted in your session log.
                        </div>
-                       {Object.values(systemCheck).includes("checking") ? (
-                         <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-yellow-200">CHECKING...</span>
-                       ) : Object.values(systemCheck).includes("error") ? (
-                         <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-red-200">ISSUES FOUND</span>
-                       ) : (
-                         <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-emerald-200">READY</span>
-                       )}
-                    </div>
-                    <div className="space-y-4">
+                     )}
+                     <div className="space-y-4">
                        <div className="flex justify-between items-center text-sm">
                           <div className="flex items-center gap-2 text-emerald-900/70 font-medium">
                              <Camera className="w-4 h-4" /> Webcam
@@ -333,18 +352,18 @@ export default function ExamLobbyPage() {
                     <label className="text-sm text-slate-700 cursor-pointer select-none leading-tight font-medium" htmlFor="agree">I acknowledge that this session is proctored and recorded.</label>
                  </div>
 
-                 <button 
-                    disabled={!agreed}
-                    onClick={async () => {
-                        if (!assessmentId) return;
-                        try {
-                          await dispatch(startAssessment(assessmentId)).unwrap();
-                          router.push(`/student/exam?assessmentId=${assessment.id}`);
-                        } catch (error: any) {
-                          console.error("Failed to start assessment:", error);
-                          alert(error || "Failed to start assessment. Please try again.");
-                        }
-                    }}
+                  <button 
+                     disabled={!agreed}
+                     onClick={async () => {
+                         if (!assessmentId) return;
+                         try {
+                           await dispatch(startAssessment(assessmentId)).unwrap();
+                           router.push(`/student/exam?assessmentId=${assessment.id}`);
+                         } catch (error: any) {
+                           console.error("Failed to start assessment:", error);
+                           alert(error || "Failed to start assessment. Please try again.");
+                         }
+                     }}
                     className={`w-full relative overflow-hidden font-bold py-5 px-6 rounded-2xl transition-all flex items-center justify-between group border ${
                       !agreed 
                         ? 'bg-slate-300 text-slate-500 cursor-not-allowed border-slate-400/50' 

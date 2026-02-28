@@ -155,9 +155,7 @@ export function AdminReportsPage() {
       const result = await dispatch(
         fetchClassReportCards({ classId, session, term })
       ).unwrap();
-      console.log('[AdminReportsPage] Fetched report cards:', result);
-      
-      // Flatten the nested structure: students -> reportCardsAsStudent[]
+
       const flattenedReports: any[] = [];
       if (result && Array.isArray(result)) {
         result.forEach((student: any) => {
@@ -171,12 +169,7 @@ export function AdminReportsPage() {
           });
         });
       }
-      
-      console.log('[AdminReportsPage] Flattened report cards:', flattenedReports);
-      if (flattenedReports.length > 0) {
-        console.log('[AdminReportsPage] First flattened report:', flattenedReports[0]);
-      }
-      
+
       setReportCards(flattenedReports);
     } catch (e: any) {
       console.error('[AdminReportsPage] Error fetching reports:', e);

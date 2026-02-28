@@ -39,6 +39,7 @@ import {
   fetchAssessmentCategoriesMap,
   createAssessmentCategory,
   deleteAssessmentCategory,
+  deleteAssessment,
 } from "./adminThunks";
 
 type AdminState = {
@@ -199,6 +200,15 @@ const adminSlice = createSlice({
         state.success = "Assessment updated";
       })
       .addCase(updateAssessment.rejected, (state, action) => rejected(state, action, "Failed to update assessment"));
+
+    builder
+      .addCase(deleteAssessment.pending, pending)
+      .addCase(deleteAssessment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assessments = state.assessments.filter((a) => a.id !== action.payload);
+        state.success = "Assessment deleted";
+      })
+      .addCase(deleteAssessment.rejected, (state, action) => rejected(state, action, "Failed to delete assessment"));
 
     builder
       .addCase(publishAssessmentAdmin.pending, pending)

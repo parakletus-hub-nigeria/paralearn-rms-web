@@ -23,6 +23,7 @@ import {
   fetchClassSubjects,
   fetchAssessmentCategories,
   updateTeacherAssessment,
+  deleteTeacherAssessment,
 } from "./teacherThunks";
 
 type TeacherState = {
@@ -365,6 +366,22 @@ const teacherSlice = createSlice({
       .addCase(updateTeacherAssessment.rejected, (state, action) => {
         state.loading = false;
         state.error = (action.payload as string) || "Failed to update assessment";
+      });
+
+    // Delete Assessment
+    builder
+      .addCase(deleteTeacherAssessment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteTeacherAssessment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assessments = state.assessments.filter((a) => a.id !== action.payload);
+        state.success = "Assessment deleted successfully";
+      })
+      .addCase(deleteTeacherAssessment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to delete assessment";
       });
   },
 });

@@ -9,15 +9,12 @@ let refreshPromise: Promise<any> | null = null;
 
 export const performTokenRefresh = async (): Promise<string | null> => {
   if (refreshPromise) {
-    console.log("[Auth Refresh] Reusing existing refresh promise");
     const res = await refreshPromise;
     return res.accessToken || res.data?.accessToken || tokenManager.getToken() || null;
   }
 
   refreshPromise = (async () => {
     try {
-      console.log("[Auth Refresh] Starting token refresh...");
-      
       const state = store.getState();
       const subdomain = getSubdomain(state.user?.subdomain);
       
@@ -37,9 +34,6 @@ export const performTokenRefresh = async (): Promise<string | null> => {
         }
       );
 
-      console.log("[Auth Refresh] Refresh response status:", response.status);
-      console.log("[Auth Refresh] Refresh response data:", JSON.stringify(response.data));
-
       const data = response.data;
       
       // Try different paths to extract the token
@@ -49,10 +43,7 @@ export const performTokenRefresh = async (): Promise<string | null> => {
         data?.token ||
         data?.data?.token;
 
-      console.log("[Auth Refresh] Extracted token:", newToken ? "Token found" : "NO TOKEN FOUND");
-
       if (newToken) {
-        console.log("[Auth Refresh] Refresh successful, saving new token");
         tokenManager.setToken(newToken);
         store.dispatch(updateAccessToken({ accessToken: newToken }));
         return data;

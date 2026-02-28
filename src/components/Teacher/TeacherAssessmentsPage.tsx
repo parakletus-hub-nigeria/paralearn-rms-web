@@ -13,6 +13,7 @@ import {
   fetchAcademicCurrent,
   fetchAssessmentCategories,
   updateTeacherAssessment,
+  deleteTeacherAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { generateTemplate } from "@/lib/templates";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
@@ -28,6 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Search,
   Plus,
@@ -53,6 +60,7 @@ import {
   Upload,
   Sparkles,
   Send,
+  Trash2,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import { toast } from "sonner";
@@ -286,6 +294,17 @@ export function TeacherAssessmentsPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this assessment? This action cannot be undone.")) {
+      try {
+        await dispatch(deleteTeacherAssessment(id)).unwrap();
+        dispatch(fetchMyAssessments());
+      } catch (e: any) {
+        toast.error(e || "Failed to delete assessment");
+      }
+    }
+  };
+
   const addQuestion = () => {
     if (!newQuestion.text) return toast.error("Question text is required");
     setCreateForm(prev => ({
@@ -498,9 +517,26 @@ export function TeacherAssessmentsPage() {
                         {statusStyle.label}
                       </Badge>
                     </div>
-                    
-                    <h3 className="font-bold text-slate-900 text-lg mb-1 line-clamp-1">
+                    <h3 className="font-bold text-slate-900 text-lg mb-1 line-clamp-1 pr-6 relative">
                       {assessment.title}
+                      <div className="absolute top-0 right-0">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-1 rounded-md hover:bg-slate-100 text-slate-400 transition-colors">
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-xl min-w-[140px]">
+                            <DropdownMenuItem 
+                              onClick={() => handleDelete(assessment.id)}
+                              className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer text-sm"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </h3>
                     <p className="text-sm text-slate-500 flex items-center gap-2 mb-4">
                       <BookOpen className="w-4 h-4" />
@@ -679,6 +715,24 @@ export function TeacherAssessmentsPage() {
                                </Link>
                              </div>
                           )}
+                          
+                          {/* Delete Dropdown for List View */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-2 ml-1 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 transition-colors">
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="rounded-xl min-w-[140px]">
+                              <DropdownMenuItem 
+                                onClick={() => handleDelete(assessment.id)}
+                                className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer text-sm"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>

@@ -140,9 +140,7 @@ const ContactPage = () => {
         throw new Error(`Failed to submit form: ${response.status}`);
       }
 
-      if (process.env.NODE_ENV === "development") {
-        console.log("Form submitted:", formData);
-      }
+      // Dev log removed
 
       setFormData({
         fullName: "",

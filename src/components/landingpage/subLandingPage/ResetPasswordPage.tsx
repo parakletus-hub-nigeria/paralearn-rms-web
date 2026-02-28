@@ -5,13 +5,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "sonner";
-import { handleError } from "@/lib/error-handler";
 import AuthHeader from "@/components/auth/authHeader";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/reduxToolKit/store";
-import { confirmPasswordReset } from "@/reduxToolKit/user/userThunks";
 import { useResetPasswordMutation } from "@/reduxToolKit/api";
-import { toast } from "sonner";
+import { getSubdomain } from "@/lib/subdomainManager";
 
 type ResetPasswordPageProps = {
   code: string;
@@ -25,9 +21,13 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
   const [data, setData] = useState({
     password: "",
     confirmPassword: "",
+    subdomainFallback: "",
   });
   const [submitted, setSubmitted] = useState(false);
-  const dispatch = useDispatch<AppDispatch>();
+
+  // Check if we have a natural subdomain
+  const naturalSubdomain = typeof window !== 'undefined' ? getSubdomain() : null;
+  const needsSubdomainInput = !naturalSubdomain;
 
   const exp = false;
 
@@ -52,28 +52,30 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
   };
 
   const handleSubmit = async () => {
-    if (!password || !confirmPassword) {
+    if (needsSubdomainInput && !data.subdomainFallback.trim()) {
+      toast.error("Please enter your school subdomain");
+      return;
+    }
+
+    if (!isPasswordValid || !isConfirmPasswordValid) {
       toast.error("Please ensure both passwords match and are at least 8 characters");
       return;
     }
-    setLoading(true);
+    
     try {
-      const resultAction = await dispatch(confirmPasswordReset({
+      // Pass the manually entered subdomain if we needed it,
+      // otherwise the interceptor handles it
+      await resetPassword({
         token: code,
-        newPassword: data.password
-      }));
+        newPassword: data.password,
+        subdomain: needsSubdomainInput ? data.subdomainFallback.trim() : undefined
+      }).unwrap();
 
-      if (confirmPasswordReset.fulfilled.match(resultAction)) {
-        setSubmitted(true);
-        toast.success("Password reset successfully");
-      } else {
-        const message = resultAction.payload as string || "An error occurred. Please try again.";
-        toast.error(message);
-      }
-    } catch (e) {
-      handleError(e, "Network error. Please try again.");
-    } finally {
-      setLoading(false);
+      setSubmitted(true);
+      toast.success("Password reset successfully");
+    } catch (e: any) {
+      const errorMsg = e?.data?.message || e?.message || "Failed to reset password";
+      toast.error(errorMsg);
     }
   };
 
@@ -107,6 +109,22 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
                   Your new password must be different from previously used password
                 </p>
               </div>
+
+              {needsSubdomainInput && (
+                <div className="flex flex-col w-[100%] pb-2">
+                  <label htmlFor="subdomainFallback">School Subdomain</label>
+                  <input
+                    id="subdomainFallback"
+                    name="subdomainFallback"
+                    type="text"
+                    value={data.subdomainFallback}
+                    onChange={handleChange}
+                    placeholder="e.g. brightfuture"
+                    className="border-[1px] border-[#641BC4] focus:border-[2px] focus:outline-none h-[45px] w-[100%] p-[13px]"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Required because you accessed the general portal</p>
+                </div>
+              )}
 
               {formData.map((form) => (
                 <div key={form.name} className="flex flex-col w-[100%]">
@@ -143,12 +161,12 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
               ))}
             </div>
 
-            <div className="w-[100%] flex justify-center">
+            <div className="w-[100%] flex justify-center mt-2">
               <button
                 onClick={handleSubmit}
-                disabled={loading || !isPasswordValid || !isConfirmPasswordValid}
+                disabled={loading || !isPasswordValid || !isConfirmPasswordValid || (needsSubdomainInput && !data.subdomainFallback)}
                 style={
-                  loading || !isPasswordValid || !isConfirmPasswordValid
+                  loading || !isPasswordValid || !isConfirmPasswordValid || (needsSubdomainInput && !data.subdomainFallback)
                     ? { backgroundColor: "#a166f0" }
                     : { backgroundColor: "#641BC4" }
                 }

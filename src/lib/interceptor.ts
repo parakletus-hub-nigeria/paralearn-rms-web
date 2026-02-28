@@ -50,7 +50,6 @@ export const apiFetch = async (
         const newToken = await performTokenRefresh();
 
         if (newToken) {
-          console.log("[API Fetch] Token refreshed, retrying request");
           // Fetch the fresh token from tokenManager (it was updated by performTokenRefresh)
           const freshToken = tokenManager.getToken();
           // Retry original request with the fresh token

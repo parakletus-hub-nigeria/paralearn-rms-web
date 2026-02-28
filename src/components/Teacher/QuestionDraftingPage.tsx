@@ -77,15 +77,22 @@ export function QuestionDraftingPage() {
           return;
         }
       } catch (error) {
-        console.log("[QuestionDrafting] No questions in backend, checking localStorage");
+        // No questions in backend, fallback to localStorage
       }
 
-      const saved = localStorage.getItem(`draft_questions_${selectedAssessmentId}`);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setDraftQuestions(parsed);
-        if(parsed.length > 0) setActiveQuestionId(parsed[0].id);
-      } else {
+      try {
+        const saved = localStorage.getItem(`draft_questions_${selectedAssessmentId}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setDraftQuestions(parsed);
+          if(parsed.length > 0) setActiveQuestionId(parsed[0].id);
+        } else {
+          setDraftQuestions([]);
+          setActiveQuestionId(null);
+        }
+      } catch (storageError) {
+        console.warn("localStorage is not available:", storageError);
+        toast.error("Local storage is unavailable. Drafts cannot be loaded.");
         setDraftQuestions([]);
         setActiveQuestionId(null);
       }
@@ -99,7 +106,12 @@ export function QuestionDraftingPage() {
 
   useEffect(() => {
     if (selectedAssessmentId && draftQuestions.length > 0) {
-      localStorage.setItem(`draft_questions_${selectedAssessmentId}`, JSON.stringify(draftQuestions));
+      try {
+        localStorage.setItem(`draft_questions_${selectedAssessmentId}`, JSON.stringify(draftQuestions));
+      } catch (storageError) {
+        console.warn("localStorage is not available to save:", storageError);
+        toast.error("Local storage is unavailable. Cannot save draft locally.");
+      }
     }
   }, [draftQuestions, selectedAssessmentId]);
 
@@ -136,7 +148,11 @@ export function QuestionDraftingPage() {
         toast.success("Questions saved successfully!");
       }
 
-      localStorage.removeItem(`draft_questions_${selectedAssessmentId}`);
+      try {
+        localStorage.removeItem(`draft_questions_${selectedAssessmentId}`);
+      } catch (e) {
+        // Ignore removal error
+      }
       if(shouldPublish) router.push('/teacher/assessments');
     } catch (error: any) {
       toast.error(error || "Failed to save questions");
@@ -170,6 +186,7 @@ export function QuestionDraftingPage() {
     setDraftQuestions(prev => [...prev, { ...q, id: newId }]);
     setActiveQuestionId(newId);
     toast.success("Question added to draft");
+    window.alert("Question added to draft successfully!");
   };
 
   const addAllQuestionsFromGen = (idx: number) => {
@@ -180,6 +197,7 @@ export function QuestionDraftingPage() {
     setDraftQuestions(prev => [...prev, ...newQuestions]);
     setActiveQuestionId(newQuestions[0].id);
     toast.success(`Added ${newQuestions.length} questions`);
+    window.alert(`Added ${newQuestions.length} questions to draft successfully!`);
   };
 
   const addManualQuestion = () => {
@@ -255,7 +273,11 @@ export function QuestionDraftingPage() {
     if (confirm("Are you sure you want to clear all questions?")) {
       setDraftQuestions([]);
       setActiveQuestionId(null);
-      localStorage.removeItem(`draft_questions_${selectedAssessmentId}`);
+      try {
+        localStorage.removeItem(`draft_questions_${selectedAssessmentId}`);
+      } catch (e) {
+        toast.error("Local storage is unavailable. Could not remove draft.");
+      }
     }
   };
 
@@ -439,11 +461,21 @@ export function QuestionDraftingPage() {
                             
                             <div className="relative group/title">
                                 <textarea
-                                    value={activeQ.questionText}
-                                    onChange={(e) => updateDraftQuestion(activeQ.id, "questionText", e.target.value)}
+                                    value={activeQ.questionText || ""}
+                                    onChange={(e) => {
+                                        updateDraftQuestion(activeQ.id, "questionText", e.target.value);
+                                        e.target.style.height = 'auto';
+                                        e.target.style.height = `${e.target.scrollHeight}px`;
+                                    }}
+                                    className="w-full text-2xl md:text-3xl font-bold leading-relaxed outline-none border-b-2 border-transparent focus:border-[#7f0df2]/30 pb-4 transition-colors resize-none bg-transparent text-slate-900 focus:ring-0 px-0 m-0 overflow-hidden"
                                     placeholder="Type your question prompt here..."
-                                    className="w-full text-2xl md:text-3xl font-bold leading-tight md:leading-snug outline-none border-b-2 border-transparent focus:border-[#7f0df2]/30 pb-4 transition-colors resize-none bg-transparent overflow-hidden text-slate-900 focus:ring-0 px-0 m-0"
-                                    rows={Math.max(1, activeQ.questionText.split('\n').length)}
+                                    style={{ height: 'auto', minHeight: '60px' }}
+                                    ref={(textarea) => {
+                                        if (textarea) {
+                                            textarea.style.height = 'auto';
+                                            textarea.style.height = `${textarea.scrollHeight}px`;
+                                        }
+                                    }}
                                 />
                                 <div className="absolute -left-10 top-2 opacity-0 group-hover/title:opacity-100 transition-opacity text-slate-300 hidden md:flex items-center justify-center p-1 rounded hover:bg-slate-100">
                                     <GripVertical className="w-5 h-5 pointer-events-none" />
@@ -474,10 +506,20 @@ export function QuestionDraftingPage() {
                                         
                                         <textarea 
                                             value={opt.text}
-                                            onChange={(e) => updateOption(activeQ.id, oIdx, "text", e.target.value)}
+                                            onChange={(e) => {
+                                                updateOption(activeQ.id, oIdx, "text", e.target.value);
+                                                e.target.style.height = 'auto';
+                                                e.target.style.height = `${e.target.scrollHeight}px`;
+                                            }}
                                             className={`flex-1 text-sm md:text-base outline-none bg-transparent resize-none overflow-hidden m-0 p-0 focus:ring-0 border-none ${opt.isCorrect ? "font-medium text-emerald-950" : "text-slate-700"}`}
                                             placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
-                                            rows={Math.max(1, opt.text.split('\n').length)}
+                                            style={{ height: 'auto', minHeight: '24px' }}
+                                            ref={(textarea) => {
+                                                if (textarea) {
+                                                    textarea.style.height = 'auto';
+                                                    textarea.style.height = `${textarea.scrollHeight}px`;
+                                                }
+                                            }}
                                         />
                                         
                                         <div className="flex items-center gap-2 shrink-0">

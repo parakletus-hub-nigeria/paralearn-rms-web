@@ -61,7 +61,6 @@ const getInitialUser = (): UserState["user"] => {
     const raw = localStorage.getItem(USER_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      console.log("[userSlice] Initializing from localStorage:", parsed);
       const roles = normalizeRoles(parsed?.roles);
       return {
         id: parsed?.id || "",
@@ -76,21 +75,13 @@ const getInitialUser = (): UserState["user"] => {
     
     // Fallback: If no localStorage (e.g. after subdomain redirect), check JWT
     const token = tokenManager.getToken();
-    console.log("[userSlice] Check Token:", token ? `Exists (${token.substring(0, 10)}...)` : "Missing");
     if (token) {
       const decoded = getDecodedTokenPayload(token);
-      console.log("[userSlice] Decoded JWT Payload (Full):", JSON.stringify(decoded, null, 2));
       if (decoded) {
-        // Try multiple ways to extract roles from JWT
         let roles = normalizeRoles(decoded.roles || decoded.role);
-        
-        // If roles is still empty, try passing the entire decoded object 
-        // to normalizeRoles to check for iadmin, iseditor, etc.
         if (roles.length === 0) {
           roles = normalizeRoles(decoded);
         }
-
-        console.log("[userSlice] Initial State Roles being applied:", roles);
         return {
           id: decoded.sub || decoded.id || decoded.userId || "",
           email: decoded.email || "",
@@ -100,12 +91,9 @@ const getInitialUser = (): UserState["user"] => {
           roles: roles,
           avatar: decoded.avatar || decoded.profilePicture || "",
         };
-      } else {
-        console.warn("[userSlice] Failed to decode token payload");
       }
     }
 
-    console.log("[userSlice] Initializing with empty state (No storage, no token)");
     return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
   } catch (e) {
     console.warn("[userSlice] Failed to initialize user state", e);

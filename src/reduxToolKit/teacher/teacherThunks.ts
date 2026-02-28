@@ -53,7 +53,6 @@ export const fetchAcademicCurrent = createAsyncThunk(
       if (!data) return rejectWithValue("No academic session returned");
       return data as AcademicCurrent;
     } catch (e: any) {
-      console.log("[fetchAcademicCurrent] API failed, using fallback mock data:", e?.message);
       // Return a safe default to prevent dashboard crash
       return {
         session: "2024/2025",
@@ -82,21 +81,13 @@ export const fetchMyAssessments = createAsyncThunk(
         }
       });
 
-      console.log("[fetchMyAssessments] fetching via status endpoints (started, ended, not_started)...");
-
-      // Strategy: Fetch all 3 statuses in parallel as requested by user
-      // Endpoint: /api/proxy/assessments/:status
       const statuses: Array<"started" | "ended" | "not_started"> = ["started", "ended", "not_started"];
-      
       const results = await Promise.all(
         statuses.map(async (status) => {
           try {
-             console.log(`[fetchMyAssessments] Fetching /assessments/${status}...`);
              const res = await apiClient.get(`/api/proxy/assessments/${status}`);
              const data = res.data?.data || res.data || [];
-             console.log(`[DEBUG] Raw GET /assessments/${status} API Response:`, JSON.stringify(data, null, 2));
              if (Array.isArray(data)) {
-                 // Tag the top-level items with the status to preserve it during flattening
                  return data.map((item: any) => ({ ...item, _fetchedStatus: status }));
              }
              return [];
@@ -122,25 +113,16 @@ export const fetchMyAssessments = createAsyncThunk(
       let items: Assessment[] = [];
 
       if (isGrouped) {
-         console.log("[fetchMyAssessments] Detected grouped response structure in status fetch");
          const flattened: Assessment[] = [];
-         
          rawCombined.forEach((group: any) => {
            if (group.assessments && Array.isArray(group.assessments)) {
              group.assessments.forEach((assess: any) => {
                flattened.push({
-                 ...assess, // 1. Keep everything the backend provides (id, totalMarks, durationMins, submissions, isPublished, etc)
-                 
-                 // 2. Layer UI-specific fallbacks and overrides to satisfy Redux UI expectations
+                 ...assess,
                  classId: group.class?.id || assess.classId,
-                 subjectId: group.id || group.subjectId || assess.subjectId, 
-                 subject: { 
-                    id: group.id || group.subjectId || group.code || "unknown", 
-                    name: group.name || "Unknown Subject",
-                    code: group.code || group.subjectCode
-                 },
+                 subjectId: group.id || group.subjectId || assess.subjectId,
+                 subject: { id: group.id || group.subjectId || group.code || "unknown", name: group.name || "Unknown Subject", code: group.code || group.subjectCode },
                  class: group.class || { id: group.class?.id, name: "Unknown Class" },
-                 
                  title: assess.title || "Untitled Assessment",
                  totalMarks: assess.totalMarks ?? assess.marks ?? assess.totalScore,
                  duration: assess.durationMins ?? assess.durationMinutes ?? assess.duration,
@@ -152,7 +134,6 @@ export const fetchMyAssessments = createAsyncThunk(
            }
          });
          items = flattened;
-         console.log(`[fetchMyAssessments] Flattened ${rawCombined.length} groups into ${items.length} assessments`);
       } else {
          items = rawCombined as Assessment[];
       }
@@ -198,72 +179,54 @@ export const fetchTeacherClasses = createAsyncThunk(
       // Merge results to provide full access list.
       
       try {
-        console.log("[fetchTeacherClasses] Starting dual fetch...");
-        
         const [classesRes, subjectsRes] = await Promise.allSettled([
           apiClient.get(`/api/proxy/classes/teacher/${params.teacherId}`),
           apiClient.get(`/api/proxy/subjects`)
         ]);
 
         const mergedItems: any[] = [];
-        const seenIds = new Set<string>(); // avoid duplicates if any
+        const seenIds = new Set<string>();
 
-        // Process 1: Explicit Class Assignments
         if (classesRes.status === "fulfilled") {
           const rawClasses = classesRes.value.data?.data || classesRes.value.data || [];
           if (Array.isArray(rawClasses)) {
-            console.log(`[fetchTeacherClasses] Found ${rawClasses.length} explicit class assignments`);
             rawClasses.forEach((c: any) => {
-              // For class assignments, we might not have a specific subject.
-              // We treat this as "Class Access".
-              // Map to the shape UI expects: { class: {...}, subject: null/undefined }
-              console.log(`[fetchTeacherClasses] Class ${c.name} has ${c.subjects?.length || 0} subjects`, c.subjects);
               const item = {
-                id: `class-${c.id}`, // specific ID for this permission
+                id: `class-${c.id}`,
                 classId: c.id,
                 className: c.name,
-                class: { ...c, id: c.id, name: c.name }, // Pass full class object for stats (studentCount etc) - includes subjects array
-                subject: null, // No specific subject restricted
+                class: { ...c, id: c.id, name: c.name },
+                subject: null,
                 teacherId: params.teacherId,
                 type: "class_assignment"
               };
               mergedItems.push(item);
             });
           }
-        } else {
-          console.log("[fetchTeacherClasses] Classes endpoint failed:", classesRes.reason?.message);
         }
 
-        // Process 2: Explicit Subject Assignments (Strict Filter)
         if (subjectsRes.status === "fulfilled") {
           const allSubjects = subjectsRes.value.data?.data || subjectsRes.value.data || [];
           if (Array.isArray(allSubjects)) {
              const assignedSubjects = allSubjects.filter((s: any) => {
-               // Check teacherAssignments array
                if (s.teacherAssignments && Array.isArray(s.teacherAssignments)) {
                   return s.teacherAssignments.some((assignment: any) => 
                     assignment.teacherId === params.teacherId || 
                     (assignment.teacher && assignment.teacher.id === params.teacherId)
                   );
                }
-               // Fallback
                return s.teacherId === params.teacherId;
             });
-            
-            console.log(`[fetchTeacherClasses] Found ${assignedSubjects.length} subject assignments`);
-            
+
             assignedSubjects.forEach((s: any) => {
-              // Create an entry for this Subject Assignment
-              const classId = s.class?.id || s.classId || s.id; // Careful with fallback
-              // If class params missing, we might have issues, but let's map what we have.
-              
+              const classId = s.class?.id || s.classId || s.id;
               const item = {
                 id: s.id,
                 subjectId: s.id,
                 subjectName: s.name,
                 classId: classId,
                 className: s.class?.name || s.className || `Class ${classId?.substring(0,6) || "Unknown"}`,
-                class: s.class || { id: classId, name: s.className || `Class ${classId?.substring(0,6) || "Unknown"}` }, 
+                class: s.class || { id: classId, name: s.className || `Class ${classId?.substring(0,6) || "Unknown"}` },
                 subject: { id: s.id, name: s.name },
                 teacherId: params.teacherId,
                 type: "subject_assignment"
@@ -271,20 +234,13 @@ export const fetchTeacherClasses = createAsyncThunk(
               mergedItems.push(item);
             });
           }
-        } else {
-           console.log("[fetchTeacherClasses] Subjects endpoint failed:", subjectsRes.reason?.message);
         }
 
-        console.log(`[fetchTeacherClasses] Total merged items: ${mergedItems.length}`);
-        
-        // ENHANCEMENT: If any class assignments are missing subjects, fetch them
         const classesNeedingSubjects = mergedItems.filter(
           item => item.type === "class_assignment" && (!item.class?.subjects || item.class.subjects.length === 0)
         );
-        
+
         if (classesNeedingSubjects.length > 0) {
-          console.log(`[fetchTeacherClasses] Fetching subjects for ${classesNeedingSubjects.length} classes...`);
-          
           await Promise.all(
             classesNeedingSubjects.map(async (item: any) => {
               try {
@@ -570,54 +526,26 @@ export const fetchClassStudents = createAsyncThunk(
   "teacher/fetchClassStudents",
   async (classId: string, { rejectWithValue }) => {
     try {
-      console.log("[fetchClassStudents] Fetching students for class:", classId);
-      
       let students: any[] = [];
 
-      // Attempt 1: GET /classes/:id (Primary for Teachers now, acts as Class View)
-      try {
-        console.log("[fetchClassStudents] calling /classes/:id endpoint...");
-        const classRes = await apiClient.get(`/api/proxy/classes/${classId}`);
-        const classData = classRes.data?.data || classRes.data || {};
-        
-        // Extract from classData based on user provided structure
-        if (classData.students && Array.isArray(classData.students)) {
-           students = classData.students;
-           console.log("[fetchClassStudents] Found students in class.students:", students.length);
-           return students; // Return immediately if successful
-        } else if (classData.enrollments && Array.isArray(classData.enrollments)) {
-           students = classData.enrollments
-             .map((e: any) => {
-               const base = e.student || e;
-               // The readable student code is on the student user profile itself
-               // DO NOT use e.studentId here - that is the FK UUID pointing to users.id
-               return base;
-             })
-             .filter((s: any) => s && (s.id || s.firstName));
-           console.log("[fetchClassStudents] Found students in enrollments:", students.length, "Sample:", JSON.stringify(students[0]));
-           return students;
-        }
-      } catch (classErr: any) {
-        console.warn("[fetchClassStudents] /classes endpoint failed:", classErr?.message);
-        // Continue to fallback
+      const classRes = await apiClient.get(`/api/proxy/classes/${classId}`);
+      const classData = classRes.data?.data || classRes.data || {};
+      
+      if (classData.students && Array.isArray(classData.students)) {
+         students = classData.students;
+         return students;
+      } else if (classData.enrollments && Array.isArray(classData.enrollments)) {
+         students = classData.enrollments
+           .map((e: any) => {
+             const base = e.student || e;
+             return base;
+           })
+           .filter((s: any) => s && (s.id || s.firstName));
+         return students;
       }
 
-      // Attempt 2: GET /users (Fallback)
-      try {
-        console.log("[fetchClassStudents] Fallback: calling /users endpoint...");
-        const usersRes = await apiClient.get(`/api/proxy/users?classId=${classId}&role=student`);
-        const usersData = usersRes.data?.data || usersRes.data || [];
-        
-        if (Array.isArray(usersData) && usersData.length > 0) {
-           students = usersData;
-           console.log(`[fetchClassStudents] Successfully fetched ${students.length} students from /users`);
-        }
-      } catch (userErr: any) {
-         console.warn("[fetchClassStudents] /users endpoint failed:", userErr?.message);
-      }
-      
-      console.log("[fetchClassStudents] Final students count:", students.length);
-      return students; // Return empty array if all failed, don't throw
+      // Return empty array if no students found, avoiding insecure fallbacks
+      return [];
     } catch (e: any) {
       console.error("[fetchClassStudents] Critical Error:", e);
       return rejectWithValue(
@@ -643,7 +571,6 @@ export const fetchClassSubjects = createAsyncThunk(
         s.classId === classId || s.class?.id === classId
       );
       
-      console.log(`[fetchClassSubjects] Filtered ${allSubjects.length} subjects to ${filteredByClass.length} for class ${classId}`);
       return filteredByClass;
     } catch (e: any) {
       return rejectWithValue(
@@ -764,6 +691,20 @@ export const updateTeacherAssessment = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to update assessment"
+      );
+    }
+  }
+);
+
+export const deleteTeacherAssessment = createAsyncThunk(
+  "teacher/deleteTeacherAssessment",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await apiClient.delete(`/api/proxy/assessments/${id}`);
+      return id;
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to delete assessment"
       );
     }
   }

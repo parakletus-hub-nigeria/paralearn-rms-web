@@ -8,6 +8,7 @@ import {
   fetchClasses,
   fetchAssessments,
   fetchSubjects,
+  deleteAssessment,
 } from "@/reduxToolKit/admin/adminThunks";
 import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
@@ -23,6 +24,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Search,
   MoreVertical,
   Calculator,
@@ -34,6 +41,7 @@ import {
   AlertCircle,
   Eye,
   Settings,
+  Trash2,
 } from "lucide-react";
 import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
 
@@ -147,6 +155,17 @@ export function AdminAssessmentsPage() {
 
     return result;
   }, [assessments, statusFilter, typeFilter, classFilter, q, subjectNameById]);
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this assessment? This action cannot be undone.")) {
+      try {
+        await dispatch(deleteAssessment(id)).unwrap();
+        // toast is handled by success/error in useEffect, but we could add one here if needed
+      } catch (error) {
+        // error handling is managed by useEffect
+      }
+    }
+  };
 
   return (
     <div className="w-full">
@@ -296,9 +315,22 @@ export function AdminAssessmentsPage() {
                       </p>
                     </div>
                   </div>
-                  <button className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                    <MoreVertical className="w-4 h-4 text-slate-400" />
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                        <MoreVertical className="w-4 h-4 text-slate-400" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-xl">
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(assessment.id)}
+                        className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="flex flex-col gap-3 mb-4 mt-2">

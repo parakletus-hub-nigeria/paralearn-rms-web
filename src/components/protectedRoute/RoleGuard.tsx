@@ -83,9 +83,16 @@ export default function RoleGuard({
 
     if (mode !== "redirect") return;
     if (ok) return;
+    const normalizedRoles = roles.map((r: any) => String(r).toLowerCase());
     const fallback =
       redirectTo ||
-      (roles.some((r: any) => String(r).toLowerCase() === "teacher") ? routespath.TEACHER_DASHBOARD : routespath.DASHBOARD);
+      (normalizedRoles.includes("teacher")
+        ? routespath.TEACHER_DASHBOARD
+        : normalizedRoles.includes("admin")
+        ? routespath.DASHBOARD
+        : normalizedRoles.includes("student")
+        ? "/student/dashboard"
+        : "/unauthorized"); // FIX #7: catch-all for unrecognized roles
     if (pathname !== fallback) router.replace(fallback);
   }, [ok, router, redirectTo, roles, pathname, mode, hasToken, mounted]);
 
