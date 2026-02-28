@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
 import { ReactNode, useState } from "react"
-import { toast } from "react-toastify"
+import { toast } from "sonner"
 
 export function AddStudentDialog({children} : {children : ReactNode}) {
   const [formData, setFormData] = useState({
@@ -101,8 +101,8 @@ const studentFormFields = [
   { name: "dateOfBirth", label: "Date of Birth", type: "date", placeholder: "mm/dd/yyyy", required: true },
   { name: "gender", label: "Gender", type: "select", options: [ { value: "Male", label: "Male" }, { value: "Female", label: "Female" } ], placeholder: "Select gender", required: true },
   { name: "address", label: "Address", type: "text", placeholder: "Enter address", required: true },
-  { name: "guardianName", label: "Guardian Name", type: "text", placeholder: "Enter guardian's name", required: true },
-  { name: "guardianPhone", label: "Guardian Phone", type: "tel", placeholder: "Enter guardian's phone", required: true },
+  { name: "guardianName", label: "Guardian Name", type: "text", placeholder: "Enter guardian name", required: true },
+  { name: "guardianPhone", label: "Guardian Phone", type: "tel", placeholder: "Enter guardian phone", required: true },
 ];
 
   return (

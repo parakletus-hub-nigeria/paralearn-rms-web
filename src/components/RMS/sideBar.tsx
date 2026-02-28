@@ -1,10 +1,8 @@
 "use client";
-import { ReactNode, useState } from "react";
-import { useDispatch } from "react-redux";
+import { ReactNode, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { logout } from "@/state/user/userSlice";
-import { toast } from "react-toastify";
-import tokenManager from "@/lib/tokenManager";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -14,108 +12,180 @@ import {
   SidebarTrigger,
 } from "../ui/sidebar";
 import Image from "next/image";
-import logo from "../../images/IMG-20201027-WA0000_2-removebg-preview 1.png";
+const logo = "/PL2 (1).svg";
+
 import {
+  BookOpenCheck,
+  Calendar,
+  ClipboardList,
   Home,
   UserCircle,
   BookOpen,
   DownloadIcon,
+  MessageSquareText,
+  UserPlus,
   User,
   Settings,
+  Palette,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
+import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { logoutUser } from "@/reduxToolKit/user/userThunks";
+import { usePathname } from "next/navigation";
+import { Toaster } from "sonner";
+import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
-  const [selectedPath, setSelectedPath] = useState("/dashboard");
-  const dispatch = useDispatch();
+  const pathname = usePathname();
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const { user, tenantInfo } = useSelector((s: RootState) => s.user);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
-      // Clear Redux state
-      dispatch(logout());
-
-      // Clear token from cookie
-      tokenManager.removeToken();
-
-      // Clear localStorage
-      localStorage.clear();
+      await dispatch(logoutUser()).unwrap();
 
       // Show success message
       toast.success("Logged out successfully");
 
       // Redirect to signin page
-      setTimeout(() => {
-        router.push(routespath.SIGNIN);
-      }, 1000);
+      router.push(routespath.SIGNIN);
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout");
+      setIsLoggingOut(false);
+      setIsLogoutModalOpen(false);
     }
   };
 
-  const sideBarContent = [
-    {
-      label: "Dashboard",
-      path: routespath.DASHBOARD,
-      icon: Home,
-    },
-    {
-      label: "Users",
-      path: "/RMS/users",
-      icon: UserCircle,
-    },
-    {
-      label: "Report Cards",
-      path: routespath.REPORT,
-      icon: BookOpen,
-    },
-    {
-      label: "Bulk Upload",
-      path: "/RMS/bulk_upload",
-      icon: DownloadIcon,
-    },
-    {
-      label: "Profile",
-      path: "/profile",
-      icon: User,
-    },
-    {
-      label: "Settings",
-      path: "/settings",
-      icon: Settings,
-    },
-  ];
+  const sideBarContent = useMemo(
+    () => [
+      { label: "Dashboard", path: routespath.DASHBOARD, icon: Home, roles: ["admin", "teacher"] },
+      { label: "Users", path: routespath.USERS, icon: UserCircle, roles: ["admin"] },
+      { label: "Enrollments", path: routespath.ENROLLMENTS, icon: UserPlus, roles: ["admin"] },
+      { label: "Classes", path: routespath.CLASSES, icon: BookOpenCheck, roles: ["admin", "teacher"] },
+      { label: "Subjects", path: routespath.SUBJECTS, icon: BookOpen, roles: ["admin", "teacher"] },
+      { label: "Assessments", path: routespath.ASSESSMENTS, icon: ClipboardList, roles: ["admin", "teacher"] },
+      { label: "Report Cards", path: routespath.REPORT, icon: BookOpen, roles: ["admin", "teacher"] },
+      { label: "Comments", path: routespath.COMMENTS, icon: MessageSquareText, roles: ["admin", "teacher"] },
+      { label: "Attendance", path: routespath.ATTENDANCE, icon: Calendar, roles: ["admin", "teacher"] },
+      { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon, roles: ["admin"] },
+      { label: "Academic", path: routespath.ACADEMIC, icon: Calendar, roles: ["admin"] },
+      { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings, roles: ["admin"] },
+      { label: "Branding", path: routespath.BRANDING, icon: Palette, roles: ["admin"] },
+      { label: "Profile", path: "/profile", icon: User, roles: ["admin", "teacher"] },
+      { label: "Settings", path: "/settings", icon: Settings, roles: ["admin", "teacher"] },
+    ],
+    []
+  );
+
+  const filteredContent = useMemo(() => {
+    return sideBarContent.filter(item => {
+      if (!item.roles) return true;
+      const userRoles = user?.roles || [];
+      return item.roles.some(r => userRoles.includes(r));
+    });
+  }, [sideBarContent, user?.roles]);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
 
   return (
     <SidebarProvider>
-      <Sidebar className="border-r border-purple-100/50">
-        <SidebarHeader className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-purple-50 p-1 rounded-lg">
+      <SidebarContentContainer 
+        logo={logo} 
+        tenantInfo={tenantInfo} 
+        user={user} 
+        filteredContent={filteredContent} 
+        pathname={pathname} 
+        handleLogout={() => setIsLogoutModalOpen(true)}
+      >
+        {children}
+      </SidebarContentContainer>
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        loading={isLoggingOut}
+      />
+    </SidebarProvider>
+  );
+};
+
+const SidebarContentContainer = ({ 
+  children, 
+  logo, 
+  tenantInfo, 
+  user, 
+  filteredContent, 
+  pathname, 
+  handleLogout 
+}: { 
+  children: ReactNode;
+  logo: string;
+  tenantInfo: any;
+  user: any;
+  filteredContent: any[];
+  pathname: string;
+  handleLogout: () => void;
+}) => {
+  // const { open, openMobile } = useSelector((s: RootState) => ({
+  //   // Note: We can't actually use useSidebar here if we want to determine 
+  //   // the layout *outside* the Sidebar component perfectly without hydration issues,
+  //   // but the SidebarProvider is already wrapping this.
+  // }));
+  
+  // Actually, we must import useSidebar inside the component
+  const { SidebarTrigger: UI_SidebarTrigger, useSidebar } = require("../ui/sidebar");
+  const { open: isExpanded, isMobile } = useSidebar();
+
+  return (
+    <>
+      <Sidebar className="border-r border-purple-100/50 bg-white">
+        <SidebarHeader className="p-4 sm:p-5 pb-2 relative">
+          <div className="absolute top-2 right-2 hidden md:block">
+            <SidebarTrigger className="hover:bg-purple-50 h-8 w-8 text-slate-500" />
+          </div>
+          <div className="flex flex-col items-center text-center gap-1 mt-2">
+            <Link href={routespath.DASHBOARD} className="block shrink-0">
               <Image
                 src={logo}
-                className="w-[32px] h-[32px] object-contain"
+                width={930}
+                height={479}
+                className="h-[64px] sm:h-[72px] w-auto object-contain"
                 alt="paralearn logo"
               />
+            </Link>
+            <div className="flex flex-col leading-tight w-full px-1">
+              <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
+                {tenantInfo?.name || "ParaLearn"}
+              </p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
+                <span className="truncate">{user?.roles?.[0]?.charAt(0).toUpperCase() + user?.roles?.[0]?.slice(1) || "User"}{user?.firstName ? ` • ${user.firstName}` : ""}</span>
+              </p>
             </div>
-            <p className="text-[#641BC4] font-bold text-lg tracking-tight">
-              PARA LEARN
-            </p>
           </div>
         </SidebarHeader>
 
         <SidebarContent className="px-4">
           <nav className="flex flex-col gap-1.5 mt-4">
-            {sideBarContent.map((item, index) => {
-              const isSelected = selectedPath === item.path;
+            {filteredContent.map((item, index) => {
+              const isSelected = pathname === item.path;
               return (
                 <Link
                   key={index}
                   href={item.path}
-                  onClick={() => setSelectedPath(item.path)}
-                  className={`flex flex-row items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
+                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${
                     isSelected
                       ? "bg-[#EDEAFB] text-[#641BC4] font-semibold"
                       : "text-gray-700 hover:bg-gray-100"
@@ -148,13 +218,19 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         </SidebarFooter>
       </Sidebar>
 
-      <main className="flex-1 bg-[#fbfaff] min-h-screen relative">
-        <div className="absolute top-6 left-6 z-50">
-          <SidebarTrigger className="hover:bg-purple-50" />
+      <main className="flex-1 bg-[#fbfaff] min-h-screen relative overflow-x-hidden">
+        {/* Only show the 'outside' trigger if the sidebar is NOT expanded or if we are on mobile */}
+        {(!isExpanded || isMobile) && (
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+            <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
+          </div>
+        )}
+        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
+          <Toaster position="top-right" expand={false} richColors />
+          {children}
         </div>
-        <div className="p-10 w-full max-w-[1600px] mx-auto">{children}</div>
       </main>
-    </SidebarProvider>
+    </>
   );
 };
 

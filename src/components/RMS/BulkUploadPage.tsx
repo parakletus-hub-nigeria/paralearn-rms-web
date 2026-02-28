@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import ProgressBar from "@/components/auth/progressBar";
 import { Header } from "@/components/RMS/header";
 import Step_One from "@/components/RMS/bulk_upload/step1";
@@ -21,6 +24,8 @@ type contentType = {
 };
 
 export const BulkUploadPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { tenantInfo } = useSelector((s: RootState) => s.user);
   const [step, setStep] = useState(1);
   const [fileContent, setFileContent] = useState([]);
   const [originalFile, setOriginalFile] = useState<File | null>(null);
@@ -31,6 +36,10 @@ export const BulkUploadPage = () => {
   const [uploadType, setUploadType] = useState<"student" | "teacher">(
     "student"
   );
+
+  useEffect(() => {
+    dispatch(getTenantInfo());
+  }, [dispatch]);
 
   useEffect(() => {
     let Valid = 0;
@@ -53,76 +62,97 @@ export const BulkUploadPage = () => {
   }, [fileContent]);
 
   return (
-    <div>
-      <Header schoolLogo="https://arua.org/wp-content/themes/yootheme/cache/d8/UI-logo-d8a68d3e.webp" />
-      <div className="items-center flex flex-col mb-[40px]">
-        <p>Bulk User Upload Page</p>
-        <ProgressBar step={step} />
+    <div className="w-full min-h-screen pb-8">
+      <Header 
+        schoolLogo={tenantInfo?.logoUrl} 
+        schoolName={tenantInfo?.name || "ParaLearn School"}
+      />
+      
+      <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        {/* Page Title */}
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            Bulk User Upload
+          </h1>
+          <p className="text-sm sm:text-base text-slate-600">
+            Upload multiple {uploadType}s at once using a CSV or Excel file
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="max-w-2xl mx-auto">
+          <ProgressBar step={step} />
+        </div>
 
         {/* Upload Type Toggle */}
-        <div className="w-full max-w-xl mx-auto mb-6 mt-4">
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center justify-center gap-4">
-            <span className="text-sm font-medium text-gray-700">
-              Upload Type:
-            </span>
-            <div className="flex bg-white rounded-lg p-1 border border-purple-200">
-              <button
-                onClick={() => setUploadType("student")}
-                className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                  uploadType === "student"
-                    ? "bg-[#641BC4] text-white shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Students
-              </button>
-              <button
-                onClick={() => setUploadType("teacher")}
-                className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                  uploadType === "teacher"
-                    ? "bg-[#641BC4] text-white shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Teachers
-              </button>
+        <div className="max-w-xl mx-auto">
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <span className="text-sm sm:text-base font-semibold text-slate-700 whitespace-nowrap">
+                Upload Type:
+              </span>
+              <div className="flex bg-white rounded-lg p-1 border-2 border-purple-200 shadow-sm w-full sm:w-auto">
+                <button
+                  onClick={() => setUploadType("student")}
+                  className={`flex-1 sm:flex-none px-6 py-2.5 rounded-md text-sm font-semibold transition-all ${
+                    uploadType === "student"
+                      ? "bg-[#641BC4] text-white shadow-md"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
+                >
+                  Students
+                </button>
+                <button
+                  onClick={() => setUploadType("teacher")}
+                  className={`flex-1 sm:flex-none px-6 py-2.5 rounded-md text-sm font-semibold transition-all ${
+                    uploadType === "teacher"
+                      ? "bg-[#641BC4] text-white shadow-md"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
+                >
+                  Teachers
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {step == 1 && (
-          <Step_One
-            fileContent={fileContent}
-            setFileContent={setFileContent}
-            step={step}
-            setStep={setStep}
-            uploadType={uploadType}
-            setOriginalFile={setOriginalFile}
-          />
-        )}
-        {step == 2 && validatedFileContent.length > 0 && (
-          <Step_Two
-            validatedFileContent={validatedFileContent}
-            setValidatedFileContent={setValidatedFileContent}
-            step={step}
-            setStep={setStep}
-            ValidNumber={ValidNumber}
-            setValidNumber={setValidNumber}
-            uploadType={uploadType}
-          />
-        )}
-        {step == 3 && validatedFileContent.length > 0 && (
-          <Step_Three
-            validatedFileContent={validatedFileContent}
-            setValidatedFileContent={setValidatedFileContent}
-            step={step}
-            setStep={setStep}
-            ValidNumber={ValidNumber}
-            setValidNumber={setValidNumber}
-            uploadType={uploadType}
-            originalFile={originalFile}
-          />
-        )}
+        {/* Step Components */}
+        <div className="w-full">
+          {step == 1 && (
+            <Step_One
+              fileContent={fileContent}
+              setFileContent={setFileContent}
+              step={step}
+              setStep={setStep}
+              uploadType={uploadType}
+              setOriginalFile={setOriginalFile}
+            />
+          )}
+          {step == 2 && validatedFileContent.length > 0 && (
+            <Step_Two
+              validatedFileContent={validatedFileContent}
+              setValidatedFileContent={setValidatedFileContent}
+              step={step}
+              setStep={setStep}
+              ValidNumber={ValidNumber}
+              setValidNumber={setValidNumber}
+              uploadType={uploadType}
+            />
+          )}
+          {step == 3 && validatedFileContent.length > 0 && (
+            <Step_Three
+              validatedFileContent={validatedFileContent}
+              setValidatedFileContent={setValidatedFileContent}
+              step={step}
+              setStep={setStep}
+              ValidNumber={ValidNumber}
+              setValidNumber={setValidNumber}
+              uploadType={uploadType}
+              originalFile={originalFile}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

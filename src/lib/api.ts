@@ -20,11 +20,16 @@ const getStore = () => {
   return storeInstance;
 };
 
+// Import refresh logic
+const getRefreshHelper = () => {
+  return require("./authRefresh").performTokenRefresh;
+};
+
 // Our global axios instance for all API calls
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "",
-  timeout: 30000,
+  timeout: 300000,
   withCredentials: true, // Important for cookies
   headers: {
     "Content-Type": "application/json",
@@ -44,21 +49,24 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
 
+      // Don't attach tenant header to auth login.
+      // (Login must work even before we know tenant/subdomain.)
+      const isAuthLogin = (config.url || "").includes(routespath.API_LOGIN);
+
       // Get subdomain with fallback priority: Redux -> localStorage -> URL
-      const subdomain = getSubdomain(state.user.subdomain);
-      
-      if (subdomain) {
+      const reduxSubdomain = state.user?.subdomain;
+      const subdomain = isAuthLogin ? null : getSubdomain(reduxSubdomain);
+
+      // Attach tenant header for all non-login requests (including refresh/logout)
+      if (subdomain && !isAuthLogin) {
         config.headers["X-Tenant-Subdomain"] = subdomain;
       }
 
-      // Log request in development
+      // Log warnings in development
       if (process.env.NODE_ENV === "development") {
-        console.log("[API Request]", {
-          method: config.method?.toUpperCase(),
-          url: config.url,
-          hasAuth: !!token,
-          subdomain: subdomain || "none",
-        });
+        if (!subdomain && !isAuthLogin) {
+          console.warn("[API Request] Missing subdomain for:", config.url);
+        }
       }
 
       return config;
@@ -93,13 +101,31 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized with token refresh
     if (error.response?.status === 401) {
+      const url = config?.url || "";
+      const isLoginRequest = url.includes(routespath.API_LOGIN);
+      const isRefreshRequest = url.includes(routespath.API_REFRESH);
+
+      // If login fails (401), do NOT attempt refresh. Just return the login error.
+      if (isLoginRequest) {
+        return Promise.reject(error);
+      }
+
+      // If refresh itself fails, don't try to refresh again.
+      if (isRefreshRequest) {
+        tokenManager.removeToken();
+        import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
+          getStore()?.dispatch(logoutUser());
+        });
+        return Promise.reject(error);
+      }
+
       // Prevent infinite retry loops
       if (config._retry) {
         console.warn("[API] Refresh token failed, redirecting to login");
         tokenManager.removeToken();
         // Use dynamic import to avoid circular dependency
         import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
-          getStore().dispatch(logoutUser());
+          getStore()?.dispatch(logoutUser());
         });
         
         if (typeof window !== "undefined") {
@@ -111,40 +137,17 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // Mark request as retried
-      config._retry = true;
-
       try {
         console.log("[API] Attempting to refresh token...");
+        const newToken = await getRefreshHelper()();
 
-        // Try to refresh the token
-        const refreshResponse = await axios.get(
-          `/api/proxy${routespath.API_REFRESH}`,
-          {
-            withCredentials: true,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const refreshData = refreshResponse.data;
-        const newToken =
-          refreshData.accessToken ||
-          refreshData.data?.accessToken ||
-          tokenManager.getToken();
-
-        if (newToken && refreshResponse.status === 200) {
-          // Update token in cookies
-          tokenManager.setToken(newToken);
-
-          // Update Redux state - use dynamic import to avoid circular dependency
-          const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
-          getStore().dispatch(updateAccessToken({ accessToken: newToken }));
-
-          // Update the original request with new token
+        if (newToken) {
+          // Fetch the fresh token from tokenManager (it was updated by performTokenRefresh)
+          const freshToken = tokenManager.getToken();
+          
+          // Update the original request with the fresh token
           if (config.headers) {
-            config.headers.Authorization = `Bearer ${newToken}`;
+            config.headers.Authorization = `Bearer ${freshToken}`;
           }
 
           console.log(
@@ -163,7 +166,7 @@ apiClient.interceptors.response.use(
         tokenManager.removeToken();
         // Use dynamic import to avoid circular dependency
         import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
-          getStore().dispatch(logoutUser());
+          getStore()?.dispatch(logoutUser());
         });
 
         // Redirect to login page
@@ -180,10 +183,20 @@ apiClient.interceptors.response.use(
 
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
-      console.error("[API] Access Forbidden");
+      console.error("[API] Access Forbidden for URL:", config.url);
+      console.log("[API] Full error response:", error.response.data);
+      
+      // Allow specific requests to bypass global redirect
+      if ((config as any).skipGlobalRedirect) {
+        return Promise.reject(error);
+      }
+
+      // TEMPORARILY DISABLED REDIRECT TO SEE LOGS
+      /*
       if (typeof window !== "undefined") {
         window.location.href = "/unauthorized";
       }
+      */
       return Promise.reject(error);
     }
 
@@ -197,15 +210,34 @@ apiClient.interceptors.response.use(
       console.error("[API] Network Error:", error.message);
     }
 
-    // Log all errors in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("[API Error]", {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: config?.url,
-        data: error.response?.data,
-        message: error.message,
-      });
+    // Check if this is a subdomain-related error (expected in some scenarios)
+    const errorMessage = 
+      "";
+    const isSubdomainError = errorMessage.toLowerCase().includes("subdomain") || 
+                            errorMessage.toLowerCase().includes("invalid subdomain");
+
+    // Log all errors in development (only if there's meaningful data and not expected subdomain errors)
+    if (process.env.NODE_ENV === "development" && !isSubdomainError) {
+      const errorInfo: any = {
+        message: error.message || "Unknown error",
+      };
+      
+      if (error.response) {
+        errorInfo.status = error.response.status;
+        errorInfo.statusText = error.response.statusText;
+        errorInfo.url = config?.url;
+        if (error.response.data) {
+          errorInfo.data = error.response.data;
+        }
+      } else if (error.request) {
+        errorInfo.type = "Network Error";
+        errorInfo.url = config?.url;
+      }
+      
+      // Only log if we have meaningful information
+      if (errorInfo.status || errorInfo.data || errorInfo.message !== "Unknown error") {
+        console.error("[API Error]", errorInfo);
+      }
     }
 
     return Promise.reject(error);
@@ -217,19 +249,18 @@ export const setAuthToken = async (token: string): Promise<void> => {
   tokenManager.setToken(token);
   // Sync with Redux state - use dynamic import to avoid circular dependency
   const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
-  getStore().dispatch(updateAccessToken({ accessToken: token }));
+  getStore()?.dispatch(updateAccessToken({ accessToken: token }));
 };
 
 export const removeAuthToken = async (): Promise<void> => {
   tokenManager.removeToken();
   // Sync with Redux state - clear token - use dynamic import to avoid circular dependency
   const { updateAccessToken } = await import("@/reduxToolKit/user/userSlice");
-  getStore().dispatch(updateAccessToken({ accessToken: null }));
+  getStore()?.dispatch(updateAccessToken({ accessToken: null }));
 };
 
 export const isAuthenticated = (): boolean => {
-  const state = getStore().getState();
-  return tokenManager.hasToken() || !!state.user.accessToken;
+  return tokenManager.hasToken() || !!getStore()?.getState()?.user?.accessToken;
 };
 
 export default apiClient;

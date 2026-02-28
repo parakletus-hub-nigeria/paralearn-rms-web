@@ -70,7 +70,7 @@ Content-Type: application/json
     "subdomain": "brightfuture",
     "adminId": "usr_admin_001",
     "adminEmail": "admin@brightfuture.ng",
-    "loginUrl": "https://brightfuture.pl.ng/login",
+    "loginUrl": "https://brightfuture.pln.ng/login",
     "wasSubdomainModified": false,
     "originalDomain": "brightfuture"
   }

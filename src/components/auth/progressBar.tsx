@@ -1,52 +1,57 @@
-export default function ProgressBar({step} : {step:any}){
-    if(step == 1){
-    return <div className="w-[95%] sm:w-[45%] mt-[10px]">
-        <div className="flex items-center justify-between px-[10px] my-[5px]">
-            <div>
-                step 1 of 3
-            </div>
-            <div>
-                30% complete
-            </div>
-        </div>
+export default function ProgressBar({ step }: { step: number }) {
+  const percent = step === 1 ? 30 : step === 2 ? 60 : 100;
+  const steps = [
+    { n: 1, label: "School" },
+    { n: 2, label: "Admin" },
+    { n: 3, label: "Contact" },
+  ];
 
-        <div className="w-[100%] bg-gray-300 rounded-[2px] h-[10px]">
-            <div className="w-[30%] bg-[#641BC4] h-[100%] rounded-[2px] "></div>
-        </div>
+  return (
+    <div className="w-full space-y-3">
+      {/* Step indicators */}
+      <div className="flex items-center">
+        {steps.map((s, i) => (
+          <div key={s.n} className="flex flex-1 items-center last:flex-none">
+            <div className="flex flex-col items-center gap-1">
+              <div
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-all ${
+                  s.n <= step
+                    ? "bg-primary text-white shadow-md shadow-primary/30"
+                    : "bg-slate-200 text-slate-500"
+                }`}
+              >
+                {s.n}
+              </div>
+              <span
+                className={`text-[10px] font-medium sm:text-xs ${
+                  s.n <= step ? "text-slate-700" : "text-slate-400"
+                }`}
+              >
+                {s.label}
+              </span>
+            </div>
+            {i < steps.length - 1 && (
+              <div
+                className={`mx-1 h-0.5 flex-1 rounded sm:mx-2 ${
+                  s.n < step ? "bg-primary/60" : "bg-slate-200"
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Progress bar */}
+      <div className="flex items-center justify-between text-xs text-slate-500">
+        <span>Step {step} of 3</span>
+        <span>{percent}% complete</span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-primary via-purple-600 to-primary/90 shadow-sm transition-all duration-500 ease-out"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
     </div>
-    }
-
-    if(step == 2){
-    return <div className="w-[95%] sm:w-[45%] mt-[10px]">
-        <div className="flex items-center justify-between px-[10px] my-[5px]">
-            <div>
-                step 2 of 3
-            </div>
-            <div>
-                60% complete
-            </div>
-        </div>
-
-        <div className="w-[100%] bg-gray-300 rounded-[2px] h-[10px]">
-            <div className="w-[60%] bg-[#641BC4] h-[100%] rounded-[2px] "></div>
-        </div>
-    </div>
-    }
-
-    if(step == 3){
-    return <div className="w-[95%] sm:w-[45%] mt-[10px]">
-        <div className="flex items-center justify-between px-[10px] my-[5px]">
-            <div>
-                step 3 of 3
-            </div>
-            <div>
-                100% complete
-            </div>
-        </div>
-
-        <div className="w-[100%] bg-gray-300 rounded-[2px] h-[10px]">
-            <div className="w-[100%] bg-[#641BC4] h-[100%] rounded-[2px] "></div>
-        </div>
-    </div>
-    }
+  );
 }

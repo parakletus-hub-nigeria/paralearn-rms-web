@@ -1,5 +1,5 @@
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
+import { toast} from "sonner";
 import { useState } from "react";
 import {
   Dialog,
@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { tokenManager } from "@/lib/tokenManager";
-import { getSubdomain } from "@/lib/subdomainManager";
+import {
+  getSubdomain,
+} from "@/lib/subdomainManager";
+import apiClient from "@/lib/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/reduxToolKit/store";
 
@@ -45,7 +48,9 @@ const Step_Three = ({
   originalFile: File | null;
 }) => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [uploadCount, setUploadCount] = useState(0);
+  const [successMessage, setSuccessMessage] = useState("");
   const { subdomain: reduxSubdomain } = useSelector((state: RootState) => state.user);
 
   const invalidCount = validatedFileContent.length - ValidNumber;
@@ -62,6 +67,7 @@ const Step_Three = ({
     setValidatedFileContent([]);
     setValidNumber(0);
     setUploadCount(0);
+    setSuccessMessage("");
   };
 
   const handleSubmit = async () => {
@@ -71,61 +77,56 @@ const Step_Three = ({
     }
 
     try {
+      setLoading(true);
       // Determine the endpoint based on upload type
       const endpoint =
         uploadType === "student"
-          ? "/api/proxy/bulk/upload-students"
-          : "/api/proxy/bulk/upload-teachers";
+          ? "/api/proxy/bulk/upload/students"
+          : "/api/proxy/bulk/upload/teachers";
 
       // Create FormData for multipart/form-data upload
       const formData = new FormData();
       formData.append("file", originalFile);
 
-      // Get token from tokenManager for authorization
-      const token = tokenManager.getToken();
-
-      // Get subdomain with fallback priority: Redux -> localStorage -> URL
+      // Get subdomain to ensure we have context (though apiClient handles the header)
       const subdomain = getSubdomain(reduxSubdomain);
       if (!subdomain) {
-        toast.error("Subdomain not found. Please ensure you're logged in correctly.");
+        toast.error("Subdomain not found. Please ensure you are logged in correctly.");
         return;
       }
 
-      // Make the request using fetch (apiFetch doesn't support FormData well)
-      // Note: Don't set Content-Type header - browser will set it with boundary for multipart/form-data
-      const response = await fetch(endpoint, {
-        method: "POST",
+      // Make the request using apiClient to respect global timeout and auth
+      // apiClient interceptors handle token and subdomain
+      const response = await apiClient.post(endpoint, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": subdomain,
+          "Content-Type": "multipart/form-data",
         },
-        body: formData,
       });
 
-      const res = await response.json();
-
-      if (!response.ok) {
-        throw new Error(res.message || `Failed to upload ${uploadType} file`);
-      }
-
-      // Success - show the number of valid records that were uploaded
-      setUploadCount(ValidNumber);
+      const res = response.data;
+      
+      // New backend returns totalRecords and message for background processing
+      const totalRecords = res.data?.totalRecords || res.totalRecords || ValidNumber;
+      const message = res.data?.message || res.message || 
+        `Creation of ${totalRecords} ${uploadType}s processing in the background. You will receive an email notification when completed.`;
+      
+      setUploadCount(totalRecords);
+      setSuccessMessage(message);
       setShowSuccessDialog(true);
-      toast.success(
-        `Successfully uploaded ${ValidNumber} ${uploadType}(s) from file`
-      );
+      toast.success(message);
     } catch (error: any) {
       console.error("Bulk upload error:", error);
       toast.error(
         error.message ||
           `Failed to upload ${uploadType} file. Please try again.`
       );
+    } finally {
+        setLoading(false);
     }
   };
 
   return (
     <div className="w-full mx-auto p-3 sm:p-4 md:p-6 space-y-6 font-sans flex flex-col items-center">
-      <ToastContainer />
       <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 sm:p-6 flex flex-col items-center text-center w-full sm:w-4/5 md:w-3/5 lg:w-2/5">
         <div className="flex items-center gap-3 mb-1 flex-wrap justify-center">
           <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center  text-sm">
@@ -207,9 +208,19 @@ const Step_Three = ({
         <div className="flex gap-3">
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 rounded  cursor-pointer flex space-x-[10px] bg-[#641BC4] text-white"
+            disabled={loading}
+            className={`px-4 py-2 rounded cursor-pointer flex space-x-[10px] items-center text-white ${
+              loading ? "bg-purple-400 cursor-not-allowed" : "bg-[#641BC4]"
+            }`}
           >
-            Submit{" "}
+            {loading ? (
+              <>
+                 <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                 Submitting...
+              </>
+            ) : (
+              "Submit"
+            )}
           </button>
         </div>
       </div>
@@ -224,20 +235,22 @@ const Step_Three = ({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="text-center">
-              <p className="text-gray-700 mb-2">
-                Your bulk upload has been completed successfully.
+              <p className="text-gray-700 mb-4">
+                {successMessage || `Your bulk upload has been submitted successfully.`}
               </p>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <p className="text-2xl font-bold text-green-600">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-2xl font-bold text-blue-600">
                   {uploadCount}
                 </p>
                 <p className="text-sm text-gray-600">
-                  Records uploaded successfully
+                  {uploadType}s queued for processing
                 </p>
               </div>
-              <p className="text-xs text-gray-500">
-                The uploaded {uploadType}s have been added to your system.
-              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-xs text-yellow-800">
+                  <strong>Note:</strong> You will receive an email notification when the processing is complete.
+                </p>
+              </div>
             </div>
             <div className="flex gap-3 justify-center pt-4">
               <Button

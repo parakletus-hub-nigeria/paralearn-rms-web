@@ -72,35 +72,44 @@ export function ReportCardDetailView({
         </Button>
       </div>
 
-      <Card className="p-6">
+      <div className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
-                <TableHead className="text-primary-foreground">Part A Cognitive</TableHead>
-                <TableHead className="text-primary-foreground text-center">1st Test</TableHead>
-                <TableHead className="text-primary-foreground text-center">2nd Test</TableHead>
-                <TableHead className="text-primary-foreground text-center">Total</TableHead>
-                <TableHead className="text-primary-foreground text-center">Position</TableHead>
-                <TableHead className="text-primary-foreground">Teacher&apos;s Remarks</TableHead>
+              <TableRow className="bg-[var(--lavender)] hover:bg-[var(--lavender)] border-none">
+                <TableHead className="text-white font-bold h-14 pl-6">Part A Cognitive</TableHead>
+                <TableHead className="text-white font-bold h-14 text-center">1st Test 20%</TableHead>
+                <TableHead className="text-white font-bold h-14 text-center">2nd Test 20%</TableHead>
+                <TableHead className="text-white font-bold h-14 text-center">Total</TableHead>
+                <TableHead className="text-white font-bold h-14 text-center">Position</TableHead>
+                <TableHead className="text-white font-bold h-14 pr-6">Teacher Remarks</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {subjects.map((subject, index) => (
-                <TableRow key={subject.name} className={index % 2 === 0 ? "bg-primary/5" : "bg-background"}>
-                  <TableCell className="font-medium">{subject.name}</TableCell>
-                  <TableCell className="text-center">{subject.partA}</TableCell>
-                  <TableCell className="text-center">{subject.firstTest}</TableCell>
-                  <TableCell className="text-center">{subject.secondTest}</TableCell>
-                  <TableCell className="text-center">{subject.total}</TableCell>
-                  <TableCell className="text-center">{subject.position}</TableCell>
-                  <TableCell></TableCell>
+                <TableRow 
+                  key={subject.name} 
+                  className={`border-none transition-colors ${
+                    index % 2 === 0 ? "bg-white" : "bg-[var(--purple-light)]/30"
+                  }`}
+                >
+                  <TableCell className="font-bold text-slate-800 py-5 pl-6">{subject.name}</TableCell>
+                  <TableCell className="text-center font-medium text-slate-600">{subject.partA}</TableCell>
+                  <TableCell className="text-center font-medium text-slate-600">{subject.firstTest}</TableCell>
+                  <TableCell className="text-center font-medium text-slate-600">{subject.secondTest}</TableCell>
+                  <TableCell className="text-center font-bold text-slate-900">{subject.total}</TableCell>
+                  <TableCell className="text-center">
+                    <span className="status-badge bg-white shadow-sm border border-slate-100 text-slate-600">
+                      {subject.position}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-slate-400 italic font-medium pr-6">Fair</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-      </Card>
+      </div>
 
       <div className="flex items-center justify-between pt-4">
         <Button variant="outline" onClick={onBack}>

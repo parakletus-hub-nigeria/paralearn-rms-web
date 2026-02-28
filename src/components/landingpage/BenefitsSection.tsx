@@ -1,77 +1,69 @@
 "use client";
 
+import { ScrollReveal } from "./ScrollReveal";
+
 const BenefitsSection = () => {
   const benefits = [
     {
       title: "Eliminate the End-of-Term Bottleneck",
       category: "Administrative Efficiency",
-      description: "You shouldn't have to pause school operations just to generate report cards. ParaLearn automates the compilation of broadsheets. Whether you are managing 50 students or 5,000, approval and publishing happen in clicks, not weeks.",
+      description: "You should not have to pause school operations just to generate report cards. ParaLearn automates the compilation of broadsheets. Whether you are managing 50 students or 5,000, approval and publishing happen in clicks, not weeks.",
       icon: "⚡",
-      gradient: "from-yellow-400 via-orange-500 to-red-500",
+      gradient: "from-yellow-500 via-orange-600 to-red-600",
     },
     {
       title: "Assessments You Can Trust",
       category: "Assessment Integrity",
       description: "Preserve the sanctity of your exams with audit-ready security. Our system actively monitors for malpractice, flagging interruptions and tab-switching during assessments, so the grades students get are the grades they actually earned.",
       icon: "🛡️",
-      gradient: "from-blue-400 via-indigo-500 to-purple-600",
+      gradient: "from-blue-500 via-indigo-600 to-purple-700",
     },
     {
       title: "Give Teachers Their Weekends Back",
       category: "Teacher Empowerment",
       description: "Reduce the burnout associated with grading hundreds of scripts. With automated grading for objective questions and easy score entry for theory, your teachers spend less time calculating and more time teaching.",
       icon: "👨‍🏫",
-      gradient: "from-green-400 via-emerald-500 to-teal-600",
+      gradient: "from-green-500 via-emerald-600 to-teal-700",
     },
     {
       title: "Build Trust with Instant Transparency",
       category: "Parent/Student Access",
-      description: "End the anxiety of 'missing results.' Once you approve a report, it is immediately available to parents and students via their secure mobile portal. No lost papers, no confusion—just clear, accessible progress tracking.",
+      description: "End the anxiety of missing results. Once you approve a report, it is immediately available to parents and students via their secure mobile portal. No lost papers, no confusion—just clear, accessible progress tracking.",
       icon: "📱",
-      gradient: "from-pink-400 via-purple-500 to-indigo-600",
+      gradient: "from-pink-500 via-purple-600 to-indigo-700",
     },
   ];
 
   return (
-    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 opacity-20 dark:opacity-10">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 dark:bg-purple-900/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 dark:bg-indigo-900/20 rounded-full blur-3xl" />
-      </div>
+    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30" style={{ transform: 'translateZ(0)' }}>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16 lg:mb-20">
-          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
-            <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
-              Real Benefits
-            </span>
+        <ScrollReveal animation="reveal" delay="0s">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/20 via-purple-600/20 to-indigo-700/20 border-2 border-primary/40 dark:border-purple-500/50">
+              <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-primary via-purple-600 to-indigo-700 bg-clip-text text-transparent dark:from-purple-400 dark:via-indigo-400 dark:to-primary uppercase tracking-widest">
+                Real Benefits
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
+              Why Schools Switch
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
+              Focused on outcomes, not technical specs
+            </p>
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
-            Why Schools Switch
-          </h2>
-          <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
-            Focused on outcomes, not technical specs
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-4">
-            <div className="w-8 h-0.5 bg-gradient-to-r from-transparent via-primary to-primary rounded-full" />
-            <div className="w-1 h-1 rounded-full bg-primary" />
-            <div className="w-16 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-600 rounded-full" />
-            <div className="w-1 h-1 rounded-full bg-indigo-600" />
-            <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-transparent rounded-full" />
-          </div>
-        </div>
+        </ScrollReveal>
 
         {/* Benefits Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-6 lg:gap-8">
           {benefits.map((benefit, index) => (
+            <ScrollReveal key={index} animation="reveal" delay={`${0.1 + index * 0.08}s`}>
             <div
-              key={index}
-              className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden hover:-translate-y-2"
+              className="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-md border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden"
             >
               {/* Gradient border on hover */}
-              <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${benefit.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+              <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${benefit.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300`} />
               
               {/* Content */}
               <div className="relative z-10">
@@ -79,14 +71,9 @@ const BenefitsSection = () => {
                 <div className="flex items-start gap-4 md:gap-5 mb-6 md:mb-8">
                   {/* Icon Container */}
                   <div className="relative flex-shrink-0">
-                    {/* Icon glow */}
-                    <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${benefit.gradient} opacity-20 group-hover:opacity-40 blur-xl group-hover:scale-150 transition-all duration-500`} />
-                    
                     {/* Icon */}
-                    <div className={`relative w-16 h-16 sm:w-20 sm:h-20 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br ${benefit.gradient} flex items-center justify-center text-3xl sm:text-4xl md:text-4xl lg:text-5xl shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-500 relative z-10`}>
+                    <div className={`relative w-16 h-16 sm:w-20 sm:h-20 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br ${benefit.gradient} flex items-center justify-center text-3xl sm:text-4xl md:text-4xl lg:text-5xl shadow-lg shadow-current/30 relative z-10`}>
                       {benefit.icon}
-                      {/* Shine effect */}
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     </div>
                   </div>
                   
@@ -107,11 +94,12 @@ const BenefitsSection = () => {
                 </p>
 
                 {/* Bottom accent line */}
-                <div className={`mt-6 pt-6 border-t border-slate-200/60 dark:border-slate-700/60 group-hover:border-transparent transition-colors duration-500 relative`}>
-                  <div className={`absolute top-0 left-0 h-0.5 w-0 bg-gradient-to-r ${benefit.gradient} group-hover:w-full transition-all duration-500 rounded-full`} />
+                <div className={`mt-6 pt-6 border-t border-slate-300/60 dark:border-slate-600/60 group-hover:border-transparent transition-colors duration-300 relative`}>
+                  <div className={`absolute top-0 left-0 h-1 w-0 bg-gradient-to-r ${benefit.gradient} group-hover:w-full transition-all duration-300 rounded-full`} />
                 </div>
               </div>
             </div>
+            </ScrollReveal>
           ))}
         </div>
       </div>

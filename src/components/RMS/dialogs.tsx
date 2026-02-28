@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { ReactNode, useState, useRef } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/reduxToolKit/store";
 import { deleteUser, fetchAllUsers } from "@/reduxToolKit/user/userThunks";
@@ -160,14 +160,14 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
       name: "guardianName",
       label: "Guardian Name",
       type: "text",
-      placeholder: "Enter guardian's name",
+      placeholder: "Enter guardian name",
       required: true,
     },
     {
       name: "guardianPhone",
       label: "Guardian Phone",
       type: "tel",
-      placeholder: "Enter guardian's phone",
+      placeholder: "Enter guardian phone",
       required: true,
     },
   ];
@@ -486,6 +486,7 @@ export function StudentDialog({
   onStudentDeleted?: (studentId: string) => void;
 }) {
   const dispatch = useDispatch<AppDispatch>();
+
   const [formData, setFormData] = useState<any>({
     db_id: props?.db_id || "",
     id: props?.id || props?.email || "",
@@ -649,14 +650,14 @@ export function StudentDialog({
       name: "guardianName",
       label: "Guardian Name",
       type: "text",
-      placeholder: "Enter guardian's name",
+      placeholder: "Enter guardian name",
       required: true,
     },
     {
       name: "guardianPhone",
       label: "Guardian Phone",
       type: "tel",
-      placeholder: "Enter guardian's phone",
+      placeholder: "Enter guardian phone",
       required: true,
     },
   ];
@@ -669,7 +670,7 @@ export function StudentDialog({
           <DialogHeader>
             <p className="text-lg font-bold">Edit Student Details</p>
             <DialogDescription>
-              Update the student's information below
+              Update the student information below
             </DialogDescription>
           </DialogHeader>
 

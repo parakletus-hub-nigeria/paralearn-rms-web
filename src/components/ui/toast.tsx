@@ -22,9 +22,9 @@ const ToastViewport = React.forwardRef<HTMLDivElement, ToastViewportProps>(
     <div
       ref={ref}
       className={cn(
-        'fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]',
+        'fixed top-0 z-[100] flex max-h-screen w-full flex-col p-4 sm:top-4 sm:right-4 sm:left-auto md:max-w-[420px]',
         className,
-      )}
+            )}
       {...props}
     />
   )
@@ -130,8 +130,6 @@ const ToastDescription = React.forwardRef<HTMLDivElement, ToastDescriptionProps>
   )
 )
 ToastDescription.displayName = 'ToastDescription'
-
-type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
 
 type ToastActionElement = React.ReactElement<typeof ToastAction>
 

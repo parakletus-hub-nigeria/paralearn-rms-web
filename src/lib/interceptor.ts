@@ -11,6 +11,9 @@ export const apiFetch = async (
 ): Promise<Response> => {
   const state = store.getState();
   let accessToken = tokenManager.getToken() || state.user.accessToken;
+  const isRefreshRequest =
+    urlPath.includes(routespath.API_REFRESH) ||
+    urlPath.includes(`/api/proxy${routespath.API_REFRESH}`);
 
   // Helper function to retry request with token refresh
   const makeRequest = async (token: string, retry = false): Promise<Response> => {
@@ -38,42 +41,27 @@ export const apiFetch = async (
     const response = await fetch(urlPath, config);
 
     // Handle 401 Unauthorized - try token refresh once
-    if (response.status === 401 && !retry) {
+    // Important: never try to refresh while calling refresh endpoint itself.
+    if (response.status === 401 && !retry && !isRefreshRequest) {
       console.warn("[API Fetch] Token expired, attempting refresh...");
-      
+
       try {
-        // Attempt to refresh token
-        const refreshResponse = await fetch(`/api/proxy${routespath.API_REFRESH}`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const { performTokenRefresh } = await import("./authRefresh");
+        const newToken = await performTokenRefresh();
 
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          const newToken = refreshData.accessToken || refreshData.data?.accessToken || tokenManager.getToken();
-
-          if (newToken) {
-            // Update token in cookies
-            tokenManager.setToken(newToken);
-            
-            // Update Redux state
-            store.dispatch(updateAccessToken({ accessToken: newToken }));
-
-            console.log("[API Fetch] Token refreshed, retrying request");
-            
-            // Retry original request with new token
-            return makeRequest(newToken, true);
-          }
+        if (newToken) {
+          console.log("[API Fetch] Token refreshed, retrying request");
+          // Fetch the fresh token from tokenManager (it was updated by performTokenRefresh)
+          const freshToken = tokenManager.getToken();
+          // Retry original request with the fresh token
+          return makeRequest(freshToken || "", true);
         }
 
         // Refresh failed, clear auth and dispatch logout
         console.error("[API Fetch] Token refresh failed, logging out");
         tokenManager.removeToken();
         store.dispatch(logoutUser());
-        
+
         // Redirect to login if not already there
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
@@ -87,7 +75,7 @@ export const apiFetch = async (
         // Clear auth on refresh failure
         tokenManager.removeToken();
         store.dispatch(logoutUser());
-        
+
         // Redirect to login
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
@@ -101,6 +89,11 @@ export const apiFetch = async (
     }
 
     if (!response.ok && response.status !== 401) {
+      // For refresh requests, let the caller handle non-OK (including 500) gracefully.
+      if (isRefreshRequest) {
+        return response;
+      }
+
       let errorMessage = "API request failed";
       try {
         const errorData = await response.json();
@@ -109,7 +102,7 @@ export const apiFetch = async (
         // If response is not JSON, use status text
         errorMessage = response.statusText || errorMessage;
       }
-      throw new Error(errorMessage);
+      throw new Error(`${errorMessage} (HTTP ${response.status})`);
     }
 
     return response;
@@ -118,7 +111,10 @@ export const apiFetch = async (
   try {
     return await makeRequest(accessToken || "");
   } catch (error: any) {
-    console.error("[API Fetch Error]", error);
+    // Only log non-404 and non-401 (if caught here) errors to reduce console noise
+    if (!error.message?.includes("Cannot GET") && !error.message?.includes("404") && !error.message?.includes("401")) {
+      console.error("[API Fetch Error]", error);
+    }
     throw error;
   }
 };

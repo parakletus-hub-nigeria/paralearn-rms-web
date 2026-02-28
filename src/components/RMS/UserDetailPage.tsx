@@ -1,12 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchUserById } from "@/reduxToolKit/user/userThunks";
+import logo from "../../../public/mainLogo.svg";
 
 export const UserDetailPage = () => {
   const params = useParams();
@@ -33,9 +35,15 @@ export const UserDetailPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
-          <p className="text-gray-600">Loading user details...</p>
+        <div className="relative w-20 h-20 flex items-center justify-center">
+          <Image
+            src={logo}
+            alt="Loading"
+            width={80}
+            height={80}
+            className="animate-pulse drop-shadow-lg"
+            priority
+          />
         </div>
       </div>
     );
@@ -52,7 +60,7 @@ export const UserDetailPage = () => {
   const user = selectedUser;
 
   return (
-    <div className="w-full p-6">
+    <div className="w-full p-0 sm:p-6">
       <button
         onClick={() => router.back()}
         className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900"

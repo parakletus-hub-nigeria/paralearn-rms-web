@@ -4,11 +4,18 @@ import { tokenManager } from "@/lib/tokenManager";
 import { routespath } from "@/lib/routepath";
 import { getSubdomain, saveSubdomainToStorage, extractSubdomainFromURL, getSubdomainFromStorage } from "@/lib/subdomainManager";
 import { store } from "@/reduxToolKit/store";
+import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
+import { 
+  normalizeRoles, 
+  pickRedirectPath, 
+  extractTokenAndUser, 
+  extractSubdomainFromUser 
+} from "./userUtils";
 // Log in the user and save the token
 export const loginUser = createAsyncThunk(
   "user/login",
   async (
-    credentials: { email: string; password: string },
+    credentials: { email: string; password: string; skipSessionCheck?: boolean; redirectTo?: string },
     { rejectWithValue }
   ) => {
     try {
@@ -16,17 +23,16 @@ export const loginUser = createAsyncThunk(
         `/api/proxy${routespath.API_LOGIN}`,
         credentials
       );
-      
+
       // Log the full response for debugging
       console.log("[Login Response]", response);
       console.log("[Login Response Data]", response.data);
 
-      // Handle different response structures
-      const responseData = response.data?.data || response.data;
-      const { accessToken: responseToken, user, school} = responseData;
+      const { token: tokenFromResponse, user: userFromResponse } =
+        extractTokenAndUser(response.data);
 
       // Try to get token from response first, then from cookies (set by backend)
-      let accessToken = responseToken || responseData?.accessToken || tokenManager.getToken();
+      let accessToken = tokenFromResponse || tokenManager.getToken();
 
       // If still no token, wait a bit for cookie to be set (backend might set it as httpOnly cookie)
       if (!accessToken) {
@@ -34,8 +40,6 @@ export const loginUser = createAsyncThunk(
         await new Promise((resolve) => setTimeout(resolve, 100));
         accessToken = tokenManager.getToken();
       }
-      console.log('response',responseData)
-
       if (!accessToken) {
         return rejectWithValue("No token received from server");
       }
@@ -48,21 +52,15 @@ export const loginUser = createAsyncThunk(
         await setAuthToken(accessToken);
       }
 
-      // Extract subdomain ONLY from backend response user object
-      // Check multiple possible locations in the response structure
-      let subdomain: string | null = null;
-      
-      if (response.data?.data?.school?.subdomain) {
-        // Structure: { success: true, data: { school: { subdomain: "...", ... }, ... } }
-        subdomain = response.data.data.school.subdomain;
-      } else if (response.data?.school?.subdomain) {
-        // Structure: { success: true, school: { subdomain: "...", ... }, ... }
-        subdomain = response.data.school.subdomain;
-      } else if (school?.subdomain) {
-        // Direct access from destructured school
-        subdomain = school.subdomain;
+      // Extract roles using the enhanced normalization logic
+      let roles = normalizeRoles(userFromResponse?.roles);
+      if (roles.length === 0 && userFromResponse) {
+        roles = normalizeRoles(userFromResponse);
       }
-      
+
+      const redirectTo = pickRedirectPath(roles);
+      const subdomain = extractSubdomainFromUser(userFromResponse, response.data);
+
       // If subdomain not found in user object, return error
       if (!subdomain) {
         return rejectWithValue("Subdomain not found in user response. Please contact support.");
@@ -71,7 +69,55 @@ export const loginUser = createAsyncThunk(
       // Store subdomain in localStorage and Redux
       saveSubdomainToStorage(subdomain);
       
-      // Redirect to subdomain URL with dashboard path
+      // Determine redirect path
+      let redirectPath: string;
+      
+      // If explicit redirect path provided (e.g., from signup), use it
+      if (credentials.redirectTo) {
+        redirectPath = credentials.redirectTo;
+      } 
+      // If skipSessionCheck is true (e.g., for new signups), go to setup
+      else if (credentials.skipSessionCheck) {
+        redirectPath = "/setup";
+      }
+      // Otherwise, check if academic session is set up
+      else {
+        // Use pickRedirectPath to determine the base path (TEACHER_DASHBOARD etc)
+        // If it's a teacher or student, we want to skip the session check and go straight to dashboard
+        const isTeacher = roles.some((r: any) => String(r).toLowerCase() === "teacher");
+        const isStudent = roles.some((r: any) => String(r).toLowerCase() === "student");
+        
+        if (isTeacher || isStudent) {
+           redirectPath = redirectTo; // Use the path from pickRedirectPath (e.g., TEACHER_DASHBOARD / STUDENT_DASHBOARD)
+        } else {
+             redirectPath = routespath.DASHBOARD; // Default to dashboard for others before check
+            try {
+              // Try to fetch current session to check if setup is complete
+              // Use a timeout to prevent blocking login for too long
+              const sessionResponse = await Promise.race([
+                apiClient.get(`/api/proxy${routespath.API_GET_CURRENT_SESSION}`),
+                new Promise((_, reject) => 
+                  setTimeout(() => reject(new Error("Session check timeout")), 3000)
+                )
+              ]) as any;
+              
+              // If session exists and is valid, go to dashboard
+              if (sessionResponse?.data?.success && sessionResponse?.data?.data?.sessionDetails) {
+                redirectPath = routespath.DASHBOARD;
+              } else {
+                // No session found, redirect to setup wizard
+                redirectPath = "/setup";
+              }
+            } catch (sessionError: any) {
+              // If fetching session fails (404, timeout, or no session), redirect to setup
+              // This is safe - if session check fails, assume setup is needed
+              console.log("No academic session found or check timed out, redirecting to setup:", sessionError);
+              redirectPath = "/setup";
+            }
+        }
+      }
+      
+      // Redirect to subdomain URL with appropriate path
       if (typeof window !== "undefined") {
         const currentHost = window.location.host;
         const currentProtocol = window.location.protocol;
@@ -79,43 +125,57 @@ export const loginUser = createAsyncThunk(
         // // Check if we're already on the subdomain URL
         // const hostParts = currentHost.split(".");
         // const isAlreadyOnSubdomain = hostParts[0] === subdomain && hostParts.length > 1;
-        
+
         // if (!isAlreadyOnSubdomain) {
         if (true) {
 
           // Construct subdomain URL
-          // For localhost: subdomain.localhost:port
-          // For production: subdomain.domain.com
+          const subdomainStr = subdomain || "default"; // Ensure subdomain is string
           let newHost: string;
-          
+
           if (currentHost.includes("localhost") || currentHost.includes("127.0.0.1")) {
             // Local development
             const port = currentHost.includes(":") ? currentHost.split(":")[1] : "";
-            newHost = port ? `${subdomain}.localhost:${port}` : `${subdomain}.localhost`;
+            newHost = port ? `${subdomainStr}.localhost:${port}` : `${subdomainStr}.localhost`;
           } else {
             // Production - extract base domain
             const hostParts = currentHost.split(".");
             if (hostParts.length >= 2) {
-              // Get the last two parts (e.g., "example.com" from "app.example.com")
               const baseDomain = hostParts.slice(-2).join(".");
-              newHost = `${subdomain}.${baseDomain}`;
+              newHost = `${subdomainStr}.${baseDomain}`;
             } else {
-              // Fallback
-              newHost = `${subdomain}.${currentHost}`;
+              newHost = `${subdomainStr}.${currentHost}`;
             }
           }
           
-          // Redirect to subdomain URL with dashboard path
-          const dashboardPath = routespath.DASHBOARD;
-          const newUrl = `${currentProtocol}//${newHost}${dashboardPath}`;
+          // CRITICAL: Save user data to localStorage BEFORE redirecting
+          // This ensures the data persists after page reload
+          const userToSave = {
+            ...(userFromResponse || {}),
+            roles,
+          };
           
-          // Redirect to subdomain URL with dashboard
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("currentUser", JSON.stringify(userToSave));
+            } catch (e) {
+              console.error("[Login Thunk] Failed to save user to localStorage:", e);
+            }
+          }
+          
+          // Redirect to subdomain URL with appropriate path
+          const newUrl = `${currentProtocol}//${newHost}${redirectPath}`;
+          
+          // Redirect to subdomain URL
           window.location.href = newUrl;
-          
+
           // Return early since we're redirecting
           return {
             accessToken,
-            user: user || {},
+            user: {
+              ...(userFromResponse || {}),
+              roles,
+            },
             subdomain: subdomain,
             redirecting: true,
           };
@@ -124,7 +184,10 @@ export const loginUser = createAsyncThunk(
 
       return {
         accessToken,
-        user: user || {},
+        user: {
+          ...(userFromResponse || {}),
+          roles,
+        },
         subdomain: subdomain,
       };
     } catch (error: any) {
@@ -172,7 +235,8 @@ export const logoutUser = createAsyncThunk(
     try {
       try {
         // Attempt to notify backend of logout
-        await apiClient.post(routespath.API_LOGOUT);
+        // Must go through proxy rewrite to backend
+        await apiClient.get(`/api/proxy${routespath.API_LOGOUT}`);
       } catch (error) {
         // Even if logout endpoint fails, we still want to clear local state
         console.warn("[Logout] Backend logout failed, clearing local auth");
@@ -266,14 +330,6 @@ export const signupUser = createAsyncThunk(
     try {
       const response = await apiClient.post(routespath.API_SIGNUP, userData);
       const { accessToken, user } = response.data;
-
-      if (!accessToken) {
-        return rejectWithValue("No token received from server");
-      }
-
-      // Store token in cookies
-      await setAuthToken(accessToken);
-
       return {
         accessToken,
         user: user || {},
@@ -291,50 +347,6 @@ export const signupUser = createAsyncThunk(
   }
 );
 
-// Start the password reset process
-export const requestPasswordReset = createAsyncThunk(
-  "user/requestPasswordReset",
-  async (email: string, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.post(routespath.API_FORGOT_PASSWORD, {
-        email,
-      });
-      return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        "Password reset request failed";
-
-      console.error("[Password Reset Request Error]", errorMessage);
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
-// Finalize the password reset with the new password
-export const confirmPasswordReset = createAsyncThunk(
-  "user/confirmPasswordReset",
-  async (data: { token: string; newPassword: string }, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.post(
-        routespath.API_RESET_PASSWORD,
-        data
-      );
-      return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        "Password reset confirmation failed";
-
-      console.error("[Password Reset Confirmation Error]", errorMessage);
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
 
 // Fetch all users (students and teachers)
 export const fetchAllUsers = createAsyncThunk(
@@ -342,13 +354,13 @@ export const fetchAllUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiClient.get("/api/proxy/users");
-      
+
       if (!response.data) {
         return rejectWithValue("No users data received");
       }
 
       const users = response.data.data || response.data;
-      
+
       // Separate students and teachers
       const students = users.filter(
         (item: any) => item.roles?.[0]?.role?.name === "student"
@@ -371,7 +383,12 @@ export const fetchAllUsers = createAsyncThunk(
         error.message ||
         "Failed to fetch users";
 
-      console.error("[Fetch All Users Error]", errorMessage);
+      // Only log non-subdomain errors to reduce console noise
+      // Subdomain errors are expected in some scenarios and will be handled by the UI
+      if (!errorMessage.toLowerCase().includes("subdomain")) {
+        console.error("[Fetch All Users Error]", errorMessage);
+      }
+      
       return rejectWithValue(errorMessage);
     }
   }

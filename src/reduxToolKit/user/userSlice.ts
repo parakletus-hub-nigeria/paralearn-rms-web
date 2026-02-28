@@ -8,8 +8,6 @@ import {
   fetchUserData,
   refreshAuthToken,
   signupUser,
-  requestPasswordReset,
-  confirmPasswordReset,
   fetchAllUsers,
   fetchUserById,
   deleteUser,
@@ -19,6 +17,8 @@ import {
   getTenantInfo,
   updateSchoolBranding,
 } from "./userThunks";
+import { normalizeRoles } from "./userUtils";
+import { getDecodedTokenPayload } from "@/lib/jwt-decode";
 
 interface UserState {
   accessToken: string | null;
@@ -30,6 +30,7 @@ interface UserState {
     lastName: string;
     schoolId: string;
     roles: string[];
+    avatar?: string;
   };
   // Users list state
   users: any[];
@@ -47,6 +48,70 @@ interface UserState {
   error: string | null;
   success: boolean;
 }
+
+const USER_KEY = "currentUser";
+
+
+
+const getInitialUser = (): UserState["user"] => {
+  if (typeof window === "undefined") {
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
+  }
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      console.log("[userSlice] Initializing from localStorage:", parsed);
+      const roles = normalizeRoles(parsed?.roles);
+      return {
+        id: parsed?.id || "",
+        email: parsed?.email || "",
+        firstName: parsed?.firstName || "",
+        lastName: parsed?.lastName || "",
+        schoolId: parsed?.schoolId || "",
+        roles: roles,
+        avatar: parsed?.avatar || parsed?.profilePicture || "",
+      };
+    }
+    
+    // Fallback: If no localStorage (e.g. after subdomain redirect), check JWT
+    const token = tokenManager.getToken();
+    console.log("[userSlice] Check Token:", token ? `Exists (${token.substring(0, 10)}...)` : "Missing");
+    if (token) {
+      const decoded = getDecodedTokenPayload(token);
+      console.log("[userSlice] Decoded JWT Payload (Full):", JSON.stringify(decoded, null, 2));
+      if (decoded) {
+        // Try multiple ways to extract roles from JWT
+        let roles = normalizeRoles(decoded.roles || decoded.role);
+        
+        // If roles is still empty, try passing the entire decoded object 
+        // to normalizeRoles to check for iadmin, iseditor, etc.
+        if (roles.length === 0) {
+          roles = normalizeRoles(decoded);
+        }
+
+        console.log("[userSlice] Initial State Roles being applied:", roles);
+        return {
+          id: decoded.sub || decoded.id || decoded.userId || "",
+          email: decoded.email || "",
+          firstName: decoded.firstName || "",
+          lastName: decoded.lastName || "",
+          schoolId: decoded.schoolId || "",
+          roles: roles,
+          avatar: decoded.avatar || decoded.profilePicture || "",
+        };
+      } else {
+        console.warn("[userSlice] Failed to decode token payload");
+      }
+    }
+
+    console.log("[userSlice] Initializing with empty state (No storage, no token)");
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
+  } catch (e) {
+    console.warn("[userSlice] Failed to initialize user state", e);
+    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
+  }
+};
 
 const getInitialToken = () => {
   if (typeof window !== "undefined") {
@@ -69,14 +134,7 @@ const getInitialSubdomain = () => {
 const initialState: UserState = {
   accessToken: getInitialToken() || null,
   subdomain: getInitialSubdomain(),
-  user: {
-    id: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    schoolId: "",
-    roles: [],
-  },
+  user: getInitialUser(),
   users: [],
   students: [],
   teachers: [],
@@ -97,6 +155,7 @@ type User = {
     lastName: string,
     schoolId: string,
     roles: string[],
+    avatar?: string,
   }
 
 const userSlice = createSlice({
@@ -132,6 +191,25 @@ const userSlice = createSlice({
         state.subdomain = action.payload.subdomain || state.subdomain;
         state.success = true;
         state.error = null;
+        // Persist user snapshot for reloads (roles-based guards)
+        if (typeof window !== "undefined") {
+          try {
+            // Extract roles, fallback to checking user object for flags
+            let roles = normalizeRoles(action.payload.user?.roles);
+            if (roles.length === 0) {
+                roles = normalizeRoles(action.payload.user);
+            }
+            
+            const toSave = {
+                ...action.payload.user,
+                roles,
+            };
+            localStorage.setItem(
+              USER_KEY,
+              JSON.stringify(toSave)
+            );
+          } catch {}
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -175,6 +253,11 @@ const userSlice = createSlice({
         };
         state.error = null;
         state.success = true;
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem(USER_KEY);
+          } catch {}
+        }
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
@@ -229,39 +312,6 @@ const userSlice = createSlice({
         state.success = false;
       });
 
-    // Forgot password flow
-    builder
-      .addCase(requestPasswordReset.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(requestPasswordReset.fulfilled, (state) => {
-        state.loading = false;
-        state.success = true;
-        state.error = null;
-      })
-      .addCase(requestPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          (action.payload as string) || "Password reset request failed";
-      });
-
-    // New password confirmation
-    builder
-      .addCase(confirmPasswordReset.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(confirmPasswordReset.fulfilled, (state) => {
-        state.loading = false;
-        state.success = true;
-        state.error = null;
-      })
-      .addCase(confirmPasswordReset.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          (action.payload as string) || "Password reset confirmation failed";
-      });
 
     // Fetch all users
     builder
@@ -332,6 +382,29 @@ const userSlice = createSlice({
       .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUserProfile = action.payload;
+        
+        // Extract roles from profile response
+        let roles = normalizeRoles(action.payload?.roles);
+        
+        // If roles is empty, try the whole payload for role flags (iadmin, etc)
+        if (roles.length === 0) {
+          roles = normalizeRoles(action.payload);
+        }
+
+        state.user = {
+          id: action.payload?.id || state.user.id,
+          email: action.payload?.email || state.user.email,
+          firstName: action.payload?.firstName || state.user.firstName,
+          lastName: action.payload?.lastName || state.user.lastName,
+          schoolId: action.payload?.schoolId || state.user.schoolId,
+          roles: roles.length ? roles : state.user.roles,
+          avatar: action.payload?.avatar || action.payload?.profilePicture || state.user.avatar,
+        };
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(USER_KEY, JSON.stringify(state.user));
+          } catch {}
+        }
         state.error = null;
       })
       .addCase(getCurrentUserProfile.rejected, (state, action) => {
