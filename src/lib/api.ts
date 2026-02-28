@@ -47,18 +47,22 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      // Don't attach tenant header to auth login.
-      // (Login must work even before we know tenant/subdomain.)
-      const isAuthLogin = (config.url || "").includes(routespath.API_LOGIN);
-
       // Get subdomain with fallback priority: Redux -> localStorage -> URL
       const reduxSubdomain = state.user?.subdomain;
-      const subdomain = isAuthLogin ? null : getSubdomain(reduxSubdomain);
+      const subdomain = getSubdomain(reduxSubdomain);
 
-      // Attach tenant header for all non-login requests (including refresh/logout)
-      if (subdomain && !isAuthLogin) {
-        config.headers["X-Tenant-Subdomain"] = subdomain;
+      // Attach tenant header for all requests where subdomain is found.
+      // Many backend endpoints (including login/forgot-password) require this context.
+      if (subdomain) {
+        if (typeof config.headers.set === "function") {
+          config.headers.set("X-Tenant-Subdomain", subdomain);
+        } else {
+          config.headers["X-Tenant-Subdomain"] = subdomain;
+        }
       }
+
+      // Identify if this is a login request for logging/warning purposes
+      const isAuthLogin = (config.url || "").includes(routespath.API_LOGIN);
 
       // Log warnings in development
       if (process.env.NODE_ENV === "development") {
