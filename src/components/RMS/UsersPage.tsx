@@ -353,7 +353,7 @@ export const UsersPage = () => {
         </div>
 
         {/* Table */}
-        {loading ? (
+        {loading && allUsers.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div

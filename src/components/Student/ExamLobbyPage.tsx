@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function ExamLobbyPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -38,6 +39,8 @@ export default function ExamLobbyPage() {
   const { user, currentUserProfile } = useSelector((s: RootState) => s.user);
 
   const [agreed, setAgreed] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const [systemCheck, setSystemCheck] = useState({
     cam: 'checking', // 'checking' | 'ready' | 'error'
     mic: 'checking',
@@ -137,6 +140,48 @@ export default function ExamLobbyPage() {
   return (
     <div className="min-h-screen bg-[#c7d2fe] flex flex-col items-center justify-center p-4 lg:p-8 relative overflow-x-hidden font-sans">
       
+      {/* Starting/Error Assessment Modal Overlay */}
+      {(isStarting || startError) && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-sm w-full mx-4 flex flex-col items-center text-center gap-6 animate-in fade-in zoom-in duration-300">
+            {startError ? (
+              <>
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-red-100"></div>
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center bg-red-50">
+                     <AlertCircle className="w-10 h-10 text-red-500" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Access Denied</h3>
+                  <p className="text-red-500/90 mt-2 font-medium bg-red-50 p-3 rounded-lg border border-red-100/50">{startError}</p>
+                </div>
+                <button 
+                  onClick={() => setStartError(null)}
+                  className="w-full py-3 mt-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin w-20 h-20"></div>
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center bg-indigo-50/50">
+                     <ShieldCheck className="w-8 h-8 text-indigo-600 animate-pulse" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Starting Exam</h3>
+                  <p className="text-slate-500 mt-2 font-medium">Securing session and preparing questions. Please hold on...</p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Mesh Gradient Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(at_47%_33%,hsla(268,69%,78%,1)_0px,transparent_50%),radial-gradient(at_82%_65%,hsla(238,62%,75%,1)_0px,transparent_50%)] opactity-80" />
@@ -275,7 +320,7 @@ export default function ExamLobbyPage() {
                  <div className="relative">
                     <img 
                        alt="Student profile" 
-                       className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md bg-white" 
+                       className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md bg-indigo-50" 
                        src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'student'}`}
                     />
                     <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white"></div>
@@ -353,15 +398,31 @@ export default function ExamLobbyPage() {
                  </div>
 
                   <button 
-                     disabled={!agreed}
+                     disabled={!agreed || isStarting}
                      onClick={async () => {
-                         if (!assessmentId) return;
+                         if (!assessmentId || isStarting) return;
+                         setIsStarting(true);
+                         setStartError(null);
                          try {
                            await dispatch(startAssessment(assessmentId)).unwrap();
                            router.push(`/student/exam?assessmentId=${assessment.id}`);
-                         } catch (error: any) {
+                          } catch (error: any) {
+                           setIsStarting(false);
                            console.error("Failed to start assessment:", error);
-                           alert(error || "Failed to start assessment. Please try again.");
+                           
+                           let errorMsg = "Failed to start assessment. Please try again.";
+                           
+                           if (error?.error) {
+                             errorMsg = typeof error.error === 'string' 
+                               ? error.error 
+                               : JSON.stringify(error.error);
+                           } else if (error?.message) {
+                             errorMsg = error.message;
+                           } else if (typeof error === 'string') {
+                             errorMsg = error;
+                           }
+                           
+                           setStartError(errorMsg);
                          }
                      }}
                     className={`w-full relative overflow-hidden font-bold py-5 px-6 rounded-2xl transition-all flex items-center justify-between group border ${
