@@ -91,9 +91,9 @@ const Footer = () => {
   ];
 
   return (
-    <footer id="footer" className="relative bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-t border-slate-200 dark:border-slate-800">
+    <footer id="footer" className="relative bg-gradient-to-b from-slate-50 to-white border-t border-slate-200">
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5 dark:opacity-10">
+      <div className="absolute inset-0 opacity-5">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_1px_1px,rgb(100,27,196)_1px,transparent_0)] bg-[length:24px_24px]" />
       </div>
 
@@ -101,16 +101,16 @@ const Footer = () => {
         {/* Newsletter Section */}
         <ScrollReveal animation="reveal" delay="0s">
         <div className="mb-16 md:mb-20">
-          <div className="bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-500/10 dark:from-primary/20 dark:via-purple-500/20 dark:to-indigo-500/20 rounded-3xl p-8 md:p-12 border border-primary/20 dark:border-primary/30 shadow-xl">
+          <div className="bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-500/10 rounded-3xl p-8 md:p-12 border border-primary/20 shadow-xl">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center gap-3 mb-4 justify-center lg:justify-start">
                   <Mail className="w-6 h-6 text-primary" />
-                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900">
                     Stay in the <span className="text-primary italic">loop</span>
                   </h3>
                 </div>
-                <p className="text-slate-600 dark:text-slate-400 text-base md:text-lg">
+                <p className="text-slate-600 text-base md:text-lg">
                   Get the latest updates, tips, and exclusive content delivered to your inbox.
                 </p>
               </div>
@@ -123,7 +123,7 @@ const Footer = () => {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 h-12 md:h-14 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-primary rounded-full px-6 text-base font-medium"
+                  className="flex-1 h-12 md:h-14 bg-white border-2 border-slate-200 focus:border-primary rounded-full px-6 text-base font-medium"
                 />
                 <Button
                   type="submit"
@@ -154,7 +154,7 @@ const Footer = () => {
                 />
               </div>
             </div>
-            <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed max-w-xs md:max-w-sm">
+            <p className="text-slate-600 text-sm md:text-base leading-relaxed max-w-xs md:max-w-sm">
               Empowering African schools with modern result management solutions. From chaos to calm.
             </p>
             
@@ -162,19 +162,19 @@ const Footer = () => {
             <div className="space-y-2 md:space-y-3">
               <div className="flex items-start gap-2 md:gap-3">
                 <MapPin className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0 mt-0.5" />
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-xs sm:text-sm text-slate-600">
                   Port Harcourt, Rivers State
                 </p>
               </div>
               <div className="flex items-center gap-2 md:gap-3">
                 <Phone className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
-                <a href="tel:+2348148876125" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
+                <a href="tel:+2348148876125" className="text-xs sm:text-sm text-slate-600 hover:text-primary transition-colors">
                 +234 814887 6125
                 </a>
               </div>
               <div className="flex items-center gap-2 md:gap-3">
                 <Mail className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
-                <a href="mailto:paralearn.io@gmail.com" className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors break-all">
+                <a href="mailto:paralearn.io@gmail.com" className="text-xs sm:text-sm text-slate-600 hover:text-primary transition-colors break-all">
                   paralearn.io@gmail.com
                 </a>
               </div>
@@ -192,7 +192,7 @@ const Footer = () => {
                     aria-label={social.label}
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
-                    className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 hover:scale-110 hover:-translate-y-1 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                    className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 hover:scale-110 hover:-translate-y-1 border border-slate-200 text-slate-600"
                   >
                     <Icon className="w-4 h-4 md:w-5 md:h-5" />
                   </a>
@@ -203,7 +203,7 @@ const Footer = () => {
 
           {/* Product Links */}
           <div className="space-y-3 md:space-y-4">
-            <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">
+            <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900">
               Product
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
@@ -215,7 +215,7 @@ const Footer = () => {
                     <a
                       key={index}
                       href={link.href}
-                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      className="text-sm text-slate-600 hover:text-primary transition-colors font-medium"
                       target={isExternal ? "_blank" : undefined}
                       rel={isExternal ? "noopener noreferrer" : undefined}
                     >
@@ -228,7 +228,7 @@ const Footer = () => {
                     key={index}
                     href={link.href}
                     onClick={(e) => handleLinkClick(e, link.href, link.label)}
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                    className="text-sm text-slate-600 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
                   </a>
@@ -239,7 +239,7 @@ const Footer = () => {
 
           {/* Company Links */}
           <div className="space-y-3 md:space-y-4">
-            <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">
+            <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900">
               Company
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
@@ -251,7 +251,7 @@ const Footer = () => {
                     <a
                       key={index}
                       href={link.href}
-                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      className="text-sm text-slate-600 hover:text-primary transition-colors font-medium"
                       target={isExternal ? "_blank" : undefined}
                       rel={isExternal ? "noopener noreferrer" : undefined}
                     >
@@ -264,7 +264,7 @@ const Footer = () => {
                     key={index}
                     href={link.href}
                     onClick={(e) => handleLinkClick(e, link.href, link.label)}
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                    className="text-sm text-slate-600 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
                   </a>
@@ -275,7 +275,7 @@ const Footer = () => {
 
           {/* Resources Links */}
           <div className="space-y-3 md:space-y-4">
-            <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">
+            <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900">
               Resources
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
@@ -287,7 +287,7 @@ const Footer = () => {
                     <a
                       key={index}
                       href={link.href}
-                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      className="text-sm text-slate-600 hover:text-primary transition-colors font-medium"
                       target={isExternal ? "_blank" : undefined}
                       rel={isExternal ? "noopener noreferrer" : undefined}
                     >
@@ -300,7 +300,7 @@ const Footer = () => {
                     key={index}
                     href={link.href}
                     onClick={(e) => handleLinkClick(e, link.href, link.label)}
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                    className="text-sm text-slate-600 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
                   </a>
@@ -311,7 +311,7 @@ const Footer = () => {
 
           {/* Legal Links */}
           <div className="space-y-3 md:space-y-4">
-            <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">
+            <h4 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900">
               Legal
             </h4>
             <nav className="flex flex-col gap-2 md:gap-3">
@@ -323,7 +323,7 @@ const Footer = () => {
                     <a
                       key={index}
                       href={link.href}
-                      className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium"
+                      className="text-sm text-slate-600 hover:text-primary transition-colors font-medium"
                       target={isExternal ? "_blank" : undefined}
                       rel={isExternal ? "noopener noreferrer" : undefined}
                     >
@@ -336,7 +336,7 @@ const Footer = () => {
                     key={index}
                     href={link.href}
                     onClick={(e) => handleLinkClick(e, link.href, link.label)}
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+                    className="text-sm text-slate-600 hover:text-primary transition-colors font-medium cursor-pointer"
                   >
                     {link.label}
                   </a>
@@ -349,14 +349,14 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <ScrollReveal animation="reveal" delay="0.15s">
-        <div className="pt-8 border-t border-slate-200 dark:border-slate-800">
+        <div className="pt-8 border-t border-slate-200">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6">
-              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+              <p className="text-sm text-slate-600 font-medium">
                 © {new Date().getFullYear()} ParaLearn. All rights reserved.
               </p>
               <span className="hidden md:inline text-slate-400">•</span>
-              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+              <p className="text-sm text-slate-600 font-medium">
                 Proudly built for <span className="text-primary font-black">Africa</span>
               </p>
             </div>

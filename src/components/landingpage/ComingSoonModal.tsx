@@ -19,13 +19,13 @@ const ComingSoonModal = ({ open, onOpenChange, title = "Coming Soon" }: ComingSo
   >
     <h2
       id="coming-soon-title"
-      className="text-2xl md:text-3xl font-black text-center text-slate-900 dark:text-white"
+      className="text-2xl md:text-3xl font-black text-center text-slate-900"
     >
       {title}
     </h2>
     <p
       id="coming-soon-description"
-      className="text-center text-base md:text-lg text-slate-600 dark:text-slate-400 pt-2"
+      className="text-center text-base md:text-lg text-slate-600 pt-2"
     >
       This page is currently under development. We are working hard to bring you amazing content. Check
       back soon!

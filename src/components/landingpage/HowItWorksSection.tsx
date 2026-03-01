@@ -23,18 +23,18 @@ const HowItWorksSection = () => {
   ];
 
   return (
-    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/80 to-slate-100/50 dark:from-slate-900 dark:via-slate-900/80 dark:to-slate-800/50" style={{ transform: 'translateZ(0)' }}>
+    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden" style={{ transform: 'translateZ(0)' }}>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <ScrollReveal animation="reveal" delay="0s">
           <div className="text-center mb-12 md:mb-16 lg:mb-20">
-            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20 dark:border-primary/30">
-              <span className="text-xs sm:text-sm font-bold text-primary dark:text-purple-400 uppercase tracking-widest">
+            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-indigo-600/10 border border-primary/20">
+              <span className="text-xs sm:text-sm font-bold text-primary uppercase tracking-widest">
                 Simple Process
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 mb-4 md:mb-5 tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
               {fullText}
             </h2>
           </div>
@@ -46,10 +46,10 @@ const HowItWorksSection = () => {
             {steps.map((step, index) => (
               <ScrollReveal key={index} animation="reveal" delay={`${0.1 + index * 0.1}s`}>
               <div
-                className="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-md border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden min-h-[280px] sm:min-h-[320px] md:min-h-[300px] lg:min-h-[340px]"
+                className="bg-white/90 rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-md border border-slate-200/80 group relative overflow-hidden min-h-[280px] sm:min-h-[320px] md:min-h-[300px] lg:min-h-[340px]"
               >
                 {/* Glowing border on hover */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/0 via-purple-600/0 to-indigo-600/0 group-hover:from-primary/10 group-hover:via-purple-600/10 group-hover:to-indigo-600/10 transition-all duration-300 border-2 border-transparent group-hover:border-primary/30 dark:group-hover:border-purple-500/30" />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/0 via-purple-600/0 to-indigo-600/0 group-hover:from-primary/10 group-hover:via-purple-600/10 group-hover:to-indigo-600/10 transition-all duration-300 border-2 border-transparent group-hover:border-primary/30" />
                 
                 {/* Content */}
                 <div className="relative z-10">
@@ -62,11 +62,11 @@ const HowItWorksSection = () => {
                   
                   {/* Content Text */}
                   <div className="text-center space-y-3 md:space-y-4">
-                    <h3 className="text-xl sm:text-2xl md:text-xl lg:text-2xl xl:text-3xl font-black text-slate-900 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-purple-400 transition-colors duration-300">
+                    <h3 className="text-xl sm:text-2xl md:text-xl lg:text-2xl xl:text-3xl font-black text-slate-900 leading-tight group-hover:text-primary transition-colors duration-300">
                       {step.title}
                     </h3>
                     
-                    <p className="text-sm sm:text-base md:text-sm lg:text-base xl:text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium max-w-sm mx-auto">
+                    <p className="text-sm sm:text-base md:text-sm lg:text-base xl:text-lg text-slate-600 leading-relaxed font-medium max-w-sm mx-auto">
                       {step.description}
                     </p>
                   </div>

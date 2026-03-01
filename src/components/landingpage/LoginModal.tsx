@@ -30,7 +30,7 @@ const LoginModal = () => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black text-slate-900 dark:text-white">
+          <DialogTitle className="text-2xl font-black text-slate-900">
             Welcome back to ParaLearn.
           </DialogTitle>
           <DialogDescription className="text-base pt-2">
@@ -40,11 +40,11 @@ const LoginModal = () => {
 
         <div className="space-y-6 pt-4">
           {/* Option A: School Administrator */}
-          <div className="bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-500/10 dark:from-primary/20 dark:via-purple-500/20 dark:to-indigo-500/20 rounded-xl p-6 border border-primary/20 dark:border-primary/30">
-            <h3 className="font-black text-lg text-slate-900 dark:text-white mb-2">
+          <div className="bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-500/10 rounded-xl p-6 border border-primary/20">
+            <h3 className="font-black text-lg text-slate-900 mb-2">
               Option A: I am a School Administrator
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+            <p className="text-sm text-slate-600 mb-4">
               Access the Master Dashboard to manage users, approve results, and configure settings.
             </p>
             <Button
@@ -59,11 +59,11 @@ const LoginModal = () => {
           </div>
 
           {/* Option B: Teacher or Student */}
-          <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-            <h3 className="font-black text-lg text-slate-900 dark:text-white mb-2">
+          <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
+            <h3 className="font-black text-lg text-slate-900 mb-2">
               Option B: I am a Teacher or Student
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+            <p className="text-sm text-slate-600 mb-4">
               ParaLearn for the classroom lives on your device. Access your CBT exams, grade books, and report cards via the mobile app.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">

@@ -35,21 +35,21 @@ const BenefitsSection = () => {
   ];
 
   return (
-    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30" style={{ transform: 'translateZ(0)' }}>
+    <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-12 relative overflow-hidden" style={{ transform: 'translateZ(0)' }}>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <ScrollReveal animation="reveal" delay="0s">
           <div className="text-center mb-12 md:mb-16 lg:mb-20">
-            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/20 via-purple-600/20 to-indigo-700/20 border-2 border-primary/40 dark:border-purple-500/50">
-              <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-primary via-purple-600 to-indigo-700 bg-clip-text text-transparent dark:from-purple-400 dark:via-indigo-400 dark:to-primary uppercase tracking-widest">
+            <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-gradient-to-r from-primary/20 via-purple-600/20 to-indigo-700/20 border-2 border-primary/40">
+              <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-primary via-purple-600 to-indigo-700 bg-clip-text text-transparent uppercase tracking-widest">
                 Real Benefits
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl font-black text-slate-900 mb-4 md:mb-5 tracking-tight">
               Why Schools Switch
             </h2>
-            <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium">
+            <p className="text-base sm:text-lg md:text-xl text-slate-600 max-w-3xl mx-auto font-medium">
               Focused on outcomes, not technical specs
             </p>
           </div>
@@ -60,7 +60,7 @@ const BenefitsSection = () => {
           {benefits.map((benefit, index) => (
             <ScrollReveal key={index} animation="reveal" delay={`${0.1 + index * 0.08}s`}>
             <div
-              className="bg-white/90 dark:bg-slate-800/90 rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-md border border-slate-200/80 dark:border-slate-700/80 group relative overflow-hidden"
+              className="bg-white/90 rounded-3xl p-6 sm:p-8 md:p-7 lg:p-10 shadow-md border border-slate-200/80 group relative overflow-hidden"
             >
               {/* Gradient border on hover */}
               <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${benefit.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300`} />
@@ -82,19 +82,19 @@ const BenefitsSection = () => {
                     <span className={`text-xs sm:text-xs md:text-xs font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r ${benefit.gradient} mb-2 block`}>
                       {benefit.category}
                     </span>
-                    <h3 className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white leading-tight group-hover:text-primary dark:group-hover:text-purple-400 transition-colors duration-500">
+                    <h3 className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-black text-slate-900 leading-tight group-hover:text-primary transition-colors duration-500">
                       {benefit.title}
                     </h3>
                   </div>
                 </div>
                 
                 {/* Description */}
-                <p className="text-sm sm:text-base md:text-sm lg:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                <p className="text-sm sm:text-base md:text-sm lg:text-base text-slate-600 leading-relaxed font-medium">
                   {benefit.description}
                 </p>
 
                 {/* Bottom accent line */}
-                <div className={`mt-6 pt-6 border-t border-slate-300/60 dark:border-slate-600/60 group-hover:border-transparent transition-colors duration-300 relative`}>
+                <div className={`mt-6 pt-6 border-t border-slate-300/60 group-hover:border-transparent transition-colors duration-300 relative`}>
                   <div className={`absolute top-0 left-0 h-1 w-0 bg-gradient-to-r ${benefit.gradient} group-hover:w-full transition-all duration-300 rounded-full`} />
                 </div>
               </div>

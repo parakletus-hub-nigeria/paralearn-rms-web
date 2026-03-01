@@ -178,18 +178,18 @@ const ContactPage = () => {
     <LandingLayout className="min-h-screen">
       {/* Hero Section */}
       <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-12 md:py-20 lg:py-24 pt-24 md:pt-32 lg:pt-40 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20 dark:opacity-10">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 dark:bg-purple-900/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 dark:bg-indigo-900/20 rounded-full blur-3xl" />
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <ScrollReveal animation="reveal" delay="0s">
             <div className="text-center mb-8 md:mb-12">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white mb-4 md:mb-6">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black leading-[1.1] tracking-tight text-slate-900 mb-4 md:mb-6">
                 How can we help you?
               </h1>
-              <p className="text-base sm:text-lg md:text-xl lg:text-lg text-slate-600 dark:text-slate-400 font-medium max-w-4xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl lg:text-lg text-slate-600 font-medium max-w-4xl mx-auto leading-relaxed">
                 Whether you are looking to onboard your school or need help with your current workspace, our team is ready.
               </p>
             </div>
@@ -198,10 +198,10 @@ const ContactPage = () => {
       </section>
 
       {/* Contact Options Section */}
-      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-12 md:py-16 lg:py-20 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30">
-        <div className="absolute inset-0 opacity-20 dark:opacity-10">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 dark:bg-purple-900/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 dark:bg-indigo-900/20 rounded-full blur-3xl" />
+      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-12 md:py-16 lg:py-20 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
@@ -209,33 +209,33 @@ const ContactPage = () => {
             <ScrollReveal animation="reveal-left" delay="0.1s">
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#641BC4]/20 via-purple-500/20 to-indigo-600/20 rounded-3xl blur-xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300" />
-                <div className="relative bg-white dark:bg-slate-800/90 backdrop-blur-sm border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-300">
+                <div className="relative bg-white backdrop-blur-sm border-2 border-slate-200 rounded-3xl p-6 md:p-8 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-300">
                   <div className="w-14 h-14 md:w-16 md:h-16 mb-4 md:mb-5 rounded-2xl bg-gradient-to-br from-[#641BC4] to-[#8538E0] flex items-center justify-center shadow-lg">
                     <Building2 className="w-7 h-7 md:w-8 md:h-8 text-white" />
                   </div>
-                  <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white mb-3 md:mb-4">
+                  <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 mb-3 md:mb-4">
                     New Schools (Sales & Inquiries)
                   </h2>
-                  <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-3 md:mb-4">
+                  <p className="text-sm md:text-base text-slate-600 leading-relaxed font-medium mb-3 md:mb-4">
                     Ready to modernize your administration?
                   </p>
-                  <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5 md:mb-6">
+                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed mb-5 md:mb-6">
                     Fill out the form below to speak with an onboarding specialist. We will help you understand pricing, setup, and custom requirements.
                   </p>
-                  <div className="space-y-3 md:space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                      <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                  <div className="space-y-3 md:space-y-4 pt-4 border-t border-slate-200">
+                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
                         <Mail className="w-5 h-5 text-[#641BC4]" />
                       </div>
-                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-700 dark:text-slate-300 hover:text-[#641BC4] transition-colors font-medium">
+                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-700 hover:text-[#641BC4] transition-colors font-medium">
                         paralearn.io@gmail.com
                       </a>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                      <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
                         <Phone className="w-5 h-5 text-[#641BC4]" />
                       </div>
-                      <a href="tel:+2348148876125" className="text-sm md:text-base text-slate-700 dark:text-slate-300 hover:text-[#641BC4] transition-colors font-medium">
+                      <a href="tel:+2348148876125" className="text-sm md:text-base text-slate-700 hover:text-[#641BC4] transition-colors font-medium">
                         +234 814887 6125
                       </a>
                     </div>
@@ -247,33 +247,33 @@ const ContactPage = () => {
             <ScrollReveal animation="reveal-right" delay="0.2s">
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-emerald-600/20 to-teal-600/20 rounded-3xl blur-xl transform -rotate-3 group-hover:-rotate-6 transition-transform duration-300" />
-                <div className="relative bg-white dark:bg-slate-800/90 backdrop-blur-sm border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-300">
+                <div className="relative bg-white backdrop-blur-sm border-2 border-slate-200 rounded-3xl p-6 md:p-8 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-300">
                   <div className="w-14 h-14 md:w-16 md:h-16 mb-4 md:mb-5 rounded-2xl bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 flex items-center justify-center shadow-lg">
                     <HeadphonesIcon className="w-7 h-7 md:w-8 md:h-8 text-white" />
                   </div>
-                  <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white mb-3 md:mb-4">
+                  <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 mb-3 md:mb-4">
                     Existing Users (Technical Support)
                   </h2>
-                  <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-3 md:mb-4">
+                  <p className="text-sm md:text-base text-slate-600 leading-relaxed font-medium mb-3 md:mb-4">
                     Already use ParaLearn?
                   </p>
-                  <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5 md:mb-6">
+                  <p className="text-xs md:text-sm text-slate-600 leading-relaxed mb-5 md:mb-6">
                     For the fastest response regarding account issues, bug reports, or How-to questions, please contact our support desk directly or visit the Knowledge Base.
                   </p>
-                  <div className="space-y-3 md:space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                      <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                        <Mail className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <div className="space-y-3 md:space-y-4 pt-4 border-t border-slate-200">
+                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-5 h-5 text-green-600" />
                       </div>
-                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-700 dark:text-slate-300 hover:text-green-600 dark:hover:text-green-400 transition-colors font-medium">
+                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-700 hover:text-green-600 transition-colors font-medium">
                         paralearn.io@gmail.com
                       </a>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                      <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                        <Mail className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-5 h-5 text-green-600" />
                       </div>
-                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-700 dark:text-slate-300 hover:text-green-600 dark:hover:text-green-400 transition-colors font-medium">
+                      <a href="mailto:paralearn.io@gmail.com" className="text-sm md:text-base text-slate-700 hover:text-green-600 transition-colors font-medium">
                         paralearn.io@gmail.com
                       </a>
                     </div>
@@ -286,17 +286,17 @@ const ContactPage = () => {
       </section>
 
       {/* Inquiry Form Section */}
-      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-12 md:py-16 lg:py-20 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/30 to-white dark:from-slate-900 dark:via-slate-900/50 dark:to-slate-900">
+      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-12 md:py-16 lg:py-20 relative overflow-hidden">
         <div className="max-w-3xl mx-auto relative z-10">
           <ScrollReveal animation="reveal" delay="0.1s">
             <div className="text-center mb-8 md:mb-10">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#641BC4] to-[#8538E0] mb-4 shadow-lg">
                 <Mail className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-3">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-3">
                 The Inquiry Form
               </h2>
-              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
                 Fill out the form below and we'll get back to you as soon as possible
               </p>
             </div>
@@ -304,11 +304,11 @@ const ContactPage = () => {
 
           <ScrollReveal animation="reveal" delay="0.2s">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-indigo-50/50 to-purple-50/50 dark:from-slate-800/50 dark:via-slate-800/50 dark:to-slate-800/50 rounded-3xl blur-xl" />
-              <div className="relative bg-white dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-3xl p-6 sm:p-8 md:p-10 shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-indigo-50/50 to-purple-50/50 rounded-3xl blur-xl" />
+              <div className="relative bg-white backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 md:p-10 shadow-xl">
                 <form onSubmit={handleSubmit} className="space-y-6 md:space-y-7" noValidate>
               <div className="space-y-2">
-                <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <Input
@@ -323,17 +323,17 @@ const ContactPage = () => {
                     setErrors(prev => ({ ...prev, fullName: error || undefined }));
                   }}
                   disabled={isSubmitting}
-                  className={`w-full h-11 bg-slate-50/50 dark:bg-slate-800/50 border-2 rounded-xl px-4 text-base font-medium transition-all ${
+                  className={`w-full h-11 bg-slate-50/50 border-2 rounded-xl px-4 text-base font-medium transition-all ${
                     errors.fullName
-                      ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white dark:focus:bg-slate-800"
-                      : "border-slate-300 dark:border-slate-600 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white dark:focus:bg-slate-800"
+                      ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white"
+                      : "border-slate-300 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white"
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                   placeholder="Enter your full name"
                   aria-invalid={!!errors.fullName}
                   aria-describedby={errors.fullName ? "fullName-error" : undefined}
                 />
                 {errors.fullName && (
-                  <p id="fullName-error" className="mt-1.5 text-sm text-red-600 dark:text-red-400 flex items-center gap-1.5" role="alert">
+                  <p id="fullName-error" className="mt-1.5 text-sm text-red-600 flex items-center gap-1.5" role="alert">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     {errors.fullName}
                   </p>
@@ -341,7 +341,7 @@ const ContactPage = () => {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="schoolName" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label htmlFor="schoolName" className="block text-sm font-semibold text-slate-700">
                   School Name <span className="text-red-500">*</span>
                 </label>
                 <Input
@@ -356,17 +356,17 @@ const ContactPage = () => {
                     setErrors(prev => ({ ...prev, schoolName: error || undefined }));
                   }}
                   disabled={isSubmitting}
-                  className={`w-full h-11 bg-slate-50/50 dark:bg-slate-800/50 border-2 rounded-xl px-4 text-base font-medium transition-all ${
+                  className={`w-full h-11 bg-slate-50/50 border-2 rounded-xl px-4 text-base font-medium transition-all ${
                     errors.schoolName
-                      ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white dark:focus:bg-slate-800"
-                      : "border-slate-300 dark:border-slate-600 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white dark:focus:bg-slate-800"
+                      ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white"
+                      : "border-slate-300 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white"
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                   placeholder="Enter your school name"
                   aria-invalid={!!errors.schoolName}
                   aria-describedby={errors.schoolName ? "schoolName-error" : undefined}
                 />
                 {errors.schoolName && (
-                  <p id="schoolName-error" className="mt-1.5 text-sm text-red-600 dark:text-red-400 flex items-center gap-1.5" role="alert">
+                  <p id="schoolName-error" className="mt-1.5 text-sm text-red-600 flex items-center gap-1.5" role="alert">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     {errors.schoolName}
                   </p>
@@ -374,7 +374,7 @@ const ContactPage = () => {
               </div>
 
               <div className="relative space-y-2">
-                <label htmlFor="role" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label htmlFor="role" className="block text-sm font-semibold text-slate-700">
                   Role <span className="text-red-500">*</span>
                 </label>
                 <Select
@@ -384,11 +384,11 @@ const ContactPage = () => {
                 >
                   <SelectTrigger
                     id="role"
-                    className={`w-full h-11 bg-slate-50/50 dark:bg-slate-800/50 border-2 rounded-xl px-4 text-base font-medium touch-manipulation transition-all ${
+                    className={`w-full h-11 bg-slate-50/50 border-2 rounded-xl px-4 text-base font-medium touch-manipulation transition-all ${
                       errors.role
-                        ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white dark:focus:bg-slate-800"
-                        : "border-slate-300 dark:border-slate-600 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white dark:focus:bg-slate-800"
-                    } data-[placeholder]:text-slate-500 dark:data-[placeholder]:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+                        ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white"
+                        : "border-slate-300 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white"
+                    } data-[placeholder]:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed`}
                     aria-required="true"
                     aria-invalid={!!errors.role}
                     aria-describedby={errors.role ? "role-error" : undefined}
@@ -396,21 +396,21 @@ const ContactPage = () => {
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent
-                    className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl z-[100] w-[var(--radix-select-trigger-width)] max-h-[min(200px,calc(100vh-8rem))] overflow-y-auto overflow-x-hidden sm:max-h-[200px]"
+                    className="bg-white border border-slate-200 shadow-xl z-[100] w-[var(--radix-select-trigger-width)] max-h-[min(200px,calc(100vh-8rem))] overflow-y-auto overflow-x-hidden sm:max-h-[200px]"
                     position="popper"
                     side="bottom"
                     align="start"
                     sideOffset={4}
                     avoidCollisions={false}
                   >
-                    <SelectItem value="proprietor" className="cursor-pointer focus:bg-primary/10 dark:focus:bg-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">Proprietor</SelectItem>
-                    <SelectItem value="principal" className="cursor-pointer focus:bg-primary/10 dark:focus:bg-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">Principal</SelectItem>
-                    <SelectItem value="it-admin" className="cursor-pointer focus:bg-primary/10 dark:focus:bg-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">IT Admin</SelectItem>
-                    <SelectItem value="other" className="cursor-pointer focus:bg-primary/10 dark:focus:bg-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">Other</SelectItem>
+                    <SelectItem value="proprietor" className="cursor-pointer focus:bg-primary/10 hover:bg-primary/5 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">Proprietor</SelectItem>
+                    <SelectItem value="principal" className="cursor-pointer focus:bg-primary/10 hover:bg-primary/5 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">Principal</SelectItem>
+                    <SelectItem value="it-admin" className="cursor-pointer focus:bg-primary/10 hover:bg-primary/5 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">IT Admin</SelectItem>
+                    <SelectItem value="other" className="cursor-pointer focus:bg-primary/10 hover:bg-primary/5 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">Other</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.role && (
-                  <p id="role-error" className="mt-1.5 text-sm text-red-600 dark:text-red-400 flex items-center gap-1.5" role="alert">
+                  <p id="role-error" className="mt-1.5 text-sm text-red-600 flex items-center gap-1.5" role="alert">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     {errors.role}
                   </p>
@@ -418,7 +418,7 @@ const ContactPage = () => {
               </div>
 
               <div className="relative space-y-2">
-                <label htmlFor="schoolSize" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label htmlFor="schoolSize" className="block text-sm font-semibold text-slate-700">
                   School Size <span className="text-red-500">*</span>
                 </label>
                 <Select
@@ -428,11 +428,11 @@ const ContactPage = () => {
                 >
                   <SelectTrigger
                     id="schoolSize"
-                    className={`w-full h-11 bg-slate-50/50 dark:bg-slate-800/50 border-2 rounded-xl px-4 text-base font-medium touch-manipulation transition-all ${
+                    className={`w-full h-11 bg-slate-50/50 border-2 rounded-xl px-4 text-base font-medium touch-manipulation transition-all ${
                       errors.schoolSize
-                        ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white dark:focus:bg-slate-800"
-                        : "border-slate-300 dark:border-slate-600 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white dark:focus:bg-slate-800"
-                    } data-[placeholder]:text-slate-500 dark:data-[placeholder]:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+                        ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white"
+                        : "border-slate-300 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white"
+                    } data-[placeholder]:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed`}
                     aria-required="true"
                     aria-invalid={!!errors.schoolSize}
                     aria-describedby={errors.schoolSize ? "schoolSize-error" : undefined}
@@ -440,20 +440,20 @@ const ContactPage = () => {
                     <SelectValue placeholder="Select school size" />
                   </SelectTrigger>
                   <SelectContent
-                    className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl z-[100] w-[var(--radix-select-trigger-width)] max-h-[min(200px,calc(100vh-8rem))] overflow-y-auto overflow-x-hidden sm:max-h-[200px]"
+                    className="bg-white border border-slate-200 shadow-xl z-[100] w-[var(--radix-select-trigger-width)] max-h-[min(200px,calc(100vh-8rem))] overflow-y-auto overflow-x-hidden sm:max-h-[200px]"
                     position="popper"
                     side="bottom"
                     align="start"
                     sideOffset={4}
                     avoidCollisions={false}
                   >
-                    <SelectItem value="<100" className="cursor-pointer focus:bg-primary/10 dark:focus:bg-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">&lt;100</SelectItem>
-                    <SelectItem value="100-500" className="cursor-pointer focus:bg-primary/10 dark:focus:bg-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">100-500</SelectItem>
-                    <SelectItem value="500+" className="cursor-pointer focus:bg-primary/10 dark:focus:bg-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">500+</SelectItem>
+                    <SelectItem value="<100" className="cursor-pointer focus:bg-primary/10 hover:bg-primary/5 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">&lt;100</SelectItem>
+                    <SelectItem value="100-500" className="cursor-pointer focus:bg-primary/10 hover:bg-primary/5 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">100-500</SelectItem>
+                    <SelectItem value="500+" className="cursor-pointer focus:bg-primary/10 hover:bg-primary/5 touch-manipulation py-2.5 px-3 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[2.25rem]">500+</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.schoolSize && (
-                  <p id="schoolSize-error" className="mt-1.5 text-sm text-red-600 dark:text-red-400 flex items-center gap-1.5" role="alert">
+                  <p id="schoolSize-error" className="mt-1.5 text-sm text-red-600 flex items-center gap-1.5" role="alert">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     {errors.schoolSize}
                   </p>
@@ -461,7 +461,7 @@ const ContactPage = () => {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="message" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label htmlFor="message" className="block text-sm font-semibold text-slate-700">
                   Message (How can we assist you?) <span className="text-red-500">*</span>
                 </label>
                 <Textarea
@@ -475,10 +475,10 @@ const ContactPage = () => {
                     setErrors(prev => ({ ...prev, message: error || undefined }));
                   }}
                   disabled={isSubmitting}
-                  className={`w-full min-h-32 bg-slate-50/50 dark:bg-slate-800/50 border-2 rounded-xl px-4 py-3 text-base font-medium transition-all resize-y ${
+                  className={`w-full min-h-32 bg-slate-50/50 border-2 rounded-xl px-4 py-3 text-base font-medium transition-all resize-y ${
                     errors.message
-                      ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white dark:focus:bg-slate-800"
-                      : "border-slate-300 dark:border-slate-600 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white dark:focus:bg-slate-800"
+                      ? "border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 focus:bg-white"
+                      : "border-slate-300 focus:border-[#641BC4] focus:ring-2 focus:ring-[#641BC4]/20 focus:bg-white"
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                   placeholder="Tell us how we can help you... (minimum 10 characters)"
                   aria-invalid={!!errors.message}
@@ -486,7 +486,7 @@ const ContactPage = () => {
                 />
                 <div className="flex items-center justify-between">
                   {errors.message ? (
-                    <p id="message-error" className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1.5" role="alert">
+                    <p id="message-error" className="text-sm text-red-600 flex items-center gap-1.5" role="alert">
                       <AlertCircle className="w-4 h-4 flex-shrink-0" />
                       {errors.message}
                     </p>
@@ -494,7 +494,7 @@ const ContactPage = () => {
                     <div />
                   )}
                   <p className={`text-xs font-medium ${
-                    formData.message.length > 1000 ? "text-red-500" : "text-slate-500 dark:text-slate-400"
+                    formData.message.length > 1000 ? "text-red-500" : "text-slate-500"
                   }`}>
                     {formData.message.length}/1000
                   </p>
@@ -545,22 +545,22 @@ const ContactPage = () => {
       </section>
 
       {/* Office Location Section */}
-      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-12 md:py-16 lg:py-20 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white dark:from-slate-900 dark:via-slate-900/50 dark:to-slate-900">
+      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-12 md:py-16 lg:py-20 relative overflow-hidden">
         <div className="max-w-3xl mx-auto relative z-10 text-center">
           <ScrollReveal animation="reveal" delay="0s">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-[#641BC4]/20 via-purple-500/20 to-indigo-600/20 rounded-3xl blur-xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300" />
-              <div className="relative bg-white dark:bg-slate-800/90 backdrop-blur-sm border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-8 md:p-10 lg:p-12 shadow-xl">
+              <div className="relative bg-white backdrop-blur-sm border-2 border-slate-200 rounded-3xl p-8 md:p-10 lg:p-12 shadow-xl">
                 <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-5 md:mb-6 rounded-2xl bg-gradient-to-br from-[#641BC4] to-[#8538E0] flex items-center justify-center shadow-lg">
                   <MapPin className="w-8 h-8 md:w-10 md:h-10 text-white" />
                 </div>
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 mb-4">
                   Office Location
                 </h2>
-                <p className="text-base md:text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-semibold mb-2">
+                <p className="text-base md:text-lg text-slate-700 leading-relaxed font-semibold mb-2">
                   Port Harcourt, Rivers State, Nigeria
                 </p>
-                <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 italic">
+                <p className="text-sm md:text-base text-slate-500 italic">
                   Visits by appointment only.
                 </p>
               </div>

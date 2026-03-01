@@ -72,7 +72,7 @@
       >
         <nav className="max-w-7xl mx-auto h-14 sm:h-14 md:h-16 pl-0 sm:pl-1 md:pl-2 pr-4 sm:pr-6 md:pr-8 bg-white rounded-full flex items-center justify-between border border-gray-200/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
           {/* Enhanced Scroll Progress Bar */}
-          <div className="absolute bottom-0 left-0 h-[2px] sm:h-[3px] bg-slate-200/50 dark:bg-slate-800/50 transition-all duration-150 ease-out z-50 overflow-hidden w-full rounded-full">
+          <div className="absolute bottom-0 left-0 h-[2px] sm:h-[3px] bg-slate-200/50 transition-all duration-150 ease-out z-50 overflow-hidden w-full rounded-full">
             <div 
               className="h-full bg-gradient-to-r from-primary via-purple-500 to-indigo-600 shadow-lg shadow-primary/50 transition-all duration-300 ease-out" 
               style={{ width: `${scrolled}%` }}
@@ -109,8 +109,8 @@
                       href={link.href}
                       className={`header-nav-link text-sm font-bold transition-all uppercase tracking-widest relative focus:outline-none px-4 py-2 rounded-lg ${
                         isActive 
-                          ? 'text-primary bg-primary/10 dark:bg-primary/20' 
-                          : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/10'
+                          ? 'text-primary bg-primary/10' 
+                          : 'text-slate-600 hover:text-primary hover:bg-slate-100'
                       }`}
                     >
                       {link.label}
@@ -124,8 +124,8 @@
                     href={link.href}
                     className={`header-nav-link text-sm font-bold transition-all uppercase tracking-widest relative focus:outline-none px-4 py-2 rounded-lg ${
                       isActive 
-                        ? 'text-primary bg-primary/10 dark:bg-primary/20' 
-                        : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/10'
+                        ? 'text-primary bg-primary/10' 
+                        : 'text-slate-600 hover:text-primary hover:bg-slate-100'
                     }`}
                   >
                     {link.label}
@@ -137,7 +137,7 @@
             <div className="flex items-center gap-4">
               <Link href="/auth/signin">
                 <button 
-                  className="text-sm font-bold text-slate-900 dark:text-white px-4 md:px-6 py-2 sm:py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-xl transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-white/20 hover:shadow-md"
+                  className="text-sm font-bold text-slate-900 px-4 md:px-6 py-2 sm:py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 rounded-xl transition-all duration-300 border border-transparent hover:border-slate-200 hover:shadow-md"
                 >
                     Sign In
                 </button>
@@ -154,7 +154,7 @@
           <div className="lg:hidden flex items-center gap-2 sm:gap-4 relative z-10">
             <Link href="/auth/signin" className="hidden sm:block">
               <button 
-                className="text-sm font-bold text-slate-900 dark:text-white px-4 py-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all duration-300"
+                className="text-sm font-bold text-slate-900 px-4 py-2 hover:bg-slate-100 rounded-xl transition-all duration-300"
               >
                 Sign In
               </button>
@@ -163,11 +163,11 @@
             {mounted ? (
               <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-900 dark:text-white" />
+                  <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-900" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 mt-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 shadow-lg rounded-lg p-3">
+                <DropdownMenuContent align="end" className="w-48 mt-2 bg-white border border-gray-200 shadow-lg rounded-lg p-3">
                   {/* Mobile Navigation Links */}
                   {navigationLinks.map((link, index) => {
                     const isHashLink = link.href.startsWith('#');
@@ -181,8 +181,8 @@
                             onClick={() => setIsMenuOpen(false)}
                             className={`px-4 py-2.5 text-xs font-extrabold cursor-pointer uppercase tracking-wider rounded-md ${
                               isActive 
-                                ? 'text-primary bg-primary/10 dark:bg-primary/20' 
-                                : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                                ? 'text-primary bg-primary/10' 
+                                : 'text-slate-600 hover:text-primary hover:bg-purple-50'
                             }`}
                           >
                             {link.label}
@@ -198,8 +198,8 @@
                           onClick={() => setIsMenuOpen(false)}
 className={`px-4 py-2.5 text-xs font-extrabold cursor-pointer uppercase tracking-wider rounded-md ${
                               isActive 
-                                ? 'text-primary bg-primary/10 dark:bg-primary/20' 
-                                : 'text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                                ? 'text-primary bg-primary/10' 
+                                : 'text-slate-600 hover:text-primary hover:bg-purple-50'
                             }`}
                         >
                           {link.label}
@@ -208,14 +208,14 @@ className={`px-4 py-2.5 text-xs font-extrabold cursor-pointer uppercase tracking
                     );
                   })}
                   
-                  <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
+                  <div className="border-t border-gray-200 my-2" />
                   
                   {/* Mobile Action Buttons */}
                   <DropdownMenuItem asChild className="p-0">
                     <Link 
                       href="/auth/signin"
                       onClick={() => setIsMenuOpen(false)}
-                      className="w-full flex justify-center items-center text-xs font-extrabold text-slate-900 dark:text-white px-4 py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-white/10 dark:hover:to-white/5 rounded-md transition-all duration-300 border border-slate-200 dark:border-white/20"
+                      className="w-full flex justify-center items-center text-xs font-extrabold text-slate-900 px-4 py-2.5 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 rounded-md transition-all duration-300 border border-slate-200"
                     >
                       Sign In
                     </Link>
@@ -238,10 +238,10 @@ className={`px-4 py-2.5 text-xs font-extrabold cursor-pointer uppercase tracking
               </DropdownMenu>
             ) : (
               <button 
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 onClick={() => setIsMenuOpen(true)}
               >
-                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-900 dark:text-white" />
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-900" />
               </button>
             )}
           </div>

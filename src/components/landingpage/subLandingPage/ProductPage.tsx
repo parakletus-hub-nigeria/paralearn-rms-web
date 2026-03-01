@@ -69,16 +69,16 @@ const ProductPage = () => {
   return (
     <LandingLayout className="min-h-screen">
       {/* Hero Section */}
-      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30">
-        <div className="absolute inset-0 opacity-20 dark:opacity-10">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 dark:bg-purple-900/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 dark:bg-indigo-900/20 rounded-full blur-3xl" />
+      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10 pt-8 md:pt-12 lg:pt-16">
           <ScrollReveal animation="reveal" delay="0s">
             <div className="text-center mb-12 md:mb-16 lg:mb-20">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 mb-4 md:mb-5 tracking-tight">
                 Goal
               </h2>
             </div>
@@ -87,7 +87,7 @@ const ProductPage = () => {
           <div className="max-w-4xl mx-auto space-y-12 md:space-y-16">
             <ScrollReveal animation="reveal" delay="0.1s">
               <div className="space-y-6">
-                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                <p className="text-base sm:text-lg md:text-xl text-slate-600 leading-relaxed font-medium">
                   Clearly distinguish between the Admin Web Portal (Control) and the Mobile App (Action), highlighting the benefits of each.
                 </p>
               </div>
@@ -95,10 +95,10 @@ const ProductPage = () => {
 
             <ScrollReveal animation="reveal" delay="0.2s">
               <div className="space-y-6">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 mb-4">
                   One Ecosystem, two Specialized Experiences.
                 </h1>
-                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                <p className="text-base sm:text-lg md:text-xl text-slate-600 leading-relaxed font-medium">
                   ParaLearn splits the workload intelligently. Administrators command from the web; teachers and students engage from their devices.
                 </p>
               </div>
@@ -108,10 +108,10 @@ const ProductPage = () => {
       </section>
 
       {/* Command Center Section */}
-      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-white dark:bg-slate-900">
-        <div className="absolute inset-0 opacity-20 dark:opacity-10">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 dark:bg-purple-900/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 dark:bg-indigo-900/20 rounded-full blur-3xl" />
+      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
@@ -120,7 +120,7 @@ const ProductPage = () => {
               <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-widest text-primary font-semibold mb-2 md:mb-3">
                 Part 1
               </p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 mb-4 md:mb-5 tracking-tight">
                 The Command Center (For Admins)
               </h2>
             </div>
@@ -129,7 +129,7 @@ const ProductPage = () => {
           <div className="max-w-4xl mx-auto space-y-12 md:space-y-16 mb-12 md:mb-16">
             <ScrollReveal animation="reveal" delay="0.2s">
               <div className="space-y-6">
-                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium text-center">
+                <p className="text-base sm:text-lg md:text-xl text-slate-600 leading-relaxed font-medium text-center">
                   Accessed via the Web Portal
                 </p>
               </div>
@@ -143,14 +143,14 @@ const ProductPage = () => {
                 <ScrollReveal key={index} animation="reveal" delay={`${0.3 + index * 0.1}s`}>
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-600/10 rounded-3xl blur-xl transform rotate-3" />
-                    <div className="relative bg-white dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="relative bg-white backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300">
                       <div className="w-12 h-12 md:w-14 md:h-14 mb-4 md:mb-6 rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 flex items-center justify-center">
                         <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                       </div>
-                      <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-3 md:mb-4">
+                      <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-3 md:mb-4">
                         {feature.title}
                       </h3>
-                      <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                      <p className="text-base md:text-lg text-slate-600 leading-relaxed font-medium">
                         {feature.description}
                       </p>
                     </div>
@@ -163,10 +163,10 @@ const ProductPage = () => {
       </section>
 
       {/* Classroom Companion Section */}
-      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:from-slate-900/50 dark:via-slate-900 dark:to-slate-800/30">
-        <div className="absolute inset-0 opacity-20 dark:opacity-10">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 dark:bg-purple-900/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 dark:bg-indigo-900/20 rounded-full blur-3xl" />
+      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-16 md:py-24 lg:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
@@ -175,7 +175,7 @@ const ProductPage = () => {
               <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-widest text-primary font-semibold mb-2 md:mb-3">
                 Part 2
               </p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-5 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black text-slate-900 mb-4 md:mb-5 tracking-tight">
                 The Classroom Companion (For Teachers & Students)
               </h2>
             </div>
@@ -184,7 +184,7 @@ const ProductPage = () => {
           <div className="max-w-4xl mx-auto space-y-12 md:space-y-16 mb-12 md:mb-16">
             <ScrollReveal animation="reveal" delay="0.2s">
               <div className="space-y-6">
-                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium text-center">
+                <p className="text-base sm:text-lg md:text-xl text-slate-600 leading-relaxed font-medium text-center">
                   Accessed via the Mobile App
                 </p>
               </div>
@@ -195,7 +195,7 @@ const ProductPage = () => {
             {/* For Teachers Section */}
             <ScrollReveal animation="reveal" delay="0.3s">
               <div className="space-y-8 md:space-y-10">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white text-center">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 text-center">
                   For Teachers: Grading on the Go
                 </h3>
                 <div className="grid md:grid-cols-3 gap-6 md:gap-8">
@@ -205,14 +205,14 @@ const ProductPage = () => {
                       <ScrollReveal key={index} animation="reveal" delay={`${0.4 + index * 0.1}s`}>
                         <div className="relative">
                           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-600/10 rounded-3xl blur-xl transform rotate-3" />
-                          <div className="relative bg-white dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+                          <div className="relative bg-white backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300">
                             <div className="w-12 h-12 md:w-14 md:h-14 mb-4 md:mb-6 rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 flex items-center justify-center">
                               <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                             </div>
-                            <h4 className="text-lg md:text-xl font-black text-slate-900 dark:text-white mb-3">
+                            <h4 className="text-lg md:text-xl font-black text-slate-900 mb-3">
                               {feature.title}
                             </h4>
-                            <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                            <p className="text-base text-slate-600 leading-relaxed font-medium">
                               {feature.description}
                             </p>
                           </div>
@@ -227,7 +227,7 @@ const ProductPage = () => {
             {/* For Students Section */}
             <ScrollReveal animation="reveal" delay="0.6s">
               <div className="space-y-8 md:space-y-10">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white text-center">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 text-center">
                   For Students: Integrity & Insight
                 </h3>
                 <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
@@ -237,14 +237,14 @@ const ProductPage = () => {
                       <ScrollReveal key={index} animation="reveal" delay={`${0.7 + index * 0.1}s`}>
                         <div className="relative">
                           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/10 to-indigo-600/10 rounded-3xl blur-xl transform rotate-3" />
-                          <div className="relative bg-white dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+                          <div className="relative bg-white backdrop-blur-sm border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300">
                             <div className="w-12 h-12 md:w-14 md:h-14 mb-4 md:mb-6 rounded-full bg-gradient-to-br from-primary via-purple-600 to-indigo-600 flex items-center justify-center">
                               <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                             </div>
-                            <h4 className="text-lg md:text-xl font-black text-slate-900 dark:text-white mb-3">
+                            <h4 className="text-lg md:text-xl font-black text-slate-900 mb-3">
                               {feature.title}
                             </h4>
-                            <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                            <p className="text-base text-slate-600 leading-relaxed font-medium">
                               {feature.description}
                             </p>
                           </div>
@@ -260,12 +260,12 @@ const ProductPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-20 md:py-32 lg:py-40 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white dark:from-slate-900 dark:via-slate-900/50 dark:to-slate-900">
+      <section className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-24 py-20 md:py-32 lg:py-40 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] bg-gradient-to-r from-primary/5 via-purple-500/5 to-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10 text-center">
           <ScrollReveal animation="reveal" delay="0s">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white mb-8 md:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl font-black leading-[1.1] tracking-tight text-slate-900 mb-8 md:mb-12">
               See how ParaLearn fits your school.
             </h2>
 
@@ -285,7 +285,7 @@ const ProductPage = () => {
                 <Button
                   variant="ghost"
                   size="lg"
-                  className="h-12 sm:h-14 md:h-14 px-5 sm:px-6 md:px-8 text-sm sm:text-base md:text-base font-bold border border-slate-200 dark:border-slate-700 transition-all duration-300 w-full sm:w-auto"
+                  className="h-12 sm:h-14 md:h-14 px-5 sm:px-6 md:px-8 text-sm sm:text-base md:text-base font-bold border border-slate-200 transition-all duration-300 w-full sm:w-auto"
                 >
                   Return to Home
                 </Button>

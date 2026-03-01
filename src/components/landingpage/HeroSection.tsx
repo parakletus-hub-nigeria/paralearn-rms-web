@@ -14,8 +14,8 @@ const HeroSection = () => {
         {/* Left Column: Hero Text Content */}
         <div className="w-full lg:w-1/2 flex flex-col justify-start md:justify-center items-start space-y-8 md:space-y-10 lg:space-y-12 xl:space-y-14 py-4 md:py-6 lg:py-0 pb-1 md:pb-2 lg:pb-4 xl:pb-6 2xl:pb-8 px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24">
           {/* Headline - Mobile: text-[2.75rem], Tablet: text-5xl, Desktop: text-6xl, Large: text-7xl */}
-          <h1 className="text-[2.75rem] sm:text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-7xl font-black leading-[1.15] tracking-tight text-left max-w-2xl hero-headline animate-in fade-in slide-in-from-bottom-4 duration-700 break-words text-slate-900 dark:text-white font-coolvetica">
-            <span className="bg-gradient-to-r from-primary via-purple-600 to-indigo-600 dark:from-purple-400 dark:via-indigo-400 dark:to-primary bg-clip-text text-transparent">
+          <h1 className="text-[2.75rem] sm:text-5xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-7xl font-black leading-[1.15] tracking-tight text-left max-w-2xl hero-headline animate-in fade-in slide-in-from-bottom-4 duration-700 break-words text-slate-900 font-coolvetica">
+            <span className="bg-gradient-to-r from-primary via-purple-600 to-indigo-600 bg-clip-text text-transparent">
               {/* Mobile and Tablet - Line Break Structure */}
               <span className="block lg:hidden">
                 Restore Calm<br />
@@ -31,7 +31,7 @@ const HeroSection = () => {
           </h1>
 
           {/* Subheadline - Mobile: text-base, Tablet: text-lg, Desktop: text-xl, Large: text-2xl */}
-          <p className="animate-load-fade-in-up text-base md:text-base lg:text-lg xl:text-xl 2xl:text-2xl text-slate-700 dark:text-slate-300 leading-relaxed font-medium text-left max-w-xl" style={{ animationDelay: "100ms" }}>
+          <p className="animate-load-fade-in-up text-base md:text-base lg:text-lg xl:text-xl 2xl:text-2xl text-slate-700 leading-relaxed font-medium text-left max-w-xl" style={{ animationDelay: "100ms" }}>
             Move from chaotic paper trails and compilation bottlenecks to a unified, digital system. ParaLearn simplifies result management so you can focus on education, not paperwork.
           </p>
 
@@ -68,7 +68,7 @@ const HeroSection = () => {
             </Link>
             <Link
               href="/auth/signin"
-              className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 dark:text-white px-7 py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/20 hover:border-primary/40 hover:text-primary dark:hover:text-purple-300 rounded-2xl border-2 border-slate-200 dark:border-white/20 shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center transition-all duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="text-sm md:text-base lg:text-lg xl:text-xl font-bold text-slate-900 px-7 py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 xl:px-12 xl:py-5 bg-white hover:bg-slate-50 hover:border-primary/40 hover:text-primary rounded-2xl border-2 border-slate-200 shadow-md hover:shadow-lg whitespace-nowrap flex-shrink-0 h-[42px] md:h-[44px] lg:h-[52px] xl:h-[56px] flex items-center justify-center transition-all duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               onClick={(e) => {
                 e.preventDefault();
                 const event = new CustomEvent("openLoginModal");
