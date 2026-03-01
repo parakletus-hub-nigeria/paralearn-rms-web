@@ -17,8 +17,11 @@ export type Assessment = {
   classId?: string;
   categoryId?: string;
   totalMarks?: number;
+  marks?: number;
   passingMarks?: number;
   duration?: number;
+  durationMins?: number;
+  durationMinutes?: number;
   instructions?: string;
   startsAt?: string;
   endsAt?: string;
@@ -700,7 +703,7 @@ export const deleteTeacherAssessment = createAsyncThunk(
   "teacher/deleteTeacherAssessment",
   async (id: string, { rejectWithValue }) => {
     try {
-      await apiClient.delete(`/api/proxy/assessments/${id}`);
+      await apiClient.delete(`/api/proxy/teacher/assessments/${id}`);
       return id;
     } catch (e: any) {
       return rejectWithValue(

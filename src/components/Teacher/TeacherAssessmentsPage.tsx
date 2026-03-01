@@ -14,6 +14,7 @@ import {
   fetchAssessmentCategories,
   updateTeacherAssessment,
   deleteTeacherAssessment,
+  publishAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { generateTemplate } from "@/lib/templates";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
@@ -129,6 +130,18 @@ export function TeacherAssessmentsPage() {
     marks: "1",
     options: [{ text: "", isCorrect: false }, { text: "", isCorrect: false }],
     correctAnswer: "",
+  });
+
+  // Edit Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEditAssessment, setSelectedEditAssessment] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    totalMarks: "",
+    durationMins: "",
+    startsAt: "",
+    endsAt: "",
+    instructions: "",
   });
 
   const refreshData = (force = false) => {
@@ -248,7 +261,7 @@ export function TeacherAssessmentsPage() {
           subjectId: createForm.subjectId,
           categoryId: createForm.categoryId,
           totalMarks: createForm.totalMarks ? Number(createForm.totalMarks) : 100,
-          duration: createForm.duration ? Number(createForm.duration) : 60,
+          durationMins: createForm.duration ? Number(createForm.duration) : 60,
           session: createForm.session || currentSession || "2024/2025",
           term: createForm.term,
           assessmentType: createForm.isOnline === "true" ? "online" : "offline",
@@ -269,25 +282,71 @@ export function TeacherAssessmentsPage() {
         totalMarks: "100",
         duration: "60",
         session: currentSession || "",
-        term: currentTerm || "",
+        term: currentTerm || "First Term",
         isOnline: "false",
         startsAt: "",
         endsAt: "",
         instructions: "",
         questions: [],
       });
-      dispatch(fetchMyAssessments());
+      refreshData(true);
     } catch (e: any) {
       toast.error(e || "Failed to create assessment");
     }
   };
 
-  const handlePublish = async (id: string) => {
+  const handleEditClick = (assessment: any) => {
+    setSelectedEditAssessment(assessment);
+    setEditForm({
+      title: assessment.title || "",
+      totalMarks: String(assessment.totalMarks ?? assessment.marks ?? 100),
+      durationMins: String(assessment.durationMins ?? assessment.durationMinutes ?? assessment.duration ?? 60),
+      startsAt: assessment.startsAt ? new Date(assessment.startsAt).toISOString().slice(0, 16) : "",
+      endsAt: assessment.endsAt ? new Date(assessment.endsAt).toISOString().slice(0, 16) : "",
+      instructions: assessment.instructions || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateAssessment = async () => {
+    if (!selectedEditAssessment) return;
     try {
-      const res = await dispatch(updateTeacherAssessment({ id, data: { status: "started" } })).unwrap();
+      await dispatch(updateTeacherAssessment({
+        id: selectedEditAssessment.id,
+        data: {
+          title: editForm.title.trim() || undefined,
+          totalMarks: editForm.totalMarks ? Number(editForm.totalMarks) : undefined,
+          durationMins: editForm.durationMins ? Number(editForm.durationMins) : undefined,
+          startsAt: editForm.startsAt ? new Date(editForm.startsAt).toISOString() : undefined,
+          endsAt: editForm.endsAt ? new Date(editForm.endsAt).toISOString() : undefined,
+          instructions: editForm.instructions
+        }
+      })).unwrap();
+      setShowEditModal(false);
+      refreshData(true);
+      toast.success("Assessment updated successfully");
+    } catch (e: any) {
+      toast.error(e || "Failed to update assessment");
+    }
+  };
+
+  const handlePublishToggle = async (publish: boolean) => {
+    if (!selectedEditAssessment) return;
+    try {
+      await dispatch(publishAssessment({ assessmentId: selectedEditAssessment.id, publish })).unwrap();
+      refreshData(true);
+      toast.success(`Assessment ${publish ? 'published' : 'unpublished'} successfully`);
+    } catch (e: any) {
+       toast.error(e || `Failed to ${publish ? 'publish' : 'unpublish'} assessment`);
+    }
+  };
+
+  const handlePublish = async (assessmentId: string) => {
+    try {
+      const res = await dispatch(updateTeacherAssessment({ id: assessmentId, data: { status: "started" } })).unwrap();
       if (res) {
         toast.success("Assessment published and is now active!");
-        dispatch(fetchMyAssessments());
+        refreshData(true);
       }
     } catch (e: any) {
       toast.error(e || "Failed to publish assessment");
@@ -497,36 +556,45 @@ export function TeacherAssessmentsPage() {
               const statusStyle = getStatusConfig(status);
               const StatusIcon = statusStyle.icon;
               const duration = assessment.durationMinutes ?? assessment.durationMins ?? assessment.duration ?? 30;
+              const bgPattern = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
 
               return (
                 <div
                   key={assessment.id || idx}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-slate-200 transition-all overflow-hidden"
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-slate-200 transition-all overflow-hidden relative"
+                  style={{ backgroundImage: bgPattern }}
                 >
                   {/* Card Header */}
-                  <div className="p-5">
+                  <div className="p-5 relative z-10">
                     <div className="flex items-start justify-between mb-3">
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center"
-                        style={{ backgroundColor: `${primaryColor}15` }}
+                        className="w-11 h-11 rounded-xl flex items-center justify-center bg-white shadow-sm border border-slate-100"
+                        style={{ color: primaryColor }}
                       >
-                        <ClipboardList className="w-5 h-5" style={{ color: primaryColor }} />
+                        <ClipboardList className="w-5 h-5" />
                       </div>
-                      <Badge className={`rounded-lg ${statusStyle.bg} ${statusStyle.text}`}>
+                      <Badge className={`rounded-lg ${statusStyle.bg} ${statusStyle.text} backdrop-blur-sm bg-opacity-90`}>
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {statusStyle.label}
                       </Badge>
                     </div>
-                    <h3 className="font-bold text-slate-900 text-lg mb-1 line-clamp-1 pr-6 relative">
+                    <h3 className="font-bold text-slate-900 text-lg mb-1 line-clamp-1 pr-24 relative">
                       {assessment.title}
-                      <div className="absolute top-0 right-0">
+                      <div className="absolute top-0 right-0 flex items-center gap-1">
+                        <button 
+                          onClick={() => handleEditClick(assessment)} 
+                          className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-purple-100 text-slate-500 hover:text-purple-600 transition-colors bg-white shadow-sm border border-slate-100 text-xs font-semibold"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-1 rounded-md hover:bg-slate-100 text-slate-400 transition-colors">
+                            <button className="p-1 rounded-md hover:bg-slate-100 text-slate-400 transition-colors bg-white shadow-sm border border-slate-100">
                               <MoreVertical className="w-4 h-4" />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-xl min-w-[140px]">
+                          <DropdownMenuContent align="end" className="rounded-xl min-w-[140px] z-50">
                             <DropdownMenuItem 
                               onClick={() => handleDelete(assessment.id)}
                               className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer text-sm"
@@ -599,13 +667,13 @@ export function TeacherAssessmentsPage() {
                       </>
                     ) : (
                         <>
-                        <Link
-                        href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
-                        className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        <button
+                          onClick={() => handleEditClick(assessment)}
+                          className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                         >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                        </Link>
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </button>
                         <Link
                         href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}
                         className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors"
@@ -700,13 +768,13 @@ export function TeacherAssessmentsPage() {
                                 )}
                              </div>
                           ) : (
-                             <div className="flex items-center gap-2">
-                               <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
+                              <div className="flex items-center gap-2">
+                               <button onClick={() => handleEditClick(assessment)}>
                                   <Button variant="outline" size="sm" className="rounded-lg h-9">
-                                  <Edit className="w-4 h-4 mr-1" />
-                                  Edit
+                                    <Edit className="w-4 h-4 mr-1" />
+                                    Edit
                                   </Button>
-                               </Link>
+                               </button>
                                <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}>
                                  <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
                                    <BarChart3 className="w-4 h-4 mr-1" />
@@ -953,6 +1021,117 @@ export function TeacherAssessmentsPage() {
               </Button>
             </div>
           </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Edit Assessment Modal */}
+      {showEditModal && selectedEditAssessment && isMounted && createPortal(
+        <div className="fixed inset-0 z-[500] flex items-center justify-center">
+           <div 
+             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+             onClick={() => setShowEditModal(false)}
+           />
+           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 animate-in fade-in zoom-in-95 max-h-[90vh] flex flex-col">
+              <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4 shrink-0">
+                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-50 text-purple-600">
+                     <Edit className="w-4 h-4" />
+                   </div>
+                   Edit Assessment
+                 </h3>
+                 <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
+                   <X className="w-5 h-5" />
+                 </button>
+              </div>
+              
+              <div className="space-y-4 overflow-y-auto pr-2 pb-2 flex-grow custom-scrollbar">
+                 <div>
+                   <label className="text-sm font-semibold text-slate-700">Assessment Title</label>
+                   <Input
+                     type="text"
+                     value={editForm.title}
+                     onChange={(e) => setEditForm(p => ({ ...p, title: e.target.value }))}
+                     className="mt-1 h-11 rounded-xl"
+                   />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <label className="text-sm font-semibold text-slate-700">Total Marks</label>
+                     <Input
+                       type="number"
+                       value={editForm.totalMarks}
+                       onChange={(e) => setEditForm(p => ({ ...p, totalMarks: e.target.value }))}
+                       className="mt-1 h-11 rounded-xl"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-semibold text-slate-700">Duration (mins)</label>
+                     <Input
+                       type="number"
+                       value={editForm.durationMins}
+                       onChange={(e) => setEditForm(p => ({ ...p, durationMins: e.target.value }))}
+                       className="mt-1 h-11 rounded-xl"
+                     />
+                   </div>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <label className="text-sm font-semibold text-slate-700">Start Date</label>
+                     <Input
+                       type="datetime-local"
+                       value={editForm.startsAt}
+                       onChange={(e) => setEditForm(p => ({ ...p, startsAt: e.target.value }))}
+                       className="mt-1 h-11 rounded-xl"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-semibold text-slate-700">End Date</label>
+                     <Input
+                       type="datetime-local"
+                       value={editForm.endsAt}
+                       onChange={(e) => setEditForm(p => ({ ...p, endsAt: e.target.value }))}
+                       className="mt-1 h-11 rounded-xl"
+                     />
+                   </div>
+                 </div>
+                 <div>
+                   <label className="text-sm font-semibold text-slate-700">Instructions</label>
+                   <textarea
+                      value={editForm.instructions}
+                      onChange={(e) => setEditForm(p => ({ ...p, instructions: e.target.value }))}
+                      className="mt-1 w-full p-3 border border-slate-200 rounded-xl text-sm"
+                      rows={3}
+                   />
+                 </div>
+                 
+                 <div className="pt-4 border-t border-slate-100 flex flex-col gap-3 shrink-0">
+                   <Button onClick={handleUpdateAssessment} className="w-full bg-[#641BC4] hover:bg-purple-700 text-white h-11 rounded-xl font-semibold">
+                     Save Changes
+                   </Button>
+                   <div className="flex gap-3">
+                     <Button 
+                       onClick={() => handlePublishToggle(true)} 
+                       variant="outline"
+                       disabled={selectedEditAssessment.status === 'started' || selectedEditAssessment.status === 'active'}
+                       className="flex-1 h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 font-semibold"
+                     >
+                       <CheckCircle className="w-4 h-4 mr-2" />
+                       Publish
+                     </Button>
+                     <Button 
+                       onClick={() => handlePublishToggle(false)} 
+                       variant="outline"
+                       disabled={selectedEditAssessment.status === 'not_started' || selectedEditAssessment.status === 'draft'}
+                       className="flex-1 h-11 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
+                     >
+                       <X className="w-4 h-4 mr-2" />
+                       Unpublish
+                     </Button>
+                   </div>
+                 </div>
+              </div>
+           </div>
         </div>,
         document.body
       )}

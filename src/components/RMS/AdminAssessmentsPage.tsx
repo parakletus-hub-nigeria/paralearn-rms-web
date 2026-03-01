@@ -278,7 +278,7 @@ export function AdminAssessmentsPage() {
       </div>
 
       {/* Assessment Cards Grid */}
-      {loading ? (
+      {loading && assessments.length === 0 ? (
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div

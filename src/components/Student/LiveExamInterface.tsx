@@ -13,6 +13,7 @@ import {
   incrementWindowBlur,
   restoreSession,
   resetActiveSession,
+  autoFlagQuestion,
 } from "@/reduxToolKit/student/studentSlice";
 import { loadSessionFromStorage } from "@/reduxToolKit/student/studentSlice";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,14 @@ export default function LiveExamInterface() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Keep a stable ref to onFinalSubmit so the timer callback always sees the latest version
-  const onFinalSubmitRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const onFinalSubmitRef = useRef<((reason?: "manual" | "timeout" | "malpractice") => Promise<void>) | undefined>(undefined);
+  const currentQuestionIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (currentAssessment?.questions && currentQuestionIdx < currentAssessment.questions.length) {
+      currentQuestionIdRef.current = currentAssessment.questions[currentQuestionIdx].id;
+    }
+  }, [currentAssessment?.questions, currentQuestionIdx]);
 
   // -------------------------------------------------------------------------
   // Step 1: Restore session from localStorage in case of a page refresh
@@ -101,9 +109,9 @@ export default function LiveExamInterface() {
       setTimeLeft(diff);
       if (diff <= 3) {
         clearInterval(interval);
-        // Use the ref to always call the latest version of onFinalSubmit
         // We trigger it 3 seconds early to account for network latency before the server deadline
-        onFinalSubmitRef.current?.();
+        toast.info("Time is up! Submitting your exam automatically...", { id: "timeout-toast", duration: 5000 });
+        onFinalSubmitRef.current?.("timeout");
       }
     }, 1000);
 
@@ -116,19 +124,14 @@ export default function LiveExamInterface() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        dispatch(incrementTabSwitch());
-        toast.error(
-          <div className="flex flex-col gap-1">
-            <span className="font-bold">Malpractice Flag: Tab Switch</span>
-            <span className="text-xs opacity-90">Switching tabs is strictly prohibited. This incident has been logged.</span>
-          </div>,
-          { duration: 6000 }
-        );
+        dispatch(incrementTabSwitch(currentQuestionIdRef.current || undefined));
+        toast.error("Malpractice Flagged: Tab switched. Your exam is being automatically submitted.", { id: "malpractice-toast", duration: 7000 });
+        onFinalSubmitRef.current?.("malpractice");
       }
     };
 
     const handleBlur = () => {
-      dispatch(incrementWindowBlur());
+      dispatch(incrementWindowBlur(currentQuestionIdRef.current || undefined));
       toast.warning(
         <div className="flex flex-col gap-1">
           <span className="font-bold">Malpractice Flag: Focus Lost</span>
@@ -140,11 +143,13 @@ export default function LiveExamInterface() {
 
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
+      if (currentQuestionIdRef.current) dispatch(autoFlagQuestion(currentQuestionIdRef.current));
       toast.error("Context menu is disabled during the exam.");
     };
 
     const handleCopyPaste = (e: ClipboardEvent) => {
       e.preventDefault();
+      if (currentQuestionIdRef.current) dispatch(autoFlagQuestion(currentQuestionIdRef.current));
       toast.error("Copy/Paste is disabled during the exam.");
     };
 
@@ -190,7 +195,7 @@ export default function LiveExamInterface() {
   // -------------------------------------------------------------------------
   // Final Submit
   // -------------------------------------------------------------------------
-  const onFinalSubmit = useCallback(async () => {
+  const onFinalSubmit = useCallback(async (reason: "manual" | "timeout" | "malpractice" = "manual") => {
     if (!assessmentId || isSubmitting) return;
     setIsSubmitting(true);
     setShowSubmitModal(false);
@@ -213,6 +218,7 @@ export default function LiveExamInterface() {
     const submissionData = {
       startedAt: reliableStartedAt,
       finishedAt: new Date(finishedAtTime).toISOString(),
+      submissionReason: reason,
       deviceMeta: {
         browser: window.navigator.userAgent,
         os: window.navigator.platform,
@@ -221,6 +227,7 @@ export default function LiveExamInterface() {
         tabSwitchCount: activeSession.tabSwitchCount,
         windowBlurCount: activeSession.windowBlurCount,
         suspiciousActivity: activeSession.suspiciousActivity,
+        autoFlaggedQuestions: activeSession.autoFlaggedQuestions,
       },
       answers: buildAnswersPayload(),
     };
@@ -338,7 +345,7 @@ export default function LiveExamInterface() {
                     Continue Exam
                   </button>
                   <button
-                    onClick={onFinalSubmit}
+                    onClick={() => onFinalSubmit("manual")}
                     className="flex-1 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition-colors"
                   >
                     Submit Now
@@ -413,6 +420,17 @@ export default function LiveExamInterface() {
               </div>
 
               <div className="mb-6 md:mb-8">
+                {activeSession.autoFlaggedQuestions?.includes(currentQuestion.id) && (
+                  <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 p-4 rounded-xl animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center flex-none">
+                      <AlertTriangle className="w-6 h-6 text-amber-600 animate-pulse" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-amber-900 uppercase tracking-wider">Malpractice Flagged</p>
+                      <p className="text-xs text-amber-700 font-medium">This question has been flagged for suspicious activity. Your response has been locked.</p>
+                    </div>
+                  </div>
+                )}
                 <h2 className="text-xl md:text-2xl lg:text-3xl font-serif font-medium text-slate-900 leading-relaxed">
                   {currentQuestion.prompt || currentQuestion.questionText}
                 </h2>
@@ -427,28 +445,26 @@ export default function LiveExamInterface() {
                 {currentQuestion.type === "ESSAY" ? (
                   <textarea
                     value={activeSession.answers[currentQuestion.id] || ""}
+                    disabled={activeSession.autoFlaggedQuestions?.includes(currentQuestion.id)}
                     onChange={(e) =>
                       dispatch(setAnswer({ questionId: currentQuestion.id, value: e.target.value }))
                     }
                     placeholder="Type your essay answer here..."
-                    className="col-span-1 sm:col-span-2 w-full min-h-[300px] p-5 text-lg font-medium text-slate-800 resize-y bg-white border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm"
+                    className="col-span-1 sm:col-span-2 w-full min-h-[300px] p-5 text-lg font-medium text-slate-800 resize-y bg-white border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm disabled:opacity-70 disabled:bg-slate-50 disabled:cursor-not-allowed"
                   />
                 ) : currentQuestion.type === "TEXT" ? (
                   <input
                     type="text"
                     value={activeSession.answers[currentQuestion.id] || ""}
+                    disabled={activeSession.autoFlaggedQuestions?.includes(currentQuestion.id)}
                     onChange={(e) =>
                       dispatch(setAnswer({ questionId: currentQuestion.id, value: e.target.value }))
                     }
                     placeholder="Type your short answer here..."
-                    className="col-span-1 sm:col-span-2 w-full p-5 text-lg font-medium text-slate-800 bg-white border border-slate-200 focus:border-slateigo-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm"
+                    className="col-span-1 sm:col-span-2 w-full p-5 text-lg font-medium text-slate-800 bg-white border border-slate-200 focus:border-slateigo-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm disabled:opacity-70 disabled:bg-slate-50 disabled:cursor-not-allowed"
                   />
                 ) : (
                   (currentQuestion.choices || currentQuestion.options || []).map((choice: any, idx: number) => {
-                    // FIX #6: warn if no ID — idx fallback is a last resort only
-                    if (!choice.id) {
-                      console.warn(`[CBT] Question ${currentQuestion.id} choice at index ${idx} has no ID. Using index fallback.`);
-                    }
                     const choiceId = choice.id || idx.toString();
                     const isMultiSelect =
                       currentQuestion.type === "MULTI_SELECT" ||
@@ -468,11 +484,14 @@ export default function LiveExamInterface() {
                     }
 
                     const letter = String.fromCharCode(65 + idx);
+                    const isFlagged = activeSession.autoFlaggedQuestions?.includes(currentQuestion.id);
 
                     return (
                       <label
                         key={choiceId}
-                        className={`group flex items-start h-fit p-4 md:p-5 border rounded-xl cursor-pointer shadow-sm relative transition-all duration-200 ${
+                        className={`group flex items-start h-fit p-4 md:p-5 border rounded-xl shadow-sm relative transition-all duration-200 ${
+                          isFlagged ? "cursor-not-allowed opacity-80" : "cursor-pointer"
+                        } ${
                           isSelected
                             ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600 shadow-md"
                             : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
@@ -483,6 +502,7 @@ export default function LiveExamInterface() {
                           name={`question-${currentQuestion.id}`}
                           className="hidden peer"
                           checked={isSelected}
+                          disabled={isFlagged}
                           onChange={(e) => {
                             if (isMultiSelect) {
                               let arr = Array.isArray(currentAnswer)
@@ -580,6 +600,10 @@ export default function LiveExamInterface() {
                 <div className="w-2 h-2 rounded-full border border-slate-600"></div>
                 <span>Unanswered</span>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)] animate-pulse"></div>
+                <span className="text-amber-500 font-bold">Flagged</span>
+              </div>
             </div>
           </div>
 
@@ -588,6 +612,7 @@ export default function LiveExamInterface() {
               {questions.map((q, idx) => {
                 const isAnswered = activeSession.answers[q.id] !== undefined;
                 const isCurrent = idx === currentQuestionIdx;
+                const isFlagged = activeSession.autoFlaggedQuestions?.includes(q.id);
 
                 return (
                   <button
@@ -599,6 +624,8 @@ export default function LiveExamInterface() {
                     className={`w-10 h-10 rounded-full text-xs font-medium flex items-center justify-center transition-all ${
                       isCurrent
                         ? "bg-white text-slate-900 font-bold shadow-lg ring-4 ring-white/10 scale-110 z-10"
+                        : isFlagged
+                        ? "bg-amber-50 text-amber-600 font-bold ring-2 ring-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                         : isAnswered
                         ? "bg-slate-600 text-slate-200 hover:bg-slate-500"
                         : "border border-slate-600 text-slate-400 hover:border-slate-400 hover:text-slate-200"

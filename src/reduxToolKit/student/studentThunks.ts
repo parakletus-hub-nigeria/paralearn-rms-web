@@ -98,7 +98,10 @@ export const startAssessment = createAsyncThunk(
       });
       return response.data?.data || response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Failed to start assessment");
+      if (error.response?.data) {
+        return rejectWithValue(error.response.data);
+      }
+      return rejectWithValue(error.message || "Failed to start assessment");
     }
   }
 );
@@ -111,7 +114,10 @@ export const submitAssessment = createAsyncThunk(
       const response = await apiClient.post(`/api/proxy/assessments/${assessmentId}/submissions`, data);
       return response.data?.data || response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Failed to submit assessment");
+      if (error.response?.data) {
+        return rejectWithValue(error.response.data);
+      }
+      return rejectWithValue(error.message || "Failed to submit assessment");
     }
   }
 );

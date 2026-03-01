@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/reduxToolKit/store";
 import { deleteUser, fetchAllUsers } from "@/reduxToolKit/user/userThunks";
+import { useRouter } from "next/navigation";
 
 export function AddStudentDialog({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -484,8 +485,10 @@ export function StudentDialog({
   children: ReactNode;
   props: any;
   onStudentDeleted?: (studentId: string) => void;
+  onStudentUpdated?: () => void;
 }) {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
 
   const [formData, setFormData] = useState<any>({
     db_id: props?.db_id || "",
@@ -552,8 +555,9 @@ export function StudentDialog({
         toast.success(result.message || "Student updated successfully");
         // Close the dialog after successful update
         dialogCloseRef.current?.click();
-        // Reload the page to reflect changes
-        window.location.reload();
+        
+        // Notify parent or silently refresh Next.js data
+        props.onStudentUpdated?.();
       } else {
         const result = await response.json();
         toast.error(result.message || "Failed to update student");

@@ -20,6 +20,7 @@ interface StudentState {
     tabSwitchCount: number;
     windowBlurCount: number;
     suspiciousActivity: string[];
+    autoFlaggedQuestions: string[];
   };
   loading: boolean;
   error: string | null;
@@ -35,6 +36,7 @@ const initialActiveSession = {
   tabSwitchCount: 0,
   windowBlurCount: 0,
   suspiciousActivity: [],
+  autoFlaggedQuestions: [],
 };
 
 const initialState: StudentState = {
@@ -65,6 +67,7 @@ function saveSessionToStorage(assessmentId: string, session: StudentState["activ
         tabSwitchCount: session.tabSwitchCount,
         windowBlurCount: session.windowBlurCount,
         suspiciousActivity: session.suspiciousActivity,
+        autoFlaggedQuestions: session.autoFlaggedQuestions,
       })
     );
   } catch {
@@ -105,18 +108,32 @@ const studentSlice = createSlice({
         saveSessionToStorage(state.activeSession.assessmentId, state.activeSession);
       }
     },
-    incrementTabSwitch: (state) => {
+    incrementTabSwitch: (state, action: PayloadAction<string | undefined>) => {
       state.activeSession.tabSwitchCount += 1;
       state.activeSession.suspiciousActivity.push(`Tab switched at ${new Date().toISOString()}`);
+      if (action.payload && !state.activeSession.autoFlaggedQuestions.includes(action.payload)) {
+        state.activeSession.autoFlaggedQuestions.push(action.payload);
+      }
       if (state.activeSession.assessmentId) {
         saveSessionToStorage(state.activeSession.assessmentId, state.activeSession);
       }
     },
-    incrementWindowBlur: (state) => {
+    incrementWindowBlur: (state, action: PayloadAction<string | undefined>) => {
       state.activeSession.windowBlurCount += 1;
       state.activeSession.suspiciousActivity.push(`Window focus lost at ${new Date().toISOString()}`);
+      if (action.payload && !state.activeSession.autoFlaggedQuestions.includes(action.payload)) {
+        state.activeSession.autoFlaggedQuestions.push(action.payload);
+      }
       if (state.activeSession.assessmentId) {
         saveSessionToStorage(state.activeSession.assessmentId, state.activeSession);
+      }
+    },
+    autoFlagQuestion: (state, action: PayloadAction<string>) => {
+      if (!state.activeSession.autoFlaggedQuestions.includes(action.payload)) {
+        state.activeSession.autoFlaggedQuestions.push(action.payload);
+        if (state.activeSession.assessmentId) {
+           saveSessionToStorage(state.activeSession.assessmentId, state.activeSession);
+        }
       }
     },
     resetActiveSession: (state) => {
@@ -150,6 +167,11 @@ const studentSlice = createSlice({
         }
         if (saved.suspiciousActivity && saved.suspiciousActivity.length > state.activeSession.suspiciousActivity.length) {
             state.activeSession.suspiciousActivity = saved.suspiciousActivity;
+        }
+        if (saved.autoFlaggedQuestions && saved.autoFlaggedQuestions.length > state.activeSession.autoFlaggedQuestions.length) {
+            // merge sets to prevent overriding new flags that happened between page load and session restore
+            const mergedFlags = new Set([...state.activeSession.autoFlaggedQuestions, ...saved.autoFlaggedQuestions]);
+            state.activeSession.autoFlaggedQuestions = Array.from(mergedFlags);
         }
       }
     },
@@ -226,6 +248,7 @@ export const {
   incrementWindowBlur,
   resetActiveSession,
   restoreSession,
+  autoFlagQuestion,
 } = studentSlice.actions;
 
 export default studentSlice.reducer;
