@@ -649,8 +649,8 @@ export function TeacherScoresPage() {
 
               {/* Desktop Table View */}
               <div className="hidden lg:block relative">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+                <div className="overflow-x-auto rounded-2xl border border-slate-100 shadow-sm">
+                  <table className="w-full min-w-[800px]">
                     <thead>
                       <tr className="bg-slate-800 text-white">
                         <th className="sticky left-0 z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm w-[50px] sm:w-[60px]">S/N</th>

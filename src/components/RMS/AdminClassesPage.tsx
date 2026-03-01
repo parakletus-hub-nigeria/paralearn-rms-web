@@ -12,6 +12,7 @@ import {
   fetchClassDetails,
   removeStudentFromClass,
   removeTeacherFromClass,
+  deleteClass,
 } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
@@ -27,6 +28,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Plus,
   Search,
   Users,
@@ -38,6 +45,8 @@ import {
   List,
   UserMinus,
   Eye,
+  Trash,
+  AlertTriangle,
   GraduationCap,
 } from "lucide-react";
 
@@ -66,8 +75,11 @@ export function AdminClassesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [classToDelete, setClassToDelete] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -139,6 +151,20 @@ export function AdminClassesPage() {
       }
     } catch (e: any) {
       toast.error(e || "Failed to assign teacher");
+    }
+  };
+
+  const handleDeleteClass = async () => {
+    if (!classToDelete) return;
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteClass(classToDelete.id)).unwrap();
+      setShowDeleteModal(false);
+      setClassToDelete(null);
+    } catch (e: any) {
+      toast.error(e || "Failed to delete class");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -336,9 +362,25 @@ export function AdminClassesPage() {
                     <Badge className={`rounded-lg px-2.5 py-0.5 text-xs font-medium ${color.badge}`}>
                       {cls.stream || "A"} Stream
                     </Badge>
-                    <button className="p-1.5 rounded-lg hover:bg-white/50 transition-colors">
-                      <MoreVertical className="w-4 h-4 text-slate-500" />
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-1.5 rounded-lg hover:bg-white/50 transition-colors focus:outline-none">
+                          <MoreVertical className="w-4 h-4 text-slate-500" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40 rounded-xl">
+                        <DropdownMenuItem 
+                          className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer"
+                          onClick={() => {
+                            setClassToDelete(cls);
+                            setShowDeleteModal(true);
+                          }}
+                        >
+                          <Trash className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
@@ -483,14 +525,29 @@ export function AdminClassesPage() {
                       <span className="text-slate-600">{cls.capacity || "—"}</span>
                     </td>
                     <td className="py-4 px-3 text-center">
-                      <Button
-                        size="sm"
-                        className="h-9 rounded-xl text-white"
-                        style={{ backgroundColor: primaryColor }}
-                        onClick={() => viewClassDetails(cls)}
-                      >
-                        View
-                      </Button>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          size="sm"
+                          className="h-9 rounded-xl text-white"
+                          style={{ backgroundColor: primaryColor }}
+                          onClick={() => viewClassDetails(cls)}
+                        >
+                          <Eye className="w-4 h-4 mr-1.5" />
+                          View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-9 w-9 p-0 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
+                          onClick={() => {
+                            setClassToDelete(cls);
+                            setShowDeleteModal(true);
+                          }}
+                          title="Delete class"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -805,6 +862,51 @@ export function AdminClassesPage() {
               <Button variant="outline" onClick={() => setShowDetailsModal(false)} className="h-11 px-6 rounded-xl">
                 Close
               </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && classToDelete && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isDeleting && setShowDeleteModal(false)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 md:p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                <AlertTriangle className="w-8 h-8 text-red-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2 font-coolvetica">Delete Class?</h2>
+              <p className="text-slate-500 text-sm leading-relaxed mb-6">
+                Are you sure you want to delete <span className="font-bold text-slate-800">{classToDelete.name}</span>? 
+                This action cannot be undone. Any students enrolled in this class will lose their class assignment.
+              </p>
+              
+              <div className="flex w-full gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowDeleteModal(false)} 
+                  className="flex-1 h-12 rounded-xl font-bold border-slate-200 hover:bg-slate-50 text-slate-700"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleDeleteClass} 
+                  className="flex-1 h-12 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-200 transition-all"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Deleting...
+                    </div>
+                  ) : (
+                    "Delete Class"
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>,

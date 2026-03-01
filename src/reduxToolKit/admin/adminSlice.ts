@@ -40,6 +40,7 @@ import {
   createAssessmentCategory,
   deleteAssessmentCategory,
   deleteAssessment,
+  deleteClass,
 } from "./adminThunks";
 
 type AdminState = {
@@ -133,6 +134,15 @@ const adminSlice = createSlice({
         state.success = "Class created";
       })
       .addCase(createClass.rejected, (state, action) => rejected(state, action, "Failed to create class"));
+
+    builder
+      .addCase(deleteClass.pending, pending)
+      .addCase(deleteClass.fulfilled, (state, action) => {
+        state.loading = false;
+        state.classes = state.classes.filter((c) => c.id !== action.payload);
+        state.success = "Class deleted";
+      })
+      .addCase(deleteClass.rejected, (state, action) => rejected(state, action, "Failed to delete class"));
 
     builder
       .addCase(assignTeacherToClass.pending, pending)

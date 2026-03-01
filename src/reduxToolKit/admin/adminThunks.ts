@@ -116,6 +116,18 @@ export const createClass = createAsyncThunk(
   }
 );
 
+export const deleteClass = createAsyncThunk(
+  "admin/deleteClass",
+  async (classId: string, { rejectWithValue }) => {
+    try {
+      await apiClient.delete(`/api/proxy/classes/${classId}`);
+      return classId;
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to delete class");
+    }
+  }
+);
+
 export const assignTeacherToClass = createAsyncThunk(
   "admin/assignTeacherToClass",
   async (payload: { classId: string; teacherId: string }, { rejectWithValue }) => {

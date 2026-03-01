@@ -365,8 +365,9 @@ export const UsersPage = () => {
           </div>
         ) : (
           <>
-            <div className="rounded-2xl border border-slate-100 overflow-hidden">
-              <table className="w-full">
+            <div className="rounded-2xl border border-slate-100 bg-white overflow-hidden">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full min-w-[700px]">
                 <thead>
                   <tr style={{ backgroundColor: primaryColor }}>
                     <th className="text-left text-white font-semibold text-sm py-4 px-5 w-8">
@@ -487,6 +488,7 @@ export const UsersPage = () => {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Pagination */}

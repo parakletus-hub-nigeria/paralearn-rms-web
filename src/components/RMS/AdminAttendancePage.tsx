@@ -340,8 +340,8 @@ export function AdminAttendancePage() {
         </div>
 
         {/* Content Area */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <Table>
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-x-auto">
+          <Table className="min-w-[800px]">
             <TableHeader className="bg-slate-50/50">
               <TableRow>
                 <TableHead className="w-[80px] font-bold text-xs uppercase text-slate-400 pl-8 py-5">S/N</TableHead>

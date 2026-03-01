@@ -426,7 +426,7 @@ export const deleteUser = createAsyncThunk(
         return rejectWithValue("User ID is required");
       }
 
-      const response = await apiClient.delete(`/api/proxy/users/${userId}/hard`);
+      const response = await apiClient.delete(`/api/proxy/users/${userId}`);
 
       return {
         userId,

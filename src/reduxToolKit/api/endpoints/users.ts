@@ -71,10 +71,10 @@ const usersApi = paraApi.injectEndpoints({
       ],
     }),
 
-    // DELETE /api/proxy/users/:id/hard
+    // DELETE /api/proxy/users/:id
     deleteUser: builder.mutation<{ userId: string; message: string }, string>({
       query: (userId) => ({
-        url: `/api/proxy/users/${userId}/hard`,
+        url: `/api/proxy/users/${userId}`,
         method: "DELETE",
       }),
       invalidatesTags: (_r, _e, userId) => [

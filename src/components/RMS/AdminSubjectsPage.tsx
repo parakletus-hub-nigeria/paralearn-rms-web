@@ -446,8 +446,8 @@ export function AdminSubjectsPage() {
           </div>
         ) : (
           <>
-            <div className="rounded-2xl border border-slate-100 overflow-hidden">
-              <table className="w-full">
+            <div className="rounded-2xl border border-slate-100 overflow-x-auto">
+              <table className="w-full min-w-[700px]">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
                     <th className="text-left text-slate-500 font-semibold text-xs uppercase tracking-wider py-4 px-5">

@@ -298,8 +298,8 @@ export function AdminScoresPage() {
       </div>
 
       {/* Score Table (View Only) */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[700px]">
           <thead>
             <tr className="bg-gradient-to-r from-violet-500 to-purple-600">
               <th className="text-left text-white font-semibold text-xs uppercase tracking-wide py-4 px-5 w-[100px]">Student ID</th>

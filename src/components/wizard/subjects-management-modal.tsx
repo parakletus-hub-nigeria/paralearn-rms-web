@@ -54,10 +54,14 @@ export function SubjectsManagementModal({
 
     // Create a subject for each selected class
     selectedClasses.forEach((classId) => {
+      const cls = classes.find((c) => c.id === classId);
+      const suffix = cls ? `-${cls.name.replace(/\s+/g, "")}` : "";
+      const uniqueCode = selectedClasses.length > 1 ? `${subjectCode}${suffix}` : subjectCode;
+
       onAddSubject({
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         name: subjectName,
-        code: subjectCode,
+        code: uniqueCode,
         classId: classId,
         description: subjectDescription || undefined,
       });
