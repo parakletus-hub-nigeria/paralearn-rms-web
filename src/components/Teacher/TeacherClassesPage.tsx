@@ -103,8 +103,8 @@ export function TeacherClassesPage() {
     (teacherClasses || []).forEach((item: any) => {
       const classId = item.class?.id || item.classId;
       const className = item.class?.name || item.className || "Unknown Class";
-      const studentCount = item.class?.studentCount || item.class?.enrollmentCount || 
-                          item.studentCount || item.enrollmentCount || 0;
+      const studentCount = item.class?.studentCount || item.class?.enrollmentCount || item.class?.currentEnrollment ||
+                          item.studentCount || item.enrollmentCount || item.currentEnrollment || 0;
       const classSubjects = item.class?.subjects || [];
 
       if (classId && !classMap.has(classId)) {
@@ -204,14 +204,15 @@ export function TeacherClassesPage() {
               <p className="text-slate-500 mt-1 font-coolvetica">Manage your class mastery and student progress.</p>
             </div>
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                className="h-10 border-slate-200 bg-white text-slate-700 font-bold shadow-sm"
-                onClick={() => toast.info("Attendance module coming soon for Teachers!")}
-              >
-                <CalendarDays className="w-4 h-4 mr-2 text-slate-400" />
-                Start Attendance
-              </Button>
+              <Link href={routespath.TEACHER_ATTENDANCE}>
+                <Button 
+                  variant="outline" 
+                  className="h-10 border-slate-200 bg-white text-slate-700 font-bold shadow-sm"
+                >
+                  <CalendarDays className="w-4 h-4 mr-2 text-slate-400" />
+                  Start Attendance
+                </Button>
+              </Link>
               <Link href={routespath.TEACHER_SCORES}>
                 <Button className="h-10 font-bold shadow-md bg-[#641BC4] hover:bg-[#5215a3] text-white">
                   <BarChart3 className="w-4 h-4 mr-2" />

@@ -56,8 +56,8 @@ export function TeacherDashboardPage() {
       const classId = item.class?.id || item.classId || item.id;
       const className = item.class?.name || item.className || item.name;
       const subjectName = item.subject?.name || item.subjectName || item.name;
-      const studentCount = item.class?.studentCount || item.class?.enrollmentCount || 
-                          item.studentCount || item.enrollmentCount || 0;
+      const studentCount = item.class?.studentCount || item.class?.enrollmentCount || item.class?.currentEnrollment ||
+                          item.studentCount || item.enrollmentCount || item.currentEnrollment || 0;
 
       if (classId && className) {
         if (!classSet.has(classId)) {
@@ -279,7 +279,7 @@ export function TeacherDashboardPage() {
             </Link>
 
             <Link
-              href={routespath.TEACHER_CLASSES}
+              href={routespath.TEACHER_ATTENDANCE}
               className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 md:p-6 hover:shadow-lg hover:border-rose-200 transition-all flex flex-col h-full"
             >
               <div className="flex items-start justify-between mb-3 md:mb-4">
@@ -289,8 +289,8 @@ export function TeacherDashboardPage() {
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-rose-500 transition-colors" />
               </div>
               <div className="mt-auto">
-                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Students</h3>
-                <p className="text-xs text-slate-500 leading-tight">View directory</p>
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Attendance</h3>
+                <p className="text-xs text-slate-500 leading-tight">Take attendance</p>
               </div>
             </Link>
           </div>

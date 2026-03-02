@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { bulkEnrollStudents, fetchClasses, fetchClassDetails, removeStudentFromClass } from "@/reduxToolKit/admin/adminThunks";
+import { AddStudentDialog } from "@/components/RMS/dialogs";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ const DEFAULT_PRIMARY = "#641BC4";
 
 export function AdminEnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { students, loading: usersLoading, tenantInfo } = useSelector((s: RootState) => s.user);
+  const { students, teachers, loading: usersLoading, tenantInfo } = useSelector((s: RootState) => s.user);
   const { classes, loading: adminLoading, selectedClassDetails } = useSelector((s: RootState) => s.admin);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -59,12 +60,19 @@ export function AdminEnrollmentsPage() {
   // Get enrolled students for the selected class
   const enrolledStudents = useMemo(() => {
     if (!selectedClassDetails) return [];
+    
+    // Create a set of teacher IDs to filter them out of the student list
+    // This prevents confusion if a teacher was mistakenly enrolled in the database
+    const teacherIds = new Set(teachers?.map((t: any) => t.id) || []);
+    
     const enrollments = selectedClassDetails.enrollments || selectedClassDetails.students || [];
-    return enrollments.map((e: any) => ({
-      ...(e.student || e),
-      enrolledAt: e.enrolledAt || e.createdAt || e.student?.createdAt,
-    }));
-  }, [selectedClassDetails]);
+    return enrollments
+      .map((e: any) => ({
+        ...(e.student || e),
+        enrolledAt: e.enrolledAt || e.createdAt || e.student?.createdAt,
+      }))
+      .filter((s: any) => !teacherIds.has(s.id));
+  }, [selectedClassDetails, teachers]);
 
   const enrolledStudentIds = useMemo(() => {
     return new Set(enrolledStudents.map((s: any) => s.id));
@@ -200,13 +208,15 @@ export function AdminEnrollmentsPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button
-            className="h-11 rounded-xl text-white font-semibold gap-2"
-            style={{ backgroundColor: primaryColor }}
-          >
-            <UserPlus className="w-4 h-4" />
-            Add New Student
-          </Button>
+          <AddStudentDialog>
+            <Button
+              className="h-11 rounded-xl text-white font-semibold gap-2"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <UserPlus className="w-4 h-4" />
+              Add New Student
+            </Button>
+          </AddStudentDialog>
         </div>
       </div>
 
@@ -398,6 +408,7 @@ export function AdminEnrollmentsPage() {
                     <Button
                       variant="outline"
                       className="w-full h-11 rounded-xl border-slate-200 gap-2"
+                      onClick={() => toast.info("PDF export coming soon!")}
                     >
                       <FileText className="w-4 h-4" />
                       Export Class List (PDF)

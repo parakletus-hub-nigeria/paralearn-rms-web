@@ -19,7 +19,9 @@ import { AppDispatch } from "@/reduxToolKit/store";
 import { deleteUser, fetchAllUsers } from "@/reduxToolKit/user/userThunks";
 import { useRouter } from "next/navigation";
 
+
 export function AddStudentDialog({ children }: { children: ReactNode }) {
+  const dispatch = useDispatch<AppDispatch>();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -92,6 +94,7 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
           guardianPhone: "",
         });
         setOpen(false);
+        dispatch(fetchAllUsers());
       } else {
         const result = await response.json();
         toast.error(result.message || "Failed to create student");
@@ -256,6 +259,7 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
 }
 
 export function AddTeacherDialog({ children }: { children: ReactNode }) {
+  const dispatch = useDispatch<AppDispatch>();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -322,6 +326,7 @@ export function AddTeacherDialog({ children }: { children: ReactNode }) {
           address: "",
         });
         setOpen(false);
+        dispatch(fetchAllUsers());
       } else {
         const result = await response.json();
         toast.error(result.message || "Failed to create teacher");

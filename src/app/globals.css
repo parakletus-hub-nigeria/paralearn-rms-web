@@ -488,3 +488,8 @@ Cream / Off-White: #FFFBEB */
 .header-nav-link:focus .header-nav-underline {
   width: 0;
 }
+
+/* Force sonner toaster to always be on top of other elements like modals */
+[data-sonner-toaster] {
+  z-index: 99999 !important;
+}

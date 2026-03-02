@@ -213,8 +213,15 @@ export function AdminClassesPage() {
                         selectedClassDetails.data?.enrollments ||
                         selectedClassDetails.data?.students ||
                         [];
-    return Array.isArray(enrollments) ? enrollments : [];
-  }, [selectedClassDetails]);
+    const list = Array.isArray(enrollments) ? enrollments : [];
+    
+    // Filter out teachers who may have been erroneously enrolled
+    const teacherIds = new Set(teachers?.map((t: any) => t.id) || []);
+    return list.filter((e: any) => {
+      const studentId = e.student?.id || e.id;
+      return !teacherIds.has(studentId);
+    });
+  }, [selectedClassDetails, teachers]);
 
   const classTeachers = useMemo(() => {
     if (!selectedClassDetails) return [];
