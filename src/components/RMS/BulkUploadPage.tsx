@@ -10,6 +10,23 @@ import Step_One from "@/components/RMS/bulk_upload/step1";
 import Step_Two from "@/components/RMS/bulk_upload/step2";
 import Step_Three from "@/components/RMS/bulk_upload/step3";
 import { validateUserRow } from "@/lib/validateRows";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const bulkUploadTourSteps = [
+  {
+    target: '.bulk-upload-type-toggle',
+    content: "First, select whether you're uploading Students or Teachers. Use different CSV files for each type to ensure the right fields are validated.",
+    disableBeacon: true,
+  },
+  {
+    target: '.bulk-upload-progress-bar',
+    content: "This 3-step progress bar guides you through the upload: (1) Choose your file, (2) Review and validate entries, (3) Confirm and upload to the system.",
+  },
+  {
+    target: '.bulk-upload-step-content',
+    content: "Download the CSV template, fill in your users' details, then drag-and-drop or select the file here to begin the bulk import process.",
+  },
+];
 
 type contentType = {
   email: string;
@@ -62,6 +79,7 @@ export const BulkUploadPage = () => {
 
   return (
     <div className="w-full min-h-screen pb-8">
+      <ProductTour tourKey="admin_bulk_upload" steps={bulkUploadTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -79,12 +97,12 @@ export const BulkUploadPage = () => {
         </div>
 
         {/* Progress Bar */}
-        <div className="max-w-2xl mx-auto">
+        <div className="bulk-upload-progress-bar max-w-2xl mx-auto">
           <ProgressBar step={step} />
         </div>
 
         {/* Upload Type Toggle */}
-        <div className="max-w-xl mx-auto">
+        <div className="bulk-upload-type-toggle max-w-xl mx-auto">
           <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <span className="text-sm sm:text-base font-semibold text-slate-700 whitespace-nowrap">
@@ -117,7 +135,7 @@ export const BulkUploadPage = () => {
         </div>
 
         {/* Step Components */}
-        <div className="w-full">
+        <div className="bulk-upload-step-content w-full">
           {step == 1 && (
             <Step_One
               fileContent={fileContent}

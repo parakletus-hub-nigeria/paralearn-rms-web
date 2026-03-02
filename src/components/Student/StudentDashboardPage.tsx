@@ -20,8 +20,25 @@ import {
   BarChart3,
   CheckSquare
 } from "lucide-react";
-import Link from "next/link";
 import { format } from "date-fns";
+import { ProductTour } from "@/components/common/ProductTour";
+import Link from "next/link";
+
+const studentTourSteps = [
+  {
+    target: '.student-stats-grid',
+    content: "Welcome to your command center! Here you can instantly see your overall progress and how many exams you have coming up next.",
+    disableBeacon: true,
+  },
+  {
+    target: '.student-assessments-grid',
+    content: "This is your active assessment board. All your upcoming tests and past assignments are organized here by subject and timeline.",
+  },
+  {
+    target: '.student-enter-lobby-button',
+    content: "Ready to take a test? Click 'Enter Lobby' to securely start or resume your assessment when the time is right.",
+  },
+];
 
 export default function StudentDashboardPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -60,6 +77,7 @@ export default function StudentDashboardPage() {
       </div>
 
       <div className="relative z-10 w-full">
+        <ProductTour tourKey="student_dashboard" steps={studentTourSteps} />
         <StudentHeader transparent={true} />
         
         <main className="w-full pb-20">
@@ -80,7 +98,7 @@ export default function StudentDashboardPage() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="student-stats-grid grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-2xl p-5 flex items-center gap-4 shadow-lg hover:shadow-xl transition-shadow cursor-default">
                 <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
                   <ClipboardList className="w-6 h-6" />
@@ -133,7 +151,7 @@ export default function StudentDashboardPage() {
                 <p className="text-slate-600 text-lg max-w-md mx-auto">You have no pending assessments at the moment. Enjoy your free time!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
+              <div className="student-assessments-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
                 {filteredAssessments
                   .map((assessment, idx) => {
                   const subjectName = assessment.subject?.name || "General";
@@ -223,7 +241,7 @@ export default function StudentDashboardPage() {
                           </Button>
                         ) : (
                           <Link href={`/student/lobby?assessmentId=${assessment.id}`} className="block">
-                            <Button className={`w-full bg-gradient-to-r ${gradientClass} bg-[length:200%_auto] hover:bg-[position:right_center] text-white py-6 rounded-2xl flex items-center justify-center gap-2 transition-all duration-500 font-bold shadow-lg group-hover:shadow-xl`}>
+                            <Button className={`student-enter-lobby-button w-full bg-gradient-to-r ${gradientClass} bg-[length:200%_auto] hover:bg-[position:right_center] text-white py-6 rounded-2xl flex items-center justify-center gap-2 transition-all duration-500 font-bold shadow-lg group-hover:shadow-xl`}>
                               {statusLabel === "In Progress" ? "Resume Exam" : "Enter Lobby"}
                               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </Button>

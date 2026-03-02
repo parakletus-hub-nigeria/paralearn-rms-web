@@ -20,6 +20,23 @@ import { toast } from "sonner";
 import { User, Lock, Save, Calendar, Phone, MapPin, Mail } from "lucide-react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import logo from "../../../public/mainLogo.svg";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const profileTourSteps = [
+  {
+    target: '.profile-tabs',
+    content: "Use the 'Profile Information' tab to update your personal details, and the 'Change Password' tab to update your account security credentials.",
+    disableBeacon: true,
+  },
+  {
+    target: '.profile-info-form',
+    content: "Update your name, phone number, date of birth, gender, and address here. Your email address cannot be changed as it's tied to your account login.",
+  },
+  {
+    target: '.profile-save-btn',
+    content: "After updating your information, click 'Save Changes' to apply them. Your new details will be visible across the platform immediately.",
+  },
+];
 
 export const ProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -135,6 +152,7 @@ export const ProfilePage = () => {
 
   return (
     <div className="w-full min-h-screen pb-8">
+      <ProductTour tourKey="profile_page" steps={profileTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl}
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -150,7 +168,7 @@ export const ProfilePage = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="profile" className="w-full">
+        <Tabs defaultValue="profile" className="profile-tabs w-full">
           <TabsList className="grid w-full grid-cols-2 h-auto p-1 bg-slate-100 rounded-lg">
             <TabsTrigger 
               value="profile" 
@@ -193,7 +211,7 @@ export const ProfilePage = () => {
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  <form onSubmit={handleProfileUpdate} className="profile-info-form space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div className="space-y-2">
                         <Label htmlFor="firstName" className="text-sm font-semibold text-slate-700">
@@ -316,7 +334,7 @@ export const ProfilePage = () => {
                       <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full sm:w-auto bg-gradient-to-r from-[#641BC4] to-[#8538E0] hover:from-[#5a2ba8] hover:to-[#7530c7] text-white shadow-md hover:shadow-lg transition-all"
+                        className="profile-save-btn w-full sm:w-auto bg-gradient-to-r from-[#641BC4] to-[#8538E0] hover:from-[#5a2ba8] hover:to-[#7530c7] text-white shadow-md hover:shadow-lg transition-all"
                       >
                         <Save className="w-4 h-4 mr-2" />
                         {loading ? "Saving..." : "Save Changes"}

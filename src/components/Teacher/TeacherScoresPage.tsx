@@ -44,6 +44,23 @@ import apiClient from "@/lib/api";
 
 
 const DEFAULT_PRIMARY = "#641BC4";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const teacherScoresTourSteps = [
+  {
+    target: '.teacher-scores-filter-bar',
+    content: "Start by selecting a class, subject, and term. The score sheet below will populate with your enrolled students ready for you to fill in their scores.",
+    disableBeacon: true,
+  },
+  {
+    target: '.teacher-scores-table',
+    content: "This is the live score sheet. Click any cell to enter or edit a student's score for each assessment. Changes are tracked automatically and highlighted.",
+  },
+  {
+    target: '.teacher-scores-save-btn',
+    content: "Once you've entered all scores, click 'Save Scores' to push them to the system. You can also download a CSV template to fill offline and import it back.",
+  },
+];
 
 export function TeacherScoresPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -405,6 +422,7 @@ export function TeacherScoresPage() {
   return (
     <div className="w-full">
       <TeacherHeader />
+      <ProductTour tourKey="teacher_scores" steps={teacherScoresTourSteps} />
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {/* Header */}
@@ -431,7 +449,7 @@ export function TeacherScoresPage() {
         </div>
 
         {/* Filters */}
-        <div className="px-4 sm:px-6 py-4 bg-slate-50/50 border-b border-slate-100">
+        <div className="teacher-scores-filter-bar px-4 sm:px-6 py-4 bg-slate-50/50 border-b border-slate-100">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Class */}
             <div className="flex flex-col gap-1.5">
@@ -507,7 +525,7 @@ export function TeacherScoresPage() {
         </div>
 
         {/* Score Table */}
-        <div className="overflow-x-auto">
+        <div className="teacher-scores-table overflow-x-auto">
           {loadingStudents || loadingScores ? (
             <div className="flex items-center justify-center py-20">
               <div
@@ -790,7 +808,7 @@ export function TeacherScoresPage() {
                 <Button
                   onClick={handleSaveScores}
                   disabled={saving || totalEntries === 0}
-                  className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl text-white font-semibold gap-2 text-sm flex-1 sm:flex-none"
+                  className="teacher-scores-save-btn h-10 sm:h-11 px-5 sm:px-6 rounded-xl text-white font-semibold gap-2 text-sm flex-1 sm:flex-none"
                   style={{ backgroundColor: primaryColor }}
                 >
                   <Save className="w-4 h-4" />

@@ -16,6 +16,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const adminTourSteps = [
+  {
+    target: '.dashboard-academic-banner',
+    content: "This banner displays your currently active academic Session and Term. Click 'Manage Sessions' to update this when starting a new academic term or year.",
+    disableBeacon: true,
+  },
+  {
+    target: '.dashboard-stats-grid',
+    content: "Here is a bird's-eye view of your school's total students, teachers, subjects, and assessments. Monitoring these numbers helps you ensure everyone is properly enrolled and active.",
+  },
+  {
+    target: '.dashboard-recent-assessments',
+    content: "Track the latest exams and assignments created across your school in real-time. Use this to ensure teachers are actively evaluating students according to the curriculum.",
+  },
+];
 
 export const DashboardPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -224,6 +241,8 @@ export const DashboardPage = () => {
 
   return (
     <div className="w-full space-y-6 pb-8">
+      <ProductTour tourKey="admin_dashboard" steps={adminTourSteps} />
+      
       {/* Header Section */}
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
@@ -234,7 +253,7 @@ export const DashboardPage = () => {
       {/* Current Academic Session Banner */}
       {currentSession && (
         <div className="mb-6">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-4 sm:p-6 text-white shadow-lg">
+          <div className="dashboard-academic-banner relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-4 sm:p-6 text-white shadow-lg">
             <div className="absolute top-0 right-0 p-4 opacity-10">
               <Calendar className="w-24 h-24" />
             </div>
@@ -259,7 +278,7 @@ export const DashboardPage = () => {
       )}
 
       {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="dashboard-stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {vv.map((item, index) => (
           <Card
             key={index}
@@ -291,7 +310,7 @@ export const DashboardPage = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Assessments Section */}
-        <div className="lg:col-span-1 space-y-4">
+        <div className="dashboard-recent-assessments lg:col-span-1 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-900 font-coolvetica">Recent Assessments</h2>
             <Link href={routespath.ASSESSMENTS}>

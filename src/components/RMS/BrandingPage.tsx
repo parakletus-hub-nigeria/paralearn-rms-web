@@ -12,6 +12,23 @@ import { Save, Upload, School, Palette } from "lucide-react";
 import Image from "next/image";
 import { updateSchoolBranding, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { Label } from "@/components/ui/label";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const brandingTourSteps = [
+  {
+    target: '.branding-school-info',
+    content: "Update your school's name, motto, address, and contact details here. This information appears on report card headers and school-wide communications.",
+    disableBeacon: true,
+  },
+  {
+    target: '.branding-logo-upload',
+    content: "Upload your school's official logo here. It will appear across the platform in the sidebar, report cards, and PDFs — making every document look professional.",
+  },
+  {
+    target: '.branding-save-btn',
+    content: "Once you've finished making changes, click 'Save Branding' to apply them instantly across the entire platform for all users.",
+  },
+];
 
 export default function BrandingPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -99,6 +116,7 @@ export default function BrandingPage() {
 
   return (
     <div className="w-full">
+      <ProductTour tourKey="admin_branding" steps={brandingTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -113,7 +131,7 @@ export default function BrandingPage() {
 
       <Card className="p-6 md:p-8 rounded-2xl border-slate-100 bg-white shadow-sm max-w-4xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
+            <div className="branding-school-info">
             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <School className="w-5 h-5 text-purple-600" />
                 School Information
@@ -180,7 +198,7 @@ export default function BrandingPage() {
                 Branding & Logo
             </h3>
             
-            <div className="mb-6">
+            <div className="branding-logo-upload mb-6">
                 <Label className="mb-2 block">School Logo</Label>
                 <div className="flex items-center gap-4">
                 <div className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center bg-white overflow-hidden relative">
@@ -272,7 +290,7 @@ export default function BrandingPage() {
             <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-[#641BC4] hover:bg-[#641BC4]/90 text-white font-semibold h-11 px-8 rounded-xl"
+            className="branding-save-btn bg-[#641BC4] hover:bg-[#641BC4]/90 text-white font-semibold h-11 px-8 rounded-xl"
             >
             <Save className="w-4 h-4 mr-2" />
             {loading ? "Saving..." : "Save Branding"}

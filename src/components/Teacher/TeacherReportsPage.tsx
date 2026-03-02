@@ -41,6 +41,23 @@ import {
   ExternalLink,
 } from "lucide-react";
 import apiClient from "@/lib/api";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const teacherReportsTourSteps = [
+  {
+    target: '.teacher-reports-filter-card',
+    content: "Select a Class, Session, and Term to load the student list. All three must be chosen before you can generate or download report cards.",
+    disableBeacon: true,
+  },
+  {
+    target: '.teacher-reports-tabs',
+    content: "Use 'Generate Reports' to create PDF report cards for your students and 'Download Reports' to access PDFs that have already been generated.",
+  },
+  {
+    target: '.teacher-reports-generate-actions',
+    content: "Select specific students using the checkboxes, then click 'Generate Selected' — or click 'Generate All' to create report cards for the entire class at once.",
+  },
+];
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -363,6 +380,7 @@ export function TeacherReportsPage() {
   return (
     <div className="w-full">
       <TeacherHeader />
+      <ProductTour tourKey="teacher_reports" steps={teacherReportsTourSteps} />
 
       <main className="space-y-6">
         {/* Header */}
@@ -374,7 +392,7 @@ export function TeacherReportsPage() {
         </div>
 
         {/* Filters Card */}
-        <Card className="p-6">
+        <Card className="teacher-reports-filter-card p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Class</label>
@@ -429,7 +447,7 @@ export function TeacherReportsPage() {
         </Card>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="teacher-reports-tabs border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab("generation")}
@@ -476,7 +494,7 @@ export function TeacherReportsPage() {
           // GENERATION TAB
           <Card className="p-6 space-y-4">
             {/* Search and Actions */}
-            <div className="flex items-center justify-between gap-4">
+            <div className="teacher-reports-generate-actions flex items-center justify-between gap-4">
               <Input
                 placeholder="Search students..."
                 value={search}

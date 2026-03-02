@@ -44,6 +44,23 @@ import {
   Trash2,
 } from "lucide-react";
 import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const assessmentTourSteps = [
+  {
+    target: '.assessments-info-banner',
+    content: "Assessments are created by teachers — your role here is to monitor and oversee all school-wide exam activity across classes and subjects.",
+    disableBeacon: true,
+  },
+  {
+    target: '.assessments-manage-categories-btn',
+    content: "Click here to define your school's assessment categories (e.g., CA, Exam, Project). These categories are what teachers use when creating assessments.",
+  },
+  {
+    target: '.assessments-filter-bar',
+    content: "Use these filters to drill into assessments by class, status (Active/Draft/Ended), or type to monitor teacher activity across the school.",
+  },
+];
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -169,6 +186,7 @@ export function AdminAssessmentsPage() {
 
   return (
     <div className="w-full">
+      <ProductTour tourKey="admin_assessments" steps={assessmentTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -183,14 +201,14 @@ export function AdminAssessmentsPage() {
           </p>
         </div>
         <ManageCategoriesDialog>
-          <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
+          <Button variant="outline" className="assessments-manage-categories-btn gap-2 border-slate-200 shadow-sm">
             <Settings className="w-4 h-4" /> Manage Categories
           </Button>
         </ManageCategoriesDialog>
       </div>
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+      <div className="assessments-info-banner bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
         <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-semibold text-blue-900">Assessment Management</p>
@@ -202,7 +220,7 @@ export function AdminAssessmentsPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-3 mb-6">
+      <div className="assessments-filter-bar flex flex-col md:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input

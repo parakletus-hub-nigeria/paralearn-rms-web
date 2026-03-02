@@ -21,6 +21,23 @@ import {
   ChevronRight,
   Layers,
 } from "lucide-react";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const teacherTourSteps = [
+  {
+    target: '.teacher-status-cards',
+    content: "Keep an eye on what needs your attention right now. This pipeline shows you exactly how many exams you've created and which ones still need grading.",
+    disableBeacon: true,
+  },
+  {
+    target: '.teacher-quick-actions',
+    content: "Your daily toolkit lives here. Jump straight into creating assessments, entering student scores, or writing report card remarks with a single click.",
+  },
+  {
+    target: '.teacher-recent-graded',
+    content: "Monitor your class's pulse. This section highlights recent grading progress so you know exactly where your students stand.",
+  },
+];
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -107,6 +124,7 @@ export function TeacherDashboardPage() {
 
   return (
     <div className="w-full">
+      <ProductTour tourKey="teacher_dashboard" steps={teacherTourSteps} />
       <TeacherHeader />
 
       <div className="space-y-6">
@@ -160,7 +178,7 @@ export function TeacherDashboardPage() {
         </div>
 
         {/* Assessment Status Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="teacher-status-cards grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
             { label: "Active", value: stats.activeAssessments, bg: "#DFF9D8", fg: "#16A34A", icon: TrendingUp },
             { label: "Pending", value: stats.pendingGrading, bg: "#FEF3C7", fg: "#D97706", icon: Clock },
@@ -194,7 +212,7 @@ export function TeacherDashboardPage() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quick Actions */}
-          <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          <div className="teacher-quick-actions lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             <Link
               href={routespath.TEACHER_ASSESSMENTS}
               className="group rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 md:p-6 hover:shadow-lg hover:border-purple-200 transition-all flex flex-col h-full"
@@ -296,7 +314,7 @@ export function TeacherDashboardPage() {
           </div>
 
           {/* Recent Assessments */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="teacher-recent-graded bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold text-slate-900">Recent Assessments</h3>
               <Link

@@ -31,6 +31,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { differenceInWeeks, isAfter, isBefore, isWithinInterval } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const academicTourSteps = [
+  {
+    target: '.academic-create-session-btn',
+    content: "Click here to start a brand new academic year, including all three terms and their date ranges. This must be set up before teachers can create assessments.",
+    disableBeacon: true,
+  },
+  {
+    target: '.academic-current-progress',
+    content: "This visual timeline shows the current academic year's progress at a glance — which term is active, how far along you are, and when each term starts and ends.",
+  },
+  {
+    target: '.academic-sessions-tabs',
+    content: "Switch between 'Active' to manage your live sessions and 'Archive' to view historical records. Each term row has a 'Set Active' button to switch the running term.",
+  },
+];
 
 export const AcademicSessionsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -187,6 +204,7 @@ export const AcademicSessionsPage = () => {
   return (
     <div className="w-full min-h-screen pb-12 bg-[#FDFDFF]">
       <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 pt-2">
+        <ProductTour tourKey="admin_academic" steps={academicTourSteps} />
         <Header 
           schoolLogo={tenantInfo?.logoUrl} 
           schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -204,7 +222,7 @@ export const AcademicSessionsPage = () => {
 
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full md:w-auto bg-[#641BC4] hover:bg-[#5217a1] text-white shadow-[0_10px_20px_rgba(100,27,196,0.2)] transition-all duration-300 gap-2 h-11 sm:h-12 px-6 sm:px-8 rounded-xl sm:rounded-2xl active:scale-95 font-bold">
+              <Button className="academic-create-session-btn w-full md:w-auto bg-[#641BC4] hover:bg-[#5217a1] text-white shadow-[0_10px_20px_rgba(100,27,196,0.2)] transition-all duration-300 gap-2 h-11 sm:h-12 px-6 sm:px-8 rounded-xl sm:rounded-2xl active:scale-95 font-bold">
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
                 Create New Session
               </Button>
@@ -425,7 +443,7 @@ export const AcademicSessionsPage = () => {
 
         {/* Current Session Progress */}
         {currentSession && (
-          <Card className="rounded-[2.5rem] border-slate-100 bg-white shadow-sm mb-12 overflow-hidden">
+          <Card className="academic-current-progress rounded-[2.5rem] border-slate-100 bg-white shadow-sm mb-12 overflow-hidden">
              <div className="p-8 pb-4">
                  <div className="flex justify-between items-center mb-6">
                      <div>
@@ -508,7 +526,7 @@ export const AcademicSessionsPage = () => {
           </Card>
         )}
 
-        <Tabs defaultValue="active" className="w-full">
+        <Tabs defaultValue="active" className="academic-sessions-tabs w-full">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-50 rounded-lg text-[#641BC4]">

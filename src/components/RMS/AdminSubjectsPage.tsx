@@ -29,6 +29,23 @@ import {
   ChevronRight,
   UserPlus,
 } from "lucide-react";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const subjectTourSteps = [
+  {
+    target: '.subjects-create-btn',
+    content: "Create a new subject by defining its name, code, and class level. Subjects are linked directly to classes and assigned to specific teachers.",
+    disableBeacon: true,
+  },
+  {
+    target: '.subjects-filter-bar',
+    content: "Filter subjects by class or level to keep your curriculum organized, especially when managing a large number of subjects across different classes.",
+  },
+  {
+    target: '.subjects-table',
+    content: "This table lists all your subjects. Click the 'Assign' button on any row to link a teacher to that subject, which enables them to create assessments and enter scores.",
+  },
+];
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -370,6 +387,7 @@ export function AdminSubjectsPage() {
 
   return (
     <div className="w-full">
+      <ProductTour tourKey="admin_subjects" steps={subjectTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -386,7 +404,7 @@ export function AdminSubjectsPage() {
           </div>
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="h-11 rounded-xl gap-2 text-white"
+            className="subjects-create-btn h-11 rounded-xl gap-2 text-white"
             style={{ backgroundColor: primaryColor }}
           >
             <Plus className="w-4 h-4" />
@@ -395,7 +413,7 @@ export function AdminSubjectsPage() {
         </div>
 
         {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-3 mb-6">
+        <div className="subjects-filter-bar flex flex-col md:flex-row gap-3 mb-6">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input

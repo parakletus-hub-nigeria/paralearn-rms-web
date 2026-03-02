@@ -21,6 +21,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, UserPlus, X, Download, Users, BarChart3, FileText } from "lucide-react";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const enrollmentTourSteps = [
+  {
+    target: '.enrollment-class-selector',
+    content: "Start by selecting a class from this dropdown to view its enrolled students and available capacity.",
+    disableBeacon: true,
+  },
+  {
+    target: '.enrollment-add-student-btn',
+    content: "Click here to add a new student directly and enroll them into the currently selected class.",
+  },
+  {
+    target: '.enrollment-student-list',
+    content: "This table shows all students currently enrolled in the selected class. You can remove students or view their details from here.",
+  },
+];
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -178,12 +195,12 @@ export function AdminEnrollmentsPage() {
 
   return (
     <div className="w-full">
+      <ProductTour tourKey="admin_enrollments" steps={enrollmentTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
         schoolName={tenantInfo?.name || "ParaLearn School"}
       />
 
-      {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Class Enrollment Manager</h1>
@@ -197,7 +214,7 @@ export function AdminEnrollmentsPage() {
         <div className="flex items-center gap-3">
           {/* Class Selector */}
           <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-            <SelectTrigger className="h-11 w-[200px] rounded-xl bg-white">
+            <SelectTrigger className="enrollment-class-selector h-11 w-[200px] rounded-xl bg-white">
               <SelectValue placeholder="Select Class" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -210,7 +227,7 @@ export function AdminEnrollmentsPage() {
           </Select>
           <AddStudentDialog>
             <Button
-              className="h-11 rounded-xl text-white font-semibold gap-2"
+              className="enrollment-add-student-btn h-11 rounded-xl text-white font-semibold gap-2"
               style={{ backgroundColor: primaryColor }}
             >
               <UserPlus className="w-4 h-4" />

@@ -30,6 +30,23 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const teacherClassesTourSteps = [
+  {
+    target: '.teacher-classes-stats',
+    content: "These two cards show how many classes you're a homeroom teacher for and how many individual subjects you teach. Click on any class card to see its full roster.",
+    disableBeacon: true,
+  },
+  {
+    target: '.teacher-classes-tabs',
+    content: "Switch between 'My Classes' to see your assigned classes, and 'My Subjects' to see the specific subjects you teach — including which class each subject belongs to.",
+  },
+  {
+    target: '.teacher-classes-quick-actions',
+    content: "These quick-action buttons let you jump straight to attendance or score-recording for your selected class without navigating away from this page.",
+  },
+];
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -193,6 +210,7 @@ export function TeacherClassesPage() {
   return (
     <div className="w-full min-h-screen pb-20 bg-slate-50/30">
       <TeacherHeader /> {/* Standard Top Bar */}
+      <ProductTour tourKey="teacher_classes" steps={teacherClassesTourSteps} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-8">
         
@@ -203,7 +221,7 @@ export function TeacherClassesPage() {
               <h1 className="text-3xl font-bold text-slate-900 font-coolvetica">Good day, {(user as any)?.firstName || "Teacher"}!</h1>
               <p className="text-slate-500 mt-1 font-coolvetica">Manage your class mastery and student progress.</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 teacher-classes-quick-actions">
               <Link href={routespath.TEACHER_ATTENDANCE}>
                 <Button 
                   variant="outline" 
@@ -223,7 +241,7 @@ export function TeacherClassesPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="teacher-classes-stats grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5">
               <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center">
                  <GraduationCap className="w-8 h-8 text-purple-600" />
@@ -248,7 +266,7 @@ export function TeacherClassesPage() {
         {/* Navigation & Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4">
            {/* Pill Tabs */}
-           <div className="flex bg-slate-100 rounded-full p-1.5 self-start shadow-inner">
+           <div className="teacher-classes-tabs flex bg-slate-100 rounded-full p-1.5 self-start shadow-inner">
               <button
                 onClick={() => setActiveTab("classes")}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${

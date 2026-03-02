@@ -49,6 +49,23 @@ import {
   AlertTriangle,
   GraduationCap,
 } from "lucide-react";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const classTourSteps = [
+  {
+    target: '.classes-add-btn',
+    content: "Create a new class here by providing a name, level, and capacity. Classes are the core containers that group students and teachers together.",
+    disableBeacon: true,
+  },
+  {
+    target: '.classes-filter-bar',
+    content: "Use these filters to quickly narrow down classes by session, term, or level—especially useful once your school grows large.",
+  },
+  {
+    target: '.classes-grid',
+    content: "Each card here represents a class. Click on a card to view its enrolled students, assigned teachers, and detailed roster information.",
+  },
+];
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -255,6 +272,7 @@ export function AdminClassesPage() {
 
   return (
     <div className="w-full">
+      <ProductTour tourKey="admin_classes" steps={classTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -275,7 +293,7 @@ export function AdminClassesPage() {
           </Button>
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="h-11 rounded-xl gap-2 text-white"
+            className="classes-add-btn h-11 rounded-xl gap-2 text-white"
             style={{ backgroundColor: primaryColor }}
           >
             <Plus className="w-4 h-4" />
@@ -285,7 +303,7 @@ export function AdminClassesPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-3 mb-6">
+      <div className="classes-filter-bar flex flex-col md:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input

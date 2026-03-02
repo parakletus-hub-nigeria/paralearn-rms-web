@@ -45,6 +45,23 @@ import {
   Calendar,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const usersTourSteps = [
+  {
+    target: '.users-action-menu',
+    content: "Need to edit a profile or view details? Click this dot menu to manage individual students and teachers quickly without leaving the page.",
+    disableBeacon: true,
+  },
+  {
+    target: '.users-filter-bar',
+    content: "Use these powerful filters and search tools to instantly drill down into your school's directory. You can quickly isolate all teachers, view a specific class, or search by name.",
+  },
+  {
+    target: '.users-add-button',
+    content: "Ready to bring more people aboard? Click here to manually enroll a single student or onboard a new staff member into the system.",
+  },
+];
 
 // Default ParaLearn brand color
 const DEFAULT_PRIMARY = "#641BC4";
@@ -274,6 +291,7 @@ export const UsersPage = () => {
 
   return (
     <div className="w-full">
+      <ProductTour tourKey="admin_users_page" steps={usersTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -302,7 +320,7 @@ export const UsersPage = () => {
                 setAddModalType("student");
                 setAddModalOpen(true);
               }}
-              className="h-11 rounded-xl gap-2"
+              className="users-add-button h-11 rounded-xl gap-2"
               style={{ backgroundColor: primaryColor }}
             >
               <Plus className="w-4 h-4" />
@@ -312,7 +330,7 @@ export const UsersPage = () => {
         </div>
 
         {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-3 mb-6">
+        <div className="users-filter-bar flex flex-col md:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
@@ -461,7 +479,7 @@ export const UsersPage = () => {
                         <span className="md:hidden text-xs font-semibold text-slate-500">Actions</span>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors outline-none">
+                            <button className="users-action-menu p-2 rounded-lg hover:bg-slate-100 transition-colors outline-none">
                               <MoreVertical className="w-4 h-4 text-slate-500" />
                             </button>
                           </DropdownMenuTrigger>

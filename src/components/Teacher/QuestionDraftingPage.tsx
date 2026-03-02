@@ -16,6 +16,23 @@ import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import Link from "next/link";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const questionDraftingTourSteps = [
+  {
+    target: '.drafting-assessment-selector',
+    content: "Start by selecting an assessment from this dropdown. The Editor will load any existing questions for that assessment, or start a fresh draft for a new one.",
+    disableBeacon: true,
+  },
+  {
+    target: '.drafting-question-stack',
+    content: "This panel lists all questions in your current draft. Click any question to edit it in the center, or click 'New Question' to add a blank one.",
+  },
+  {
+    target: '.drafting-publish-btn',
+    content: "Once your questions are ready, click 'Publish' to save them to the assessment and make them live for students. Use 'Save Draft' at the bottom to save without publishing.",
+  },
+];
 
 export function QuestionDraftingPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -284,6 +301,7 @@ export function QuestionDraftingPage() {
   // The custom layout matching the provided HTML mockup
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50 font-sans text-slate-900 w-full fixed inset-0 z-50">
+      <ProductTour tourKey="teacher_drafting" steps={questionDraftingTourSteps} />
 
         {/* Top Navigation */}
         <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 shrink-0 z-10">
@@ -296,7 +314,7 @@ export function QuestionDraftingPage() {
                 </div>
                 <div className="flex flex-col justify-center min-w-0">
                     <h1 className="text-[13px] md:text-lg font-bold tracking-tight hidden sm:block leading-tight">ParaLearn Editor</h1>
-                    <div className="flex items-center gap-1 relative">
+                    <div className="flex items-center gap-1 relative drafting-assessment-selector">
                         {selectedAssessment ? (
                             <span className="truncate max-w-[120px] md:max-w-[200px] text-[11px] md:text-xs font-semibold text-[#7f0df2]">{selectedAssessment.title}</span>
                         ) : (
@@ -326,7 +344,7 @@ export function QuestionDraftingPage() {
                         onClick={() => handleSave(true)}
                         disabled={!selectedAssessmentId || draftQuestions.length === 0 || isSaving}
                         variant="outline"
-                        className="flex h-9 md:h-10 items-center gap-2 rounded-lg border-slate-200 px-3 md:px-4 text-xs md:text-sm font-semibold hover:bg-slate-50 hover:text-[#7f0df2] hover:border-[#7f0df2]/30"
+                        className="drafting-publish-btn flex h-9 md:h-10 items-center gap-2 rounded-lg border-slate-200 px-3 md:px-4 text-xs md:text-sm font-semibold hover:bg-slate-50 hover:text-[#7f0df2] hover:border-[#7f0df2]/30"
                     >
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin"/> : <CloudUpload className="w-4 h-4 md:w-5 md:h-5"/>}
                         <span className="hidden sm:inline">Publish</span>
@@ -355,7 +373,7 @@ export function QuestionDraftingPage() {
             )}
 
             {/* Left Sidebar: Question Stack */}
-            <aside className={`w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 lg:relative absolute inset-y-0 left-0 transition-transform duration-300 z-[50] ${isStackOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
+            <aside className={`drafting-question-stack w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 lg:relative absolute inset-y-0 left-0 transition-transform duration-300 z-[50] ${isStackOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
                     <h2 className="text-[11px] md:text-xs font-bold uppercase tracking-wider text-slate-500">Question Stack</h2>
                     <span className="text-[10px] font-semibold bg-[#7f0df2]/10 text-[#7f0df2] px-2 py-1 rounded">{draftQuestions.length} Total</span>

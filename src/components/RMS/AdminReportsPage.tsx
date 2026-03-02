@@ -45,6 +45,23 @@ import {
   ExternalLink,
 } from "lucide-react";
 import apiClient from "@/lib/api";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const reportTourSteps = [
+  {
+    target: '.reports-filter-card',
+    content: "Start by selecting a Class, Session, and Term. These three filters determine exactly which students and report cards are loaded for you to work with.",
+    disableBeacon: true,
+  },
+  {
+    target: '.reports-tab-nav',
+    content: "Switch between 'Generate Reports' to create new report cards and 'Download Reports' to access PDFs that have already been generated.",
+  },
+  {
+    target: '.reports-generate-actions',
+    content: "Select individual students or click 'Generate All' to queue report card generation for the entire class. PDFs are generated in the background and will appear in the Download tab.",
+  },
+];
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -355,6 +372,7 @@ export function AdminReportsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ProductTour tourKey="admin_reports" steps={reportTourSteps} />
       <Header 
         schoolLogo={tenantInfo?.logoUrl} 
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -367,7 +385,7 @@ export function AdminReportsPage() {
         </div>
 
         {/* Filters Card */}
-        <Card className="p-6">
+        <Card className="reports-filter-card p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Class</label>
@@ -420,7 +438,7 @@ export function AdminReportsPage() {
         </Card>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="reports-tab-nav border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab("generation")}
@@ -476,7 +494,7 @@ export function AdminReportsPage() {
           // GENERATION TAB
           <Card className="p-6 space-y-4">
             {/* Search and Actions */}
-            <div className="flex items-center justify-between gap-4">
+            <div className="reports-generate-actions flex items-center justify-between gap-4">
               <Input
                 placeholder="Search students..."
                 value={search}

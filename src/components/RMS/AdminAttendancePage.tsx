@@ -88,17 +88,19 @@ export function AdminAttendancePage() {
   const prevClassIdRef = { current: selectedClassId };
   const prevDateRef = { current: dateStr };
 
-  // Pre-fill draft from existing attendance data (matching teacher implementation)
+  // Pre-fill draft from existing attendance data.
+  // Only fills in entries that are MISSING from the draft (e.g. on fresh load or class switch).
+  // Does NOT overwrite active user edits.
   useEffect(() => {
     if (attendanceData) {
       setDraftAttendance((prev) => {
         const next = { ...prev };
         let hasChanges = false;
         attendanceData.forEach((record: any) => {
-          if (!next[record.enrollmentId] && record.attendance) {
+          if (!next[record.enrollmentId]) {
             next[record.enrollmentId] = {
-              status: record.attendance.status,
-              remarks: record.attendance.remarks || "",
+              status: record.attendance?.status || "ABSENT",
+              remarks: record.attendance?.remarks || "",
             };
             hasChanges = true;
           }
@@ -164,8 +166,17 @@ export function AdminAttendancePage() {
 
       await bulkUpdate({ date: dateStr, records }).unwrap();
       toast.success("Attendance saved successfully");
+
+      // Update the draft to mirror exactly what was just saved.
+      // Avoids the race condition where clearing the draft and waiting for the RTK Query
+      // cache refetch to re-seed it can interleave incorrectly, leaving the draft empty
+      // and breaking any subsequent save.
+      const confirmedDraft: Record<string, Partial<AttendanceRecord>> = {};
+      records.forEach((r) => {
+        confirmedDraft[r.enrollmentId] = { status: r.status, remarks: r.remarks };
+      });
+      setDraftAttendance(confirmedDraft);
       refetch();
-      setDraftAttendance({}); // Clear draft after save
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to save attendance");
     }

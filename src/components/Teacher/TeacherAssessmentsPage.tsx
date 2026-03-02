@@ -67,6 +67,23 @@ import { routespath } from "@/lib/routepath";
 import { toast } from "sonner";
 
 const DEFAULT_PRIMARY = "#641BC4";
+import { ProductTour } from "@/components/common/ProductTour";
+
+const teacherAssessmentsTourSteps = [
+  {
+    target: '.teacher-assessments-create-btn',
+    content: "Create a new assessment here. You can set it as an online exam for students to take directly on the platform, or an offline assessment where you record scores manually.",
+    disableBeacon: true,
+  },
+  {
+    target: '.teacher-assessments-stats',
+    content: "These status counts give you a live overview of all your assessments — how many are active (live now), not yet started, or have ended.",
+  },
+  {
+    target: '.teacher-assessments-filter-bar',
+    content: "Use these filters to narrow down your assessment list by class, subject, or status. The search bar also lets you find a specific assessment by title.",
+  },
+];
 
 const statusConfig: Record<string, { bg: string; text: string; icon: typeof CheckCircle; label: string }> = {
   started: { bg: "bg-emerald-100", text: "text-emerald-700", icon: PlayCircle, label: "Active" },
@@ -398,6 +415,7 @@ export function TeacherAssessmentsPage() {
   return (
     <div className="w-full">
       <TeacherHeader />
+      <ProductTour tourKey="teacher_assessments" steps={teacherAssessmentsTourSteps} />
       
       <div className="space-y-6">
         {/* Header */}
@@ -423,7 +441,7 @@ export function TeacherAssessmentsPage() {
                 
                 <Button
                   onClick={() => setShowCreateModal(true)}
-                  className="h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
+                  className="teacher-assessments-create-btn h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Create Assessment
@@ -432,7 +450,7 @@ export function TeacherAssessmentsPage() {
             </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+          <div className="teacher-assessments-stats grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             {[
               { label: "Total", value: stats.total, color: "bg-white/20" },
               { label: "Active", value: stats.active, color: "bg-emerald-500/30" },
@@ -448,7 +466,7 @@ export function TeacherAssessmentsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+        <div className="teacher-assessments-filter-bar bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
           <div className="flex flex-wrap items-center gap-3">
             {/* Search */}
             <div className="relative flex-1 max-w-sm">

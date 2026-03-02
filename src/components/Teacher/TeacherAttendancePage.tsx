@@ -123,7 +123,9 @@ export default function TeacherAttendancePage() {
     { skip: !selectedClassId }
   );
 
-  // Hydrate local draft state from server data (Today mode only)
+  // Hydrate local draft state from server data (Today mode only).
+  // Only fills in entries that are missing from the draft (e.g. on fresh load or class switch).
+  // Does NOT overwrite active user edits.
   useEffect(() => {
     if (attendanceData && !isReadOnly) {
       setDraftAttendance((prev) => {
@@ -131,10 +133,10 @@ export default function TeacherAttendancePage() {
         let hasChanges = false;
 
         attendanceData.forEach((record: any) => {
-          if (!next[record.enrollmentId] && record.attendance) {
+          if (!next[record.enrollmentId]) {
             next[record.enrollmentId] = {
-              status: record.attendance.status,
-              remarks: record.attendance.remarks || "",
+              status: record.attendance?.status || "ABSENT",
+              remarks: record.attendance?.remarks || "",
             };
             hasChanges = true;
           }
@@ -204,7 +206,7 @@ export default function TeacherAttendancePage() {
 
   const handleSave = async () => {
     if (!attendanceData) return;
-    // FIX #5: Don't blast the API with all-ABSENT if teacher hasn't touched anything
+    // Don't blast the API with all-ABSENT if teacher hasn't touched anything yet
     if (Object.keys(draftAttendance).length === 0) {
       toast.warning("No attendance changes to save. Please mark at least one student.");
       return;
@@ -225,6 +227,16 @@ export default function TeacherAttendancePage() {
 
       await bulkUpdate({ date: viewDateStr, records }).unwrap();
       toast.success("Attendance saved successfully");
+
+      // Update the draft to match exactly what was saved.
+      // This avoids a race condition where clearing the draft ({}) and then waiting
+      // for the RTK Query cache refetch to re-seed it can interleave incorrectly,
+      // leaving the draft empty and triggering the "no changes" guard on the next save.
+      const confirmedDraft: Record<string, Partial<AttendanceRecord>> = {};
+      records.forEach((r) => {
+        confirmedDraft[r.enrollmentId] = { status: r.status, remarks: r.remarks };
+      });
+      setDraftAttendance(confirmedDraft);
       refetch();
     } catch (error: any) {
       toast.error(error?.data?.message || error?.message || "Failed to save attendance");
