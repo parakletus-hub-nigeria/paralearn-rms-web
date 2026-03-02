@@ -390,16 +390,32 @@ export function SchoolSetupWizard() {
     // Submit data for each step before moving to next
     if (currentStep === 1) {
       success = await handleStep1Submit();
+      // If the call failed but a session was already created in a previous attempt,
+      // allow the student to proceed rather than blocking them permanently.
+      if (!success && sessionId) {
+        toast.info("Using existing session — continuing to next step.");
+        success = true;
+      }
     } else if (currentStep === 2) {
       success = await handleStep2Submit();
+      // Allow proceeding if classes were already created
+      if (!success && classIdMap.size > 0) {
+        toast.info("Using existing classes — continuing to next step.");
+        success = true;
+      }
     } else if (currentStep === 3) {
       success = await handleStep3Submit();
+      // Allow proceeding even on error — subjects are optional enough to not block the flow
+      if (!success) {
+        toast.info("Skipping subject errors — you can manage subjects later.");
+        success = true;
+      }
     }
 
     if (success || currentStep === 4) {
       setCurrentStep(Math.min(totalSteps, currentStep + 1));
     }
-  }, [currentStep, totalSteps, handleStep1Submit, handleStep2Submit, handleStep3Submit]);
+  }, [currentStep, totalSteps, sessionId, classIdMap, handleStep1Submit, handleStep2Submit, handleStep3Submit]);
 
   return (
     <div className="min-h-screen bg-slate-50">
