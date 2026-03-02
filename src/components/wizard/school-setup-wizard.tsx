@@ -25,6 +25,8 @@ import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
 import { toast } from "sonner";
 import AuthHeader from "@/components/auth/authHeader";
+import { useGetAllSessionsQuery } from "@/reduxToolKit/api/endpoints/academic";
+import { useGetClassesQuery } from "@/reduxToolKit/api/endpoints/classes";
 
 interface Term {
   id: string;
@@ -136,10 +138,34 @@ export function SchoolSetupWizard() {
     (state: RootState) => state.setUp
   );
 
+  // Pre-fetch existing sessions & classes so soft-passage fallbacks work even after a page refresh
+  const { data: existingSessions = [] } = useGetAllSessionsQuery();
+  const { data: existingClasses = [] } = useGetClassesQuery();
+
   // Store IDs from each step
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [termIds, setTermIds] = useState<string[]>([]);
   const [classIdMap, setClassIdMap] = useState<Map<string, string>>(new Map()); // Maps wizard class.id to API class.id
+
+  // Seed sessionId from existing API data on mount (enables soft-passage on step 1)
+  useEffect(() => {
+    if (existingSessions.length > 0 && !sessionId) {
+      // Use the most recently created session (last in the list) as the known session
+      const latest = existingSessions[existingSessions.length - 1];
+      setSessionId(latest.id);
+      const terms = latest.terms || [];
+      setTermIds(terms.map((t: any) => t.id));
+    }
+  }, [existingSessions]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Seed classIdMap from existing API data on mount (enables soft-passage on step 2)
+  useEffect(() => {
+    if (existingClasses.length > 0 && classIdMap.size === 0) {
+      const map = new Map<string, string>();
+      existingClasses.forEach((cls: any) => map.set(cls.id, cls.id));
+      setClassIdMap(map);
+    }
+  }, [existingClasses]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
