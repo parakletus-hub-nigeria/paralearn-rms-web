@@ -116,7 +116,8 @@ export function AddUserModal({
         firstName,
         lastName,
         email: email.trim(),
-        phoneNumber: phone.trim() || undefined, // Student phone
+        personalEmail: email.trim(),   // Backend uses personalEmail to send login credentials
+        phoneNumber: phone.trim() || undefined,
         dateOfBirth: dateTime,
         gender: gender || undefined,
         address: address.trim() || undefined,
@@ -377,8 +378,9 @@ export function AddUserModal({
                 <div>
                   <p className="font-semibold text-blue-900 text-sm">Credentials Delivery</p>
                   <p className="text-blue-700 text-sm mt-0.5">
-                    An automated email with login instructions will be sent to the address
-                    provided above.
+                    {type === "teacher"
+                      ? "Login credentials will be emailed to this personal email address after the teacher is created."
+                      : "An automated email with login instructions will be sent to the address provided above."}
                   </p>
                 </div>
               </div>
