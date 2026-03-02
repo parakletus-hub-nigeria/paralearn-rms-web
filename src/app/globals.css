@@ -489,7 +489,10 @@ Cream / Off-White: #FFFBEB */
   width: 0;
 }
 
-/* Force sonner toaster to always be on top of other elements like modals */
+/* Force sonner toaster to always be fixed on the screen viewport, not the page */
 [data-sonner-toaster] {
+  position: fixed !important;
+  top: 16px !important;
+  right: 16px !important;
   z-index: 99999 !important;
 }

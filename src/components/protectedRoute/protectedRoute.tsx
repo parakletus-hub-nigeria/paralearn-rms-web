@@ -22,8 +22,30 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!mounted) return;
 
-    // Check token from both Redux state and cookies
-    const hasToken = !!accesstoken || tokenManager.hasToken();
+    let tokensExisted = false;
+
+    // We are in useEffect, so window is guaranteed to be defined
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("auth_token");
+    const urlUser = urlParams.get("auth_user");
+
+    // Intercept cross-subdomain auth transfer
+    if (urlToken) {
+      tokenManager.setToken(urlToken);
+      if (urlUser) {
+        try {
+          localStorage.setItem("currentUser", decodeURIComponent(urlUser));
+        } catch (e) {
+          console.error("Failed to decode user data from URL", e);
+        }
+      }
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      tokensExisted = true;
+    }
+
+    // Check token from Redux state, cookies, or just set from URL
+    const hasToken = !!accesstoken || tokenManager.hasToken() || tokensExisted;
 
     if (!hasToken) {
       // No token at all — send to sign-in, preserving intended destination

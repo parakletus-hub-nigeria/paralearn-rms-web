@@ -101,12 +101,44 @@ export const loginUser = createAsyncThunk(
               if (sessionResponse?.data?.success && sessionResponse?.data?.data?.sessionDetails) {
                 redirectPath = routespath.DASHBOARD;
               } else {
-                // No session found, redirect to setup wizard
-                redirectPath = "/setup";
+                // No active session found — check if any sessions exist at all
+                // If sessions exist, school is already set up (just no active term)
+                try {
+                  const allSessionsResponse = await Promise.race([
+                    apiClient.get(`/api/proxy${routespath.API_GET_ALL_SESSIONS}`),
+                    new Promise((_, reject) => 
+                      setTimeout(() => reject(new Error("Sessions list check timeout")), 3000)
+                    )
+                  ]) as any;
+                  const sessions = allSessionsResponse?.data?.data || allSessionsResponse?.data || [];
+                  if (Array.isArray(sessions) && sessions.length > 0) {
+                    redirectPath = routespath.DASHBOARD;
+                  } else {
+                    redirectPath = "/setup";
+                  }
+                } catch {
+                  // If even that fails, default to setup for safety
+                  redirectPath = "/setup";
+                }
               }
             } catch (sessionError: any) {
-              // If fetching session fails (404, timeout, or no session), redirect to setup
-              redirectPath = "/setup";
+              // If fetching current session fails, fallback to checking all sessions
+              try {
+                const allSessionsResponse = await Promise.race([
+                  apiClient.get(`/api/proxy${routespath.API_GET_ALL_SESSIONS}`),
+                  new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Sessions list check timeout")), 3000)
+                  )
+                ]) as any;
+                const sessions = allSessionsResponse?.data?.data || allSessionsResponse?.data || [];
+                if (Array.isArray(sessions) && sessions.length > 0) {
+                  redirectPath = routespath.DASHBOARD;
+                } else {
+                  redirectPath = "/setup";
+                }
+              } catch {
+                redirectPath = "/setup";
+              }
             }
         }
       }
@@ -158,10 +190,13 @@ export const loginUser = createAsyncThunk(
           }
           
           // Redirect to subdomain URL with appropriate path
-          const newUrl = `${currentProtocol}//${newHost}${redirectPath}`;
+          const urlObj = new URL(`${currentProtocol}//${newHost}${redirectPath}`);
+          // Attach the token as a URL parameter for cross-subdomain auth
+          urlObj.searchParams.set("auth_token", accessToken);
+          urlObj.searchParams.set("auth_user", encodeURIComponent(JSON.stringify(userToSave)));
           
           // Redirect to subdomain URL
-          window.location.href = newUrl;
+          window.location.href = urlObj.toString();
 
           // Return early since we're redirecting
           return {

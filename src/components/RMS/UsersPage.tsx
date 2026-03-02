@@ -367,8 +367,8 @@ export const UsersPage = () => {
           <>
             <div className="rounded-2xl border border-slate-100 bg-white overflow-hidden">
               <div className="overflow-x-auto w-full">
-                <table className="w-full min-w-[700px]">
-                <thead>
+                <table className="w-full">
+                <thead className="hidden md:table-header-group">
                   <tr style={{ backgroundColor: primaryColor }}>
                     <th className="text-left text-white font-semibold text-sm py-4 px-5 w-8">
                       <input type="checkbox" className="rounded border-white/30" />
@@ -380,18 +380,19 @@ export const UsersPage = () => {
                     <th className="text-center text-white font-semibold text-sm py-4 px-3">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="block md:table-row-group">
                   {paginatedUsers.map((user, idx) => (
                     <tr
                       key={user.dbId || idx}
-                      className={`border-t border-slate-100 hover:bg-slate-50/50 transition-colors ${
+                      className={`block md:table-row border-b md:border-t md:border-b-0 border-slate-100 hover:bg-slate-50/50 transition-colors ${
                         idx % 2 === 1 ? "bg-slate-50/30" : "bg-white"
                       }`}
                     >
-                      <td className="py-4 px-5">
+                      <td className="hidden md:table-cell py-4 px-5">
                         <input type="checkbox" className="rounded border-slate-300" />
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
+                        <span className="md:hidden text-xs font-semibold text-slate-500">User</span>
                         <div className="flex items-center gap-3">
                           {user.avatar ? (
                             <img
@@ -406,7 +407,7 @@ export const UsersPage = () => {
                               className="w-10 h-10 rounded-full bg-slate-100"
                             />
                           )}
-                          <div>
+                          <div className="text-right md:text-left">
                             <p className="font-semibold text-slate-900 text-sm">
                               {user.firstName} {user.lastName}
                             </p>
@@ -414,7 +415,8 @@ export const UsersPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
+                        <span className="md:hidden text-xs font-semibold text-slate-500">Role</span>
                         <Badge
                           className={`rounded-lg px-3 py-1 font-medium text-xs ${
                             user.role === "teacher"
@@ -425,8 +427,9 @@ export const UsersPage = () => {
                           {user.role === "teacher" ? "Teacher" : "Student"}
                         </Badge>
                       </td>
-                      <td className="py-4 px-3">
-                        <div>
+                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
+                        <span className="md:hidden text-xs font-semibold text-slate-500">Class</span>
+                        <div className="text-right md:text-left">
                           {user.className ? (
                             <>
                               <p className="font-medium text-slate-900 text-sm">
@@ -441,7 +444,8 @@ export const UsersPage = () => {
                           )}
                         </div>
                       </td>
-                      <td className="py-4 px-3">
+                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
+                        <span className="md:hidden text-xs font-semibold text-slate-500">Status</span>
                         <div className="flex items-center gap-2">
                           <span
                             className={`w-2 h-2 rounded-full ${
@@ -453,7 +457,8 @@ export const UsersPage = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-3 text-center relative">
+                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 md:text-center">
+                        <span className="md:hidden text-xs font-semibold text-slate-500">Actions</span>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors outline-none">

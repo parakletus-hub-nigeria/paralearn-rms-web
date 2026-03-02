@@ -12,6 +12,7 @@ import { routespath } from "@/lib/routepath";
 import { loginUser } from "@/reduxToolKit/user/userThunks";
 import { AppDispatch } from "@/reduxToolKit/store";
 import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
+import apiClient from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,12 +66,32 @@ export default function SigninPage() {
           if (sessionResult && sessionResult.sessionDetails) {
             router.push(routespath.DASHBOARD);
           } else {
-            // No session found, redirect to setup wizard
-            router.push("/setup");
+            // No active session — check if any sessions exist at all
+            try {
+              const allSessionsResp = await apiClient.get(`/api/proxy${routespath.API_GET_ALL_SESSIONS}`);
+              const sessions = allSessionsResp?.data?.data || allSessionsResp?.data || [];
+              if (Array.isArray(sessions) && sessions.length > 0) {
+                router.push(routespath.DASHBOARD);
+              } else {
+                router.push("/setup");
+              }
+            } catch {
+              router.push("/setup");
+            }
           }
         } catch (sessionError: any) {
-          // If fetching session fails (likely means no session exists), go to setup
-          router.push("/setup");
+          // If fetching current session fails, fallback to checking all sessions
+          try {
+            const allSessionsResp = await apiClient.get(`/api/proxy${routespath.API_GET_ALL_SESSIONS}`);
+            const sessions = allSessionsResp?.data?.data || allSessionsResp?.data || [];
+            if (Array.isArray(sessions) && sessions.length > 0) {
+              router.push(routespath.DASHBOARD);
+            } else {
+              router.push("/setup");
+            }
+          } catch {
+            router.push("/setup");
+          }
         }
       } else {
         toast.error("Login failed. No token received.");
