@@ -469,7 +469,7 @@ export function PageThree({data,changeData,step,setStep}: any){
             console.error(error);
             const message = error?.message || "Failed to create account. Please try again.";
             setSubmitError(message);
-            toast.error(message, { position: "top-right", duration: 6000 });
+            toast.error(message, { position: "top-right", duration: Infinity });
         } finally {
             setIsLoading(false)
         }
@@ -530,13 +530,6 @@ export function PageThree({data,changeData,step,setStep}: any){
                         </Label>
                     </div>
 
-                    {/* Inline submission error banner */}
-                    {submitError && (
-                        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
-                            <p className="text-sm font-medium text-red-700">{submitError}</p>
-                        </div>
-                    )}
 
                     {step === 3 && (
                         <div className="mt-4 flex gap-3">
