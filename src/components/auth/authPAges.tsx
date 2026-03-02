@@ -10,7 +10,7 @@ import { loginUser } from "@/reduxToolKit/user/userThunks";
 import { AlertCircle, CheckCircle, Check } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import { toast } from "sonner";
-import { handleError } from "@/lib/error-handler";
+
 import { Spinner } from "../ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
@@ -415,9 +415,11 @@ export function PageThree({data,changeData,step,setStep}: any){
     const [disable, setDisable] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [phoneAuth, setPhoneAuth] = useState(checkPhone(data.phoneNumber))
+    const [submitError, setSubmitError] = useState<string | null>(null)
 
     const submit =  async () => {
         setIsLoading(true)
+        setSubmitError(null)
         
         const backendData = {
             schoolName: data.schoolName,
@@ -442,7 +444,16 @@ export function PageThree({data,changeData,step,setStep}: any){
             })
 
             const res = await registerAdmin.json()
-            if(!registerAdmin.ok) throw new Error(res.message || "Failed to create account. Please try again.")
+            if(!registerAdmin.ok) {
+                // Robustly extract error message from all possible backend response shapes
+                const errorMessage =
+                    res?.message ||
+                    res?.error ||
+                    res?.data?.message ||
+                    res?.data?.error ||
+                    `Request failed with status ${registerAdmin.status}`;
+                throw new Error(errorMessage);
+            }
 
              // Account created successfully - show success dialog and prompt for manual sign-in
              toast.success("Account created successfully!");
@@ -454,9 +465,11 @@ export function PageThree({data,changeData,step,setStep}: any){
              
              // Open the success dialog
              setDisable(true);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            handleError(error, "Failed to create account");
+            const message = error?.message || "Failed to create account. Please try again.";
+            setSubmitError(message);
+            toast.error(message, { position: "top-right", duration: 6000 });
         } finally {
             setIsLoading(false)
         }
@@ -516,6 +529,14 @@ export function PageThree({data,changeData,step,setStep}: any){
                             I agree to the ParaLearn RMS Terms of Service and Privacy Policy. I confirm that I have the authority to register this school.
                         </Label>
                     </div>
+
+                    {/* Inline submission error banner */}
+                    {submitError && (
+                        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+                            <p className="text-sm font-medium text-red-700">{submitError}</p>
+                        </div>
+                    )}
 
                     {step === 3 && (
                         <div className="mt-4 flex gap-3">
