@@ -77,7 +77,13 @@ export function ManageCategoriesDialog({ children }: { children: React.ReactNode
       await dispatch(deleteAssessmentCategory(id)).unwrap();
       toast.success("Category deleted");
     } catch (error: any) {
-      toast.error(error || "Failed to delete category");
+      // error may be the backend message string from rejectWithValue
+      const msg = typeof error === "string" ? error : error?.message || error?.data?.message || "";
+      if (msg.toLowerCase().includes("failed") || !msg) {
+        toast.error(`Cannot delete "${name}" — it may have assessments linked to it. Remove those assessments first.`);
+      } else {
+        toast.error(msg);
+      }
     }
   };
 

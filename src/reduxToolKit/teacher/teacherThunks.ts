@@ -703,7 +703,7 @@ export const deleteTeacherAssessment = createAsyncThunk(
   "teacher/deleteTeacherAssessment",
   async (id: string, { rejectWithValue }) => {
     try {
-      await apiClient.delete(`/api/proxy/teacher/assessments/${id}`);
+      await apiClient.delete(`/api/proxy/assessments/${id}`);
       return id;
     } catch (e: any) {
       return rejectWithValue(
