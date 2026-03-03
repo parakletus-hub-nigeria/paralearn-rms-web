@@ -31,6 +31,7 @@ export function AddUserModal({
 }: AddUserModalProps) {
   const [step, setStep] = useState<Step>("profile");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Profile data
   const [fullName, setFullName] = useState("");
@@ -71,6 +72,7 @@ export function AddUserModal({
     setGuardianPhone("");
     setSelectedClasses([]);
     setSelectedSubjects([]);
+    setErrorMessage(null);
   };
 
   const handleClose = () => {
@@ -101,6 +103,7 @@ export function AddUserModal({
 
   const handleSubmit = async () => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       const nameParts = fullName.trim().split(" ");
       const firstName = nameParts[0] || "";
@@ -143,7 +146,8 @@ export function AddUserModal({
     } catch (error: any) {
       const message =
         error?.response?.data?.message || error?.message || "Failed to add user";
-      toast.error(message);
+      // Show inline banner inside modal (toast is hidden by backdrop-blur)
+      setErrorMessage(message);
     } finally {
       setLoading(false);
     }
@@ -158,14 +162,14 @@ export function AddUserModal({
   if (!open) return null;
 
   return typeof document !== "undefined" ? createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="px-6 pt-6 pb-4">
+        <div className="px-6 pt-6 pb-4 shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
@@ -266,11 +270,21 @@ export function AddUserModal({
         </div>
 
         {/* Content */}
-        <div className="px-6 pb-2 max-h-[400px] overflow-y-auto">
+        <div className="px-6 pb-2 flex-1 overflow-y-auto">
+
+          {/* Inline error banner — always visible inside the modal regardless of backdrop-blur */}
+          {errorMessage && (
+            <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+              <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-9.25a.75.75 0 011.5 0v3a.75.75 0 01-1.5 0v-3zm.75 6a.875.875 0 100-1.75.875.875 0 000 1.75z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm font-medium text-red-700">{errorMessage}</p>
+            </div>
+          )}
           {step === "profile" && (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold text-slate-700">Full Name</label>
+                <label className="text-sm font-semibold text-slate-700">Full Name <span className="text-red-500">*</span></label>
                 <div className="relative mt-2">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
@@ -284,7 +298,7 @@ export function AddUserModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Email Address</label>
+                  <label className="text-sm font-semibold text-slate-700">Email Address <span className="text-red-500">*</span></label>
                   <div className="relative mt-2">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <Input
@@ -297,7 +311,7 @@ export function AddUserModal({
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Phone Number</label>
+                  <label className="text-sm font-semibold text-slate-700">Phone Number <span className="text-slate-400 font-normal">(Optional)</span></label>
                   <div className="relative mt-2">
                     <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <Input
@@ -313,7 +327,7 @@ export function AddUserModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Date of Birth</label>
+                  <label className="text-sm font-semibold text-slate-700">Date of Birth <span className="text-slate-400 font-normal">(Optional)</span></label>
                   <Input
                     type="date"
                     value={dateOfBirth}
@@ -322,7 +336,7 @@ export function AddUserModal({
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Gender</label>
+                  <label className="text-sm font-semibold text-slate-700">Gender <span className="text-slate-400 font-normal">(Optional)</span></label>
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value as any)}
@@ -336,7 +350,7 @@ export function AddUserModal({
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-slate-700">Address</label>
+                <label className="text-sm font-semibold text-slate-700">Address <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <div className="relative mt-2">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
@@ -351,7 +365,7 @@ export function AddUserModal({
               {type === "student" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">Guardian Name</label>
+                    <label className="text-sm font-semibold text-slate-700">Guardian Name <span className="text-slate-400 font-normal">(Optional)</span></label>
                     <Input
                       value={guardianName}
                       onChange={(e) => setGuardianName(e.target.value)}
@@ -360,7 +374,7 @@ export function AddUserModal({
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">Guardian Phone</label>
+                    <label className="text-sm font-semibold text-slate-700">Guardian Phone <span className="text-slate-400 font-normal">(Optional)</span></label>
                     <Input
                       type="tel"
                       value={guardianPhone}
@@ -452,7 +466,7 @@ export function AddUserModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="px-6 py-4 shrink-0 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
           <Button
             variant="outline"
             onClick={currentStepIndex > 0 ? handleBack : handleClose}

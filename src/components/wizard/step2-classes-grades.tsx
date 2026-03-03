@@ -85,7 +85,7 @@ export function Step2ClassesGrades({ classes, setClasses }: Step2Props) {
                       type="number"
                       placeholder="Enter level"
                       value={cls.level}
-                      onChange={(e) => updateClass(cls.id, "level", parseInt(e.target.value) || 1)}
+                      onChange={(e) => updateClass(cls.id, "level", e.target.value === "" ? "" : parseInt(e.target.value) || "")}
                       className="h-11 bg-white border border-slate-300 focus:border-[#641BC4] rounded-lg"
                       min="1"
                     />

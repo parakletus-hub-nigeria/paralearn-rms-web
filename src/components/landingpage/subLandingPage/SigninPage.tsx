@@ -76,7 +76,7 @@ export default function SigninPage() {
                 router.push("/setup");
               }
             } catch {
-              router.push("/setup");
+              router.push(routespath.DASHBOARD);
             }
           }
         } catch (sessionError: any) {
@@ -90,7 +90,7 @@ export default function SigninPage() {
               router.push("/setup");
             }
           } catch {
-            router.push("/setup");
+            router.push(routespath.DASHBOARD);
           }
         }
       } else {

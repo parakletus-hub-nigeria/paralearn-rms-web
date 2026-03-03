@@ -1,5 +1,3 @@
-import { Toaster } from "sonner";
-
 export default function LandingGroupLayout({
   children,
 }: {
@@ -7,7 +5,6 @@ export default function LandingGroupLayout({
 }) {
   return (
     <>
-      <Toaster position="top-right" expand={false} richColors />
       {children}
     </>
   );

@@ -154,7 +154,6 @@ Cream / Off-White: #FFFBEB */
   
   body {
     @apply bg-background text-foreground selection:bg-purple-200 selection:text-purple-900;
-    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-overflow-scrolling: touch;
@@ -162,16 +161,9 @@ Cream / Off-White: #FFFBEB */
   
   /* Optimize scroll performance - instant rendering */
   section {
-    transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     will-change: auto;
-  }
-  
-  /* Force GPU acceleration for main scroll. Avoid applying to all divs:
-     it overrides transforms (e.g. dialog translate) and can hide modal content. */
-  main {
-    transform: translateZ(0);
   }
   h1,
   h2,
@@ -489,10 +481,15 @@ Cream / Off-White: #FFFBEB */
   width: 0;
 }
 
-/* Force sonner toaster to always be fixed on the screen viewport, not the page */
+/* Force sonner toaster to always be on top of modals and backdrops */
 [data-sonner-toaster] {
   position: fixed !important;
   top: 16px !important;
   right: 16px !important;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
+}
+
+[data-sonner-toaster] li[data-sonner-toast] {
+  z-index: 999999 !important;
+  position: relative;
 }

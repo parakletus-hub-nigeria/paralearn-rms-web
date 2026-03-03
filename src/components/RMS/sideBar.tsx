@@ -33,7 +33,6 @@ import Link from "next/link";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
 import { usePathname } from "next/navigation";
-import { Toaster } from "sonner";
 import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
@@ -226,7 +225,6 @@ const SidebarContentContainer = ({
           </div>
         )}
         <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
-          <Toaster position="top-right" expand={false} richColors />
           {children}
         </div>
       </main>
