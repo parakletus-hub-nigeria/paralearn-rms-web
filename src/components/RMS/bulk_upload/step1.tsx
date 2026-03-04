@@ -15,6 +15,7 @@ const Step_One = ({
   setStep,
   uploadType,
   setOriginalFile,
+  existingEmailsLoaded,
 }: {
   fileContent: any;
   setFileContent: React.Dispatch<React.SetStateAction<any>>;
@@ -22,6 +23,7 @@ const Step_One = ({
   setStep: React.Dispatch<React.SetStateAction<number>>;
   uploadType: "student" | "teacher";
   setOriginalFile: React.Dispatch<React.SetStateAction<File | null>>;
+  existingEmailsLoaded?: boolean;
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -239,9 +241,9 @@ const Step_One = ({
           onClick={() => {
             setStep(step + 1);
           }}
-          disabled={!unpacked || loading}
+          disabled={!unpacked || loading || existingEmailsLoaded === false}
           className={`w-full sm:w-auto min-w-[200px] rounded-xl font-semibold text-white h-12 sm:h-14 flex flex-row items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg ${
-            !unpacked || loading
+            !unpacked || loading || existingEmailsLoaded === false
               ? "bg-purple-400 cursor-not-allowed"
               : "bg-gradient-to-r from-[#641BC4] to-[#8538E0] hover:from-[#5a2ba8] hover:to-[#7530c7]"
           }`}

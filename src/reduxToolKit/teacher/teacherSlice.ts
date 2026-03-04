@@ -204,9 +204,20 @@ const teacherSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(publishAssessment.fulfilled, (state) => {
+      .addCase(publishAssessment.fulfilled, (state, action) => {
         state.loading = false;
         state.success = "Publish status updated";
+        // Update the status of the published/unpublished assessment in state immediately
+        const payload = action.payload as any;
+        const assessmentId = payload?.id;
+        const isPublished = payload?.isPublished ?? payload?.publish;
+        if (assessmentId) {
+          state.assessments = state.assessments.map((a) =>
+            a.id === assessmentId
+              ? { ...a, status: isPublished ? "started" : "not_started", isPublished }
+              : a
+          );
+        }
       })
       .addCase(publishAssessment.rejected, (state, action) => {
         state.loading = false;
@@ -359,9 +370,15 @@ const teacherSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateTeacherAssessment.fulfilled, (state) => {
+      .addCase(updateTeacherAssessment.fulfilled, (state, action) => {
         state.loading = false;
         state.success = "Assessment updated successfully";
+        // Merge the updated fields into the matching assessment in state
+        if (action.payload?.id) {
+          state.assessments = state.assessments.map((a) =>
+            a.id === action.payload.id ? { ...a, ...action.payload } : a
+          );
+        }
       })
       .addCase(updateTeacherAssessment.rejected, (state, action) => {
         state.loading = false;

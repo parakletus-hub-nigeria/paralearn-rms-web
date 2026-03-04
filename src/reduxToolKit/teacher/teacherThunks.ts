@@ -371,7 +371,13 @@ export const publishAssessment = createAsyncThunk(
         `/api/proxy/assessments/${params.assessmentId}/publish`,
         { publish: params.publish }
       );
-      return res.data?.data || res.data || { publish: params.publish };
+      const data = res.data?.data || res.data || {};
+      // Always return id + isPublished so the slice reducer can update the right assessment
+      return {
+        id: data.id || params.assessmentId,
+        isPublished: data.isPublished ?? params.publish,
+        ...data,
+      };
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to update publish state"
@@ -686,15 +692,33 @@ export const updateTeacherAssessment = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const res = await apiClient.patch(
-        `/api/proxy/assessments/${params.id}`,
-        params.data
-      );
+      let res: any;
+      try {
+        res = await apiClient.patch(
+          `/api/proxy/assessments/${params.id}`,
+          params.data
+        );
+      } catch (e: any) {
+        // If the base route returns 403 (forbidden for teacher role), try the teacher-scoped route
+        if (e?.response?.status === 403) {
+          res = await apiClient.patch(
+            `/api/proxy/teacher/assessments/${params.id}`,
+            params.data
+          );
+        } else {
+          throw e;
+        }
+      }
       return res.data?.data || res.data || null;
     } catch (e: any) {
-      return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to update assessment"
-      );
+      const msg =
+        e?.response?.data?.message ||
+        (Array.isArray(e?.response?.data?.errors)
+          ? e.response.data.errors.join(", ")
+          : null) ||
+        e?.message ||
+        "Failed to update assessment";
+      return rejectWithValue(msg);
     }
   }
 );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
@@ -132,80 +132,79 @@ export function AdminSubjectsPage() {
     return map;
   }, [classes]);
 
-  // Create a map to store fetched subject details with teachers
+  // Map of subject id -> fetched details (with teacher assignments)
   const [subjectDetailsMap, setSubjectDetailsMap] = useState<Map<string, any>>(new Map());
-  const [fetchingDetails, setFetchingDetails] = useState(false);
+  // Use a ref for the in-progress guard so it doesn't trigger re-renders
+  const fetchingRef = useRef(false);
 
-  // Fetch subject details to get teacher assignments
+  // Fetch subject details to get teacher assignments.
+  // Only fetches subjects that aren't already cached to avoid flickering.
   useEffect(() => {
     const fetchSubjectDetails = async () => {
-      if (subjects.length === 0 || fetchingDetails) return;
-      
-      setFetchingDetails(true);
-      const newMap = new Map<string, any>();
-      
-      // Fetch details for each subject using apiClient
-      // Try with include/expand parameters to get teacher data
-      for (const subject of subjects) {
+      if (subjects.length === 0 || fetchingRef.current) return;
+
+      // Only fetch subjects not already in the map
+      const toFetch = subjects.filter((s: any) => !subjectDetailsMap.has(s.id));
+      if (toFetch.length === 0) return;
+
+      fetchingRef.current = true;
+      const newEntries = new Map<string, any>();
+
+      for (const subject of toFetch) {
         try {
-          // Try different endpoints/parameters to get teacher assignments
-          let subjectData = null;
-          
-          // Attempt 1: Get subject with include parameter
+          let subjectData: any = null;
+
+          // Attempt 1: Get subject with teacher includes
           try {
             const response = await apiClient.get(`/api/proxy/subjects/${subject.id}?include=teachers,teacherAssignments`);
             subjectData = response.data?.data || response.data;
-          } catch (e) {
-            // Attempt 2: Get basic subject details
+          } catch {
+            // Attempt 2: Basic subject details
             const response = await apiClient.get(`/api/proxy/subjects/${subject.id}`);
             subjectData = response.data?.data || response.data;
           }
-          
-          // If no teacher data in subject, try to get it from the class endpoint
+
+          // If still no teacher info, try the class endpoint
           if (subjectData && !subjectData.teachers && !subjectData.teacherAssignments && subject.classId) {
             try {
               const classResponse = await apiClient.get(`/api/proxy/classes/${subject.classId}`);
               const classData = classResponse.data?.data || classResponse.data;
-              
-              // Check if the class has subject-teacher assignments
+
               if (classData?.subjects) {
                 const matchingSubject = classData.subjects.find((s: any) => s.id === subject.id);
-                if (matchingSubject) {
-                  subjectData = { ...subjectData, ...matchingSubject };
-                }
+                if (matchingSubject) subjectData = { ...subjectData, ...matchingSubject };
               }
-              
-              // Also check teacherAssignments on class level
+
               if (classData?.teacherAssignments) {
-                // Find assignments that might be linked to this subject
                 const subjectAssignments = classData.teacherAssignments.filter(
                   (a: any) => a.subjectId === subject.id
                 );
-                if (subjectAssignments.length > 0) {
-                  subjectData.teacherAssignments = subjectAssignments;
-                }
+                if (subjectAssignments.length > 0) subjectData.teacherAssignments = subjectAssignments;
               }
-            } catch (classError: any) {
+            } catch {
               // Ignore class fetch error
             }
           }
-          
-          if (subjectData) {
-            newMap.set(subject.id, subjectData);
-          }
-        } catch (e: any) {
-          // Ignore general fetch error
+
+          if (subjectData) newEntries.set(subject.id, subjectData);
+        } catch {
+          // Ignore per-subject fetch error
         }
       }
-      
-      setSubjectDetailsMap(newMap);
-      setFetchingDetails(false);
+
+      // Merge new entries into the existing map (don't wipe what we already have)
+      if (newEntries.size > 0) {
+        setSubjectDetailsMap(prev => {
+          const merged = new Map(prev);
+          newEntries.forEach((v, k) => merged.set(k, v));
+          return merged;
+        });
+      }
+
+      fetchingRef.current = false;
     };
 
-    // Only fetch if we don't have details yet
-    if (subjects.length > 0 && subjectDetailsMap.size === 0) {
-      fetchSubjectDetails();
-    }
+    fetchSubjectDetails();
   }, [subjects]);
 
   // Filter subjects
@@ -278,10 +277,14 @@ export function AdminSubjectsPage() {
       toast.success("Teacher assigned to subject");
       setAssignTeacherId("");
       setShowAssignModal(false);
+      // Remove only the specific subject from the cache so it re-fetches with new teacher data
+      // (avoids wiping all entries which causes other rows to flicker to "Unassigned")
+      setSubjectDetailsMap(prev => {
+        const next = new Map(prev);
+        next.delete(selectedSubject.id);
+        return next;
+      });
       setSelectedSubject(null);
-      // Clear cached details so it re-fetches with new teacher data
-      setSubjectDetailsMap(new Map());
-      setFetchingDetails(false);
       dispatch(fetchSubjects());
     } catch (e: any) {
       toast.error(e || "Failed to assign teacher");

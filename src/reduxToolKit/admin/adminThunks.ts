@@ -443,7 +443,12 @@ export const publishAssessmentAdmin = createAsyncThunk(
       const res = await apiClient.post(`/api/proxy/assessments/${payload.assessmentId}/publish`, {
         publish: payload.publish,
       });
-      return unwrap(res);
+      const data = unwrap(res) as any;
+      return {
+        id: data?.id || payload.assessmentId,
+        isPublished: data?.isPublished ?? payload.publish,
+        ...data,
+      };
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to publish assessment");
     }

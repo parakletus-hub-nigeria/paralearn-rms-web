@@ -9,6 +9,7 @@ type contentType = {
   Gender: string;
   guardianContact: string;
   validationStatus?: boolean;
+  errorMsg?: string;
 };
 
 const Step_Two = ({
@@ -39,7 +40,7 @@ const Step_Two = ({
     validatedFileContent.length > 0
       ? (
           Object.keys(validatedFileContent[0]) as Array<keyof contentType>
-        ).filter((k) => k !== "validationStatus" && !/^_\d+$/.test(String(k)))
+        ).filter((k) => k !== "validationStatus" && k !== "errorMsg" && !/^_\d+$/.test(String(k)))
       : [];
 
   const handleBack = () => setStep(Math.max(1, step - 1));
@@ -145,12 +146,17 @@ const Step_Two = ({
                   {visibleKeys.map((key, cellIndex) => (
                     <td
                       key={cellIndex}
-                      className="p-3 text-xs sm:text-sm break-all whitespace-normal overflow-hidden"
+                      className="p-3 text-xs sm:text-sm break-all whitespace-normal overflow-hidden relative group"
                       style={{
                         color: row[key] == "Published" ? "green" : "black",
                       }}
                     >
                       {row[key]}
+                      {cellIndex === 0 && row.validationStatus === false && row.errorMsg && (
+                          <div className="absolute left-0 bottom-full mb-1 hidden group-hover:block bg-red-600 text-white text-[10px] px-2 py-1 rounded shadow-lg z-10 whitespace-nowrap">
+                              Error: {row.errorMsg}
+                          </div>
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -181,14 +187,19 @@ const Step_Two = ({
                   <span className="font-semibold text-gray-700 text-xs">
                     {key.charAt(0).toUpperCase() + key.slice(1)}
                   </span>
-                  <span
-                    className="text-xs text-gray-900"
-                    style={{
-                      color: row[key] == "Published" ? "green" : "black",
-                    }}
-                  >
-                    {row[key]}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span
+                      className="text-xs text-gray-900"
+                      style={{
+                        color: row[key] == "Published" ? "green" : "black",
+                      }}
+                    >
+                      {row[key]}
+                    </span>
+                    {key === visibleKeys[0] && row.validationStatus === false && row.errorMsg && (
+                       <span className="text-[10px] text-red-600 mt-1 font-semibold">{row.errorMsg}</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

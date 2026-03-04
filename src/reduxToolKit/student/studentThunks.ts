@@ -76,8 +76,7 @@ export const fetchAssessmentDetails = createAsyncThunk(
   "student/fetchDetails",
   async (id: string, { rejectWithValue }) => {
     try {
-      // Updated endpoint to avoid collision with :status route
-      const response = await apiClient.get(`/api/proxy/assessments/details/${id}`);
+      const response = await apiClient.get(`/api/proxy/assessments/${id}`);
       return response.data?.data || response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch assessment details");

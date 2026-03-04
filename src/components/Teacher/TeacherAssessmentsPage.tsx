@@ -360,11 +360,9 @@ export function TeacherAssessmentsPage() {
 
   const handlePublish = async (assessmentId: string) => {
     try {
-      const res = await dispatch(updateTeacherAssessment({ id: assessmentId, data: { status: "started" } })).unwrap();
-      if (res) {
-        toast.success("Assessment published and is now active!");
-        refreshData(true);
-      }
+      await dispatch(publishAssessment({ assessmentId, publish: true })).unwrap();
+      toast.success("Assessment published and is now active!");
+      refreshData(true);
     } catch (e: any) {
       toast.error(e || "Failed to publish assessment");
     }

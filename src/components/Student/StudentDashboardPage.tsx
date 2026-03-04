@@ -51,6 +51,8 @@ export default function StudentDashboardPage() {
 
   // Pre-filter assessments to drive both the stats and the grid
   const filteredAssessments = assessments.filter((a) => {
+    // Never show unpublished assessments — backend should enforce this too
+    if (a.isPublished === false) return false;
     const isSubmitted = a.status === 'submitted' || a.submissions?.some(
       s => s.status === 'submitted' && !!s.finishedAt  // Requires BOTH (tightened)
     );

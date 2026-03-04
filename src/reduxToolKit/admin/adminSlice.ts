@@ -222,9 +222,17 @@ const adminSlice = createSlice({
 
     builder
       .addCase(publishAssessmentAdmin.pending, pending)
-      .addCase(publishAssessmentAdmin.fulfilled, (state) => {
+      .addCase(publishAssessmentAdmin.fulfilled, (state, action) => {
         state.loading = false;
         state.success = "Publish status updated";
+        const payload = action.payload as any;
+        if (payload?.id) {
+          state.assessments = state.assessments.map((a: any) =>
+            a.id === payload.id
+              ? { ...a, status: payload.isPublished ? "started" : "not_started", isPublished: payload.isPublished }
+              : a
+          );
+        }
       })
       .addCase(publishAssessmentAdmin.rejected, (state, action) => rejected(state, action, "Failed to publish assessment"));
 

@@ -102,25 +102,58 @@ export const validateGender = (gender: string): boolean => {
   if (!gender) return false;
 
   const validGenders = ["male", "female"];
-  const normalizedGender = gender.toLowerCase();
+  const normalizedGender = String(gender).trim().toLowerCase();
 
   return validGenders.includes(normalizedGender);
 };
 
 // --- Helper: Validate a complete row object ---
-// Only requires email, firstName, and lastName for authentication
-export const validateUserRow = (row: any, rowIndex: number) => {
-  // Validate only required fields: email, firstName, lastName
+// Requires email, firstName, lastName. Extra requirements based on type
+export const validateUserRow = (row: any, rowIndex: number, uploadType: "student" | "teacher", existingEmails: Set<string>) => {
   const isEmailValid = validateEmail(row.email);
   const isFirstNameValid = validateName(row.firstName);
   const isLastNameValid = validateName(row.lastName);
 
-  // Only these three fields are required
-  const isValid = isEmailValid && isFirstNameValid && isLastNameValid;
+  let isValid = isEmailValid && isFirstNameValid && isLastNameValid;
+  let errorMsg = "";
+
+  if (!isEmailValid) errorMsg = "Invalid Email";
+  else if (!isFirstNameValid) errorMsg = "Invalid First Name";
+  else if (!isLastNameValid) errorMsg = "Invalid Last Name";
+
+  // Check against duplicate emails if we have them and it's otherwise valid
+  if (isValid && existingEmails && existingEmails.has(String(row.email).toLowerCase().trim())) {
+    isValid = false;
+    errorMsg = "Email already in use";
+  }
+
+  // Student specific validation
+  if (uploadType === "student") {
+    const isDobValid = validateDateOfBirth(row.dateOfBirth);
+    const isGenderValid = validateGender(row.Gender);
+    const isClassValid = !!(row.class && String(row.class).trim() !== "");
+
+    if (isValid) {
+      if (!isClassValid) { isValid = false; errorMsg = "Missing/Invalid Class"; }
+      else if (!isDobValid) { isValid = false; errorMsg = "Invalid Date of Birth"; }
+      else if (!isGenderValid) { isValid = false; errorMsg = "Invalid Gender"; }
+    }
+  }
+
+  // Teacher specific validation
+  if (uploadType === "teacher") {
+     const isDobValid = validateDateOfBirth(row.dateOfBirth);
+     const isGenderValid = validateGender(row.Gender);
+     if (isValid) {
+      if (!isDobValid && row.dateOfBirth) { isValid = false; errorMsg = "Invalid Date of Birth format"; } 
+      else if (!isGenderValid && row.Gender) { isValid = false; errorMsg = "Invalid Gender format"; }
+     }
+  }
 
   return {
     rowIndex,
     isValid,
+    errorMsg,
     data: row,
   };
 };

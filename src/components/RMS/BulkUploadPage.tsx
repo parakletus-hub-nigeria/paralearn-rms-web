@@ -38,6 +38,7 @@ type contentType = {
   Gender: string;
   guardianContact: string;
   validationStatus?: boolean;
+  errorMsg?: string;
 };
 
 export const BulkUploadPage = () => {
@@ -53,29 +54,56 @@ export const BulkUploadPage = () => {
   const [uploadType, setUploadType] = useState<"student" | "teacher">(
     "student"
   );
+  const [existingEmails, setExistingEmails] = useState<Set<string> | null>(null);
 
   useEffect(() => {
     dispatch(getTenantInfo());
+    
+    // Fetch duplicate emails for efficient client-side filtering
+    const fetchEmails = async () => {
+      try {
+        const { default: apiClient } = await import("@/lib/api");
+        // Handling both proxy and direct routes
+        const response = await apiClient.get('/api/proxy/non-tenant/emails').catch(() => apiClient.get('/non-tenant/emails'));
+        
+        let emailArray = [];
+        if (response.data?.data && Array.isArray(response.data.data)) {
+            emailArray = response.data.data;
+        } else if (Array.isArray(response.data)) {
+            emailArray = response.data;
+        }
+        
+        const emailSet = new Set<string>();
+        emailArray.forEach((email: string) => {
+            if(email) emailSet.add(email.toLowerCase().trim());
+        });
+        setExistingEmails(emailSet);
+      } catch (err) {
+        console.error("Failed to fetch existing emails", err);
+        setExistingEmails(new Set()); // Fallback to empty set so user isn't blocked forever
+      }
+    };
+    fetchEmails();
   }, [dispatch]);
 
   useEffect(() => {
     let Valid = 0;
     let ValidArray = [] as contentType[];
 
-    if (fileContent.length > 0) {
+    if (fileContent.length > 0 && existingEmails !== null) {
       fileContent.forEach((Content: contentType, index) => {
-        const { isValid } = validateUserRow(Content, index);
+        const { isValid, errorMsg } = validateUserRow(Content, index, uploadType, existingEmails);
         if (isValid) {
           ValidArray.push({ ...Content, validationStatus: true });
           Valid += 1;
         } else if (!isValid) {
-          ValidArray.push({ ...Content, validationStatus: false });
+          ValidArray.push({ ...Content, validationStatus: false, errorMsg });
         }
       });
       setValidNumber(Valid);
       setValidatedFileContent(ValidArray);
     }
-  }, [fileContent]);
+  }, [fileContent, existingEmails, uploadType]);
 
   return (
     <div className="w-full min-h-screen pb-8">
@@ -144,6 +172,7 @@ export const BulkUploadPage = () => {
               setStep={setStep}
               uploadType={uploadType}
               setOriginalFile={setOriginalFile}
+              existingEmailsLoaded={existingEmails !== null}
             />
           )}
           {step == 2 && validatedFileContent.length > 0 && (
