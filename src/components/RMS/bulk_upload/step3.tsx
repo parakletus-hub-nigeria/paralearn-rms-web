@@ -105,10 +105,10 @@ const Step_Three = ({
 
       const res = response.data;
       
-      // New backend returns totalRecords and message for background processing
-      const totalRecords = res.data?.totalRecords || res.totalRecords || ValidNumber;
-      const message = res.data?.message || res.message || 
-        `Creation of ${totalRecords} ${uploadType}s processing in the background. You will receive an email notification when completed.`;
+      // Use ValidNumber instead of the backend's raw file count, because the backend queues the whole file
+      // but will eventually skip the invalid ones. Showing the valid count prevents user confusion.
+      const totalRecords = ValidNumber;
+      const message = `Creation of ${totalRecords} ${uploadType}s processing in the background. You will receive an email notification when completed.`;
       
       setUploadCount(totalRecords);
       setSuccessMessage(message);

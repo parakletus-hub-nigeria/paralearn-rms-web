@@ -131,7 +131,7 @@ export const validateUserRow = (row: any, rowIndex: number, uploadType: "student
   if (uploadType === "student") {
     const isDobValid = validateDateOfBirth(row.dateOfBirth);
     const isGenderValid = validateGender(row.Gender);
-    const isClassValid = !!(row.class && String(row.class).trim() !== "");
+    const isClassValid = !!(row.className && String(row.className).trim() !== "");
 
     if (isValid) {
       if (!isClassValid) { isValid = false; errorMsg = "Missing/Invalid Class"; }

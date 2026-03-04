@@ -1,4 +1,5 @@
-import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
 
 type contentType = {
   email: string;
@@ -45,6 +46,15 @@ const Step_Two = ({
 
   const handleBack = () => setStep(Math.max(1, step - 1));
   const handleNext = () => setStep(step + 1);
+
+  // Pagination
+  const ITEMS_PER_PAGE = 10;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(validatedFileContent.length / ITEMS_PER_PAGE);
+  const paginatedRows = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return validatedFileContent.slice(start, start + ITEMS_PER_PAGE);
+  }, [validatedFileContent, page]);
 
   return (
     <div className="w-full mx-auto p-3 sm:p-4 md:p-6 space-y-6 font-sans flex flex-col items-center">
@@ -132,7 +142,7 @@ const Step_Two = ({
               </tr>
             </thead>
             <tbody>
-              {validatedFileContent.map((row, index) => (
+              {paginatedRows.map((row, index) => (
                 <tr
                   key={index}
                   className={`${
@@ -146,15 +156,15 @@ const Step_Two = ({
                   {visibleKeys.map((key, cellIndex) => (
                     <td
                       key={cellIndex}
-                      className="p-3 text-xs sm:text-sm break-all whitespace-normal overflow-hidden relative group"
+                      className="p-3 text-xs sm:text-sm break-all whitespace-normal overflow-hidden relative"
                       style={{
                         color: row[key] == "Published" ? "green" : "black",
                       }}
                     >
                       {row[key]}
                       {cellIndex === 0 && row.validationStatus === false && row.errorMsg && (
-                          <div className="absolute left-0 bottom-full mb-1 hidden group-hover:block bg-red-600 text-white text-[10px] px-2 py-1 rounded shadow-lg z-10 whitespace-nowrap">
-                              Error: {row.errorMsg}
+                          <div className="mt-1 text-red-600 text-[11px] font-bold bg-white/80 inline-block px-1 rounded">
+                              {row.errorMsg}
                           </div>
                       )}
                     </td>
@@ -166,7 +176,7 @@ const Step_Two = ({
         </div>
 
         <div className="sm:hidden space-y-4">
-          {validatedFileContent.map((row, index) => (
+          {paginatedRows.map((row, index) => (
             <div
               key={index}
               style={{
@@ -197,7 +207,7 @@ const Step_Two = ({
                       {row[key]}
                     </span>
                     {key === visibleKeys[0] && row.validationStatus === false && row.errorMsg && (
-                       <span className="text-[10px] text-red-600 mt-1 font-semibold">{row.errorMsg}</span>
+                       <span className="text-[11px] text-red-600 mt-1 font-bold bg-red-50 px-1 rounded">{row.errorMsg}</span>
                     )}
                   </div>
                 </div>
@@ -205,6 +215,36 @@ const Step_Two = ({
             </div>
           ))}
         </div>
+
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+            <p className="text-sm text-slate-500">
+              Showing <span className="font-semibold text-slate-700">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+              <span className="font-semibold text-slate-700">
+                {Math.min(page * ITEMS_PER_PAGE, validatedFileContent.length)}
+              </span>{" "}
+              of <span className="font-semibold text-slate-700">{validatedFileContent.length}</span> records
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="h-9 px-3 rounded-lg border border-slate-200 flex items-center gap-1 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" /> Previous
+              </button>
+              <span className="text-sm text-slate-600 font-medium px-2">{page} / {totalPages}</span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="h-9 px-3 rounded-lg border border-slate-200 flex items-center gap-1 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+              >
+                Next <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="w-full sm:w-4/5 md:w-3/5 lg:w-3/5 mx-auto flex items-center justify-between gap-3">

@@ -10,9 +10,13 @@ const getCookieDomain = () => {
 
   if (isLocalhost) {
     // Return .localhost to allow sharing across subdomain.localhost and localhost
-    // Note: Some browsers might be picky about 'localhost' vs '.localhost', 
-    // but .localhost is the modern standard for subdomains.
     return ".localhost";
+  }
+  
+  // Check if IP address using regex
+  const isIpAddress = /^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$/.test(hostname);
+  if (isIpAddress) {
+    return undefined; // Let the browser use the exact IP address
   }
   
   // For production domains (e.g., school.pln.ng -> .pln.ng)

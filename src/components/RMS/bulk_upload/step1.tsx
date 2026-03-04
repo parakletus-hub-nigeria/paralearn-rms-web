@@ -29,6 +29,8 @@ const Step_One = ({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [unpacked, SetUnpacked] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [rowCount, setRowCount] = useState(0);
 
   const handleDragOver = (e: any) => {
     e.preventDefault();
@@ -83,6 +85,8 @@ const Step_One = ({
           complete: (results) => {
             // results.data is your Array of Objects
             setFileContent(results.data as any);
+            setSelectedFileName(file.name);
+            setRowCount((results.data as any[]).length);
             setLoading(false);
             SetUnpacked(true);
           },
@@ -115,6 +119,8 @@ const Step_One = ({
           );
 
           setFileContent(jsonData as any);
+          setSelectedFileName(file.name);
+          setRowCount(jsonData.length);
           setLoading(false);
           SetUnpacked(true);
         };
@@ -182,7 +188,36 @@ const Step_One = ({
                   />
                 </div>
               </div>
+            ) : unpacked && selectedFileName ? (
+              // ── File already loaded: show success state ──
+              <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <p className="font-semibold text-slate-900 text-base">{selectedFileName}</p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    <span className="font-medium text-green-700">{rowCount}</span> row{rowCount !== 1 ? 's' : ''} detected
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-4 py-2 rounded-full">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                  </svg>
+                  File Loaded — Ready to Continue
+                </div>
+                <button
+                  onClick={onButtonClick}
+                  type="button"
+                  className="mt-1 text-xs text-slate-500 underline hover:text-[#641BC4] transition-colors"
+                >
+                  Change File
+                </button>
+              </div>
             ) : (
+              // ── Default empty state ──
               <>
                 <div className="mb-6 text-purple-600">
                   <Upload size={48} strokeWidth={1.5} className="sm:w-14 sm:h-14" />

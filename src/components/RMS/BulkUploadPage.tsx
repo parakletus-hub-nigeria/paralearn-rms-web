@@ -11,6 +11,7 @@ import Step_Two from "@/components/RMS/bulk_upload/step2";
 import Step_Three from "@/components/RMS/bulk_upload/step3";
 import { validateUserRow } from "@/lib/validateRows";
 import { ProductTour } from "@/components/common/ProductTour";
+import { useSearchParams } from "next/navigation";
 
 const bulkUploadTourSteps = [
   {
@@ -43,6 +44,7 @@ type contentType = {
 
 export const BulkUploadPage = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const searchParams = useSearchParams();
   const { tenantInfo } = useSelector((s: RootState) => s.user);
   const [step, setStep] = useState(1);
   const [fileContent, setFileContent] = useState([]);
@@ -51,8 +53,10 @@ export const BulkUploadPage = () => {
     [] as contentType[]
   );
   const [ValidNumber, setValidNumber] = useState(0);
+
+  const initialType = searchParams.get("type") === "teacher" ? "teacher" : "student";
   const [uploadType, setUploadType] = useState<"student" | "teacher">(
-    "student"
+    initialType
   );
   const [existingEmails, setExistingEmails] = useState<Set<string> | null>(null);
 
