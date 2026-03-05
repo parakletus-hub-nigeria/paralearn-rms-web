@@ -404,12 +404,9 @@ export function PageThree({data,changeData,step,setStep}: any){
     const router = useRouter();
     const dispatch = useDispatch<AppDispatch>();
 
-    const checkPhone = (phone:string) => {
-        if(phone.length > 0){
-            return true
-        }else{
-            return false
-        }
+    const checkPhone = (phone: string) => {
+        const phoneRegex = /^\+?[\d\s-]{10,}$/;
+        return phoneRegex.test(phone);
     }
 
     const [disable, setDisable] = useState(false)
@@ -511,9 +508,19 @@ export function PageThree({data,changeData,step,setStep}: any){
                                     if (form.name === "phoneNumber") setPhoneAuth(checkPhone(e.target.value));
                                 }}
                                 placeholder={form.subtext}
-                                className="h-11 rounded-lg border-slate-300 bg-slate-50/50 focus:bg-white"
+                                className={`h-11 rounded-lg border-slate-300 bg-slate-50/50 focus:bg-white ${
+                                    form.name === "phoneNumber" && !phoneAuth && data.phoneNumber !== "" ? "border-red-500 focus:ring-red-500" : ""
+                                }`}
                             />
-                            <p className="text-xs text-slate-500">{form.subtext}</p>
+                            {form.name === "phoneNumber" && !phoneAuth && data.phoneNumber !== "" && (
+                                <p className="flex items-center gap-1.5 text-xs text-red-600">
+                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                                    Please enter a valid phone number (at least 10 digits)
+                                </p>
+                            )}
+                            {!(form.name === "phoneNumber" && !phoneAuth && data.phoneNumber !== "") && (
+                                <p className="text-xs text-slate-500">{form.subtext}</p>
+                            )}
                         </div>
                     ))}
                     <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50/50 p-4">

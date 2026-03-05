@@ -66,24 +66,33 @@ export function StudentHeader({ transparent = false }: StudentHeaderProps) {
           <p className={`text-[10px] uppercase tracking-wider font-medium ${subTextColorClass}`}>Student Portal</p>
         </div>
         
-        <div className="relative group">
-           <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-green-400 to-emerald-600 opacity-75 blur-sm group-hover:opacity-100 transition-opacity"></div>
-           <button className="relative w-11 h-11 rounded-full border-2 border-slate-900 p-[2px] bg-slate-900 overflow-hidden">
-             <img 
-               alt="Avatar" 
-               className="rounded-full w-full h-full object-cover bg-slate-200" 
-               src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'guest'}`} 
-             />
-             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
-           </button>
-           
-           {/* Dropdown Menu (Simplified) */}
-           <div className="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-50">
-              <button onClick={() => setIsLogoutModalOpen(true)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium">
-                <LogOut className="w-4 h-4" /> Sign Out
-              </button>
-           </div>
-        </div>
+         <div className="relative group">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-green-400 to-emerald-600 opacity-75 blur-sm group-hover:opacity-100 transition-opacity"></div>
+            <button className="relative w-11 h-11 rounded-full border-2 border-slate-900 p-[2px] bg-slate-900 overflow-hidden">
+              <img 
+                alt="Avatar" 
+                className="rounded-full w-full h-full object-cover bg-slate-200" 
+                src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'guest'}`} 
+              />
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
+            </button>
+            
+            {/* Dropdown Menu (Simplified) */}
+            <div className="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-50">
+               <button onClick={() => setIsLogoutModalOpen(true)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium">
+                 <LogOut className="w-4 h-4" /> Sign Out
+               </button>
+            </div>
+         </div>
+         
+         {/* Mobile Logout Button */}
+         <button
+           onClick={() => setIsLogoutModalOpen(true)}
+           className="md:hidden flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg font-bold text-xs border border-red-100 shadow-sm active:scale-95 transition-all"
+         >
+           <LogOut className="w-3.5 h-3.5" />
+           Logout
+         </button>
       </div>
       <LogoutConfirmModal 
         isOpen={isLogoutModalOpen}

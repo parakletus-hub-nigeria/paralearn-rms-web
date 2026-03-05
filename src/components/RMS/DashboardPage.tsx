@@ -20,17 +20,25 @@ import { ProductTour } from "@/components/common/ProductTour";
 
 const adminTourSteps = [
   {
-    target: '.dashboard-academic-banner',
-    content: "This banner displays your currently active academic Session and Term. Click 'Manage Sessions' to update this when starting a new academic term or year.",
+    target: '.rms-header-greeting',
+    title: "Welcome to ParaLearn!",
+    content: "This is your central command center. From here, you can monitor school performance, manage staff and students, and oversee all academic activities.",
     disableBeacon: true,
   },
   {
+    target: '.dashboard-academic-banner',
+    title: "Current Term Status",
+    content: "This banner displays your active academic Session and Term. Keeping this updated ensures accurate reporting across the school.",
+  },
+  {
     target: '.dashboard-stats-grid',
-    content: "Here is a bird's-eye view of your school's total students, teachers, subjects, and assessments. Monitoring these numbers helps you ensure everyone is properly enrolled and active.",
+    title: "Quick Statistics",
+    content: "Get an instant count of your students, teachers, subjects, and assessments to ensure everyone is properly enrolled and active.",
   },
   {
     target: '.dashboard-recent-assessments',
-    content: "Track the latest exams and assignments created across your school in real-time. Use this to ensure teachers are actively evaluating students according to the curriculum.",
+    title: "Recent Academic Activity",
+    content: "Track the latest exams and assignments created by teachers in real-time to monitor curriculum progress.",
   },
 ];
 

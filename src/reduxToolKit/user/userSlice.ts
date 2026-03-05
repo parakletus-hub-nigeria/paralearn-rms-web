@@ -61,7 +61,10 @@ const getInitialUser = (): UserState["user"] => {
     const raw = localStorage.getItem(USER_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      const roles = normalizeRoles(parsed?.roles);
+      let roles = normalizeRoles(parsed?.roles);
+      if (roles.length === 0 && parsed) {
+        roles = normalizeRoles(parsed);
+      }
       return {
         id: parsed?.id || "",
         email: parsed?.email || "",

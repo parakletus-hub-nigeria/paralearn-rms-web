@@ -9,8 +9,8 @@ export const normalizeRoles = (roles: any): string[] => {
   if (!roles) return [];
   
   // If roles is already an array of strings
-  if (Array.isArray(roles) && roles.every((r) => typeof r === "string")) {
-    return roles.map(r => r.trim().toLowerCase());
+  if (Array.isArray(roles) && roles.length > 0 && typeof roles[0] === "string") {
+    return roles.map(r => String(r).trim().toLowerCase());
   }
   
   // If roles is an array of objects like [{role: {name: 'admin'}}]
@@ -24,29 +24,38 @@ export const normalizeRoles = (roles: any): string[] => {
   // If roles is a single string
   if (typeof roles === "string") return [roles.trim().toLowerCase()];
 
-  // If roles is actually a user object containing role flags
-  // These are common in some JWT payloads and backend responses
-  const extractedRoles: string[] = [];
+  // If roles is actually a user object or payload containing role indicators
+  const extractedRoles: Set<string> = new Set();
   
-  // Helper to check for truthy role flags (bool true or string "true")
-  const isTrue = (val: any) => val === true || val === "true" || val === 1;
+  // Helper to check for truthy values
+  const isTrue = (val: any) => {
+    if (val === true || val === "true" || val === 1 || val === "1") return true;
+    return false;
+  };
 
-  if (isTrue(roles.iadmin) || isTrue(roles.isAdmin) || roles.role === "admin") {
-    extractedRoles.push("admin");
-  }
-  if (isTrue(roles.iseditor) || isTrue(roles.isEditor) || roles.role === "editor") {
-    extractedRoles.push("editor");
-  }
+  // Check explicit role field
+  const mainRole = String(roles.role || "").toLowerCase();
+  if (mainRole === "admin") extractedRoles.add("admin");
+  if (mainRole === "teacher") extractedRoles.add("teacher");
+  if (mainRole === "student") extractedRoles.add("student");
+  if (mainRole === "editor") extractedRoles.add("editor");
+
+  // Check boolean/string flags
+  if (isTrue(roles.isAdmin) || isTrue(roles.isadmin)) extractedRoles.add("admin");
+  if (isTrue(roles.isTeacher) || isTrue(roles.isteacher)) extractedRoles.add("teacher");
+  if (isTrue(roles.isStudent) || isTrue(roles.isstudent)) extractedRoles.add("student");
+  if (isTrue(roles.isEditor) || isTrue(roles.iseditor)) extractedRoles.add("editor");
   
-  // Also check for 'teacher' and 'student' flags if they exist
-  if (isTrue(roles.isTeacher) || roles.role === "teacher") {
-    extractedRoles.push("teacher");
+  // Check for presence of unique IDs as indicators
+  if (roles.teacherId) extractedRoles.add("teacher");
+  if (roles.studentId) extractedRoles.add("student");
+
+  // Check string array represented as comma-separated string if applicable
+  if (typeof roles.roles === "string" && roles.roles.includes(",")) {
+    roles.roles.split(",").forEach((r: string) => extractedRoles.add(r.trim().toLowerCase()));
   }
-  if (isTrue(roles.isStudent) || roles.role === "student") {
-    extractedRoles.push("student");
-  }
-  
-  return extractedRoles;
+
+  return Array.from(extractedRoles);
 };
 
 /**

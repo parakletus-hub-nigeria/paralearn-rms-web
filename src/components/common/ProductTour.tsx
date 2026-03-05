@@ -13,14 +13,16 @@ export function ProductTour({ tourKey, steps }: ProductTourProps) {
 
   useEffect(() => {
     // Check if the user has already seen this specific tour
-    const hasSeenTour = localStorage.getItem(`tour_${tourKey}`);
-    
-    if (!hasSeenTour) {
-      // Small delay to ensure the DOM is fully rendered
-      const timer = setTimeout(() => {
-        setRun(true);
-      }, 1000);
-      return () => clearTimeout(timer);
+    if (typeof window !== 'undefined') {
+      const hasSeenTour = localStorage.getItem(`tour_v2_${tourKey}`);
+      
+      if (!hasSeenTour) {
+        // Small delay to ensure the DOM and its targets are fully rendered
+        const timer = setTimeout(() => {
+          setRun(true);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
     }
   }, [tourKey]);
 
@@ -30,7 +32,9 @@ export function ProductTour({ tourKey, steps }: ProductTourProps) {
 
     // If the user completes or skips the tour, mark it as seen
     if (finishedStatuses.includes(status)) {
-      localStorage.setItem(`tour_${tourKey}`, 'true');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`tour_v2_${tourKey}`, 'true');
+      }
       setRun(false);
     }
   };
@@ -42,30 +46,67 @@ export function ProductTour({ tourKey, steps }: ProductTourProps) {
       steps={steps}
       run={run}
       continuous
+      scrollToFirstStep
       showProgress
       showSkipButton
+      disableScrolling={false}
+      scrollOffset={100}
       callback={handleJoyrideCallback}
       styles={{
         options: {
           primaryColor: '#641BC4',
           zIndex: 10000,
+          arrowColor: '#fff',
+          backgroundColor: '#fff',
+          overlayColor: 'rgba(0, 0, 0, 0.6)',
+          textColor: '#1e293b',
+        },
+        tooltip: {
+          borderRadius: '16px',
+          padding: '20px',
+          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
         },
         tooltipContainer: {
           textAlign: 'left',
           fontFamily: 'inherit',
         },
+        tooltipTitle: {
+          fontWeight: 800,
+          fontSize: '18px',
+          color: '#0f172a',
+          marginBottom: '8px',
+        },
+        tooltipContent: {
+          fontSize: '14px',
+          lineHeight: '1.6',
+          color: '#475569',
+        },
         buttonNext: {
           backgroundColor: '#641BC4',
-          borderRadius: '8px',
-          padding: '8px 16px',
+          borderRadius: '12px',
+          padding: '10px 20px',
+          fontSize: '14px',
+          fontWeight: 600,
+          transition: 'all 0.2s ease',
         },
         buttonBack: {
           color: '#64748b',
-          marginRight: '8px',
+          marginRight: '12px',
+          fontSize: '14px',
+          fontWeight: 500,
         },
         buttonSkip: {
           color: '#94a3b8',
+          fontSize: '13px',
+          fontWeight: 500,
+        },
+        spotlight: {
+          borderRadius: '16px',
+          border: '2px solid #641BC4',
         }
+      }}
+      floaterProps={{
+        hideArrow: false,
       }}
     />
   );

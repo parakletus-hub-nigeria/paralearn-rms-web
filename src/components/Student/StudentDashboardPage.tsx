@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchStudentAssessments } from "@/reduxToolKit/student/studentThunks";
+import { fetchStudentAssessments, syncOfflineSubmissions } from "@/reduxToolKit/student/studentThunks";
 import { StudentHeader } from "@/components/Student/StudentHeader";
 import { Button } from "@/components/ui/button";
 import { 
@@ -23,6 +23,8 @@ import {
 import { format } from "date-fns";
 import { ProductTour } from "@/components/common/ProductTour";
 import Link from "next/link";
+
+import { toast } from "sonner";
 
 const studentTourSteps = [
   {
@@ -47,6 +49,31 @@ export default function StudentDashboardPage() {
 
   useEffect(() => {
     dispatch(fetchStudentAssessments());
+    
+    // Sync offline submissions when dashboard loads
+    const syncOffline = async () => {
+      try {
+        const rawSubmissions = localStorage.getItem("offline_submissions");
+        if (rawSubmissions) {
+          const submissions = JSON.parse(rawSubmissions);
+          if (submissions && submissions.length > 0) {
+            toast.info(`Attempting to sync ${submissions.length} offline submission(s)...`);
+            await dispatch(syncOfflineSubmissions(submissions)).unwrap();
+            localStorage.removeItem("offline_submissions");
+            toast.success("Offline submissions synced successfully!");
+            // Refresh assessments list to reflect newly synced data
+            dispatch(fetchStudentAssessments());
+          }
+        }
+      } catch (err: any) {
+        console.error("Failed to sync offline submissions", err);
+        toast.error("Failed to sync offline submissions. Will try again later.");
+      }
+    };
+    
+    if (typeof window !== "undefined" && navigator.onLine) {
+        syncOffline();
+    }
   }, [dispatch]);
 
   // Pre-filter assessments to drive both the stats and the grid

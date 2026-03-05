@@ -102,9 +102,11 @@ apiClient.interceptors.response.use(
       const url = config?.url || "";
       const isLoginRequest = url.includes(routespath.API_LOGIN);
       const isRefreshRequest = url.includes(routespath.API_REFRESH);
+      const isChangePasswordRequest = url.includes(routespath.API_CHANGE_PASSWORD);
 
-      // If login fails (401), do NOT attempt refresh. Just return the login error.
-      if (isLoginRequest) {
+      // If login or password change fails (401), do NOT attempt refresh. 
+      // Just return the error so the UI can show the validation message.
+      if (isLoginRequest || isChangePasswordRequest) {
         return Promise.reject(error);
       }
 

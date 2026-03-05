@@ -4,6 +4,7 @@ import {
   fetchAssessmentDetails, 
   startAssessment, 
   submitAssessment,
+  syncOfflineSubmissions,
   StudentAssessment
 } from "./studentThunks";
 
@@ -238,6 +239,19 @@ const studentSlice = createSlice({
       .addCase(submitAssessment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      // Sync Offline Submissions
+      .addCase(syncOfflineSubmissions.pending, (state) => {
+        // Option to add an `isSyncing` boolean if we wanted to block the UI, 
+        // but typically background syncs shouldn't freeze the dashboard.
+        // We'll just leave this silently firing in the background.
+      })
+      .addCase(syncOfflineSubmissions.fulfilled, (state) => {
+        // Successfully synced
+      })
+      .addCase(syncOfflineSubmissions.rejected, (state, action) => {
+        // Silently fail or log, user will be notified via toast from Dashboard
+        console.warn("Background sync failed:", action.payload);
       });
   }
 });

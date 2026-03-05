@@ -49,16 +49,19 @@ import { ProductTour } from "@/components/common/ProductTour";
 const assessmentTourSteps = [
   {
     target: '.assessments-info-banner',
+    title: "Assessments Overview",
     content: "Assessments are created by teachers — your role here is to monitor and oversee all school-wide exam activity across classes and subjects.",
     disableBeacon: true,
   },
   {
     target: '.assessments-manage-categories-btn',
+    title: "Manage Categories",
     content: "Click here to define your school's assessment categories (e.g., CA, Exam, Project). These categories are what teachers use when creating assessments.",
   },
   {
     target: '.assessments-filter-bar',
-    content: "Use these filters to drill into assessments by class, status (Active/Draft/Ended), or type to monitor teacher activity across the school.",
+    title: "Monitor Academic Progress",
+    content: "Use these filters to drill into assessments by class, status, or type to monitor teacher activity across the school.",
   },
 ];
 

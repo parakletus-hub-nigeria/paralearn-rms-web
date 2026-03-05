@@ -24,6 +24,7 @@ import {
   FileEdit,
   GraduationCap,
   Sparkles,
+  LogOut,
 } from "lucide-react";
 const logo = "/PL2 (1).svg";
 import { routespath } from "@/lib/routepath";
@@ -80,9 +81,12 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar className="border-r border-purple-100/50">
-        <SidebarHeader className="p-5 pb-2">
+        <SidebarHeader className="p-5 pb-2 relative">
+          <div className="absolute top-2 right-2 hidden md:block">
+            <SidebarTrigger className="hover:bg-purple-50 h-8 w-8 text-slate-500" />
+          </div>
           <div className="flex flex-col items-center text-center gap-1 mt-1">
-            <div className="block shrink-0">
+            <Link href={routespath.TEACHER_DASHBOARD} className="block shrink-0">
               <Image
                 src={logo}
                 width={930}
@@ -90,7 +94,7 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
                 className="h-[64px] sm:h-[72px] w-auto object-contain"
                 alt="paralearn logo"
               />
-            </div>
+            </Link>
             <div className="flex flex-col leading-tight w-full px-1">
               <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
                 {tenantInfo?.name || "ParaLearn"}
@@ -140,14 +144,12 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
 
-      <main className="flex-1 bg-[#fbfaff] min-h-screen relative">
-        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
-          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
-        </div>
-        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
-          {children}
-        </div>
-      </main>
+      <SidebarMainContent
+        setIsLogoutModalOpen={setIsLogoutModalOpen}
+        handleLogout={handleLogout}
+      >
+        {children}
+      </SidebarMainContent>
       <LogoutConfirmModal 
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
@@ -155,6 +157,44 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
         loading={isLoggingOut}
       />
     </SidebarProvider>
+  );
+}
+
+function SidebarMainContent({ 
+  children, 
+  handleLogout, 
+  setIsLogoutModalOpen 
+}: { 
+  children: ReactNode;
+  handleLogout: () => void;
+  setIsLogoutModalOpen: (open: boolean) => void;
+}) {
+  const { useSidebar } = require("../ui/sidebar");
+  const { open: isExpanded, isMobile } = useSidebar();
+
+  return (
+    <main className="flex-1 bg-[#fbfaff] min-h-screen relative overflow-x-hidden">
+      {(!isExpanded || isMobile) && (
+        <div className="absolute top-4 left-0 right-0 px-4 flex justify-between items-center z-50 md:hidden">
+          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10 border border-purple-100 bg-white shadow-sm" />
+          <button
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg font-bold text-xs border border-red-100 shadow-sm active:scale-95 transition-all"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Logout
+          </button>
+        </div>
+      )}
+      {(!isExpanded && !isMobile) && (
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50 hidden md:block">
+          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
+        </div>
+      )}
+      <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
+        {children}
+      </div>
+    </main>
   );
 }
 

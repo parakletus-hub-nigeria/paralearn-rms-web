@@ -27,7 +27,7 @@ export const Header = ({ schoolLogo, schoolName, showGreeting = false }: { schoo
             <div className="text-center md:text-left order-2 md:order-1">
                 {showGreeting && (
                     <>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 font-coolvetica tracking-tight leading-tight">
+                        <h1 className="rms-header-greeting text-xl sm:text-2xl md:text-3xl font-black text-slate-900 font-coolvetica tracking-tight leading-tight">
                             {getGreeting()}, <span className="text-[#641BC4]">{user?.firstName || "there"}!</span>
                         </h1>
                         <p className="text-[11px] sm:text-sm font-medium text-slate-500 mt-1 flex items-center justify-center md:justify-start gap-1.5 sm:gap-2">

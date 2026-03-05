@@ -76,7 +76,7 @@ export const fetchAssessmentDetails = createAsyncThunk(
   "student/fetchDetails",
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/api/proxy/assessments/${id}`);
+      const response = await apiClient.get(`/api/proxy/assessments/details/${id}`);
       return response.data?.data || response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch assessment details");
@@ -117,6 +117,24 @@ export const submitAssessment = createAsyncThunk(
         return rejectWithValue(error.response.data);
       }
       return rejectWithValue(error.message || "Failed to submit assessment");
+    }
+  }
+);
+
+// Sync offline submissions
+export const syncOfflineSubmissions = createAsyncThunk(
+  "student/syncOfflineSubmissions",
+  async (submissions: any[], { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post(`/api/proxy/assessments/offline-submissions/sync`, {
+        submissions
+      });
+      return response.data?.data || response.data;
+    } catch (error: any) {
+      if (error.response?.data) {
+        return rejectWithValue(error.response.data);
+      }
+      return rejectWithValue(error.message || "Failed to sync offline submissions");
     }
   }
 );

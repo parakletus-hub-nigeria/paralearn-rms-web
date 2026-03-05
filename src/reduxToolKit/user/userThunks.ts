@@ -27,6 +27,10 @@ export const loginUser = createAsyncThunk(
       const { token: tokenFromResponse, user: userFromResponse } =
         extractTokenAndUser(response.data);
 
+      console.log("[Login Debug] Full Response Keys:", Object.keys(response.data));
+      console.log("[Login Debug] User Response Keys:", Object.keys(userFromResponse || {}));
+      console.log("[Login Debug] Full Response Data:", JSON.stringify(response.data, null, 2));
+
       // Try to get token from response first, then from cookies (set by backend)
       let accessToken = tokenFromResponse || tokenManager.getToken();
 
@@ -49,10 +53,21 @@ export const loginUser = createAsyncThunk(
       }
 
       // Extract roles using the enhanced normalization logic
+      console.log("[Login Debug] Normalizing roles from user.roles:", userFromResponse?.roles);
       let roles = normalizeRoles(userFromResponse?.roles);
+      
       if (roles.length === 0 && userFromResponse) {
+        console.log("[Login Debug] Roles still empty, attempting to normalize from user object");
         roles = normalizeRoles(userFromResponse);
       }
+      
+      // Failover to entire response data if user object didn't have roles
+      if (roles.length === 0) {
+        console.log("[Login Debug] Roles still empty, attempting to normalize from full response");
+        roles = normalizeRoles(response.data);
+      }
+
+      console.log("[Login Debug] Final Extracted Roles:", roles);
 
       const redirectTo = pickRedirectPath(roles);
       const subdomain = extractSubdomainFromUser(userFromResponse, response.data);
@@ -175,8 +190,9 @@ export const loginUser = createAsyncThunk(
           }
           
           // CRITICAL: Save user data to localStorage BEFORE redirecting
-          // This ensures the data persists after page reload
+          // We include the full user object PLUS normalization fallback PLUS raw response fields
           const userToSave = {
+            ...(response.data?.data || response.data || {}),
             ...(userFromResponse || {}),
             roles,
           };

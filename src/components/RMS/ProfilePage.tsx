@@ -95,11 +95,45 @@ export const ProfilePage = () => {
     }
   }, [success, error]);
 
+  const validateProfile = () => {
+    const nameRegex = /^[a-zA-Z\s-]+$/;
+    const phoneRegex = /^\+?[\d\s-]{10,}$/;
+
+    if (!profileData.firstName.trim()) {
+      toast.error("First name is required");
+      return false;
+    }
+    if (!nameRegex.test(profileData.firstName)) {
+      toast.error("First name should only contain letters");
+      return false;
+    }
+
+    if (!profileData.lastName.trim()) {
+      toast.error("Last name is required");
+      return false;
+    }
+    if (!nameRegex.test(profileData.lastName)) {
+      toast.error("Last name should only contain letters");
+      return false;
+    }
+
+    if (profileData.phoneNumber && !phoneRegex.test(profileData.phoneNumber)) {
+      toast.error("Please enter a valid phone number (at least 10 digits)");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!currentUserProfile?.id) {
       toast.error("User ID not found");
+      return;
+    }
+
+    if (!validateProfile()) {
       return;
     }
 
@@ -111,10 +145,15 @@ export const ProfilePage = () => {
         })
       ).unwrap();
       
+      toast.success("Profile updated successfully!");
       // Refresh profile data
       dispatch(getCurrentUserProfile());
     } catch (error: any) {
-      toast.error(error || "Failed to update profile");
+      console.error("Profile update error:", error);
+      const errorMessage = typeof error === 'string' 
+        ? error 
+        : error?.message || error?.error || "Failed to update profile";
+      toast.error(errorMessage);
     }
   };
 
@@ -146,7 +185,11 @@ export const ProfilePage = () => {
         confirmPassword: "",
       });
     } catch (error: any) {
-      toast.error(error || "Failed to change password");
+      console.error("Password change error:", error);
+      const errorMessage = typeof error === 'string' 
+        ? error 
+        : error?.message || error?.error || "Failed to change password";
+      toast.error(errorMessage);
     }
   };
 
@@ -386,9 +429,9 @@ export const ProfilePage = () => {
                         aria-label={showPasswords.current ? "Hide password" : "Show password"}
                       >
                         {showPasswords.current ? (
-                          <FaEyeSlash className="w-4 h-4" />
-                        ) : (
                           <FaEye className="w-4 h-4" />
+                        ) : (
+                          <FaEyeSlash className="w-4 h-4" />
                         )}
                       </button>
                     </div>
@@ -423,9 +466,9 @@ export const ProfilePage = () => {
                         aria-label={showPasswords.new ? "Hide password" : "Show password"}
                       >
                         {showPasswords.new ? (
-                          <FaEyeSlash className="w-4 h-4" />
-                        ) : (
                           <FaEye className="w-4 h-4" />
+                        ) : (
+                          <FaEyeSlash className="w-4 h-4" />
                         )}
                       </button>
                     </div>
@@ -461,9 +504,9 @@ export const ProfilePage = () => {
                         aria-label={showPasswords.confirm ? "Hide password" : "Show password"}
                       >
                         {showPasswords.confirm ? (
-                          <FaEyeSlash className="w-4 h-4" />
-                        ) : (
                           <FaEye className="w-4 h-4" />
+                        ) : (
+                          <FaEyeSlash className="w-4 h-4" />
                         )}
                       </button>
                     </div>

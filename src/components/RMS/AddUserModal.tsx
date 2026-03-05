@@ -101,7 +101,34 @@ export function AddUserModal({
     else if (step === "classes") setStep("profile");
   };
 
+  const validateForm = () => {
+    // Name validation: No numbers allowed
+    const nameRegex = /^[a-zA-Z\s'-]+$/;
+    if (!nameRegex.test(fullName.trim())) {
+      setErrorMessage("Full Name should not contain numbers or special characters");
+      return false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setErrorMessage("Please enter a valid email address");
+      return false;
+    }
+
+    // Phone validation (if provided, it must be valid)
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length > 0 && phoneDigits.length < 10) {
+      setErrorMessage("Phone number must be at least 10 digits");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async () => {
+    if (!validateForm()) return;
+    
     setLoading(true);
     setErrorMessage(null);
     try {

@@ -83,10 +83,10 @@ export default function LiveExamInterface() {
   }, [dispatch, assessmentId]);
 
   // -------------------------------------------------------------------------
-  // Timer Logic — based on startedAt + durationMins
+  // Timer Logic — Secure against basic system clock manipulation
   // -------------------------------------------------------------------------
   useEffect(() => {
-    // Use Redux startedAt first, then submission startedAt, then NOW as last resort
+    // Use Redux startedAt first, then submission startedAt
     const reliableStartedAt =
       activeSession.startedAt ||
       currentAssessment?.submissions?.[0]?.startedAt ||
@@ -94,22 +94,25 @@ export default function LiveExamInterface() {
 
     if (!currentAssessment?.durationMins || !reliableStartedAt) return;
 
-    const computeTimeLeft = () => {
-      const now = Date.now();
-      const startedAt = new Date(reliableStartedAt).getTime();
-      const durationMs = currentAssessment.durationMins * 60 * 1000;
-      return Math.max(0, Math.floor((startedAt + durationMs - now) / 1000));
-    };
-
-    // Set immediately (no 1s lag)
-    setTimeLeft(computeTimeLeft());
+    // We calculate the initial time offset once when the component mounts or regains focus.
+    // Instead of using Date.now() on every tick (which can be manipulated by changing the PC clock),
+    // we use a monotonic interval that strictly decrements the remaining seconds.
+    const startedAtTime = new Date(reliableStartedAt).getTime();
+    const durationMs = currentAssessment.durationMins * 60 * 1000;
+    
+    // Initial calculation (only vulnerable to clock manipulation exactly at page load)
+    let remainingSeconds = Math.max(0, Math.floor((startedAtTime + durationMs - Date.now()) / 1000));
+    setTimeLeft(remainingSeconds);
 
     const interval = setInterval(() => {
-      const diff = computeTimeLeft();
-      setTimeLeft(diff);
-      if (diff <= 3) {
+      remainingSeconds -= 1;
+      
+      if (remainingSeconds < 0) remainingSeconds = 0;
+      setTimeLeft(remainingSeconds);
+
+      // Trigger auto-submit at 3 seconds before zero to account for latency
+      if (remainingSeconds <= 3) {
         clearInterval(interval);
-        // We trigger it 3 seconds early to account for network latency before the server deadline
         toast.info("Time is up! Submitting your exam automatically...", { id: "timeout-toast", duration: 5000 });
         onFinalSubmitRef.current?.("timeout");
       }
@@ -239,8 +242,31 @@ export default function LiveExamInterface() {
       router.push("/student/dashboard");
     } catch (e: any) {
       setIsSubmitting(false);
-      console.warn("[ExamSubmit] Submission error:", e);
-      toast.error(e?.message || e || "Submission failed. Please try again.");
+      console.warn("[ExamSubmit] Submission error, saving offline:", e);
+      
+      // FIX: Save offline submission
+      try {
+         const offlineSubmission = {
+           assessmentId,
+           data: submissionData,
+           savedAt: new Date().toISOString()
+         };
+         
+         // Get existing offline submissions
+         const existingRaw = localStorage.getItem("offline_submissions");
+         const existing = existingRaw ? JSON.parse(existingRaw) : [];
+         
+         // Add new one
+         existing.push(offlineSubmission);
+         localStorage.setItem("offline_submissions", JSON.stringify(existing));
+         
+         // Tell redux we submitted so the UI exits
+         dispatch(resetActiveSession());
+         toast.success("No network connection. Your exam was saved offline and will sync automatically when you reconnect.", { duration: 8000 });
+         router.push("/student/dashboard");
+      } catch (storageErr) {
+        toast.error("Critical Error: Failed to submit to server AND failed to save offline. Please do not close this window and alert the invigilator immediately.");
+      }
     }
   }, [
     assessmentId,

@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import {
   User,
   Settings,
   Palette,
+  LogOut,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
@@ -34,6 +35,7 @@ import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
 import { usePathname } from "next/navigation";
 import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
+import ComingSoonModal from "@/components/landingpage/ComingSoonModal";
 
 const SideBar = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
@@ -42,6 +44,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
   const { user, tenantInfo } = useSelector((s: RootState) => s.user);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -108,6 +111,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         filteredContent={filteredContent} 
         pathname={pathname} 
         handleLogout={() => setIsLogoutModalOpen(true)}
+        onBrandingClick={() => setIsBrandingModalOpen(true)}
       >
         {children}
       </SidebarContentContainer>
@@ -116,6 +120,11 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
         loading={isLoggingOut}
+      />
+      <ComingSoonModal 
+        open={isBrandingModalOpen}
+        onOpenChange={setIsBrandingModalOpen}
+        title="Branding & Customization"
       />
     </SidebarProvider>
   );
@@ -128,7 +137,8 @@ const SidebarContentContainer = ({
   user, 
   filteredContent, 
   pathname, 
-  handleLogout 
+  handleLogout,
+  onBrandingClick 
 }: { 
   children: ReactNode;
   logo: string;
@@ -137,6 +147,7 @@ const SidebarContentContainer = ({
   filteredContent: any[];
   pathname: string;
   handleLogout: () => void;
+  onBrandingClick: () => void;
 }) => {
   // const { open, openMobile } = useSelector((s: RootState) => ({
   //   // Note: We can't actually use useSidebar here if we want to determine 
@@ -147,6 +158,30 @@ const SidebarContentContainer = ({
   // Actually, we must import useSidebar inside the component
   const { SidebarTrigger: UI_SidebarTrigger, useSidebar } = require("../ui/sidebar");
   const { open: isExpanded, isMobile } = useSidebar();
+  const sidebarContentRef = useRef<HTMLDivElement>(null);
+
+  // Scroll Persistence Logic
+  useEffect(() => {
+    const sidebar = sidebarContentRef.current;
+    if (!sidebar) return;
+
+    // Restore scroll position
+    const savedScrollPos = sessionStorage.getItem("sidebar-scroll-pos");
+    if (savedScrollPos) {
+      // Use requestAnimationFrame to ensure the content is rendered and layout is stable
+      requestAnimationFrame(() => {
+        sidebar.scrollTop = parseInt(savedScrollPos, 10);
+      });
+    }
+
+    // Save scroll position on scroll
+    const handleScroll = () => {
+      sessionStorage.setItem("sidebar-scroll-pos", sidebar.scrollTop.toString());
+    };
+
+    sidebar.addEventListener("scroll", handleScroll);
+    return () => sidebar.removeEventListener("scroll", handleScroll);
+  }, [pathname]); // Re-run when pathname changes to ensure we restore position on new pages
 
   return (
     <>
@@ -176,14 +211,14 @@ const SidebarContentContainer = ({
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-4">
+        <SidebarContent ref={sidebarContentRef} className="px-4">
           <nav className="flex flex-col gap-1.5 mt-4">
             {filteredContent.map((item, index) => {
               const isSelected = pathname === item.path;
-              return (
-                <Link
-                  key={index}
-                  href={item.path}
+              const isBranding = item.path === routespath.BRANDING;
+
+              const content = (
+                <div
                   className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${
                     isSelected
                       ? "bg-[#EDEAFB] text-[#641BC4] font-semibold"
@@ -202,6 +237,24 @@ const SidebarContentContainer = ({
                   >
                     {item.label}
                   </span>
+                </div>
+              );
+
+              if (isBranding) {
+                return (
+                  <button
+                    key={index}
+                    onClick={onBrandingClick}
+                    className="w-full text-left"
+                  >
+                    {content}
+                  </button>
+                );
+              }
+
+              return (
+                <Link key={index} href={item.path}>
+                  {content}
                 </Link>
               );
             })}
@@ -220,7 +273,19 @@ const SidebarContentContainer = ({
       <main className="flex-1 bg-[#fbfaff] min-h-screen relative overflow-x-hidden">
         {/* Only show the 'outside' trigger if the sidebar is NOT expanded or if we are on mobile */}
         {(!isExpanded || isMobile) && (
-          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50">
+          <div className="absolute top-4 left-0 right-0 px-4 flex justify-between items-center z-50 md:hidden">
+            <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10 border border-purple-100 bg-white shadow-sm" />
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg font-bold text-xs border border-red-100 shadow-sm active:scale-95 transition-all"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Logout
+            </button>
+          </div>
+        )}
+        {(!isExpanded && !isMobile) && (
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50 hidden md:block">
             <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
           </div>
         )}

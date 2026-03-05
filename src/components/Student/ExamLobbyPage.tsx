@@ -403,7 +403,14 @@ export default function ExamLobbyPage() {
                          if (!assessmentId || isStarting) return;
                          setIsStarting(true);
                          setStartError(null);
+                         
                          try {
+                           // If it's already started, skip the start request and just resume
+                           if (assessment.status === "started" || (assessment.submissions && assessment.submissions.length > 0 && assessment.submissions[0].status === "started")) {
+                             router.push(`/student/exam?assessmentId=${assessment.id}`);
+                             return;
+                           }
+                           
                            await dispatch(startAssessment(assessmentId)).unwrap();
                            router.push(`/student/exam?assessmentId=${assessment.id}`);
                           } catch (error: any) {

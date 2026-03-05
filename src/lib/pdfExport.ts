@@ -23,7 +23,11 @@ interface TeacherData {
 }
 
 export const exportStudentsToPDF = (students: StudentData[]) => {
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4"
+  });
   
   // Add title
   doc.setFontSize(18);
@@ -68,14 +72,14 @@ export const exportStudentsToPDF = (students: StudentData[]) => {
       fillColor: [245, 245, 250],
     },
     columnStyles: {
-      0: { cellWidth: 30 }, // ID
-      1: { cellWidth: 40 }, // Name
-      2: { cellWidth: 50 }, // Email
-      3: { cellWidth: 35 }, // Date of Birth
-      4: { cellWidth: 35 }, // Phone
-      5: { cellWidth: 50 }, // Address
-      6: { cellWidth: 40 }, // Guardian Name
-      7: { cellWidth: 35 }, // Guardian Phone
+      0: { cellWidth: 25 }, // ID
+      1: { cellWidth: 35 }, // Name
+      2: { cellWidth: 45 }, // Email
+      3: { cellWidth: 25 }, // Date of Birth
+      4: { cellWidth: 30 }, // Phone
+      5: { cellWidth: 45 }, // Address
+      6: { cellWidth: 35 }, // Guardian Name
+      7: { cellWidth: 30 }, // Guardian Phone
     },
     margin: { top: 40, right: 14, bottom: 20, left: 14 },
   });

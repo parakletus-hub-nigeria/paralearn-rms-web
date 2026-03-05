@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AddUserModal } from "@/components/RMS/AddUserModal";
+import { EditUserModal } from "@/components/RMS/EditUserModal";
 import {
   Select,
   SelectContent,
@@ -49,17 +50,25 @@ import { ProductTour } from "@/components/common/ProductTour";
 
 const usersTourSteps = [
   {
-    target: '.users-action-menu',
-    content: "Need to edit a profile or view details? Click this dot menu to manage individual students and teachers quickly without leaving the page.",
+    target: '.users-directory-header',
+    title: "School Directory",
+    content: "Welcome to your school's directory! This is where you manage all students and teachers, track their status, and handle enrollments.",
     disableBeacon: true,
   },
   {
     target: '.users-filter-bar',
-    content: "Use these powerful filters and search tools to instantly drill down into your school's directory. You can quickly isolate all teachers, view a specific class, or search by name.",
+    title: "Powerful Search & Filters",
+    content: "Easily find anyone by name, email, or ID. Use the role and class filters to drill down and see exactly who you need to manage.",
   },
   {
     target: '.users-add-button',
-    content: "Ready to bring more people aboard? Click here to manually enroll a single student or onboard a new staff member into the system.",
+    title: "Enroll New Users",
+    content: "Ready to expand? Click here to manually add a single student or teacher and get them started immediately.",
+  },
+  {
+    target: '.users-action-menu',
+    title: "Manage Individual Profiles",
+    content: "Once you have users in your list, use the action menu on each row to view details, edit information, or remove accounts.",
   },
 ];
 
@@ -100,6 +109,10 @@ export const UsersPage = () => {
   
   // Action menu state
   const [viewUserModal, setViewUserModal] = useState<UserRow | null>(null);
+  const [editUserModal, setEditUserModal] = useState<UserRow | null>(null);
+
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const ITEMS_PER_PAGE = 8;
 
@@ -215,6 +228,8 @@ export const UsersPage = () => {
   }, [search, roleFilter, classFilter]);
 
   const handleExport = () => {
+    let exported = false;
+    
     if (roleFilter === "teacher" || (roleFilter === "all" && teachers.length > 0)) {
       const teacherData = teachers.map((item: any) => {
         const src = item?.user ?? item?.profile ?? item ?? {};
@@ -228,7 +243,7 @@ export const UsersPage = () => {
         };
       });
       exportTeachersToPDF(teacherData);
-      toast.success("Teachers exported successfully!");
+      exported = true;
     }
     
     if (roleFilter === "student" || (roleFilter === "all" && students.length > 0)) {
@@ -243,7 +258,15 @@ export const UsersPage = () => {
         guardianPhone: item.guardianPhone || "N/A",
       }));
       exportStudentsToPDF(studentData);
-      toast.success("Students exported successfully!");
+      exported = true;
+    }
+
+    if (exported) {
+      toast.success(
+        roleFilter === "all" 
+          ? "Users directory exported successfully!" 
+          : `${roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1)}s exported successfully!`
+      );
     }
   };
 
@@ -253,8 +276,7 @@ export const UsersPage = () => {
   };
 
   const handleEditUser = (user: UserRow) => {
-    // Navigate to user edit page or open edit modal
-    toast.info(`Editing ${user.firstName} ${user.lastName}`);
+    setEditUserModal(user);
   };
 
   const handleDeleteUser = async (user: UserRow) => {
@@ -272,6 +294,22 @@ export const UsersPage = () => {
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "??";
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(paginatedUsers.map((u) => u.dbId));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const toggleSelectUser = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((i) => i !== id));
+    }
   };
 
   const getAvatarColor = (name: string) => {
@@ -301,7 +339,7 @@ export const UsersPage = () => {
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">Directory</h1>
+            <h1 className="users-directory-header text-2xl font-bold text-slate-900 font-coolvetica">Directory</h1>
             <p className="text-slate-500 text-sm mt-1 font-coolvetica">
               Manage student and teacher access, roles, and class enrollments.
             </p>
@@ -389,7 +427,12 @@ export const UsersPage = () => {
                 <thead className="hidden md:table-header-group">
                   <tr style={{ backgroundColor: primaryColor }}>
                     <th className="text-left text-white font-semibold text-sm py-4 px-5 w-8">
-                      <input type="checkbox" className="rounded border-white/30" />
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-white/30" 
+                        checked={paginatedUsers.length > 0 && selectedIds.length === paginatedUsers.length}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                      />
                     </th>
                     <th className="text-left text-white font-semibold text-sm py-4 px-3">User Name</th>
                     <th className="text-left text-white font-semibold text-sm py-4 px-3">Role</th>
@@ -407,7 +450,12 @@ export const UsersPage = () => {
                       }`}
                     >
                       <td className="hidden md:table-cell py-4 px-5">
-                        <input type="checkbox" className="rounded border-slate-300" />
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-slate-300" 
+                          checked={selectedIds.includes(user.dbId)}
+                          onChange={(e) => toggleSelectUser(user.dbId, e.target.checked)}
+                        />
                       </td>
                       <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
                         <span className="md:hidden text-xs font-semibold text-slate-500">User</span>
@@ -711,6 +759,16 @@ export const UsersPage = () => {
       )}
 
 
+      {/* Edit User Modal */}
+      <EditUserModal
+        open={!!editUserModal}
+        onOpenChange={(open) => !open && setEditUserModal(null)}
+        user={editUserModal}
+        primaryColor={primaryColor}
+        onSuccess={() => {
+          dispatch(fetchAllUsers());
+        }}
+      />
     </div>
   );
 };

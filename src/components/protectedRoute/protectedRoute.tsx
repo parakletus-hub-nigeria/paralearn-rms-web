@@ -34,9 +34,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       tokenManager.setToken(urlToken);
       if (urlUser) {
         try {
-          localStorage.setItem("currentUser", decodeURIComponent(urlUser));
+          const rawDecoded = decodeURIComponent(urlUser);
+          // Only save it if it's actually valid JSON, to prevent parsing errors later
+          JSON.parse(rawDecoded);
+          localStorage.setItem("currentUser", rawDecoded);
         } catch (e) {
-          console.error("Failed to decode user data from URL", e);
+          console.error("Failed to decode/parse user data from URL", e);
         }
       }
       // Clean URL

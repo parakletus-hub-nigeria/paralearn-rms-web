@@ -77,7 +77,7 @@ const Signin = () => {
           <p className="text-sm text-gray-700 text-center px-4">
             {loginMode === "admin"
               ? "Login to your administrator's account to continue"
-              : `Login with your school subdomain and your ${loginMode === "teacher" ? "teacher" : "student"} code`}
+              : `Login with your username and password`}
           </p>
         </div>
 
@@ -122,7 +122,7 @@ const Signin = () => {
         <div className="w-full space-y-4 px-4">
           <div className="flex flex-col w-full">
             <label htmlFor="email" className="mb-2 text-sm font-medium">
-              {loginMode === "admin" ? "Admin Email" : "School Subdomain"}
+              {loginMode === "admin" ? "Admin Email" : "Username"}
             </label>
             <input
               id="email"
@@ -134,14 +134,14 @@ const Signin = () => {
               placeholder={
                 loginMode === "admin"
                   ? "Enter your email"
-                  : "e.g. brightfuture"
+                  : "Enter your username"
               }
             />
           </div>
 
           <div className="flex flex-col w-full">
             <label htmlFor="password" className="mb-2 text-sm font-medium">
-              {loginMode === "admin" ? "Password" : `${loginMode === "teacher" ? "Teacher" : "Student"} Code`}
+              Password
             </label>
             <div className="relative">
               <input
@@ -151,11 +151,7 @@ const Signin = () => {
                 value={data.password}
                 onChange={handleChange}
                 className="border border-[#641BC4] focus:border-2 focus:outline-none h-11 w-full px-3 rounded-md text-base pr-10"
-                placeholder={
-                  loginMode === "admin"
-                    ? "Enter your password"
-                    : `e.g. ${loginMode === "teacher" ? "TCH-001" : "STU-001"}`
-                }
+                placeholder="Enter your password"
               />
               <button
                 type="button"

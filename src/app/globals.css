@@ -231,9 +231,10 @@ Cream / Off-White: #FFFBEB */
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
     
-    button:hover:not(:active) {
+    /* Fix: Remove jumping animation on hover as per user feedback */
+    /* button:hover:not(:active) {
       transform: translateY(-4px);
-    }
+    } */
   }
   
   /* Hover effects for buttons - desktop only */
@@ -482,14 +483,39 @@ Cream / Off-White: #FFFBEB */
 }
 
 /* Force sonner toaster to always be on top of modals and backdrops */
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #641BC4;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a148c;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #641BC4 transparent;
+}
+
 [data-sonner-toaster] {
   position: fixed !important;
-  top: 16px !important;
-  right: 16px !important;
+  top: 5rem !important; /* Shifted down to avoid overlapping headers/top buttons */
+  right: 24px !important;
   z-index: 999999 !important;
 }
 
 [data-sonner-toaster] li[data-sonner-toast] {
   z-index: 999999 !important;
-  position: relative;
 }
