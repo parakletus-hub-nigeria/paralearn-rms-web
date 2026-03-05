@@ -110,9 +110,18 @@ export const validateGender = (gender: string): boolean => {
 // --- Helper: Validate a complete row object ---
 // Requires email, firstName, lastName. Extra requirements based on type
 export const validateUserRow = (row: any, rowIndex: number, uploadType: "student" | "teacher", existingEmails: Set<string>) => {
-  const isEmailValid = validateEmail(row.email);
-  const isFirstNameValid = validateName(row.firstName);
-  const isLastNameValid = validateName(row.lastName);
+  // ── Smart Property Access Helpers ──
+  // Checks multiple possible key variations to avoid case-sensitivity bugs from CSV parsing
+  const getGender = () => row.gender || row.Gender || row.GENDER;
+  const getDob = () => row.dateOfBirth || row.DateOfBirth || row.DOB || row.dob;
+  const getClass = () => row.className || row.class || row.Class || row.ClassName || row.class_name;
+  const getFirstName = () => row.firstName || row.FirstName || row.first_name;
+  const getLastName = () => row.lastName || row.LastName || row.last_name;
+  const getEmail = () => row.email || row.Email || row.EMAIL;
+
+  const isEmailValid = validateEmail(getEmail());
+  const isFirstNameValid = validateName(getFirstName());
+  const isLastNameValid = validateName(getLastName());
 
   let isValid = isEmailValid && isFirstNameValid && isLastNameValid;
   let errorMsg = "";
@@ -122,16 +131,16 @@ export const validateUserRow = (row: any, rowIndex: number, uploadType: "student
   else if (!isLastNameValid) errorMsg = "Invalid Last Name";
 
   // Check against duplicate emails if we have them and it's otherwise valid
-  if (isValid && existingEmails && existingEmails.has(String(row.email).toLowerCase().trim())) {
+  if (isValid && existingEmails && existingEmails.has(String(getEmail()).toLowerCase().trim())) {
     isValid = false;
     errorMsg = "Email already in use";
   }
 
   // Student specific validation
   if (uploadType === "student") {
-    const isDobValid = validateDateOfBirth(row.dateOfBirth);
-    const isGenderValid = validateGender(row.Gender);
-    const isClassValid = !!(row.className && String(row.className).trim() !== "");
+    const isDobValid = validateDateOfBirth(getDob());
+    const isGenderValid = validateGender(getGender());
+    const isClassValid = !!(getClass() && String(getClass()).trim() !== "");
 
     if (isValid) {
       if (!isClassValid) { isValid = false; errorMsg = "Missing/Invalid Class"; }
@@ -142,11 +151,11 @@ export const validateUserRow = (row: any, rowIndex: number, uploadType: "student
 
   // Teacher specific validation
   if (uploadType === "teacher") {
-     const isDobValid = validateDateOfBirth(row.dateOfBirth);
-     const isGenderValid = validateGender(row.Gender);
+     const isDobValid = validateDateOfBirth(getDob());
+     const isGenderValid = validateGender(getGender());
      if (isValid) {
-      if (!isDobValid && row.dateOfBirth) { isValid = false; errorMsg = "Invalid Date of Birth format"; } 
-      else if (!isGenderValid && row.Gender) { isValid = false; errorMsg = "Invalid Gender format"; }
+      if (!isDobValid && getDob()) { isValid = false; errorMsg = "Invalid Date of Birth format"; } 
+      else if (!isGenderValid && getGender()) { isValid = false; errorMsg = "Invalid Gender format"; }
      }
   }
 

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Sparkles, Plus, Trash2, CheckCircle, Loader2, History, Lightbulb, 
-  Eye, Settings, Menu, X, GripVertical, BookOpen, CloudUpload, Edit3, Save, Check, ChevronDown
+  Eye, Settings, Menu, X, GripVertical, BookOpen, CloudUpload, Edit3, Save, Check, ChevronDown, Minus
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -48,6 +48,7 @@ export function QuestionDraftingPage() {
 
   // AI State
   const [prompt, setPrompt] = useState("");
+  const [questionCount, setQuestionCount] = useState<number>(5);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedHistory, setGeneratedHistory] = useState<{prompt: string, questions: GeneratedQuestion[]}[]>([]);
 
@@ -186,7 +187,7 @@ export function QuestionDraftingPage() {
 
     setIsGenerating(true);
     try {
-      const questions = await generateQuestions(apiKey, prompt);
+      const questions = await generateQuestions(apiKey, prompt, questionCount);
       setGeneratedHistory(prev => [{ prompt, questions }, ...prev]);
       setPrompt("");
       toast.success(`Generated ${questions.length} questions!`);
@@ -591,7 +592,23 @@ export function QuestionDraftingPage() {
                         <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider text-slate-800">AI Builder</h3>
                     </div>
                     
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Questions to Generate</label>
+                            <div className="grid grid-cols-4 gap-1.5 p-1 bg-slate-100/80 rounded-xl">
+                                {[1, 3, 5, 10].map(num => (
+                                    <button
+                                        key={num}
+                                        onClick={() => setQuestionCount(num)}
+                                        className={`py-2 md:py-1.5 text-sm md:text-xs font-bold rounded-lg transition-all ${questionCount === num ? 'bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)] text-[#7f0df2] ring-1 ring-slate-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'}`}
+                                        title={`Highlight to generate ${num} questions`}
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         <div className="bg-slate-50 rounded-xl p-2.5 md:p-3 border border-slate-100 focus-within:ring-2 focus-within:ring-[#7f0df2]/20 focus-within:border-[#7f0df2]/40 transition-all shadow-inner relative">
                             <label className="block text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">AI Prompt</label>
                             <Textarea 
@@ -755,16 +772,30 @@ export function QuestionDraftingPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[9px] md:text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Marks Allocation</label>
-                                <div className="flex items-center gap-3">
-                                    <input 
-                                        type="number" 
-                                        min="1"
-                                        value={activeQ?.marks || 1}
-                                        onChange={(e) => updateDraftQuestion(activeQ.id, "marks", parseInt(e.target.value) || 1)}
-                                        className="w-16 h-9 rounded-lg border-slate-200 bg-slate-50 text-center font-bold text-sm focus:ring-[#7f0df2] focus:border-[#7f0df2]" 
-                                    />
-                                    <span className="text-[10px] md:text-xs font-medium text-slate-500">Points awarded</span>
+                                <label className="block text-[10px] md:text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Marks Allocation</label>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm w-full sm:w-auto">
+                                      <button 
+                                        onClick={() => updateDraftQuestion(activeQ.id, "marks", Math.max(1, (activeQ?.marks || 1) - 1))}
+                                        className="w-12 h-12 md:w-8 md:h-8 flex shrink-0 items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors active:bg-slate-200 active:scale-95"
+                                      >
+                                        <Minus className="w-6 h-6 md:w-4 md:h-4" />
+                                      </button>
+                                      <input 
+                                          type="number" 
+                                          min="1"
+                                          value={activeQ?.marks || 1}
+                                          onChange={(e) => updateDraftQuestion(activeQ.id, "marks", parseInt(e.target.value) || 1)}
+                                          className="flex-1 sm:w-16 w-full h-12 md:h-8 border-none bg-transparent text-center font-black text-xl md:text-sm text-[#7f0df2] focus:ring-0 p-0" 
+                                      />
+                                      <button 
+                                        onClick={() => updateDraftQuestion(activeQ.id, "marks", (activeQ?.marks || 1) + 1)}
+                                        className="w-12 h-12 md:w-8 md:h-8 flex shrink-0 items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors active:bg-slate-200 active:scale-95"
+                                      >
+                                        <Plus className="w-6 h-6 md:w-4 md:h-4" />
+                                      </button>
+                                    </div>
+                                    <span className="text-xs font-semibold text-slate-400">Points awarded per correct answer</span>
                                 </div>
                             </div>
                             

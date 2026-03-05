@@ -692,23 +692,10 @@ export const updateTeacherAssessment = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      let res: any;
-      try {
-        res = await apiClient.patch(
-          `/api/proxy/assessments/${params.id}`,
-          params.data
-        );
-      } catch (e: any) {
-        // If the base route returns 403 (forbidden for teacher role), try the teacher-scoped route
-        if (e?.response?.status === 403) {
-          res = await apiClient.patch(
-            `/api/proxy/teacher/assessments/${params.id}`,
-            params.data
-          );
-        } else {
-          throw e;
-        }
-      }
+      const res = await apiClient.patch(
+        `/api/proxy/assessments/${params.id}`,
+        params.data
+      );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       const msg =
