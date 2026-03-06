@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchAllUsers, deleteUser, getTenantInfo } from "@/reduxToolKit/user/userThunks";
+import { fetchAllUsers, deleteUser, reactivateUser, hardDeleteUser, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { fetchClasses } from "@/reduxToolKit/admin/adminThunks";
 import { exportStudentsToPDF, exportTeachersToPDF } from "@/lib/pdfExport";
 import { Header } from "@/components/RMS/header";
@@ -84,7 +84,7 @@ type UserRow = {
   role: "teacher" | "student";
   classId?: string;
   className?: string;
-  status: "active" | "offline";
+  status: "active" | "inactive";
   avatar?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
@@ -155,7 +155,7 @@ export const UsersPage = () => {
         role: "student" as const,
         classId: classId || profileClassId,
         className: className || profileClassName,
-        status: "active" as const,
+        status: s.isActive === false ? "inactive" : "active",
         avatar: s.avatar || "",
         phoneNumber: s.phoneNumber || "",
         dateOfBirth: s.dateOfBirth,
@@ -178,7 +178,7 @@ export const UsersPage = () => {
         role: "teacher" as const,
         classId,
         className,
-        status: "active" as const,
+        status: t.isActive === false || src.isActive === false ? "inactive" : "active",
         avatar: src.avatar || t?.avatar || "",
         phoneNumber: src.phoneNumber ?? t?.phoneNumber ?? "",
         dateOfBirth: src.dateOfBirth ?? t?.dateOfBirth,
@@ -280,14 +280,39 @@ export const UsersPage = () => {
   };
 
   const handleDeleteUser = async (user: UserRow) => {
-    if (confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}?`)) {
+    if (confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) {
       try {
         await dispatch(deleteUser(user.dbId)).unwrap();
-        toast.success(`User ${user.firstName} deleted successfully`);
+        toast.success(`User ${user.firstName} deactivated successfully`);
         // Refresh the list
         dispatch(fetchAllUsers());
       } catch (error: any) {
-        toast.error(error || "Failed to delete user");
+        toast.error(error || "Failed to deactivate user");
+      }
+    }
+  };
+
+  const handleReactivateUser = async (user: UserRow) => {
+    if (confirm(`Are you sure you want to reactivate ${user.firstName} ${user.lastName}?`)) {
+      try {
+        // dispatching reactivate action mapped in userSlice.ts
+        await dispatch(reactivateUser(user.dbId)).unwrap();
+        toast.success(`User ${user.firstName} reactivated successfully`);
+        dispatch(fetchAllUsers());
+      } catch (error: any) {
+        toast.error(error || "Failed to reactivate user");
+      }
+    }
+  };
+
+  const handleHardDeleteUser = async (user: UserRow) => {
+    if (confirm(`WARNING: This is a permanent action.\nAre you sure you want to permanently delete ${user.firstName} ${user.lastName}?`)) {
+      try {
+        await dispatch(hardDeleteUser(user.dbId)).unwrap();
+        toast.success(`User ${user.firstName} permanently deleted`);
+        dispatch(fetchAllUsers());
+      } catch (error: any) {
+        toast.error(error || "Failed to permanently delete user");
       }
     }
   };
@@ -541,9 +566,21 @@ export const UsersPage = () => {
                               Edit User
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDeleteUser(user)} className="cursor-pointer gap-2 py-2.5 text-red-600 focus:text-red-700 focus:bg-red-50">
+                            {user.status === "inactive" ? (
+                              <DropdownMenuItem onClick={() => handleReactivateUser(user)} className="cursor-pointer gap-2 py-2.5 text-emerald-600 focus:text-emerald-700 focus:bg-emerald-50">
+                                <Plus className="w-4 h-4" />
+                                Reactivate User
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleDeleteUser(user)} className="cursor-pointer gap-2 py-2.5 text-amber-600 focus:text-amber-700 focus:bg-amber-50">
+                                <X className="w-4 h-4" />
+                                Deactivate User
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleHardDeleteUser(user)} className="cursor-pointer gap-2 py-2.5 text-red-600 focus:text-red-700 focus:bg-red-50">
                               <Trash2 className="w-4 h-4" />
-                              Delete User
+                              Delete Permanently
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

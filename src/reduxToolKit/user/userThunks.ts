@@ -468,7 +468,7 @@ export const fetchUserById = createAsyncThunk(
   }
 );
 
-// Delete a user
+// Delete a user (Soft Delete)
 export const deleteUser = createAsyncThunk(
   "user/deleteUser",
   async (userId: string, { rejectWithValue }) => {
@@ -491,6 +491,63 @@ export const deleteUser = createAsyncThunk(
         "Failed to delete user";
 
       console.error("[Delete User Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Hard Delete a user (Permanent)
+export const hardDeleteUser = createAsyncThunk(
+  "user/hardDeleteUser",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      if (!userId) {
+        return rejectWithValue("User ID is required");
+      }
+
+      const response = await apiClient.delete(`/api/proxy/users/${userId}/hard`);
+
+      return {
+        userId,
+        message: response.data?.message || "User permanently deleted",
+      };
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to permanently delete user";
+
+      console.error("[Hard Delete User Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Reactivate a user
+export const reactivateUser = createAsyncThunk(
+  "user/reactivateUser",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      if (!userId) {
+        return rejectWithValue("User ID is required");
+      }
+
+      const response = await apiClient.post(`/api/proxy/users/${userId}/reactivate`);
+
+      return {
+        user: response.data?.data || null,
+        userId,
+        message: response.data?.message || "User reactivated successfully",
+      };
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to reactivate user";
+
+      console.error("[Reactivate User Error]", errorMessage);
       return rejectWithValue(errorMessage);
     }
   }

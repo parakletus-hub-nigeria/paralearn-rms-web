@@ -11,6 +11,8 @@ import {
   fetchAllUsers,
   fetchUserById,
   deleteUser,
+  hardDeleteUser,
+  reactivateUser,
   getCurrentUserProfile,
   updateUserProfile,
   changePassword,
@@ -362,6 +364,49 @@ const userSlice = createSlice({
       .addCase(deleteUser.rejected, (state, action) => {
         state.loading = false;
         state.error = (action.payload as string) || "Failed to delete user";
+      })
+
+      // Hard Delete User
+      .addCase(hardDeleteUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(hardDeleteUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = state.users.filter((user) => user.id !== action.payload.userId);
+        state.students = state.students.filter((user) => user.id !== action.payload.userId);
+        state.teachers = state.teachers.filter((user) => user.id !== action.payload.userId);
+        state.studentCount = state.students.length;
+        state.teacherCount = state.teachers.length;
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(hardDeleteUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to permanently delete user";
+      })
+
+      // Reactivate User
+      .addCase(reactivateUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(reactivateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+        
+        const updatedUser = action.payload.user;
+        
+        // Update user in lists instead of removing them
+        const updateList = (list: any[]) => 
+          list.map(u => u.id === action.payload.userId ? { ...u, ...updatedUser, isActive: true } : u);
+
+        state.users = updateList(state.users);
+        state.students = updateList(state.students);
+        state.teachers = updateList(state.teachers);
+      })
+      .addCase(reactivateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to reactivate user";
       });
 
     // Get current user profile
