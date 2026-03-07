@@ -56,12 +56,8 @@ export const fetchAcademicCurrent = createAsyncThunk(
       if (!data) return rejectWithValue("No academic session returned");
       return data as AcademicCurrent;
     } catch (e: any) {
-      // Return a safe default to prevent dashboard crash
-      return {
-        session: "2024/2025",
-        term: "First Term",
-        isActive: true
-      } as AcademicCurrent;
+      console.error("[fetchAcademicCurrent] Failed to fetch current academic session:", e);
+      return rejectWithValue(e?.message || "Failed to load academic session");
     }
   }
 );

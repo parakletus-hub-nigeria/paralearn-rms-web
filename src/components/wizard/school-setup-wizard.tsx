@@ -72,20 +72,20 @@ const defaultTerms: Term[] = [
   {
     id: "1",
     name: "Term 1",
-    startDate: "2024-09-01",
-    endDate: "2024-12-15",
+    startDate: `${new Date().getFullYear()}-09-01`,
+    endDate: `${new Date().getFullYear()}-12-15`,
   },
   {
     id: "2",
     name: "Term 2",
-    startDate: "2025-01-10",
-    endDate: "2025-04-10",
+    startDate: `${new Date().getFullYear() + 1}-01-10`,
+    endDate: `${new Date().getFullYear() + 1}-04-10`,
   },
   {
     id: "3",
     name: "Term 3",
-    startDate: "2025-04-25",
-    endDate: "2025-07-20",
+    startDate: `${new Date().getFullYear() + 1}-04-25`,
+    endDate: `${new Date().getFullYear() + 1}-07-20`,
   },
 ];
 
@@ -171,10 +171,11 @@ export function SchoolSetupWizard() {
   const totalSteps = 4;
 
   // Step 1 state
+  const currentYear = new Date().getFullYear();
   const [terms, setTerms] = useState<Term[]>(defaultTerms);
-  const [academicYear, setAcademicYear] = useState("2024/2025");
-  const [sessionStartDate, setSessionStartDate] = useState("2024-09-01");
-  const [sessionEndDate, setSessionEndDate] = useState("2025-07-31");
+  const [academicYear, setAcademicYear] = useState(`${currentYear}/${currentYear + 1}`);
+  const [sessionStartDate, setSessionStartDate] = useState(`${currentYear}-09-01`);
+  const [sessionEndDate, setSessionEndDate] = useState(`${currentYear + 1}-07-31`);
 
   // Step 2 state
   const [classes, setClasses] = useState<Class[]>(defaultClasses);

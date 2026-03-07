@@ -38,6 +38,15 @@ export function Step1SessionSetup({
   onSubmit,
   loading = false,
 }: Step1Props) {
+  // Generate dynamic academic years (current year to 3 years ahead)
+  const academicYearOptions = Array.from({ length: 4 }, (_, i) => {
+    const startYear = new Date().getFullYear() + i - (i === 0 ? 0 : 0); // Start from current year
+    // If it's the very first one, we might want to include last year too if we're early in the year
+    // but typically we want today's current session or upcoming ones
+    const yearStr = `${startYear}/${startYear + 1}`;
+    return yearStr;
+  });
+
   const addTerm = () => {
     const newTerm: Term = {
       id: Date.now().toString(),
@@ -88,9 +97,11 @@ export function Step1SessionSetup({
                     <SelectValue placeholder="Select academic year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2024/2025">2024/2025</SelectItem>
-                    <SelectItem value="2025/2026">2025/2026</SelectItem>
-                    <SelectItem value="2026/2027">2026/2027</SelectItem>
+                    {academicYearOptions.map((year) => (
+                      <SelectItem key={year} value={year}>
+                        {year}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

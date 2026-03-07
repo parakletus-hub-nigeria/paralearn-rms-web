@@ -215,7 +215,7 @@ export default function ExamLobbyPage() {
                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-bold tracking-wider border border-white/10 uppercase text-indigo-200">
                         <Calendar className="w-3 h-3" />
                         {/* FIX #12: Use real session data from assessment if available */}
-                        {(assessment as any)?.session?.name || (assessment as any)?.academicYear || "Session 2024/2025"}
+                        {(assessment as any)?.session?.name || (assessment as any)?.academicYear || ""}
                      </div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 backdrop-blur-md text-xs font-bold tracking-wider border border-purple-400/30 uppercase text-purple-200">
                        {assessment.category?.name || "Assessment"}

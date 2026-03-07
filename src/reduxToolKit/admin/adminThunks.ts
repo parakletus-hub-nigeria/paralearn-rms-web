@@ -21,6 +21,8 @@ export type SubjectItem = {
   description?: string;
   teacherId?: string;
   createdAt?: string;
+  teacherAssignments?: any[];
+  teachers?: any[];
 };
 
 export type AssessmentItem = {
@@ -32,6 +34,7 @@ export type AssessmentItem = {
   totalMarks?: number;
   passingMarks?: number;
   duration?: number;
+  durationMins?: number;
   instructions?: string;
   startsAt?: string;
   endsAt?: string;
@@ -39,6 +42,11 @@ export type AssessmentItem = {
   term?: string;
   isOnline?: boolean;
   status?: string;
+  submittedCount?: number;
+  _count?: {
+    submissions: number;
+    questions?: number;
+  };
 };
 
 export type SchoolStatistics = {
@@ -451,6 +459,33 @@ export const publishAssessmentAdmin = createAsyncThunk(
       };
     } catch (e: any) {
       return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to publish assessment");
+    }
+  }
+);
+
+export const fetchAssessmentDetail = createAsyncThunk(
+  "admin/fetchAssessmentDetail",
+  async (assessmentId: string, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.get(`/api/proxy/assessments/details/${assessmentId}`);
+      const data = unwrap(res) || res.data;
+      if (!data) return rejectWithValue("Assessment not found");
+      return data as AssessmentItem;
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to load assessment details");
+    }
+  }
+);
+
+export const fetchAssessmentSubmissions = createAsyncThunk(
+  "admin/fetchAssessmentSubmissions",
+  async (assessmentId: string, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.get(`/api/proxy/assessments/${assessmentId}/submissions`);
+      const data = unwrap(res) || res.data || [];
+      return Array.isArray(data) ? data : [];
+    } catch (e: any) {
+      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to load submissions");
     }
   }
 );

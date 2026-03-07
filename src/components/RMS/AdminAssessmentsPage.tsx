@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Link from "next/link";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import {
@@ -372,7 +373,9 @@ export function AdminAssessmentsPage() {
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="text-center">
                     <p className="text-lg font-bold text-slate-900">
-                      {(assessment as any).submittedCount ?? "—"}
+                      {(assessment as any)._count?.submissions ?? 
+                       (assessment as any).submittedCount ?? 
+                       (assessment as any).submissionCount ?? "—"}
                     </p>
                     <p className="text-xs text-slate-500 uppercase tracking-wide">Submitted</p>
                   </div>
@@ -384,20 +387,22 @@ export function AdminAssessmentsPage() {
                   </div>
                   <div className="text-center">
                     <p className="text-lg font-bold text-slate-900">
-                      {assessment.duration || "—"}
+                      {assessment.durationMins ?? assessment.duration ?? "—"}
                     </p>
                     <p className="text-xs text-slate-500 uppercase tracking-wide">Minutes</p>
                   </div>
                 </div>
 
-                {/* View Only Button */}
-                <Button
-                  variant="outline"
-                  className="w-full h-10 rounded-xl border-slate-200 text-sm font-medium gap-2"
-                >
-                  <Eye className="w-4 h-4" />
-                  View Details
-                </Button>
+                {/* View Details Button */}
+                <Link href={`/RMS/assessments/${assessment.id}`} className="block">
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 rounded-xl border-slate-200 text-sm font-medium gap-2 hover:bg-slate-50 transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Details
+                  </Button>
+                </Link>
               </div>
             );
           })}

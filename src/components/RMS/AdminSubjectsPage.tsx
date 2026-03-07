@@ -132,80 +132,6 @@ export function AdminSubjectsPage() {
     return map;
   }, [classes]);
 
-  // Map of subject id -> fetched details (with teacher assignments)
-  const [subjectDetailsMap, setSubjectDetailsMap] = useState<Map<string, any>>(new Map());
-  // Use a ref for the in-progress guard so it doesn't trigger re-renders
-  const fetchingRef = useRef(false);
-
-  // Fetch subject details to get teacher assignments.
-  // Only fetches subjects that aren't already cached to avoid flickering.
-  useEffect(() => {
-    const fetchSubjectDetails = async () => {
-      if (subjects.length === 0 || fetchingRef.current) return;
-
-      // Only fetch subjects not already in the map
-      const toFetch = subjects.filter((s: any) => !subjectDetailsMap.has(s.id));
-      if (toFetch.length === 0) return;
-
-      fetchingRef.current = true;
-      const newEntries = new Map<string, any>();
-
-      for (const subject of toFetch) {
-        try {
-          let subjectData: any = null;
-
-          // Attempt 1: Get subject with teacher includes
-          try {
-            const response = await apiClient.get(`/api/proxy/subjects/${subject.id}?include=teachers,teacherAssignments`);
-            subjectData = response.data?.data || response.data;
-          } catch {
-            // Attempt 2: Basic subject details
-            const response = await apiClient.get(`/api/proxy/subjects/${subject.id}`);
-            subjectData = response.data?.data || response.data;
-          }
-
-          // If still no teacher info, try the class endpoint
-          if (subjectData && !subjectData.teachers && !subjectData.teacherAssignments && subject.classId) {
-            try {
-              const classResponse = await apiClient.get(`/api/proxy/classes/${subject.classId}`);
-              const classData = classResponse.data?.data || classResponse.data;
-
-              if (classData?.subjects) {
-                const matchingSubject = classData.subjects.find((s: any) => s.id === subject.id);
-                if (matchingSubject) subjectData = { ...subjectData, ...matchingSubject };
-              }
-
-              if (classData?.teacherAssignments) {
-                const subjectAssignments = classData.teacherAssignments.filter(
-                  (a: any) => a.subjectId === subject.id
-                );
-                if (subjectAssignments.length > 0) subjectData.teacherAssignments = subjectAssignments;
-              }
-            } catch {
-              // Ignore class fetch error
-            }
-          }
-
-          if (subjectData) newEntries.set(subject.id, subjectData);
-        } catch {
-          // Ignore per-subject fetch error
-        }
-      }
-
-      // Merge new entries into the existing map (don't wipe what we already have)
-      if (newEntries.size > 0) {
-        setSubjectDetailsMap(prev => {
-          const merged = new Map(prev);
-          newEntries.forEach((v, k) => merged.set(k, v));
-          return merged;
-        });
-      }
-
-      fetchingRef.current = false;
-    };
-
-    fetchSubjectDetails();
-  }, [subjects]);
 
   // Filter subjects
   const filtered = useMemo(() => {
@@ -278,12 +204,8 @@ export function AdminSubjectsPage() {
       setAssignTeacherId("");
       setShowAssignModal(false);
       // Remove only the specific subject from the cache so it re-fetches with new teacher data
-      // (avoids wiping all entries which causes other rows to flicker to "Unassigned")
-      setSubjectDetailsMap(prev => {
-        const next = new Map(prev);
-        next.delete(selectedSubject.id);
-        return next;
-      });
+      setAssignTeacherId("");
+      setShowAssignModal(false);
       setSelectedSubject(null);
       dispatch(fetchSubjects());
     } catch (e: any) {
@@ -307,37 +229,23 @@ export function AdminSubjectsPage() {
   }, [teachers]);
 
   const getTeacherInfo = (subject: any) => {
-    // First, check if we have fetched details for this subject
-    const details = subjectDetailsMap.get(subject.id);
-    const subjectToCheck = details || subject;
+    const subjectToCheck = subject;
     
-    // 1. Check teacherAssignments array (primary source from API)
-    // Structure: teacherAssignments: [{ teacher: { id, firstName, lastName, email } }]
+    // 1. Check teacherAssignments array (primary source from API list)
     if (subjectToCheck.teacherAssignments && subjectToCheck.teacherAssignments.length > 0) {
       const assignment = subjectToCheck.teacherAssignments[0];
-      
-      // The teacher object is nested inside the assignment
       if (assignment.teacher) {
-        const teacher = assignment.teacher;
-        if (teacher.firstName || teacher.lastName || teacher.email) {
-          return teacher;
-        }
+        return assignment.teacher;
       }
-      
-      // Fallback: If assignment only has teacherId, look up in our teachers list
       if (assignment.teacherId) {
-        const found = teacherById.get(assignment.teacherId);
-        if (found) {
-          return found;
-        }
+        return teacherById.get(assignment.teacherId);
       }
     }
     
-    // 2. Check teachers array (alternative format from some endpoints)
+    // 2. Check teachers array
     if (subjectToCheck.teachers && subjectToCheck.teachers.length > 0) {
       const teacher = subjectToCheck.teachers[0];
       if (teacher) {
-        // Handle 'name' field (API format) - split into firstName/lastName
         if (teacher.name && !teacher.firstName) {
           const parts = teacher.name.split(' ');
           return {
@@ -346,27 +254,15 @@ export function AdminSubjectsPage() {
             lastName: parts.slice(1).join(' ') || '',
           };
         }
-        if (teacher.firstName || teacher.lastName || teacher.email) {
-          return teacher;
-        }
-      }
-    }
-    
-    // 3. Check direct teacher field
-    if (subjectToCheck.teacher) {
-      const teacher = subjectToCheck.teacher;
-      if (teacher.firstName || teacher.lastName || teacher.email) {
         return teacher;
       }
     }
     
+    // 3. Check direct teacher field
+    if (subjectToCheck.teacher) return subjectToCheck.teacher;
+    
     // 4. Check teacherId field and look up
-    if (subjectToCheck.teacherId) {
-      const found = teacherById.get(subjectToCheck.teacherId);
-      if (found) {
-        return found;
-      }
-    }
+    if (subjectToCheck.teacherId) return teacherById.get(subjectToCheck.teacherId);
     
     return null;
   };

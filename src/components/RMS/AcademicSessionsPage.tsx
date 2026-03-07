@@ -57,14 +57,21 @@ export const AcademicSessionsPage = () => {
   const { tenantInfo } = useSelector((state: RootState) => state.user);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  // Generate dynamic academic years (current year to 3 years ahead)
+  const academicYearOptions = Array.from({ length: 4 }, (_, i) => {
+    const startYear = new Date().getFullYear() + i;
+    return `${startYear}/${startYear + 1}`;
+  });
+
   const [newSession, setNewSession] = useState({
-    session: "2025/2026",
-    startsAt: "2025-09-01",
-    endsAt: "2026-07-31",
+    session: academicYearOptions[0],
+    startsAt: `${new Date().getFullYear()}-09-01`,
+    endsAt: `${new Date().getFullYear() + 1}-07-31`,
     terms: [
-      { id: "1", term: "Term 1", startsAt: "2025-09-01", endsAt: "2025-12-15" },
-      { id: "2", term: "Term 2", startsAt: "2026-01-10", endsAt: "2026-04-10" },
-      { id: "3", term: "Term 3", startsAt: "2026-04-25", endsAt: "2026-07-20" },
+      { id: "1", term: "Term 1", startsAt: `${new Date().getFullYear()}-09-01`, endsAt: `${new Date().getFullYear()}-12-15` },
+      { id: "2", term: "Term 2", startsAt: `${new Date().getFullYear() + 1}-01-10`, endsAt: `${new Date().getFullYear() + 1}-04-10` },
+      { id: "3", term: "Term 3", startsAt: `${new Date().getFullYear() + 1}-04-25`, endsAt: `${new Date().getFullYear() + 1}-07-20` },
     ],
   });
 
@@ -247,9 +254,11 @@ export const AcademicSessionsPage = () => {
                         <SelectValue placeholder="Select year" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                        <SelectItem value="2024/2025">2024/2025</SelectItem>
-                        <SelectItem value="2025/2026">2025/2026</SelectItem>
-                        <SelectItem value="2026/2027">2026/2027</SelectItem>
+                        {academicYearOptions.map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {year}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

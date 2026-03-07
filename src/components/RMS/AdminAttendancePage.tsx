@@ -58,6 +58,7 @@ export function AdminAttendancePage() {
   const [draftAttendance, setDraftAttendance] = useState<
     Record<string, Partial<AttendanceRecord>>
   >({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Fetch Tenant Info on mount
   useEffect(() => {
@@ -77,38 +78,31 @@ export function AdminAttendancePage() {
   const dateStr = format(currentDate, "yyyy-MM-dd");
 
   // Fetch Attendance Query
-  const { data: attendanceData, isLoading, refetch } = useGetDailyClassAttendanceQuery(
+  const { data: attendanceData, isLoading, isError, refetch } = useGetDailyClassAttendanceQuery(
     { classId: selectedClassId, date: dateStr },
     { skip: !selectedClassId }
   );
 
   const [bulkUpdate, { isLoading: isSaving }] = useBulkUpdateAttendanceMutation();
 
+  // Warn before unload if there are unsaved changes or if saving is in progress
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSaving) {
+        e.preventDefault();
+        e.returnValue = "Wait! Attendance is currently saving. Leaving now might corrupt the data.";
+      } else if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved attendance changes.";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges, isSaving]);
+
   // Reset draft when class or date changes (only on actual changes, not re-renders)
   const prevClassIdRef = { current: selectedClassId };
   const prevDateRef = { current: dateStr };
-
-  // Pre-fill draft from existing attendance data.
-  // Only fills in entries that are MISSING from the draft (e.g. on fresh load or class switch).
-  // Does NOT overwrite active user edits.
-  useEffect(() => {
-    if (attendanceData) {
-      setDraftAttendance((prev) => {
-        const next = { ...prev };
-        let hasChanges = false;
-        attendanceData.forEach((record: any) => {
-          if (!next[record.enrollmentId]) {
-            next[record.enrollmentId] = {
-              status: record.attendance?.status || "ABSENT",
-              remarks: record.attendance?.remarks || "",
-            };
-            hasChanges = true;
-          }
-        });
-        return hasChanges ? next : prev;
-      });
-    }
-  }, [attendanceData]);
 
 
   // Helper to get effective record
@@ -126,6 +120,7 @@ export function AdminAttendancePage() {
       ...prev,
       [enrollmentId]: { ...prev[enrollmentId], status },
     }));
+    setHasUnsavedChanges(true);
   };
 
   const handleRemarkChange = (enrollmentId: string, remarks: string) => {
@@ -133,27 +128,38 @@ export function AdminAttendancePage() {
       ...prev,
       [enrollmentId]: { ...prev[enrollmentId], remarks },
     }));
+    setHasUnsavedChanges(true);
   };
 
   const handleMarkAllPresent = () => {
-    if (!attendanceData) return;
+    if (!filteredData || filteredData.length === 0) return;
     const updates: Record<string, Partial<AttendanceRecord>> = {};
-    attendanceData.forEach((record: any) => {
+    filteredData.forEach((record: any) => {
       updates[record.enrollmentId] = {
         ...draftAttendance[record.enrollmentId],
         status: "PRESENT",
       };
     });
     setDraftAttendance((prev) => ({ ...prev, ...updates }));
-    toast.success("Marked all students as Present");
+    setHasUnsavedChanges(true);
+    toast.success(
+      filteredData.length === (attendanceData?.length || 0)
+        ? "Marked all students as Present"
+        : `Marked ${filteredData.length} visible students as Present`
+    );
   };
 
   const handleSave = async () => {
     if (!attendanceData) return;
+    if (Object.keys(draftAttendance).length === 0) {
+      toast.warning("No attendance changes to save. Please mark at least one student.");
+      return;
+    }
     try {
       const records = attendanceData.map((record: any) => {
         const effective = getEffectiveRecord(record);
         return {
+          id: record.attendance?.id, // CRITICAL: This was missing in the original code, causing the backend to wipe untouched students on a 2nd save.
           enrollmentId: record.enrollmentId,
           status: effective.status,
           remarks: effective.remarks,
@@ -176,6 +182,7 @@ export function AdminAttendancePage() {
         confirmedDraft[r.enrollmentId] = { status: r.status, remarks: r.remarks };
       });
       setDraftAttendance(confirmedDraft);
+      setHasUnsavedChanges(false);
       refetch();
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to save attendance");
@@ -279,8 +286,14 @@ export function AdminAttendancePage() {
                 <Select
                     value={selectedClassId}
                     onValueChange={(val) => {
+                      if (hasUnsavedChanges) {
+                        if (!confirm("You have unsaved attendance changes. Are you sure you want to switch classes? Your changes will be lost.")) {
+                          return;
+                        }
+                      }
                       setSelectedClassId(val);
                       setDraftAttendance({}); // Clear draft when switching class
+                      setHasUnsavedChanges(false);
                     }}
                 >
                     <SelectTrigger className="pl-4 h-11 bg-slate-50 border-slate-200 rounded-xl font-bold text-slate-700 w-full">
@@ -319,8 +332,14 @@ export function AdminAttendancePage() {
                             selected={currentDate}
                             onSelect={(date) => {
                               if (date) {
+                                if (hasUnsavedChanges) {
+                                  if (!confirm("You have unsaved attendance changes. Are you sure you want to change the date? Your changes will be lost.")) {
+                                    return;
+                                  }
+                                }
                                 setCurrentDate(date as Date);
                                 setDraftAttendance({}); // Clear draft when switching date
+                                setHasUnsavedChanges(false);
                               }
                             }}
                             disabled={(date) =>
@@ -367,6 +386,10 @@ export function AdminAttendancePage() {
                 <TableRow>
                   <TableCell colSpan={5} className="h-40 text-center"><div className="flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div></div></TableCell>
                 </TableRow>
+              ) : isError ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-40 text-center text-red-500 font-medium">Failed to load attendance data. Please try again.</TableCell>
+                </TableRow>
               ) : !selectedClassId ? (
                 <TableRow>
                     <TableCell colSpan={5} className="h-40 text-center text-slate-500">Please select a class to view attendance.</TableCell>
@@ -374,6 +397,10 @@ export function AdminAttendancePage() {
               ) : !attendanceData || attendanceData.length === 0 ? (
                 <TableRow>
                     <TableCell colSpan={5} className="h-40 text-center text-slate-500">No students found for this class.</TableCell>
+                </TableRow>
+              ) : filteredData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-40 text-center text-slate-500">No students found matching your search.</TableCell>
                 </TableRow>
               ) : (
                 filteredData.map((record: any, index: number) => {
@@ -385,12 +412,8 @@ export function AdminAttendancePage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                             <AvatarImage src={record?.student?.profilePicture} />
-                            <AvatarFallback>
-                              <img 
-                                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${record?.student?.id || record?.student?.studentId || 'student'}`} 
-                                alt=""
-                                className="w-full h-full bg-slate-100"
-                              />
+                            <AvatarFallback className="bg-purple-100 text-purple-700 font-bold">
+                              {getInitials(record.student.firstName, record.student.lastName)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -402,7 +425,7 @@ export function AdminAttendancePage() {
                       </TableCell>
                       <TableCell className="text-center">{renderStatusButtons(record.enrollmentId, status)}</TableCell>
                       <TableCell>
-                        <Input value={remarks} onChange={(e) => handleRemarkChange(record.enrollmentId, e.target.value)} placeholder="Add remark..." className="h-9 bg-transparent border-transparent hover:border-slate-200 focus:bg-white focus:border-purple-200 rounded-lg text-sm transition-all" />
+                        <Input maxLength={255} value={remarks} onChange={(e) => handleRemarkChange(record.enrollmentId, e.target.value)} placeholder="Add remark..." className="h-9 bg-transparent border-transparent hover:border-slate-200 focus:bg-white focus:border-purple-200 rounded-lg text-sm transition-all" />
                       </TableCell>
                       <TableCell className="text-right pr-8">
                         <DropdownMenu>

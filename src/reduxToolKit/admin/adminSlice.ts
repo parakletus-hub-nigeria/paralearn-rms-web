@@ -41,6 +41,8 @@ import {
   deleteAssessmentCategory,
   deleteAssessment,
   deleteClass,
+  fetchAssessmentDetail,
+  fetchAssessmentSubmissions,
 } from "./adminThunks";
 
 type AdminState = {
@@ -70,6 +72,8 @@ type AdminState = {
   // Teacher's assigned classes
   teacherClasses: any | null;
   assessmentCategories: any[];
+  selectedAssessment: AssessmentItem | null;
+  assessmentSubmissions: any[];
 };
 
 const initialState: AdminState = {
@@ -91,6 +95,8 @@ const initialState: AdminState = {
   selectedClassDetails: null,
   teacherClasses: null,
   assessmentCategories: [],
+  selectedAssessment: null,
+  assessmentSubmissions: [],
 };
 
 const adminSlice = createSlice({
@@ -482,6 +488,27 @@ const adminSlice = createSlice({
       })
       .addCase(deleteAssessmentCategory.rejected, (state, action) =>
         rejected(state, action, "Failed to delete assessment category")
+      );
+
+    // Assessment Details
+    builder
+      .addCase(fetchAssessmentDetail.pending, pending)
+      .addCase(fetchAssessmentDetail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedAssessment = action.payload;
+      })
+      .addCase(fetchAssessmentDetail.rejected, (state, action) =>
+        rejected(state, action, "Failed to load assessment details")
+      );
+
+    builder
+      .addCase(fetchAssessmentSubmissions.pending, pending)
+      .addCase(fetchAssessmentSubmissions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assessmentSubmissions = action.payload;
+      })
+      .addCase(fetchAssessmentSubmissions.rejected, (state, action) =>
+        rejected(state, action, "Failed to load assessment submissions")
       );
   },
 });

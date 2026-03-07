@@ -50,6 +50,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { ProductTour } from "@/components/common/ProductTour";
+import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 
 const classTourSteps = [
   {
@@ -86,8 +87,9 @@ export function AdminClassesPage() {
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
+  const { sessionOptions, currentSession } = useSessionsAndTerms();
   const [q, setQ] = useState("");
-  const [sessionFilter, setSessionFilter] = useState("2023/2024");
+  const [sessionFilter, setSessionFilter] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -112,6 +114,12 @@ export function AdminClassesPage() {
     dispatch(fetchAllUsers());
     dispatch(getTenantInfo());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (currentSession && !sessionFilter) {
+      setSessionFilter(currentSession);
+    }
+  }, [currentSession, sessionFilter]);
 
   useEffect(() => {
     if (error) {
@@ -319,8 +327,12 @@ export function AdminClassesPage() {
               <SelectValue placeholder="Session" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="2023/2024">2023/2024 Session</SelectItem>
-              <SelectItem value="2024/2025">2024/2025 Session</SelectItem>
+              <SelectItem value="all">All Sessions</SelectItem>
+              {sessionOptions.map((opt) => (
+                <SelectItem key={opt.id} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-white shadow-sm">
@@ -645,7 +657,7 @@ export function AdminClassesPage() {
                   <Input
                     value={form.academicYear}
                     onChange={(e) => setForm((p) => ({ ...p, academicYear: e.target.value }))}
-                    placeholder="2024/2025"
+                    placeholder={currentSession || "2024/2025"}
                     className="mt-2 h-11 rounded-xl"
                   />
                 </div>

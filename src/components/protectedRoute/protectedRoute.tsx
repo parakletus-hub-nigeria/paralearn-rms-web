@@ -6,9 +6,13 @@ import { useEffect, useState } from "react";
 import { routespath } from "@/lib/routepath";
 import tokenManager from "@/lib/tokenManager";
 import { Spinner } from "@/components/ui/spinner";
+import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
+import { AppDispatch } from "@/reduxToolKit/store";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const accesstoken = useSelector((state: any) => state.user.accessToken);
+  const currentSession = useSelector((state: any) => state.setUp.currentSession);
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const pathName = usePathname();
 
@@ -57,7 +61,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
 
     setIsAuthorized(true);
-  }, [mounted, accesstoken, pathName, router]);
+
+    // Fetch global academic session if not already loaded
+    if (hasToken && !currentSession) {
+      dispatch(fetchCurrentSession());
+    }
+  }, [mounted, accesstoken, pathName, router, currentSession, dispatch]);
 
   // SSR / pre-mount: render nothing to avoid hydration mismatch
   if (!mounted) return null;

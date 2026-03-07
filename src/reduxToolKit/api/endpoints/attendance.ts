@@ -73,6 +73,7 @@ const attendanceApi = paraApi.injectEndpoints({
       {
         date: string;
         records: {
+          id?: string;
           enrollmentId: string;
           status: "PRESENT" | "ABSENT" | "LATE";
           remarks?: string; // Adding remarks as it's in the UI

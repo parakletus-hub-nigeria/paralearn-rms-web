@@ -86,6 +86,7 @@ export default function TeacherAttendancePage() {
   const [draftAttendance, setDraftAttendance] = useState<
     Record<string, Partial<AttendanceRecord>>
   >({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -118,39 +119,31 @@ export default function TeacherAttendancePage() {
   }, [uniqueClasses, selectedClassId]);
 
   // Fetch Attendance Data (works for any date)
-  const { data: attendanceData, isLoading, refetch } = useGetDailyClassAttendanceQuery(
+  const { data: attendanceData, isLoading, isError, refetch } = useGetDailyClassAttendanceQuery(
     { classId: selectedClassId, date: viewDateStr },
     { skip: !selectedClassId }
   );
 
-  // Hydrate local draft state from server data (Today mode only).
-  // Only fills in entries that are missing from the draft (e.g. on fresh load or class switch).
-  // Does NOT overwrite active user edits.
+  // Warn before unload if there are unsaved changes
   useEffect(() => {
-    if (attendanceData && !isReadOnly) {
-      setDraftAttendance((prev) => {
-        const next = { ...prev };
-        let hasChanges = false;
-
-        attendanceData.forEach((record: any) => {
-          if (!next[record.enrollmentId]) {
-            next[record.enrollmentId] = {
-              status: record.attendance?.status || "ABSENT",
-              remarks: record.attendance?.remarks || "",
-            };
-            hasChanges = true;
-          }
-        });
-
-        return hasChanges ? next : prev;
-      });
-    }
-  }, [attendanceData, isReadOnly]);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSaving) {
+        e.preventDefault();
+        e.returnValue = "Wait! Attendance is currently saving. Leaving now might corrupt the data.";
+      } else if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved attendance changes.";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges, isSaving]);
 
   // Clear draft when switching to history tab
   useEffect(() => {
     if (isReadOnly) {
       setDraftAttendance({});
+      setHasUnsavedChanges(false);
     }
   }, [isReadOnly]);
 
@@ -177,6 +170,7 @@ export default function TeacherAttendancePage() {
       ...prev,
       [enrollmentId]: { ...prev[enrollmentId], status },
     }));
+    setHasUnsavedChanges(true);
   };
 
   const handleRemarkChange = (enrollmentId: string, remarks: string) => {
@@ -184,6 +178,7 @@ export default function TeacherAttendancePage() {
       ...prev,
       [enrollmentId]: { ...prev[enrollmentId], remarks },
     }));
+    setHasUnsavedChanges(true);
   };
 
   const handleMarkAllPresent = () => {
@@ -197,6 +192,7 @@ export default function TeacherAttendancePage() {
       };
     });
     setDraftAttendance((prev) => ({ ...prev, ...updates }));
+    setHasUnsavedChanges(true);
     toast.success(
       filteredData.length === (attendanceData?.length || 0)
         ? "Marked all students as Present"
@@ -215,6 +211,7 @@ export default function TeacherAttendancePage() {
       const records = attendanceData.map((record: any) => {
         const effective = getEffectiveRecord(record);
         return {
+          id: record.attendance?.id, // CRITICAL: This prevents the backend from wiping untouched students on a secondary save.
           enrollmentId: record.enrollmentId,
           status: effective.status,
           remarks: effective.remarks,
@@ -237,6 +234,7 @@ export default function TeacherAttendancePage() {
         confirmedDraft[r.enrollmentId] = { status: r.status, remarks: r.remarks };
       });
       setDraftAttendance(confirmedDraft);
+      setHasUnsavedChanges(false);
       refetch();
     } catch (error: any) {
       toast.error(error?.data?.message || error?.message || "Failed to save attendance");
@@ -423,8 +421,14 @@ export default function TeacherAttendancePage() {
               <Select
                 value={selectedClassId}
                 onValueChange={(val) => {
+                  if (hasUnsavedChanges) {
+                    if (!confirm("You have unsaved attendance changes. Are you sure you want to switch classes? Your changes will be lost.")) {
+                      return;
+                    }
+                  }
                   setSelectedClassId(val);
                   setDraftAttendance({});
+                  setHasUnsavedChanges(false);
                 }}
               >
                 <SelectTrigger className="pl-4 md:pl-10 h-12 md:h-11 bg-slate-100 md:bg-slate-50 border-transparent md:border-slate-200 rounded-xl font-bold text-slate-700 w-full mb-1">
@@ -534,6 +538,12 @@ export default function TeacherAttendancePage() {
                     </div>
                   </TableCell>
                 </TableRow>
+              ) : isError ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-40 text-center text-red-500 font-medium">
+                    Failed to load attendance data. Please try again.
+                  </TableCell>
+                </TableRow>
               ) : !attendanceData ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-40 text-center text-slate-500">
@@ -561,12 +571,8 @@ export default function TeacherAttendancePage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                             <AvatarImage src={record?.student?.profilePicture} />
-                            <AvatarFallback>
-                              <img 
-                                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${record?.student?.id || record?.student?.studentId || 'student'}`} 
-                                alt=""
-                                className="w-full h-full bg-slate-100"
-                              />
+                            <AvatarFallback className="bg-purple-100 text-purple-700 font-bold">
+                              {getInitials(record.student.firstName, record.student.lastName)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -591,6 +597,7 @@ export default function TeacherAttendancePage() {
                           </span>
                         ) : (
                           <Input
+                            maxLength={255}
                             value={remarks}
                             onChange={(e) =>
                               handleRemarkChange(record.enrollmentId, e.target.value)
@@ -626,6 +633,10 @@ export default function TeacherAttendancePage() {
             <div className="flex justify-center py-10">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
             </div>
+          ) : isError ? (
+            <div className="text-center py-10 text-red-500 font-medium">
+              Failed to load attendance data. Please try again.
+            </div>
           ) : !attendanceData ? (
             <div className="text-center py-10 text-slate-500">
               No attendance data found for this date/class.
@@ -645,12 +656,8 @@ export default function TeacherAttendancePage() {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12 border border-white shadow-sm">
                       <AvatarImage src={record?.student?.profilePicture} />
-                      <AvatarFallback>
-                        <img 
-                          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${record?.student?.id || record?.student?.studentId || 'student'}`} 
-                          alt=""
-                          className="w-full h-full bg-slate-100"
-                        />
+                      <AvatarFallback className="bg-purple-100 text-purple-700 font-bold">
+                        {getInitials(record.student.firstName, record.student.lastName)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
