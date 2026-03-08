@@ -641,7 +641,16 @@ export function TeacherAssessmentsPage() {
                       </div>
                       <div>
                         <p className="text-lg font-bold text-slate-900">
-                          {assessment._count?.submissions ?? assessment.submissions?.length ?? assessment.submissionCount ?? 0}
+                          {(() => {
+                            const subs = assessment.submissions || [];
+                            if (Array.isArray(subs) && subs.length > 0) {
+                              return subs.filter((s: any) => {
+                                const st = (s.status || "").toLowerCase();
+                                return st !== "in_progress" && st !== "in progress" && st !== "not_started";
+                              }).length;
+                            }
+                            return assessment.submissionCount ?? assessment._count?.submissions ?? 0;
+                          })()}
                         </p>
                         <p className="text-xs text-slate-500">Submitted</p>
                       </div>

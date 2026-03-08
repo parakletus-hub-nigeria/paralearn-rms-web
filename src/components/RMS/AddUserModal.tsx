@@ -369,7 +369,7 @@ export function AddUserModal({
                     onChange={(e) => setGender(e.target.value as any)}
                     className="mt-2 w-full h-12 rounded-xl border border-slate-200 px-4 bg-white text-slate-700"
                   >
-                    <option value="">Select gender</option>
+                    <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </select>

@@ -95,10 +95,21 @@ export function AdminEnrollmentsPage() {
     return new Set(enrolledStudents.map((s: any) => s.id));
   }, [enrolledStudents]);
 
-  // Get available students (not enrolled in selected class)
+  // Get available students (only those not enrolled in ANY class)
   const availableStudents = useMemo(() => {
     const term = search.trim().toLowerCase();
-    let available = students.filter((s: any) => !enrolledStudentIds.has(s.id));
+    
+    let available = students.filter((s: any) => {
+      // 1. Skip if already in the currently selected class
+      if (enrolledStudentIds.has(s.id)) return false;
+      
+      // 2. Skip if already enrolled in ANY other class
+      const firstEnrollment = s.enrollments?.[0] || s.enrollment || {};
+      const profile = s.studentProfile || s.profile || {};
+      const existingClassId = s.classId || firstEnrollment.classId || s.class?.id || firstEnrollment.class?.id || profile.classId || "";
+      
+      return !existingClassId;
+    });
     
     if (term) {
       available = available.filter((s: any) => {
@@ -399,7 +410,7 @@ export function AdminEnrollmentsPage() {
                                   {student.firstName} {student.lastName}
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  Reg: {formatDate(student.enrolledAt)}
+                                  Reg: {student.studentId || student.code || "—"}
                                 </p>
                               </div>
                             </div>

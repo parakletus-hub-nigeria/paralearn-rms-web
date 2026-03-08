@@ -76,6 +76,12 @@ type AdminState = {
   assessmentSubmissions: any[];
 };
 
+const ensureString = (val: any, fallback: string): string => {
+  if (typeof val === "string" && val.trim()) return val;
+  if (val && typeof val === "object" && val.message && typeof val.message === "string") return val.message;
+  return fallback;
+};
+
 const initialState: AdminState = {
   loading: false,
   error: null,
@@ -121,7 +127,7 @@ const adminSlice = createSlice({
     };
     const rejected = (state: AdminState, action: any, fallback: string) => {
       state.loading = false;
-      state.error = (action.payload as string) || fallback;
+      state.error = ensureString(action.payload, fallback);
     };
 
     builder
@@ -162,7 +168,7 @@ const adminSlice = createSlice({
       .addCase(enrollStudentToClass.pending, pending)
       .addCase(enrollStudentToClass.fulfilled, (state) => {
         state.loading = false;
-        state.success = "Student enrolled";
+        state.success = "Student enrolled successfully";
       })
       .addCase(enrollStudentToClass.rejected, (state, action) => rejected(state, action, "Failed to enroll student"));
 
@@ -187,7 +193,7 @@ const adminSlice = createSlice({
       .addCase(assignTeacherToSubject.pending, pending)
       .addCase(assignTeacherToSubject.fulfilled, (state) => {
         state.loading = false;
-        state.success = "Teacher assigned to subject";
+        state.success = "Teacher assigned to subject successfully";
       })
       .addCase(assignTeacherToSubject.rejected, (state, action) => rejected(state, action, "Failed to assign teacher"));
 
@@ -409,6 +415,55 @@ const adminSlice = createSlice({
       .addCase(fetchClassDetails.fulfilled, (state, action) => {
         state.loading = false;
         state.selectedClassDetails = action.payload;
+        
+        // Update the counts in the global classes list if we find a match
+        if (action.payload && action.payload.id) {
+          state.classes = state.classes.map(cls => {
+            if (cls.id === action.payload.id) {
+              // Extract fresh counts from the detailed roster
+              const enrollments = action.payload.enrollments || action.payload.students || [];
+              const teacherAssignments = action.payload.teacherAssignments || action.payload.teachers || [];
+              
+              const teacherIds = new Set(teacherAssignments.map((a: any) => (a.teacherId || a.teacher?.id || a.id)));
+              
+              const studentCount = Array.isArray(enrollments) 
+                ? enrollments.filter((e: any) => {
+                    const studentId = e.studentId || e.student?.id || e.id;
+                    const isAssignedTeacher = teacherIds.has(studentId);
+                    
+                    if (!isAssignedTeacher) return true;
+                    
+                    // If they are assigned as a teacher, only exclude them if they actually have a 'teacher' role
+                    const studentObj = e.student || e;
+                    const roles = studentObj.roles || (studentObj.user?.roles) || [];
+                    const hasTeacherRole = Array.isArray(roles) && roles.some((r: any) => 
+                      (r.role?.name === 'teacher') || (r.name === 'teacher') || (r === 'teacher')
+                    );
+                    
+                    // If we have role info and it's not teacher, keep them as student
+                    // If we DON'T have role info, we'll err on the side of counting them as students (per user request)
+                    return !hasTeacherRole;
+                  }).length 
+                : (cls.studentCount || 0);
+              
+              const teacherCount = Array.isArray(teacherAssignments) ? teacherAssignments.length : (cls.teacherCount || 0);
+              
+              return {
+                ...cls,
+                studentCount,
+                teacherCount,
+                enrollments,
+                teacherAssignments,
+                _count: {
+                  ...cls._count,
+                  enrollments: studentCount,
+                  teacherAssignments: teacherCount
+                }
+              };
+            }
+            return cls;
+          });
+        }
       })
       .addCase(fetchClassDetails.rejected, (state, action) =>
         rejected(state, action, "Failed to fetch class details")

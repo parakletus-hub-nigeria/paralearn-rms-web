@@ -279,32 +279,6 @@ export const UsersPage = () => {
     setEditUserModal(user);
   };
 
-  const handleDeleteUser = async (user: UserRow) => {
-    if (confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) {
-      try {
-        await dispatch(deleteUser(user.dbId)).unwrap();
-        toast.success(`User ${user.firstName} deactivated successfully`);
-        // Refresh the list
-        dispatch(fetchAllUsers());
-      } catch (error: any) {
-        toast.error(error || "Failed to deactivate user");
-      }
-    }
-  };
-
-  const handleReactivateUser = async (user: UserRow) => {
-    if (confirm(`Are you sure you want to reactivate ${user.firstName} ${user.lastName}?`)) {
-      try {
-        // dispatching reactivate action mapped in userSlice.ts
-        await dispatch(reactivateUser(user.dbId)).unwrap();
-        toast.success(`User ${user.firstName} reactivated successfully`);
-        dispatch(fetchAllUsers());
-      } catch (error: any) {
-        toast.error(error || "Failed to reactivate user");
-      }
-    }
-  };
-
   const handleHardDeleteUser = async (user: UserRow) => {
     if (confirm(`WARNING: This is a permanent action.\nAre you sure you want to permanently delete ${user.firstName} ${user.lastName}?`)) {
       try {
@@ -565,18 +539,6 @@ export const UsersPage = () => {
                               <Pencil className="w-4 h-4 text-slate-400" />
                               Edit User
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {user.status === "inactive" ? (
-                              <DropdownMenuItem onClick={() => handleReactivateUser(user)} className="cursor-pointer gap-2 py-2.5 text-emerald-600 focus:text-emerald-700 focus:bg-emerald-50">
-                                <Plus className="w-4 h-4" />
-                                Reactivate User
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem onClick={() => handleDeleteUser(user)} className="cursor-pointer gap-2 py-2.5 text-amber-600 focus:text-amber-700 focus:bg-amber-50">
-                                <X className="w-4 h-4" />
-                                Deactivate User
-                              </DropdownMenuItem>
-                            )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleHardDeleteUser(user)} className="cursor-pointer gap-2 py-2.5 text-red-600 focus:text-red-700 focus:bg-red-50">
                               <Trash2 className="w-4 h-4" />

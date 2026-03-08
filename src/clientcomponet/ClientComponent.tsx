@@ -10,8 +10,10 @@ export default function ClientComponent({ children }: { children: React.ReactNod
       {children}
       <Toaster 
         position="top-right" 
-        expand={false} 
+        expand={true} 
         richColors 
+        closeButton
+        visibleToasts={5}
         toastOptions={{
           style: {
             zIndex: 999999

@@ -99,7 +99,7 @@ const studentFormFields = [
   { name: "email", label: "Email", type: "email", placeholder: "Enter email address", required: true },
   { name: "phoneNumber", label: "Phone Number", type: "tel", placeholder: "Enter phone number", required: true },
   { name: "dateOfBirth", label: "Date of Birth", type: "date", placeholder: "mm/dd/yyyy", required: true },
-  { name: "gender", label: "Gender", type: "select", options: [ { value: "Male", label: "Male" }, { value: "Female", label: "Female" } ], placeholder: "Select gender", required: true },
+  { name: "gender", label: "Gender", type: "select", options: [ { value: "Male", label: "Male" }, { value: "Female", label: "Female" } ], placeholder: "Select Gender", required: true },
   { name: "address", label: "Address", type: "text", placeholder: "Enter address", required: true },
   { name: "guardianName", label: "Guardian Name", type: "text", placeholder: "Enter guardian name", required: true },
   { name: "guardianPhone", label: "Guardian Phone", type: "tel", placeholder: "Enter guardian phone", required: true },
@@ -246,7 +246,7 @@ const teacherFormFields = [
   { name: "email", label: "Email", type: "email", placeholder: "Enter email address", required: true },
   { name: "phoneNumber", label: "Phone Number", type: "tel", placeholder: "Enter phone number", required: true },
   { name: "dateOfBirth", label: "Date of Birth", type: "date", placeholder: "mm/dd/yyyy", required: true },
-  { name: "gender", label: "Gender", type: "select", options: [ { value: "Male", label: "Male" }, { value: "Female", label: "Female" } ], placeholder: "Select gender", required: true },
+  { name: "gender", label: "Gender", type: "select", options: [ { value: "Male", label: "Male" }, { value: "Female", label: "Female" } ], placeholder: "Select Gender", required: true },
   { name: "address", label: "Address", type: "text", placeholder: "Enter address", required: true },
 ];
 
@@ -367,7 +367,7 @@ const studentFormFields = [
       { value: "male", label: "Male" },
       { value: "female", label: "Female" },
     ],
-    placeholder: "Select gender",
+    placeholder: "Select Gender",
     required: true,
   },
   {

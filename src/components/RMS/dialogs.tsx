@@ -150,7 +150,7 @@ export function AddStudentDialog({ children }: { children: ReactNode }) {
         { value: "Male", label: "Male" },
         { value: "Female", label: "Female" },
       ],
-      placeholder: "Select gender",
+      placeholder: "Select Gender",
       required: false,
     },
     {
@@ -382,7 +382,7 @@ export function AddTeacherDialog({ children }: { children: ReactNode }) {
         { value: "Male", label: "Male" },
         { value: "Female", label: "Female" },
       ],
-      placeholder: "Select gender",
+      placeholder: "Select Gender",
       required: false,
     },
     {
@@ -645,7 +645,7 @@ export function StudentDialog({
         { value: "Male", label: "Male" },
         { value: "Female", label: "Female" },
       ],
-      placeholder: "Select gender",
+      placeholder: "Select Gender",
       required: false,
     },
     {

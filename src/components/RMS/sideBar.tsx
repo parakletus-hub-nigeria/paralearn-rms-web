@@ -240,18 +240,6 @@ const SidebarContentContainer = ({
                 </div>
               );
 
-              if (isBranding) {
-                return (
-                  <button
-                    key={index}
-                    onClick={onBrandingClick}
-                    className="w-full text-left"
-                  >
-                    {content}
-                  </button>
-                );
-              }
-
               return (
                 <Link key={index} href={item.path}>
                   {content}

@@ -14,6 +14,10 @@ export function ProductTour({ tourKey, steps }: ProductTourProps) {
   useEffect(() => {
     // Check if the user has already seen this specific tour
     if (typeof window !== 'undefined') {
+      // Disable tour on mobile devices (width < 768px) to prevent responsiveness issues
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) return;
+
       const hasSeenTour = localStorage.getItem(`tour_v2_${tourKey}`);
       
       if (!hasSeenTour) {

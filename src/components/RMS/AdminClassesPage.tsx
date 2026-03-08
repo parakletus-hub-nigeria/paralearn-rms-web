@@ -83,7 +83,7 @@ const classColors = [
 export function AdminClassesPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { classes, loading, error, success, selectedClassDetails } = useSelector((s: RootState) => s.admin);
-  const { teachers, tenantInfo } = useSelector((s: RootState) => s.user);
+  const { students, teachers, tenantInfo } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
@@ -114,6 +114,23 @@ export function AdminClassesPage() {
     dispatch(fetchAllUsers());
     dispatch(getTenantInfo());
   }, [dispatch]);
+
+  // Background pre-fetching of all class rosters
+  useEffect(() => {
+    if (classes && classes.length > 0 && students && students.length > 0) {
+      // Small delay to prioritize initial page load rendering
+      const timer = setTimeout(() => {
+        classes.forEach((cls: any) => {
+          // Only fetch if not already cached
+          if (!cls.enrollments || !cls.teacherAssignments) {
+            dispatch(fetchClassDetails(cls.id));
+          }
+        });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+    // We only want to trigger this once or when counts are cleared
+  }, [classes?.length, students?.length, dispatch]);
 
   useEffect(() => {
     if (currentSession && !sessionFilter) {
@@ -195,14 +212,27 @@ export function AdminClassesPage() {
 
   const viewClassDetails = async (cls: any) => {
     setSelectedClass(cls);
+    
+    // Check if we have cached roster info
+    const hasCache = !!(cls.enrollments || cls.teacherAssignments);
+    
     setShowDetailsModal(true);
-    setLoadingDetails(true);
-    try {
-      await dispatch(fetchClassDetails(cls.id)).unwrap();
-    } catch (e: any) {
-      toast.error(e || "Failed to load class details");
-    } finally {
+    
+    if (hasCache) {
+      // Instant load from cache
       setLoadingDetails(false);
+      // Still refresh in background to ensure latest data
+      dispatch(fetchClassDetails(cls.id));
+    } else {
+      // Traditional load with spinner
+      setLoadingDetails(true);
+      try {
+        await dispatch(fetchClassDetails(cls.id)).unwrap();
+      } catch (e: any) {
+        toast.error(e || "Failed to load class details");
+      } finally {
+        setLoadingDetails(false);
+      }
     }
   };
 
@@ -228,39 +258,148 @@ export function AdminClassesPage() {
 
   const getColorByIndex = (idx: number) => classColors[idx % classColors.length];
 
+  // Helper to get actual student count
+  const getStudentCountForClass = (classId: string, backendCount?: number) => {
+    if (!students) return backendCount || 0;
+    
+    const localCount = students.filter((s: any) => {
+      // 1. First ensure they are NOT a teacher by checking roles
+      const roles = s.roles || (s.studentProfile?.roles) || (s.profile?.roles) || [];
+      const isTeacher = Array.isArray(roles) && roles.some((r: any) => 
+        (r.role?.name === 'teacher') || (r.name === 'teacher') || (r === 'teacher')
+      );
+      if (isTeacher) return false;
+
+      // 2. Check ALL possible class associations recursively
+      const enrollments = Array.isArray(s.enrollments) ? s.enrollments : (s.enrollment ? [s.enrollment] : []);
+      const profile = s.studentProfile || s.profile || {};
+      
+      const hasEnrollmentMatch = enrollments.some((e: any) => 
+        (e.classId === classId) || (e.class?.id === classId)
+      );
+      if (hasEnrollmentMatch) return true;
+
+      // check direct property or profiles
+      return s.classId === classId || 
+             s.class?.id === classId || 
+             profile.classId === classId ||
+             profile.class?.id === classId;
+    }).length;
+
+    // Use the maximum of local and backend counts to ensure we don't undercount
+    // backendCount here will include the refined calculation from the adminSlice
+    return Math.max(localCount, backendCount || 0);
+  };
+
+  // Helper to get actual teacher count
+  const getTeacherCountForClass = (classId: string, backendCount?: number) => {
+    const localCount = teachers ? teachers.filter((t: any) => {
+      // Check various possible class assignment fields for teachers
+      const profile = t.teacherProfile || t.profile || {};
+      const assignments = Array.isArray(t.teacherAssignments) ? t.teacherAssignments : (t.teacherAssignment ? [t.teacherAssignment] : []);
+      const classList = Array.isArray(t.classes) ? t.classes : [];
+      
+      return t.classId === classId || 
+             t.primaryClassId === classId ||
+             t.assignedClasses?.includes(classId) ||
+             classList.some((c: any) => c.id === classId || c.classId === classId) ||
+             assignments.some((a: any) => a.classId === classId) ||
+             profile.classId === classId ||
+             (t.subjects && Array.isArray(t.subjects) && t.subjects.some((s: any) => s.classId === classId));
+    }).length : 0;
+
+    return Math.max(localCount, backendCount || 0);
+  };
+
+  const handleExportRosters = () => {
+    if (filtered.length === 0) return toast.error("No classes to export");
+
+    // CSV Headers
+    const headers = ["Class Name", "Level", "Stream", "Students", "Teachers", "Capacity", "Academic Year"];
+    
+    // CSV Rows
+    const rows = filtered.map(cls => {
+      const bStudentCount = cls.studentCount ?? cls._count?.enrollments ?? cls._count?.students ?? 0;
+      const bTeacherCount = cls.teacherCount ?? cls._count?.teacherAssignments ?? cls._count?.teachers ?? 0;
+      
+      return [
+        cls.name || "",
+        cls.level || "",
+        cls.stream || "A",
+        getStudentCountForClass(cls.id, bStudentCount),
+        getTeacherCountForClass(cls.id, bTeacherCount),
+        cls.capacity || "",
+        cls.academicYear || sessionFilter || ""
+      ];
+    });
+
+    // Construct CSV string
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `school_rosters_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Rosters exported successfully");
+  };
+
   // Get enrolled students and teachers from class details
   // Handle various possible response structures
   const classStudents = useMemo(() => {
-    if (!selectedClassDetails) return [];
+    // Prioritize the real-time detailed object, fall back to the class list item cache
+    const source = (selectedClassDetails?.id === selectedClass?.id) 
+      ? selectedClassDetails 
+      : selectedClass;
+
+    if (!source) return [];
+    
     // Check multiple possible paths for students
-    const enrollments = selectedClassDetails.enrollments || 
-                        selectedClassDetails.students || 
-                        selectedClassDetails.data?.enrollments ||
-                        selectedClassDetails.data?.students ||
+    const enrollments = source.enrollments || 
+                        source.students || 
+                        source.data?.enrollments ||
+                        source.data?.students ||
                         [];
     const list = Array.isArray(enrollments) ? enrollments : [];
     
-    // Filter out teachers who may have been erroneously enrolled
-    const teacherIds = new Set(teachers?.map((t: any) => t.id) || []);
+    // Filter out ONLY users with an explicit 'teacher' role
     return list.filter((e: any) => {
-      const studentId = e.student?.id || e.id;
-      return !teacherIds.has(studentId);
+      const studentObj = e.student || e;
+      const roles = studentObj.roles || (studentObj.user?.roles) || [];
+      const hasTeacherRole = Array.isArray(roles) && roles.some((r: any) => 
+        (r.role?.name === 'teacher') || (r.name === 'teacher') || (r === 'teacher')
+      );
+      return !hasTeacherRole;
     });
-  }, [selectedClassDetails, teachers]);
+  }, [selectedClassDetails, selectedClass]);
 
   const classTeachers = useMemo(() => {
-    if (!selectedClassDetails) return [];
+    const source = (selectedClassDetails?.id === selectedClass?.id) 
+      ? selectedClassDetails 
+      : selectedClass;
+
+    if (!source) return [];
+    
     // Check multiple possible paths for teacher assignments
-    let assignments = selectedClassDetails.teacherAssignments || 
-                      selectedClassDetails.teachers || 
-                      selectedClassDetails.classTeachers ||
-                      selectedClassDetails.data?.teacherAssignments ||
-                      selectedClassDetails.data?.teachers ||
+    let assignments = source.teacherAssignments || 
+                      source.teachers || 
+                      source.classTeachers ||
+                      source.data?.teacherAssignments ||
+                      source.data?.teachers ||
                       [];
     
-    // If no teachers found in class details, check if any teachers in the users list are assigned to this class
-    if ((!assignments || assignments.length === 0) && selectedClass && teachers && teachers.length > 0) {
-      const classId = selectedClass.id;
+    // If no teachers found in source, check if any teachers in the users list are assigned to this class
+    if ((!assignments || assignments.length === 0) && source.id && teachers && teachers.length > 0) {
+      const classId = source.id;
       const matchedTeachers = teachers.filter((t: any) => {
         // Check various possible class assignment fields
         return t.classId === classId || 
@@ -295,7 +434,11 @@ export function AdminClassesPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-11 rounded-xl border-slate-200 gap-2">
+          <Button 
+            variant="outline" 
+            className="h-11 rounded-xl border-slate-200 gap-2"
+            onClick={handleExportRosters}
+          >
             <Download className="w-4 h-4" />
             Export Rosters
           </Button>
@@ -367,20 +510,12 @@ export function AdminClassesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map((cls: any, idx) => {
             const color = getColorByIndex(idx);
-            // Get student count from various possible locations in the response
-            const studentCount = cls.studentCount ?? 
-                                 cls.enrollmentCount ?? 
-                                 cls._count?.enrollments ?? 
-                                 cls._count?.students ?? 
-                                 cls.enrollments?.length ?? 
-                                 cls.students?.length ?? 
-                                 0;
-            const teacherCount = cls.teacherCount ?? 
-                                 cls._count?.teacherAssignments ?? 
-                                 cls._count?.teachers ?? 
-                                 cls.teacherAssignments?.length ?? 
-                                 cls.teachers?.length ?? 
-                                 0;
+            // Hybrid counting logic: use backend data as base but allow local list to override/enhance
+            const bStudentCount = cls.studentCount ?? cls._count?.enrollments ?? cls._count?.students ?? 0;
+            const bTeacherCount = cls.teacherCount ?? cls._count?.teacherAssignments ?? cls._count?.teachers ?? 0;
+            
+            const studentCount = getStudentCountForClass(cls.id, bStudentCount);
+            const teacherCount = getTeacherCountForClass(cls.id, bTeacherCount);
 
             return (
               <div
@@ -525,19 +660,11 @@ export function AdminClassesPage() {
             </thead>
             <tbody>
               {filtered.map((cls: any, idx) => {
-                const studentCount = cls.studentCount ?? 
-                                     cls.enrollmentCount ?? 
-                                     cls._count?.enrollments ?? 
-                                     cls._count?.students ?? 
-                                     cls.enrollments?.length ?? 
-                                     cls.students?.length ?? 
-                                     0;
-                const teacherCount = cls.teacherCount ?? 
-                                     cls._count?.teacherAssignments ?? 
-                                     cls._count?.teachers ?? 
-                                     cls.teacherAssignments?.length ?? 
-                                     cls.teachers?.length ?? 
-                                     0;
+                const bStudentCount = cls.studentCount ?? cls._count?.enrollments ?? cls._count?.students ?? 0;
+                const bTeacherCount = cls.teacherCount ?? cls._count?.teacherAssignments ?? cls._count?.teachers ?? 0;
+                
+                const studentCount = getStudentCountForClass(cls.id, bStudentCount);
+                const teacherCount = getTeacherCountForClass(cls.id, bTeacherCount);
                 return (
                   <tr
                     key={cls.id}
@@ -838,7 +965,7 @@ export function AdminClassesPage() {
                               {isClassTeacher && (
                                 <button
                                   onClick={() => handleRemoveTeacher(teacher?.id)}
-                                  className="p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                                  className="p-2 mr-1 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
                                   title="Remove teacher"
                                 >
                                   <UserMinus className="w-4 h-4" />
@@ -880,7 +1007,7 @@ export function AdminClassesPage() {
                               </div>
                               <button
                                 onClick={() => handleRemoveStudent(student?.id)}
-                                className="p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                                className="p-2 mr-1 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
                                 title="Remove student"
                               >
                                 <UserMinus className="w-4 h-4" />

@@ -11,6 +11,16 @@ export type ClassItem = {
   academicYear?: string;
   isActive?: boolean;
   createdAt?: string;
+  studentCount?: number;
+  teacherCount?: number;
+  enrollments?: any[];
+  teacherAssignments?: any[];
+  _count?: {
+    enrollments?: number;
+    teacherAssignments?: number;
+    students?: number;
+    teachers?: number;
+  };
 };
 
 export type SubjectItem = {

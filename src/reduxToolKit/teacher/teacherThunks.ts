@@ -127,7 +127,15 @@ export const fetchMyAssessments = createAsyncThunk(
                  duration: assess.durationMins ?? assess.durationMinutes ?? assess.duration,
                  status: assess.status || group._fetchedStatus || "active",
                  isOnline: assess.assessmentType === "online" || assess.isOnline === true || assess.isOnline === "true",
-                 submissionCount: assess.submissionCount ?? assess._count?.submissions ?? assess.submissions?.length ?? 0,
+                                   submissionCount: assess.submissionCount ?? (
+                    Array.isArray(assess.submissions) 
+                      ? assess.submissions.filter((s: any) => {
+                          const st = (s.status || "").toLowerCase();
+                          return st !== "in_progress" && st !== "in progress" && st !== "not_started";
+                        }).length
+                      : (assess._count?.submissions ?? 0)
+                  ),
+
                });
              });
            }

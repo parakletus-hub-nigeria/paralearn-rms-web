@@ -20,11 +20,10 @@ import {
   BarChart3,
   CheckSquare
 } from "lucide-react";
-import { format } from "date-fns";
 import { ProductTour } from "@/components/common/ProductTour";
 import Link from "next/link";
-
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 const studentTourSteps = [
   {
@@ -46,6 +45,8 @@ export default function StudentDashboardPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { assessments, loading, error } = useSelector((s: RootState) => s.student);
   const { user } = useSelector((s: RootState) => s.user);
+
+  const [activeTab, setActiveTab] = useState<"active" | "ended">("active");
 
   useEffect(() => {
     dispatch(fetchStudentAssessments());
@@ -76,24 +77,28 @@ export default function StudentDashboardPage() {
     }
   }, [dispatch]);
 
-  // Pre-filter assessments to drive both the stats and the grid
-  const filteredAssessments = assessments.filter((a) => {
-    // Never show unpublished assessments — backend should enforce this too
-    if (a.isPublished === false) return false;
-    const isSubmitted = a.status === 'submitted' || a.submissions?.some(
-      s => s.status === 'submitted' && !!s.finishedAt  // Requires BOTH (tightened)
-    );
-    const isEnded = a.status === 'ended';
-    if (isEnded) return false;
-    return a.isOnline !== false || isSubmitted;
+  // Filter ONLY online and published assessments as per user request
+  const visibleAssessments = (assessments || []).filter((a) => {
+    return a.isPublished !== false && a.isOnline !== false;
   });
 
-  const completedCount = filteredAssessments.filter(a =>
+  const activeList = visibleAssessments.filter(a => a.status !== 'ended');
+  const endedList = visibleAssessments.filter(a => a.status === 'ended');
+
+  const currentList = activeTab === "active" ? activeList : endedList;
+
+  const completedCount = visibleAssessments.filter(a =>
     a.status === 'submitted' || a.submissions?.some(
       s => s.status === 'submitted' && !!s.finishedAt
     )
   ).length;
-  const upcomingCount = filteredAssessments.length - completedCount;
+  
+  const upcomingCount = activeList.filter(a => {
+      const isSubmitted = a.status === 'submitted' || a.submissions?.some(
+        s => s.status === 'submitted' && !!s.finishedAt
+      );
+      return !isSubmitted;
+  }).length;
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] flex flex-col relative font-sans overflow-x-hidden">
@@ -120,7 +125,7 @@ export default function StudentDashboardPage() {
                 Welcome back, {user?.firstName || "Student"}!
               </h1>
               <p className="text-lg md:text-xl text-indigo-100 max-w-2xl mx-auto font-light leading-relaxed">
-                Your academic journey continues. You have <span className="font-bold text-white border-b-2 border-indigo-400 px-1">{filteredAssessments.length} assessment{filteredAssessments.length !== 1 ? 's' : ''}</span> waiting for you.
+                Your academic journey continues. You have <span className="font-bold text-white border-b-2 border-indigo-400 px-1">{activeList.length} assessment{activeList.length !== 1 ? 's' : ''}</span> waiting for you.
               </p>
             </div>
           </div>
@@ -134,7 +139,7 @@ export default function StudentDashboardPage() {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Assessments</p>
-                  <p className="text-2xl font-bold text-gray-800">{filteredAssessments.length}</p>
+                  <p className="text-2xl font-bold text-gray-800">{visibleAssessments.length}</p>
                 </div>
               </div>
 
@@ -159,6 +164,64 @@ export default function StudentDashboardPage() {
               </div>
             </div>
 
+            {/* Tab Switcher */}
+            <div className="flex items-center justify-center mb-10">
+              <div className="bg-white/40 backdrop-blur-md p-1.5 rounded-2xl border border-white/30 flex gap-2 shadow-sm">
+                <button
+                  onClick={() => setActiveTab("active")}
+                  className={`relative px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
+                    activeTab === "active" ? "text-indigo-700" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {activeTab === "active" && (
+                    <motion.div
+                      layoutId="activeTabBg"
+                      className="absolute inset-0 bg-white rounded-xl shadow-md z-0"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <PlayCircle className={`w-4 h-4 relative z-10 ${activeTab === 'active' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                  <span className="relative z-10">Active Exams</span>
+                  {activeList.length > 0 && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className={`relative z-10 ml-1 px-2 py-0.5 rounded-full text-[10px] font-black ${
+                        activeTab === 'active' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'
+                    }`}>
+                        {activeList.length}
+                    </motion.span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab("ended")}
+                  className={`relative px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
+                    activeTab === "ended" ? "text-red-700" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {activeTab === "ended" && (
+                    <motion.div
+                      layoutId="activeTabBg"
+                      className="absolute inset-0 bg-white rounded-xl shadow-md z-0"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <Clock className={`w-4 h-4 relative z-10 ${activeTab === 'ended' ? 'text-red-600' : 'text-slate-400'}`} />
+                  <span className="relative z-10">Ended History</span>
+                  {endedList.length > 0 && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className={`relative z-10 ml-1 px-2 py-0.5 rounded-full text-[10px] font-black ${
+                        activeTab === 'ended' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-500'
+                    }`}>
+                        {endedList.length}
+                    </motion.span>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 bg-white/30 backdrop-blur-md rounded-3xl border border-white/20">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4" />
@@ -171,19 +234,34 @@ export default function StudentDashboardPage() {
                 <p className="text-red-700 font-medium mb-6">{error}</p>
                 <Button onClick={() => dispatch(fetchStudentAssessments())} className="bg-red-600 hover:bg-red-700 text-white rounded-xl px-8 py-6">Retry Connection</Button>
               </div>
-            ) : filteredAssessments.length === 0 ? (
+            ) : currentList.length === 0 ? (
               <div className="bg-white/40 backdrop-blur-md border border-white/30 p-16 rounded-3xl text-center shadow-lg max-w-3xl mx-auto">
                 <div className="w-24 h-24 bg-white/50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                  <ClipboardList className="w-12 h-12 text-indigo-400" />
+                  {activeTab === "active" ? (
+                    <ClipboardList className="w-12 h-12 text-indigo-400" />
+                  ) : (
+                    <Clock className="w-12 h-12 text-slate-400" />
+                  )}
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-3 font-serif">All Caught Up!</h3>
-                <p className="text-slate-600 text-lg max-w-md mx-auto">You have no pending assessments at the moment. Enjoy your free time!</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-3 font-serif">
+                  {activeTab === "active" ? "All Caught Up!" : "No History Yet"}
+                </h3>
+                <p className="text-slate-600 text-lg max-w-md mx-auto">
+                  {activeTab === "active" 
+                    ? "You have no pending assessments at the moment. Enjoy your free time!"
+                    : "Your completed and expired exams will appear here in the future."}
+                </p>
               </div>
             ) : (
-              <div className="student-assessments-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
-                {filteredAssessments
-                  .map((assessment, idx) => {
-                  const subjectName = assessment.subject?.name || "General";
+              <motion.div 
+                layout
+                className="student-assessments-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20"
+              >
+                <AnimatePresence mode="popLayout">
+                  {currentList
+                    .map((assessment, idx) => {
+                    const subjectName = assessment.subject?.name || "General";
+                    // ... (rest of normalization logic inside map)
                   const isMath = subjectName.toLowerCase().includes('math');
                   const isScience = subjectName.toLowerCase().includes('science') || subjectName.toLowerCase().includes('physics') || subjectName.toLowerCase().includes('chem');
                   const isSubmitted = assessment.status === 'submitted' || assessment.submissions?.some(s => s.status === 'submitted' || !!s.finishedAt);
@@ -221,8 +299,16 @@ export default function StudentDashboardPage() {
                       ? "bg-cyan-50 border-cyan-100"
                       : "bg-indigo-50 border-indigo-100";
 
-                  return (
-                    <div key={assessment.id} className="group bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-6 flex flex-col h-auto min-h-[340px] shadow-xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
+                    return (
+                      <motion.div 
+                        key={assessment.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.4, delay: idx * 0.05 }}
+                        className="group bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-6 flex flex-col h-auto min-h-[340px] shadow-xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
+                      >
                       {/* Glow Effect */}
                       <div className={`absolute -right-10 -top-10 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity bg-current ${iconColorClass}`}></div>
                       
@@ -268,6 +354,10 @@ export default function StudentDashboardPage() {
                            <Button className="w-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-semibold py-6 rounded-2xl shadow-none cursor-not-allowed">
                             Paper Exam <Lock className="w-4 h-4 ml-2" />
                           </Button>
+                        ) : statusLabel === "Ended" ? (
+                          <Button className="w-full bg-slate-100 hover:bg-slate-200 text-red-400 font-semibold py-6 rounded-2xl shadow-none cursor-not-allowed flex items-center justify-center gap-2">
+                            Time Expired <Lock className="w-4 h-4" />
+                          </Button>
                         ) : (
                           <Link href={`/student/lobby?assessmentId=${assessment.id}`} className="block">
                             <Button className={`student-enter-lobby-button w-full bg-gradient-to-r ${gradientClass} bg-[length:200%_auto] hover:bg-[position:right_center] text-white py-6 rounded-2xl flex items-center justify-center gap-2 transition-all duration-500 font-bold shadow-lg group-hover:shadow-xl`}>
@@ -277,10 +367,11 @@ export default function StudentDashboardPage() {
                           </Link>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
-              </div>
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         </main>

@@ -59,11 +59,18 @@ export interface StartAssessmentResponse {
 // Fetch all available assessments for the student
 export const fetchStudentAssessments = createAsyncThunk(
   "student/fetchAssessments",
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await apiClient.get(`/api/proxy/assessments/student/published`);
-      const assessments = response.data?.data || response.data || [];
-      return assessments;
+      const data = response.data?.data || response.data || [];
+      const assessments = Array.isArray(data) ? data : [];
+
+      // Normalize data to match UI expectations
+      return assessments.map((a: any) => ({
+        ...a,
+        isOnline: (a.assessmentType !== "offline") && 
+                  (a.isOnline === true || a.isOnline === "true" || a.assessmentType === "online" || a.assessmentType === "exam" || !a.assessmentType),
+      }));
     } catch (error: any) {
       console.error(`[fetchStudentAssessments] Error:`, error.response?.data || error.message);
       return rejectWithValue(error.response?.data?.message || error.message || "Failed to fetch assessments");

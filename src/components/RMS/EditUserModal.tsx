@@ -213,7 +213,7 @@ export function EditUserModal({
                       className="mt-1.5 w-full h-11 rounded-xl border border-slate-200 px-4 bg-white text-slate-700 outline-none focus:ring-2 focus:ring-offset-1 transition-all"
                       style={{ "--tw-ring-color": primaryColor } as any}
                     >
-                      <option value="">Select gender</option>
+                      <option value="">Select Gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
