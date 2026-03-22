@@ -6,14 +6,18 @@ import { useSelector } from "react-redux";
 import { routespath } from "@/lib/routepath";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/reduxToolKit/store";
-import { getCurrentUserProfile, logoutUser } from "@/reduxToolKit/user/userThunks";
+import {
+  getCurrentUserProfile,
+  fetchUniUserProfile,
+  logoutUser,
+} from "@/reduxToolKit/user/userThunks";
 import tokenManager from "@/lib/tokenManager";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 
 type RoleGuardProps = {
   children: ReactNode;
-  allow: Array<"admin" | "teacher" | "student">;
+  allow: Array<"admin" | "teacher" | "student" | "lecturer">;
   mode?: "block" | "redirect";
   redirectTo?: string; // only used in redirect mode
 };
@@ -31,11 +35,12 @@ export default function RoleGuard({
   const roles = userState?.user?.roles || [];
 
   const userLoading = useSelector((s: any) => s.user?.loading);
+  const institutionType = useSelector((s: any) => s.user?.institutionType);
   const [checkedProfile, setCheckedProfile] = useState(false);
   const didKickoff = useRef(false);
 
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -43,15 +48,19 @@ export default function RoleGuard({
   const ok = useMemo(() => {
     if (!Array.isArray(roles)) return false;
     if (roles.length === 0) return false;
-    
+
     // Normalize both user roles and allowed roles to lowercase for comparison
-    const normalizedUserRoles = roles.map((r: any) => String(r).toLowerCase().trim());
-    const normalizedAllowedRoles = allow.map(r => r.toLowerCase().trim());
-    
-    return normalizedUserRoles.some((r: string) => normalizedAllowedRoles.includes(r));
+    const normalizedUserRoles = roles.map((r: any) =>
+      String(r).toLowerCase().trim(),
+    );
+    const normalizedAllowedRoles = allow.map((r) => r.toLowerCase().trim());
+
+    return normalizedUserRoles.some((r: string) =>
+      normalizedAllowedRoles.includes(r),
+    );
   }, [roles, allow]);
 
-  const hasToken = !!(tokenManager.getToken());
+  const hasToken = !!tokenManager.getToken();
 
   // If we have a token but roles are empty (e.g. page refresh), fetch /users/me once.
   useEffect(() => {
@@ -59,13 +68,17 @@ export default function RoleGuard({
     if (ok) return;
     if (didKickoff.current) return;
     if (Array.isArray(roles) && roles.length > 0) return;
-    
+
     didKickoff.current = true;
-    dispatch(getCurrentUserProfile())
+    const profileThunk =
+      institutionType === "university"
+        ? fetchUniUserProfile
+        : getCurrentUserProfile;
+    dispatch(profileThunk())
       .unwrap()
       .catch(() => {})
       .finally(() => setCheckedProfile(true));
-  }, [dispatch, hasToken, ok, roles]);
+  }, [dispatch, hasToken, ok, roles, institutionType]);
 
   // If roles are still empty after attempting profile fetch, stop showing blank.
   useEffect(() => {
@@ -88,11 +101,13 @@ export default function RoleGuard({
       redirectTo ||
       (normalizedRoles.includes("teacher")
         ? routespath.TEACHER_DASHBOARD
-        : normalizedRoles.includes("admin")
-        ? routespath.DASHBOARD
-        : normalizedRoles.includes("student")
-        ? "/student/dashboard"
-        : "/unauthorized"); // FIX #7: catch-all for unrecognized roles
+        : normalizedRoles.includes("lecturer")
+          ? "/lecturer/dashboard"
+          : normalizedRoles.includes("admin")
+            ? routespath.DASHBOARD
+            : normalizedRoles.includes("student")
+              ? "/student/dashboard"
+              : "/unauthorized"); // FIX #7: catch-all for unrecognized roles
     if (pathname !== fallback) router.replace(fallback);
   }, [ok, router, redirectTo, roles, pathname, mode, hasToken, mounted]);
 
@@ -109,7 +124,12 @@ export default function RoleGuard({
   }
 
   // While roles are being resolved after refresh
-  if (hasToken && Array.isArray(roles) && roles.length === 0 && !checkedProfile) {
+  if (
+    hasToken &&
+    Array.isArray(roles) &&
+    roles.length === 0 &&
+    !checkedProfile
+  ) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-3">
@@ -132,7 +152,8 @@ export default function RoleGuard({
         <div className="max-w-lg w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
           <p className="text-2xl font-black text-slate-900">Unauthorized</p>
           <p className="text-slate-500 mt-2">
-            You don’t have permission to access this page with your current account.
+            You don’t have permission to access this page with your current
+            account.
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <Button
@@ -160,4 +181,3 @@ export default function RoleGuard({
   }
   return <>{children}</>;
 }
-

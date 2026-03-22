@@ -115,6 +115,21 @@ const reportsApi = paraApi.injectEndpoints({
         { type: "Report" },
       ],
     }),
+
+    // GET /api/proxy/reports/student/:studentId/:classId/report-card/pdf
+    // Queues async PDF generation; optionally specify a selection templateId
+    queueReportCardPdf: builder.query<
+      { message: string; jobId: string },
+      { studentId: string; classId: string; session: string; term: string; templateId?: string }
+    >({
+      query: ({ studentId, classId, session, term, templateId }) => {
+        const q = new URLSearchParams({ session, term });
+        if (templateId) q.set("templateId", templateId);
+        return {
+          url: `/api/proxy/reports/student/${studentId}/${classId}/report-card/pdf?${q.toString()}`,
+        };
+      },
+    }),
   }),
   overrideExisting: false,
 });
@@ -128,4 +143,5 @@ export const {
   useApproveReportsMutation,
   useSubmitForApprovalMutation,
   useGenerateAndNotifyMutation,
+  useLazyQueueReportCardPdfQuery,
 } = reportsApi;

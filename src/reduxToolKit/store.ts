@@ -1,23 +1,33 @@
-import {configureStore} from '@reduxjs/toolkit';
+import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "./user/userSlice";
-import setUpReducer from './setUp/setUpSlice';
+import setUpReducer from "./setUp/setUpSlice";
 import teacherReducer from "./teacher/teacherSlice";
 import adminReducer from "./admin/adminSlice";
 import studentReducer from "./student/studentSlice";
+import superAdminReducer from "./superAdmin/superAdminSlice";
 import { paraApi } from "./api";
+import { uniApi } from "./api/uniBaseApi";
+import { superAdminApi } from "./api/superAdminBaseApi";
 
 export const store = configureStore({
-    reducer: {
-        user: userReducer,
-        setUp: setUpReducer,
-        teacher: teacherReducer,
-        admin: adminReducer,
-        student: studentReducer,
-        [paraApi.reducerPath]: paraApi.reducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(paraApi.middleware),
-})
+  reducer: {
+    user: userReducer,
+    setUp: setUpReducer,
+    teacher: teacherReducer,
+    admin: adminReducer,
+    student: studentReducer,
+    superAdmin: superAdminReducer,
+    [paraApi.reducerPath]: paraApi.reducer,
+    [uniApi.reducerPath]: uniApi.reducer,
+    [superAdminApi.reducerPath]: superAdminApi.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(
+      paraApi.middleware,
+      uniApi.middleware,
+      superAdminApi.middleware,
+    ),
+});
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

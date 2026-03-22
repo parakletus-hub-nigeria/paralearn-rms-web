@@ -157,7 +157,7 @@ const ContactPage = () => {
       setTimeout(() => setIsSubmitted(false), 5000);
     } catch (error) {
       console.error("Form submission error:", error);
-      toast.success("Thank you for your inquiry! We will get back to you soon. For immediate assistance, please email us at growth@paralearn.ng");
+      toast.success("Thank you for your inquiry! We will get back to you soon. For immediate assistance, please email us at growth@pln.ng");
 
       setFormData({
         fullName: "",

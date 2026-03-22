@@ -4,12 +4,25 @@ import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { ReportCardTable } from "./report-card-table";
 import { ReportCardDetailView } from "./report-card-detail-view";
+import { ReportCardTemplatePicker } from "./report-card-template-picker";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useLazyQueueReportCardPdfQuery } from "@/reduxToolKit/api/endpoints/reports";
+import { toast } from "sonner";
 
 export function ReportCardAdminPage() {
   const [view, setView] = useState<"list" | "detail">("list");
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  // The selected report card row that triggered generation (studentId + classId)
+  const [pendingGeneration, setPendingGeneration] = useState<{
+    studentId: string;
+    classId: string;
+    session: string;
+    term: string;
+  } | null>(null);
+
+  const [queuePdf] = useLazyQueueReportCardPdfQuery();
 
   const handleViewReport = (reportId: string) => {
     setSelectedReportId(reportId);
@@ -19,6 +32,32 @@ export function ReportCardAdminPage() {
   const handleBack = () => {
     setView("list");
     setSelectedReportId(null);
+  };
+
+  /** Opens the template picker. Pass report context if you have it, otherwise uses empty defaults. */
+  const handleGenerateReport = (opts?: {
+    studentId: string;
+    classId: string;
+    session: string;
+    term: string;
+  }) => {
+    setPendingGeneration(opts ?? null);
+    setTemplatePickerOpen(true);
+  };
+
+  const handleTemplateConfirmed = async (selectionId: string) => {
+    if (!pendingGeneration) return;
+    try {
+      const result = await queuePdf({
+        ...pendingGeneration,
+        templateId: selectionId,
+      }).unwrap();
+      toast.success(`PDF queued! Job ID: ${result.jobId}`);
+    } catch {
+      toast.error("Failed to queue PDF generation. Please try again.");
+    } finally {
+      setPendingGeneration(null);
+    }
   };
 
   return (
@@ -43,7 +82,10 @@ export function ReportCardAdminPage() {
                   Generate, preview, and publish student report cards
                 </p>
               </div>
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button
+                onClick={() => handleGenerateReport()}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Generate New Report
               </Button>
@@ -61,6 +103,12 @@ export function ReportCardAdminPage() {
           )}
         </div>
       </main>
+
+      <ReportCardTemplatePicker
+        open={templatePickerOpen}
+        onOpenChange={setTemplatePickerOpen}
+        onConfirm={handleTemplateConfirmed}
+      />
     </div>
   );
 }

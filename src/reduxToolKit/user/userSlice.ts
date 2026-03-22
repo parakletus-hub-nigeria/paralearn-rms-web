@@ -1,7 +1,12 @@
 "use client";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { tokenManager } from "@/lib/tokenManager";
-import { getSubdomainFromStorage, extractSubdomainFromURL, saveSubdomainToStorage, removeSubdomainFromStorage } from "@/lib/subdomainManager";
+import {
+  getSubdomainFromStorage,
+  extractSubdomainFromURL,
+  saveSubdomainToStorage,
+  removeSubdomainFromStorage,
+} from "@/lib/subdomainManager";
 import {
   loginUser,
   logoutUser,
@@ -25,12 +30,14 @@ import { getDecodedTokenPayload } from "@/lib/jwt-decode";
 interface UserState {
   accessToken: string | null;
   subdomain: string | null;
+  institutionType: "k12" | "university";
   user: {
     id: string;
     email: string;
     firstName: string;
     lastName: string;
     schoolId: string;
+    universityId?: string;
     roles: string[];
     avatar?: string;
   };
@@ -53,11 +60,18 @@ interface UserState {
 
 const USER_KEY = "currentUser";
 
-
-
 const getInitialUser = (): UserState["user"] => {
   if (typeof window === "undefined") {
-    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
+    return {
+      id: "",
+      email: "",
+      firstName: "",
+      lastName: "",
+      schoolId: "",
+      universityId: "",
+      roles: [],
+      avatar: "",
+    };
   }
   try {
     const raw = localStorage.getItem(USER_KEY);
@@ -73,11 +87,12 @@ const getInitialUser = (): UserState["user"] => {
         firstName: parsed?.firstName || "",
         lastName: parsed?.lastName || "",
         schoolId: parsed?.schoolId || "",
+        universityId: parsed?.universityId || "",
         roles: roles,
         avatar: parsed?.avatar || parsed?.profilePicture || "",
       };
     }
-    
+
     // Fallback: If no localStorage (e.g. after subdomain redirect), check JWT
     const token = tokenManager.getToken();
     if (token) {
@@ -93,16 +108,35 @@ const getInitialUser = (): UserState["user"] => {
           firstName: decoded.firstName || "",
           lastName: decoded.lastName || "",
           schoolId: decoded.schoolId || "",
+          universityId: decoded.universityId || "",
           roles: roles,
           avatar: decoded.avatar || decoded.profilePicture || "",
         };
       }
     }
 
-    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
+    return {
+      id: "",
+      email: "",
+      firstName: "",
+      lastName: "",
+      schoolId: "",
+      universityId: "",
+      roles: [],
+      avatar: "",
+    };
   } catch (e) {
     console.warn("[userSlice] Failed to initialize user state", e);
-    return { id: "", email: "", firstName: "", lastName: "", schoolId: "", roles: [], avatar: "" };
+    return {
+      id: "",
+      email: "",
+      firstName: "",
+      lastName: "",
+      schoolId: "",
+      universityId: "",
+      roles: [],
+      avatar: "",
+    };
   }
 };
 
@@ -124,9 +158,25 @@ const getInitialSubdomain = () => {
   return null;
 };
 
+const getInitialInstitutionType = (): "k12" | "university" => {
+  if (typeof window !== "undefined") {
+    const raw = localStorage.getItem(USER_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed.institutionType || "k12";
+      } catch (e) {
+        return "k12";
+      }
+    }
+  }
+  return "k12";
+};
+
 const initialState: UserState = {
   accessToken: getInitialToken() || null,
   subdomain: getInitialSubdomain(),
+  institutionType: getInitialInstitutionType(),
   user: getInitialUser(),
   users: [],
   students: [],
@@ -142,23 +192,27 @@ const initialState: UserState = {
 };
 
 type User = {
-    id: string,
-    email: string,
-    firstName: string,
-    lastName: string,
-    schoolId: string,
-    roles: string[],
-    avatar?: string,
-  }
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  schoolId: string;
+  universityId?: string;
+  roles: string[];
+  avatar?: string;
+};
 
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-     updateAccessToken: (state, action: PayloadAction<{  accessToken: any }>) => {
+    updateAccessToken: (state, action: PayloadAction<{ accessToken: any }>) => {
       state.accessToken = action.payload.accessToken;
     },
-    updateSubdomain: (state, action: PayloadAction<{ subdomain: string | null }>) => {
+    updateSubdomain: (
+      state,
+      action: PayloadAction<{ subdomain: string | null }>,
+    ) => {
       state.subdomain = action.payload.subdomain;
       // Sync to localStorage
       if (action.payload.subdomain) {
@@ -166,7 +220,53 @@ const userSlice = createSlice({
       } else {
         removeSubdomainFromStorage();
       }
-    }
+    },
+    updateInstitutionType: (
+      state,
+      action: PayloadAction<"k12" | "university">,
+    ) => {
+      state.institutionType = action.payload;
+      if (typeof window !== "undefined") {
+        try {
+          const raw = localStorage.getItem(USER_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            parsed.institutionType = action.payload;
+            localStorage.setItem(USER_KEY, JSON.stringify(parsed));
+          }
+        } catch (e) {}
+      }
+    },
+    /**
+     * Hydrate Redux state from the auth_user payload delivered via URL params
+     * after a cross-subdomain redirect. This avoids a full profile re-fetch.
+     */
+    hydrateUserState: (
+      state,
+      action: PayloadAction<{
+        accessToken: string;
+        user: Partial<User>;
+        subdomain?: string | null;
+        institutionType?: "k12" | "university";
+      }>,
+    ) => {
+      const { accessToken, user, subdomain, institutionType } = action.payload;
+      state.accessToken = accessToken;
+      if (user) {
+        state.user = {
+          id: user.id || state.user.id,
+          email: user.email || state.user.email,
+          firstName: user.firstName || state.user.firstName,
+          lastName: user.lastName || state.user.lastName,
+          schoolId: user.schoolId || state.user.schoolId,
+          universityId: user.universityId || state.user.universityId,
+          roles: (user.roles && user.roles.length > 0) ? user.roles : state.user.roles,
+          avatar: user.avatar || state.user.avatar,
+        };
+      }
+      if (subdomain) state.subdomain = subdomain;
+      if (institutionType) state.institutionType = institutionType;
+    },
   },
 
   extraReducers: (builder) => {
@@ -182,6 +282,7 @@ const userSlice = createSlice({
         state.accessToken = action.payload.accessToken;
         state.user = action.payload.user;
         state.subdomain = action.payload.subdomain || state.subdomain;
+        state.institutionType = (action.payload.institutionType as "k12" | "university") || state.institutionType;
         state.success = true;
         state.error = null;
         // Persist user snapshot for reloads (roles-based guards)
@@ -190,17 +291,15 @@ const userSlice = createSlice({
             // Extract roles, fallback to checking user object for flags
             let roles = normalizeRoles(action.payload.user?.roles);
             if (roles.length === 0) {
-                roles = normalizeRoles(action.payload.user);
+              roles = normalizeRoles(action.payload.user);
             }
-            
+
             const toSave = {
-                ...action.payload.user,
-                roles,
+              ...action.payload.user,
+              roles,
+              institutionType: action.payload.institutionType || "k12",
             };
-            localStorage.setItem(
-              USER_KEY,
-              JSON.stringify(toSave)
-            );
+            localStorage.setItem(USER_KEY, JSON.stringify(toSave));
           } catch {}
         }
       })
@@ -242,6 +341,7 @@ const userSlice = createSlice({
           firstName: "",
           lastName: "",
           schoolId: "",
+          universityId: "",
           roles: [],
         };
         state.error = null;
@@ -263,6 +363,7 @@ const userSlice = createSlice({
           firstName: "",
           lastName: "",
           schoolId: "",
+          universityId: "",
           roles: [],
         };
         state.error = (action.payload as string) || "Logout failed";
@@ -305,7 +406,6 @@ const userSlice = createSlice({
         state.success = false;
       });
 
-
     // Fetch all users
     builder
       .addCase(fetchAllUsers.pending, (state) => {
@@ -341,7 +441,8 @@ const userSlice = createSlice({
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;
         state.selectedUser = null;
-        state.error = (action.payload as string) || "Failed to fetch user details";
+        state.error =
+          (action.payload as string) || "Failed to fetch user details";
       });
 
     // Delete user
@@ -353,9 +454,15 @@ const userSlice = createSlice({
       .addCase(deleteUser.fulfilled, (state, action) => {
         state.loading = false;
         // Remove user from lists
-        state.users = state.users.filter((user) => user.id !== action.payload.userId);
-        state.students = state.students.filter((user) => user.id !== action.payload.userId);
-        state.teachers = state.teachers.filter((user) => user.id !== action.payload.userId);
+        state.users = state.users.filter(
+          (user) => user.id !== action.payload.userId,
+        );
+        state.students = state.students.filter(
+          (user) => user.id !== action.payload.userId,
+        );
+        state.teachers = state.teachers.filter(
+          (user) => user.id !== action.payload.userId,
+        );
         state.studentCount = state.students.length;
         state.teacherCount = state.teachers.length;
         state.success = true;
@@ -372,9 +479,15 @@ const userSlice = createSlice({
       })
       .addCase(hardDeleteUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.users = state.users.filter((user) => user.id !== action.payload.userId);
-        state.students = state.students.filter((user) => user.id !== action.payload.userId);
-        state.teachers = state.teachers.filter((user) => user.id !== action.payload.userId);
+        state.users = state.users.filter(
+          (user) => user.id !== action.payload.userId,
+        );
+        state.students = state.students.filter(
+          (user) => user.id !== action.payload.userId,
+        );
+        state.teachers = state.teachers.filter(
+          (user) => user.id !== action.payload.userId,
+        );
         state.studentCount = state.students.length;
         state.teacherCount = state.teachers.length;
         state.success = true;
@@ -382,7 +495,8 @@ const userSlice = createSlice({
       })
       .addCase(hardDeleteUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to permanently delete user";
+        state.error =
+          (action.payload as string) || "Failed to permanently delete user";
       })
 
       // Reactivate User
@@ -393,12 +507,16 @@ const userSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.error = null;
-        
+
         const updatedUser = action.payload.user;
-        
+
         // Update user in lists instead of removing them
-        const updateList = (list: any[]) => 
-          list.map(u => u.id === action.payload.userId ? { ...u, ...updatedUser, isActive: true } : u);
+        const updateList = (list: any[]) =>
+          list.map((u) =>
+            u.id === action.payload.userId
+              ? { ...u, ...updatedUser, isActive: true }
+              : u,
+          );
 
         state.users = updateList(state.users);
         state.students = updateList(state.students);
@@ -418,10 +536,10 @@ const userSlice = createSlice({
       .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUserProfile = action.payload;
-        
+
         // Extract roles from profile response
         let roles = normalizeRoles(action.payload?.roles);
-        
+
         // If roles is empty, try the whole payload for role flags (iadmin, etc)
         if (roles.length === 0) {
           roles = normalizeRoles(action.payload);
@@ -433,8 +551,12 @@ const userSlice = createSlice({
           firstName: action.payload?.firstName || state.user.firstName,
           lastName: action.payload?.lastName || state.user.lastName,
           schoolId: action.payload?.schoolId || state.user.schoolId,
+          universityId: action.payload?.universityId || state.user.universityId,
           roles: roles.length ? roles : state.user.roles,
-          avatar: action.payload?.avatar || action.payload?.profilePicture || state.user.avatar,
+          avatar:
+            action.payload?.avatar ||
+            action.payload?.profilePicture ||
+            state.user.avatar,
         };
         if (typeof window !== "undefined") {
           try {
@@ -445,7 +567,8 @@ const userSlice = createSlice({
       })
       .addCase(getCurrentUserProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to fetch user profile";
+        state.error =
+          (action.payload as string) || "Failed to fetch user profile";
       });
 
     // Update user profile
@@ -468,7 +591,8 @@ const userSlice = createSlice({
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
-        state.error = (action.payload as string) || "Failed to update user profile";
+        state.error =
+          (action.payload as string) || "Failed to update user profile";
       });
 
     // Change password
@@ -502,7 +626,8 @@ const userSlice = createSlice({
       })
       .addCase(getTenantInfo.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to fetch tenant information";
+        state.error =
+          (action.payload as string) || "Failed to fetch tenant information";
       });
 
     // Update school branding
@@ -524,16 +649,17 @@ const userSlice = createSlice({
       .addCase(updateSchoolBranding.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
-        state.error = (action.payload as string) || "Failed to update school branding";
+        state.error =
+          (action.payload as string) || "Failed to update school branding";
       });
   },
 });
 // Export thunks for use in components
-export { 
-  loginUser, 
-  logoutUser, 
-  fetchUserData, 
-  refreshAuthToken, 
+export {
+  loginUser,
+  logoutUser,
+  fetchUserData,
+  refreshAuthToken,
   signupUser,
   fetchAllUsers,
   fetchUserById,
@@ -544,6 +670,7 @@ export {
   getTenantInfo,
   updateSchoolBranding,
 };
-export const {updateAccessToken, updateSubdomain} = userSlice.actions
+export const { updateAccessToken, updateSubdomain, updateInstitutionType, hydrateUserState } =
+  userSlice.actions;
 const userReducer = userSlice.reducer;
 export default userReducer;

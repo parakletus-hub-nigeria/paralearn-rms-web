@@ -10,6 +10,7 @@ import { Step1SessionSetup } from "./step1-session-setup";
 import { Step2ClassesGrades } from "./step2-classes-grades";
 import { Step3Subjects } from "./step3-subjects";
 import { Step4GradingSystem } from "./step4-grading-system";
+import { Step5ReportCardTemplates } from "./step5-report-card-templates";
 import { SubjectsManagementModal } from "./subjects-management-modal";
 import {
   createAcademicSession,
@@ -21,6 +22,9 @@ import {
   clearSuccess,
   clearWizardData,
 } from "@/reduxToolKit/setUp/setUpSlice";
+import {
+  useSelectReportCardTemplateMutation,
+} from "@/reduxToolKit/api/endpoints/settings";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";
 import { toast } from "sonner";
@@ -137,6 +141,7 @@ export function SchoolSetupWizard() {
   const { loading, error, success, createdSession, createdClasses, gradingScaleData } = useSelector(
     (state: RootState) => state.setUp
   );
+  const [selectTemplate] = useSelectReportCardTemplateMutation();
 
   // Pre-fetch existing sessions & classes so soft-passage fallbacks work even after a page refresh
   const { data: existingSessions = [] } = useGetAllSessionsQuery();
@@ -168,7 +173,15 @@ export function SchoolSetupWizard() {
   }, [existingClasses]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
+
+  // Step 5 state
+  const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
+  const toggleTemplate = useCallback((id: string) => {
+    setSelectedTemplateIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+  }, []);
 
   // Step 1 state
   const currentYear = new Date().getFullYear();
@@ -377,34 +390,48 @@ export function SchoolSetupWizard() {
       }));
 
       await dispatch(updateGradingScale({ gradeBoundaries })).unwrap();
-      
-      toast.success("School setup completed successfully!");
-      
-      // Cleanup wizard data
-      dispatch(clearSuccess());
-      dispatch(clearError());
-      dispatch(clearWizardData());
-      
-      // Navigate to dashboard immediately
-      router.push(routespath.DASHBOARD);
-      
+      toast.success("Grading scale saved!");
       return true;
     } catch (error: any) {
       console.error("Failed to update grading scale:", error);
       return false;
     }
-  }, [gradeScales, dispatch, router]);
+  }, [gradeScales, dispatch]);
 
-  // Handle final submission (Step 4 - Update Grading Scale)
+  // Handle Step 5 submission (Select Report Card Templates)
+  const handleStep5Submit = useCallback(async () => {
+    // Template selection is optional — proceed even with 0 selected
+    if (selectedTemplateIds.length > 0) {
+      const results = await Promise.allSettled(
+        selectedTemplateIds.map((id) => selectTemplate(id).unwrap())
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0) {
+        toast.info(`${results.length - failed} template(s) selected. ${failed} failed — you can retry in Settings.`);
+      } else {
+        toast.success(`${results.length} report card template(s) activated for your school!`);
+      }
+    }
+
+    // Cleanup wizard data and navigate to dashboard
+    dispatch(clearSuccess());
+    dispatch(clearError());
+    dispatch(clearWizardData());
+    router.push(routespath.DASHBOARD);
+    return true;
+  }, [selectedTemplateIds, selectTemplate, dispatch, router]);
+
+  // Handle final submission (Step 5)
   const handleFinishSetup = useCallback(async () => {
-    await handleStep4Submit();
-  }, [handleStep4Submit]);
+    await handleStep5Submit();
+  }, [handleStep5Submit]);
 
   const stepNames = useMemo(() => [
     "Session",
     "Classes",
     "Subjects",
     "Grading",
+    "Templates",
   ], []);
 
   const handleBack = useCallback(() => {
@@ -437,12 +464,18 @@ export function SchoolSetupWizard() {
         toast.info("Skipping subject errors — you can manage subjects later.");
         success = true;
       }
+    } else if (currentStep === 4) {
+      success = await handleStep4Submit();
+      if (!success) {
+        toast.info("Skipping grading errors — you can update it later in Settings.");
+        success = true;
+      }
     }
 
-    if (success || currentStep === 4) {
+    if (success || currentStep === 5) {
       setCurrentStep(Math.min(totalSteps, currentStep + 1));
     }
-  }, [currentStep, totalSteps, sessionId, classIdMap, handleStep1Submit, handleStep2Submit, handleStep3Submit]);
+  }, [currentStep, totalSteps, sessionId, classIdMap, handleStep1Submit, handleStep2Submit, handleStep3Submit, handleStep4Submit]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -587,6 +620,13 @@ export function SchoolSetupWizard() {
             setMaximumPoints={setMaximumPoints}
             gradeScales={gradeScales}
             setGradeScales={setGradeScales}
+          />
+        )}
+
+        {currentStep === 5 && (
+          <Step5ReportCardTemplates
+            selectedTemplateIds={selectedTemplateIds}
+            onToggle={toggleTemplate}
           />
         )}
 

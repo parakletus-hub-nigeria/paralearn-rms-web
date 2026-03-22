@@ -21,6 +21,9 @@ import { AlertCircle, Mail } from "lucide-react";
 
 export default function SigninPage() {
   const [data, setData] = useState({ email: "", password: "" });
+  const [institutionType, setInstitutionType] = useState<"k12" | "university">(
+    "k12",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const { error, loading } = useSelector((state: any) => state.user);
@@ -37,7 +40,9 @@ export default function SigninPage() {
 
   const submit = async () => {
     try {
-      const result = await dispatch(loginUser(data)).unwrap();
+      const result = await dispatch(
+        loginUser({ ...data, institutionType }),
+      ).unwrap();
 
       if (result && result.accessToken) {
         if (result.redirecting) {
@@ -45,31 +50,35 @@ export default function SigninPage() {
           return;
         }
         toast.success("Logged in successfully!");
-        
+
         // Check if there's a redirect path stored (e.g., from signup)
-        const redirectPath = typeof window !== 'undefined' 
-          ? sessionStorage.getItem('redirectAfterLogin') 
-          : null;
-        
+        const redirectPath =
+          typeof window !== "undefined"
+            ? sessionStorage.getItem("redirectAfterLogin")
+            : null;
+
         if (redirectPath) {
           // Clear the redirect path and redirect
-          sessionStorage.removeItem('redirectAfterLogin');
+          sessionStorage.removeItem("redirectAfterLogin");
           router.push(redirectPath);
           return;
         }
-        
+
         // Check if academic session is set up
         try {
           const sessionResult = await dispatch(fetchCurrentSession()).unwrap();
-          
+
           // If session exists, redirect to dashboard
           if (sessionResult && sessionResult.sessionDetails) {
             router.push(routespath.DASHBOARD);
           } else {
             // No active session — check if any sessions exist at all
             try {
-              const allSessionsResp = await apiClient.get(`/api/proxy${routespath.API_GET_ALL_SESSIONS}`);
-              const sessions = allSessionsResp?.data?.data || allSessionsResp?.data || [];
+              const allSessionsResp = await apiClient.get(
+                `/api/proxy${routespath.API_GET_ALL_SESSIONS}`,
+              );
+              const sessions =
+                allSessionsResp?.data?.data || allSessionsResp?.data || [];
               if (Array.isArray(sessions) && sessions.length > 0) {
                 router.push(routespath.DASHBOARD);
               } else {
@@ -82,8 +91,11 @@ export default function SigninPage() {
         } catch (sessionError: any) {
           // If fetching current session fails, fallback to checking all sessions
           try {
-            const allSessionsResp = await apiClient.get(`/api/proxy${routespath.API_GET_ALL_SESSIONS}`);
-            const sessions = allSessionsResp?.data?.data || allSessionsResp?.data || [];
+            const allSessionsResp = await apiClient.get(
+              `/api/proxy${routespath.API_GET_ALL_SESSIONS}`,
+            );
+            const sessions =
+              allSessionsResp?.data?.data || allSessionsResp?.data || [];
             if (Array.isArray(sessions) && sessions.length > 0) {
               router.push(routespath.DASHBOARD);
             } else {
@@ -97,7 +109,10 @@ export default function SigninPage() {
         toast.error("Login failed. No token received.");
       }
     } catch (e: any) {
-      handleError(e, "Login failed. Please check your credentials and try again.");
+      handleError(
+        e,
+        "Login failed. Please check your credentials and try again.",
+      );
     }
   };
 
@@ -118,9 +133,38 @@ export default function SigninPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-5 px-6 pb-6">
+            <div className="flex gap-4 p-1 pb-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="institutionType"
+                  value="k12"
+                  checked={institutionType === "k12"}
+                  onChange={() => setInstitutionType("k12")}
+                  className="w-4 h-4 text-primary"
+                />
+                <span className="text-sm font-medium text-slate-700">
+                  K-12 School
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="institutionType"
+                  value="university"
+                  checked={institutionType === "university"}
+                  onChange={() => setInstitutionType("university")}
+                  className="w-4 h-4 text-primary"
+                />
+                <span className="text-sm font-medium text-slate-700">
+                  University / College
+                </span>
+              </label>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-slate-700">
-                Admin Email
+                Email Address
               </Label>
               <Input
                 id="email"
@@ -128,7 +172,7 @@ export default function SigninPage() {
                 type="email"
                 value={data.email}
                 onChange={handleChange}
-                placeholder="admin@school.edu"
+                placeholder="user@institution.edu"
                 className="h-11 rounded-lg border-slate-300 bg-slate-50/50 focus:bg-white"
               />
             </div>
@@ -179,7 +223,11 @@ export default function SigninPage() {
 
             <div className="flex flex-col items-center gap-2 pt-1 text-center">
               <Link
-                href="/auth/forgot-password"
+                href={
+                  institutionType === "university"
+                    ? "/auth/uni-forgot-password"
+                    : "/auth/forgot-password"
+                }
                 className="text-sm font-medium text-primary hover:underline hover:underline-offset-2"
               >
                 Forgot password?

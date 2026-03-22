@@ -81,6 +81,8 @@ export const paraApi = createApi({
     "Tenant",
     "BookletPreview",
     "Statistics",
+    "ReportCardTemplate",
+    "SchoolReportCardTemplate",
   ] as const,
   endpoints: () => ({}), // injected by domain files
 });

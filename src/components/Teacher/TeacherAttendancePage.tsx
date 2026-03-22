@@ -124,6 +124,8 @@ export default function TeacherAttendancePage() {
     { skip: !selectedClassId }
   );
 
+  const [bulkUpdate, { isLoading: isSaving }] = useBulkUpdateAttendanceMutation();
+
   // Warn before unload if there are unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -146,8 +148,6 @@ export default function TeacherAttendancePage() {
       setHasUnsavedChanges(false);
     }
   }, [isReadOnly]);
-
-  const [bulkUpdate, { isLoading: isSaving }] = useBulkUpdateAttendanceMutation();
 
   // Helper: effective record (draft overrides server for Today mode)
   const getEffectiveRecord = (record: any): AttendanceRecord => {

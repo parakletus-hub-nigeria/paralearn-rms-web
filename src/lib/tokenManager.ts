@@ -9,8 +9,11 @@ const getCookieDomain = () => {
   const isLocalhost = hostname === "localhost" || hostname.endsWith(".localhost") || hostname === "127.0.0.1";
 
   if (isLocalhost) {
-    // Return .localhost to allow sharing across subdomain.localhost and localhost
-    return ".localhost";
+    // Do NOT set a domain on localhost — Chromium silently drops cookies with
+    // domain=".localhost". Cross-subdomain token sharing is handled via the
+    // ?auth_token= URL param handoff; the cookie just needs to work on the
+    // current origin after landing.
+    return undefined;
   }
   
   // Check if IP address using regex

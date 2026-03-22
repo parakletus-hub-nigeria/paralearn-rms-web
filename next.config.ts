@@ -6,9 +6,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/proxy/:path*", // When we request /api/proxy...
-        destination:
-        "https://paralearn-backend-b3ezb3e3ged0eyf8.switzerlandnorth-01.azurewebsites.net/:path*", // ...send it here
-        // destination: "http://localhost:3001/:path*"                                                                                                                                       
+        destination: `${process.env.K12_BACKEND_URL}/:path*`, // ...send it to the K12 backend
+      },
+      {
+        source: "/api/uni-proxy/:path*", // When we request /api/uni-proxy...
+        destination: `${process.env.UNI_BACKEND_URL}/:path*`, // ...send it to the University backend
       },
     ];
   },

@@ -1,15 +1,13 @@
 "use client";
-import { UseSelector, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthHeader from "@/components/auth/authHeader";
 import { BiEnvelope } from "react-icons/bi";
-// import { updateUserData } from "@/reduxToolKit/user/userSlice";
 import { toast } from "sonner";
 import { handleError } from "@/lib/error-handler";
 import { useRouter } from "next/navigation";
-import { routespath } from "@/lib/routepath";
 import { loginUser } from "@/reduxToolKit/user/userThunks";
 import { AppDispatch } from "@/reduxToolKit/store";
 import { pickRedirectPath } from "@/reduxToolKit/user/userUtils";
@@ -17,12 +15,15 @@ import { pickRedirectPath } from "@/reduxToolKit/user/userUtils";
 const Signin = () => {
   const [data, setData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [loginMode, setLoginMode] = useState<"admin" | "teacher" | "student">("admin");
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
-  const dispatch = useDispatch<AppDispatch>();
-  const { success, error, loading } = useSelector((state: any) => state.user);
+  const [loginMode, setLoginMode] = useState<"admin" | "teacher" | "student">(
+    "admin",
+  );
+  const [institutionType, setInstitutionType] = useState<"k12" | "university">(
+    "k12",
+  );
 
+  const dispatch = useDispatch<AppDispatch>();
+  const { error, loading } = useSelector((state: any) => state.user);
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,32 +35,34 @@ const Signin = () => {
       const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       return emailRe.test(data.email) && data.password.length >= 8;
     }
-    // Teacher/Student login:
-    // - username: school subdomain (e.g. brightfuture)
-    // - password: user code (e.g. TCH-001 / STU-S-26-00001)
+    // Teacher / Student: username (subdomain) + user code
     return data.email.trim().length >= 2 && data.password.trim().length >= 3;
   };
 
   const submit = async () => {
     try {
-      const result = await dispatch(loginUser(data)).unwrap();
+      const result = await dispatch(
+        loginUser({ ...data, institutionType }),
+      ).unwrap();
 
       if (result && result.accessToken) {
-        // If redirecting to subdomain URL, don't push to dashboard
-        // The redirect will happen automatically
+        // Subdomain redirect happens inside the thunk — just show toast
         if (result.redirecting) {
           toast.success("Logged in successfully! Redirecting...");
           return;
         }
-        
+
         toast.success("Logged in successfully!");
         const roles = result.user?.roles || [];
-        router.push(pickRedirectPath(roles));
+        router.push(pickRedirectPath(roles, institutionType));
       } else {
         toast.error("Login failed. No token received.");
       }
     } catch (e: any) {
-      handleError(e, "Login failed. Please check your credentials and try again.");
+      handleError(
+        e,
+        "Login failed. Please check your credentials and try again.",
+      );
     }
   };
 
@@ -71,54 +74,73 @@ const Signin = () => {
           <p className="text-[20px] font-bold flex flex-row items-center space-x-2">
             <BiEnvelope className="text-[#641BC4]" />{" "}
             <span>
-                {loginMode === "admin" ? "Admin Login" : loginMode === "teacher" ? "Teacher Login" : "Student Login"}
+              {loginMode === "admin"
+                ? "Admin Login"
+                : loginMode === "teacher"
+                  ? "Teacher Login"
+                  : "Student Login"}
             </span>
           </p>
           <p className="text-sm text-gray-700 text-center px-4">
             {loginMode === "admin"
               ? "Login to your administrator's account to continue"
-              : `Login with your username and password`}
+              : "Login with your username and password"}
           </p>
         </div>
 
+        {/* Role tabs */}
         <div className="w-full px-4 mb-6">
           <div className="grid grid-cols-3 gap-2 bg-white/60 p-1 rounded-xl border border-[#641BC4]/30">
-            <button
-              type="button"
-              onClick={() => setLoginMode("admin")}
-              className={`h-11 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
-                loginMode === "admin"
-                  ? "bg-[#641BC4] text-white shadow-sm"
-                  : "text-slate-700 hover:bg-white"
-              }`}
-            >
-              Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMode("teacher")}
-              className={`h-11 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
-                loginMode === "teacher"
-                  ? "bg-[#641BC4] text-white shadow-sm"
-                  : "text-slate-700 hover:bg-white"
-              }`}
-            >
-              Teacher
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMode("student")}
-              className={`h-11 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
-                loginMode === "student"
-                  ? "bg-[#641BC4] text-white shadow-sm"
-                  : "text-slate-700 hover:bg-white"
-              }`}
-            >
-              Student
-            </button>
+            {(["admin", "teacher", "student"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setLoginMode(mode)}
+                className={`h-11 rounded-lg font-semibold text-xs sm:text-sm transition-all capitalize ${
+                  loginMode === mode
+                    ? "bg-[#641BC4] text-white shadow-sm"
+                    : "text-slate-700 hover:bg-white"
+                }`}
+              >
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              </button>
+            ))}
           </div>
         </div>
 
+        {/* Institution type */}
+        <div className="w-full px-4 mb-4">
+          <div className="flex gap-4 p-1 pb-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="institutionType"
+                value="k12"
+                checked={institutionType === "k12"}
+                onChange={() => setInstitutionType("k12")}
+                className="w-4 h-4 text-[#641BC4]"
+              />
+              <span className="text-sm font-medium text-slate-700">
+                K-12 School
+              </span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="institutionType"
+                value="university"
+                checked={institutionType === "university"}
+                onChange={() => setInstitutionType("university")}
+                className="w-4 h-4 text-[#641BC4]"
+              />
+              <span className="text-sm font-medium text-slate-700">
+                University / College
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {/* Credentials */}
         <div className="w-full space-y-4 px-4">
           <div className="flex flex-col w-full">
             <label htmlFor="email" className="mb-2 text-sm font-medium">
@@ -182,7 +204,11 @@ const Signin = () => {
         <div className="w-full text-center mt-4 flex flex-col space-y-2 px-4">
           <p>
             <Link
-              href="/auth/forgot-password"
+              href={
+                institutionType === "university"
+                  ? "/auth/uni-forgot-password"
+                  : "/auth/forgot-password"
+              }
               className="text-[#641BC4] font-semibold text-sm hover:underline"
             >
               Forgot password?
