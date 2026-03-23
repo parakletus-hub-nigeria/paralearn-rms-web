@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/proxy/:path*",
-        destination: `${process.env.K12_BACKEND_URL}`,
+        destination: `${process.env.K12_BACKEND_URL || "https://paralearn-backend-b3ezb3e3ged0eyf8.switzerlandnorth-01.azurewebsites.net"}/:path*`,
       },
       {
         source: "/api/uni-proxy/:path*",
