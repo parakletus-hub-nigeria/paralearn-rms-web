@@ -4,10 +4,10 @@
 
 Report card templates are EJS-based HTML layouts stored in the database as plain text. The system has two layers:
 
-| Layer | Who manages it | What it holds |
-|---|---|---|
-| **Global Template Library** | SuperAdmin | All available EJS templates with thumbnail previews |
-| **School Template Selection** | School Admin | Templates the school has chosen from the library |
+| Layer                         | Who manages it | What it holds                                       |
+| ----------------------------- | -------------- | --------------------------------------------------- |
+| **Global Template Library**   | SuperAdmin     | All available EJS templates with thumbnail previews |
+| **School Template Selection** | School Admin   | Templates the school has chosen from the library    |
 
 When a school admin selects a template it is **immediately activated**. A school can have multiple active templates, and the teacher/admin picks one at the point of report card generation.
 
@@ -47,13 +47,13 @@ POST /super-admin/report-card-templates
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `name` | string | ✅ | Human-readable template name |
-| `ejsCode` | string | ✅ | Full EJS template source code |
-| `thumbnailUrl` | string | ✅ | Cloudinary URL of a rendered preview image |
-| `description` | string | ❌ | Guidance on which school type this suits |
-| `version` | number | ❌ | Defaults to `1` |
+| Field          | Type   | Required | Description                                |
+| -------------- | ------ | -------- | ------------------------------------------ |
+| `name`         | string | ✅       | Human-readable template name               |
+| `ejsCode`      | string | ✅       | Full EJS template source code              |
+| `thumbnailUrl` | string | ✅       | Cloudinary URL of a rendered preview image |
+| `description`  | string | ❌       | Guidance on which school type this suits   |
+| `version`      | number | ❌       | Defaults to `1`                            |
 
 **Response `201`**
 
@@ -199,8 +199,8 @@ When the admin selects a template card, make this call. The template is **immedi
 POST /report-card-template-manager/:templateId/select
 ```
 
-| URL param | Description |
-|---|---|
+| URL param    | Description                     |
+| ------------ | ------------------------------- |
 | `templateId` | `id` from the `/available` list |
 
 **No request body required.**
@@ -223,10 +223,10 @@ POST /report-card-template-manager/:templateId/select
 
 **Error responses**
 
-| Status | `error` | Meaning |
-|---|---|---|
-| `404` | `NotFoundException` | `templateId` doesn't exist in the global library |
-| `409` | `ConflictException` | School already selected this template |
+| Status | `error`             | Meaning                                          |
+| ------ | ------------------- | ------------------------------------------------ |
+| `404`  | `NotFoundException` | `templateId` doesn't exist in the global library |
+| `409`  | `ConflictException` | School already selected this template            |
 
 **Frontend usage:** after a successful `201`, mark the card as selected in the UI. The `data.id` returned here is the **selection ID** — store it locally if you need to deactivate or remove the template later.
 
@@ -279,9 +279,9 @@ Keeps the selection but stops the template from being offered during report card
 PATCH /report-card-template-manager/:id/deactivate
 ```
 
-| URL param | Description |
-|---|---|
-| `id` | Selection ID (`data.id` from the select or list response) |
+| URL param | Description                                               |
+| --------- | --------------------------------------------------------- |
+| `id`      | Selection ID (`data.id` from the select or list response) |
 
 **Response `200`**
 
@@ -331,13 +331,13 @@ When generating a report card, the teacher/admin can choose which of the school'
 GET /reports/student/:studentId/:classId/report-card/pdf
 ```
 
-| Parameter | Where | Required | Description |
-|---|---|---|---|
-| `studentId` | path | ✅ | Student's user ID |
-| `classId` | path | ✅ | Class ID |
-| `session` | query | ✅ | Academic session e.g. `2024/2025` |
-| `term` | query | ✅ | Term e.g. `First Term` |
-| `templateId` | query | ❌ | Selection ID of the desired active template |
+| Parameter    | Where | Required | Description                                 |
+| ------------ | ----- | -------- | ------------------------------------------- |
+| `studentId`  | path  | ✅       | Student's user ID                           |
+| `classId`    | path  | ✅       | Class ID                                    |
+| `session`    | query | ✅       | Academic session e.g. `2024/2025`           |
+| `term`       | query | ✅       | Term e.g. `First Term`                      |
+| `templateId` | query | ❌       | Selection ID of the desired active template |
 
 **Example request**
 
@@ -401,35 +401,35 @@ GET /reports/student/stu_001/cls_001/report-card/pdf
 
 ### `ReportCardTemplate` (global library record)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | Global template ID |
-| `name` | string | Display name |
-| `thumbnailUrl` | string | Cloudinary preview image |
-| `description` | string? | Suitability description |
-| `ejsCode` | string | EJS source — **never sent to school endpoints** |
-| `version` | number | Template version number |
-| `isActive` | boolean | Whether superadmin has made it available |
-| `createdAt` | datetime | |
+| Field          | Type     | Description                                     |
+| -------------- | -------- | ----------------------------------------------- |
+| `id`           | string   | Global template ID                              |
+| `name`         | string   | Display name                                    |
+| `thumbnailUrl` | string   | Cloudinary preview image                        |
+| `description`  | string?  | Suitability description                         |
+| `ejsCode`      | string   | EJS source — **never sent to school endpoints** |
+| `version`      | number   | Template version number                         |
+| `isActive`     | boolean  | Whether superadmin has made it available        |
+| `createdAt`    | datetime |                                                 |
 
 ### `SchoolReportCardTemplate` (school selection record)
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | **Selection ID** — use this for activate/deactivate/remove/generation |
-| `schoolId` | string | Owning school |
-| `templateId` | string | FK to global `ReportCardTemplate.id` |
-| `isActive` | boolean | Whether this template is offered during generation |
-| `createdAt` | datetime | |
-| `updatedAt` | datetime | |
+| Field        | Type     | Description                                                           |
+| ------------ | -------- | --------------------------------------------------------------------- |
+| `id`         | string   | **Selection ID** — use this for activate/deactivate/remove/generation |
+| `schoolId`   | string   | Owning school                                                         |
+| `templateId` | string   | FK to global `ReportCardTemplate.id`                                  |
+| `isActive`   | boolean  | Whether this template is offered during generation                    |
+| `createdAt`  | datetime |                                                                       |
+| `updatedAt`  | datetime |                                                                       |
 
 ---
 
 ## Common Mistakes
 
-| Mistake | Correct approach |
-|---|---|
-| Passing `template.id` (global) as `templateId` in report generation | Pass the **selection `id`** from `GET /report-card-template-manager` |
-| Calling activate after select | Not needed — selection auto-activates |
-| Expecting `ejsCode` in school-facing endpoints | EJS is never returned to school endpoints; only the thumbnail and description |
-| Not sending `X-Tenant-Subdomain` header | All school-facing endpoints require it for tenant resolution |
+| Mistake                                                             | Correct approach                                                              |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Passing `template.id` (global) as `templateId` in report generation | Pass the **selection `id`** from `GET /report-card-template-manager`          |
+| Calling activate after select                                       | Not needed — selection auto-activates                                         |
+| Expecting `ejsCode` in school-facing endpoints                      | EJS is never returned to school endpoints; only the thumbnail and description |
+| Not sending `X-Tenant-Subdomain` header                             | All school-facing endpoints require it for tenant resolution                  |
