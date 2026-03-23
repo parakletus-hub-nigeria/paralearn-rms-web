@@ -5,12 +5,12 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: "/api/proxy/:path*", // When we request /api/proxy...
-        destination: `${process.env.K12_BACKEND_URL}/:path*`, // ...send it to the K12 backend
+        source: "/api/proxy/:path*",
+        destination: `${process.env.K12_BACKEND_URL}`,
       },
       {
-        source: "/api/uni-proxy/:path*", // When we request /api/uni-proxy...
-        destination: `${process.env.UNI_BACKEND_URL}/:path*`, // ...send it to the University backend
+        source: "/api/uni-proxy/:path*",
+        destination: `${process.env.UNI_BACKEND_URL || "http://localhost:3001"}/:path*`,
       },
     ];
   },
