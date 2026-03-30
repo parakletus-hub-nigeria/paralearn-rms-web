@@ -63,28 +63,18 @@ export const BulkUploadPage = () => {
   useEffect(() => {
     dispatch(getTenantInfo());
     
-    // Fetch duplicate emails for efficient client-side filtering
+    // Fetch existing emails for this school to detect duplicates during validation
     const fetchEmails = async () => {
       try {
         const { default: apiClient } = await import("@/lib/api");
-        // Handling both proxy and direct routes
-        const response = await apiClient.get('/api/proxy/non-tenant/emails').catch(() => apiClient.get('/non-tenant/emails'));
-        
-        let emailArray = [];
-        if (response.data?.data && Array.isArray(response.data.data)) {
-            emailArray = response.data.data;
-        } else if (Array.isArray(response.data)) {
-            emailArray = response.data;
-        }
-        
-        const emailSet = new Set<string>();
-        emailArray.forEach((email: string) => {
-            if(email) emailSet.add(email.toLowerCase().trim());
-        });
+        const response = await apiClient.get('/api/proxy/users/emails');
+        const raw = response.data;
+        const emailArray: string[] = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
+        const emailSet = new Set<string>(emailArray.filter(Boolean).map((e: string) => e.toLowerCase().trim()));
         setExistingEmails(emailSet);
       } catch (err) {
         console.error("Failed to fetch existing emails", err);
-        setExistingEmails(new Set()); // Fallback to empty set so user isn't blocked forever
+        setExistingEmails(new Set());
       }
     };
     fetchEmails();

@@ -75,11 +75,19 @@ export const generateTemplate = (type: "students" | "teachers" | "questions" | "
     case "scores":
       data = [
         {
-          studentId: "STUDENT_ID_HERE",
-          studentName: "John Doe (Reference Only)",
-          score: 85
+          studentId: "STD2025001",
+          studentName: "John Doe (Reference Only — do not edit)",
+          marksAwarded: 75,
+          remarks: "Good performance"
+        },
+        {
+          studentId: "STD2025002",
+          studentName: "Jane Smith (Reference Only — do not edit)",
+          marksAwarded: 88,
+          remarks: "Excellent"
         }
       ];
+      filename = "scores_upload_template.xlsx";
       break;
 
     case "comments":

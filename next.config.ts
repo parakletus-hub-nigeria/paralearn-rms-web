@@ -1,4 +1,10 @@
 import type { NextConfig } from "next";
+import { config as loadEnv } from "dotenv";
+
+// Explicitly load .env files so variables are available in next.config.ts
+// (required when using Turbopack or TypeScript config files)
+loadEnv({ path: ".env.local", override: false });
+loadEnv({ path: ".env", override: false });
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -6,7 +12,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/proxy/:path*",
-        destination: `${process.env.K12_BACKEND_URL || "https://paralearn-backend-b3ezb3e3ged0eyf8.switzerlandnorth-01.azurewebsites.net"}/:path*`,
+        destination: `${process.env.K12_BACKEND_URL}/:path*`,
       },
       {
         source: "/api/uni-proxy/:path*",
@@ -19,6 +25,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "arua.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
         pathname: "/**",
       },
     ],

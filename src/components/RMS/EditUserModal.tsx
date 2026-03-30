@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/reduxToolKit/store";
-import { updateUserProfile } from "@/reduxToolKit/user/userThunks";
+import { updateUserProfile, updateUserRoles, updateUserClasses } from "@/reduxToolKit/user/userThunks";
 
 type UserRow = {
   id: string;
@@ -20,6 +20,7 @@ type UserRow = {
   phoneNumber?: string;
   dateOfBirth?: string;
   address?: string;
+  classId?: string;
 };
 
 type EditUserModalProps = {
@@ -27,6 +28,7 @@ type EditUserModalProps = {
   onOpenChange: (open: boolean) => void;
   user: UserRow | null;
   primaryColor: string;
+  classes: any[];
   onSuccess: () => void;
 };
 
@@ -35,6 +37,7 @@ export function EditUserModal({
   onOpenChange,
   user,
   primaryColor,
+  classes = [],
   onSuccess,
 }: EditUserModalProps) {
   const dispatch = useDispatch<AppDispatch>();
@@ -48,6 +51,8 @@ export function EditUserModal({
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
   const [address, setAddress] = useState("");
+  const [role, setRole] = useState<"teacher" | "student">("student");
+  const [classId, setClassId] = useState("");
 
   // Populate form when user changes
   useEffect(() => {
@@ -56,6 +61,8 @@ export function EditUserModal({
       setLastName(user.lastName || "");
       setPhone(user.phoneNumber || "");
       setAddress(user.address || "");
+      setRole(user.role || "student");
+      setClassId(user.classId || "");
       
       if (user.dateOfBirth) {
         try {
@@ -97,6 +104,21 @@ export function EditUserModal({
           gender: gender || undefined,
         })
       ).unwrap();
+
+      // Update Roles if changed
+      if (role !== user.role) {
+        await dispatch(updateUserRoles({ userId: user.dbId, roles: [role] })).unwrap();
+      }
+
+      // Update Classes if changed (only relevant for students for now)
+      if (role === "student" && classId !== (user.classId || "")) {
+        if (classId) {
+          await dispatch(updateUserClasses({ userId: user.dbId, classIds: [classId] })).unwrap();
+        } else {
+           // Optionally handle clearing class? The endpoint requires classIds array. Empty array means clear.
+           await dispatch(updateUserClasses({ userId: user.dbId, classIds: [] })).unwrap();
+        }
+      }
 
       toast.success("User profile updated successfully!");
       onSuccess();
@@ -176,6 +198,36 @@ export function EditUserModal({
                       className="mt-1.5 h-11 rounded-xl border-slate-200"
                       required
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Role</label>
+                    <select
+                      value={role}
+                      onChange={(e) => setRole(e.target.value as "student" | "teacher")}
+                      className="mt-1.5 w-full h-11 rounded-xl border border-slate-200 px-4 bg-white text-slate-700 outline-none focus:ring-2 focus:ring-offset-1 transition-all"
+                      style={{ "--tw-ring-color": primaryColor } as any}
+                    >
+                      <option value="student">Student</option>
+                      <option value="teacher">Teacher</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Class</label>
+                    <select
+                      value={classId}
+                      onChange={(e) => setClassId(e.target.value)}
+                      className="mt-1.5 w-full h-11 rounded-xl border border-slate-200 px-4 bg-white text-slate-700 outline-none focus:ring-2 focus:ring-offset-1 transition-all disabled:opacity-50 disabled:bg-slate-50"
+                      style={{ "--tw-ring-color": primaryColor } as any}
+                      disabled={role !== "student"}
+                    >
+                      <option value="">None</option>
+                      {classes.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

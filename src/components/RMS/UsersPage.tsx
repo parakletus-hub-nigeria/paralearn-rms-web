@@ -764,6 +764,7 @@ export const UsersPage = () => {
         onOpenChange={(open) => !open && setEditUserModal(null)}
         user={editUserModal}
         primaryColor={primaryColor}
+        classes={classes}
         onSuccess={() => {
           dispatch(fetchAllUsers());
         }}

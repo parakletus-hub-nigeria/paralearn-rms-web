@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -10,6 +11,8 @@ import {
   fetchAssessments,
   fetchSubjects,
   deleteAssessment,
+  createAssessment,
+  fetchAssessmentCategoriesMap,
 } from "@/reduxToolKit/admin/adminThunks";
 import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
@@ -17,6 +20,7 @@ import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -36,13 +40,14 @@ import {
   Calculator,
   BookOpen,
   FileText,
-  Users,
   Target,
   Filter,
   AlertCircle,
   Eye,
   Settings,
   Trash2,
+  Plus,
+  X,
 } from "lucide-react";
 import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
 import { ProductTour } from "@/components/common/ProductTour";
@@ -78,7 +83,7 @@ const getAssessmentIcon = (subjectName: string) => {
 };
 
 // Get status color
-const getStatusStyle = (status?: string, isOnline?: boolean) => {
+const getStatusStyle = (status?: string) => {
   if (status === "started" || status === "active") {
     return { bg: "bg-emerald-50", text: "text-emerald-700", label: "Active" };
   }
@@ -110,16 +115,36 @@ export function AdminAssessmentsPage() {
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
+  const { assessmentCategories } = useSelector((s: RootState) => s.admin);
+
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [classFilter, setClassFilter] = useState<string>("all");
+
+  // Create modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({
+    title: "",
+    classIds: [] as string[],   // multi-class
+    subjectNames: [] as string[], // de-duplicated subject names across selected classes
+    categoryId: "",
+    totalMarks: "",
+    passingMarks: "",
+    isOnline: false,
+    durationMins: "",
+    term: "",
+    instructions: "",
+    startsAt: "",
+  });
 
   useEffect(() => {
     dispatch(fetchAssessments());
     dispatch(fetchClasses(undefined));
     dispatch(fetchSubjects());
     dispatch(getTenantInfo());
+    dispatch(fetchAssessmentCategoriesMap());
   }, [dispatch]);
 
   useEffect(() => {
@@ -177,6 +202,81 @@ export function AdminAssessmentsPage() {
     return result;
   }, [assessments, statusFilter, typeFilter, classFilter, q, subjectNameById]);
 
+  // All subjects belonging to the selected classes
+  const subjectsInSelectedClasses = useMemo(() => {
+    if (form.classIds.length === 0) return [];
+    return subjects.filter((s: any) => form.classIds.includes(s.classId));
+  }, [subjects, form.classIds]);
+
+  // De-duplicated subject names across all selected classes (sorted)
+  const uniqueSubjectNames = useMemo(() => {
+    const names = new Set<string>();
+    subjectsInSelectedClasses.forEach((s: any) => names.add(s.name));
+    return Array.from(names).sort();
+  }, [subjectsInSelectedClasses]);
+
+  // How many of the selected classes have each subject name
+  const subjectClassCount = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const name of uniqueSubjectNames) {
+      counts[name] = subjectsInSelectedClasses.filter((s: any) => s.name === name).length;
+    }
+    return counts;
+  }, [uniqueSubjectNames, subjectsInSelectedClasses]);
+
+  const resetForm = () => {
+    setForm({ title: "", classIds: [], subjectNames: [], categoryId: "", totalMarks: "", passingMarks: "", isOnline: false, durationMins: "", term: "", instructions: "", startsAt: "" });
+  };
+
+  const handleCreateAssessment = async () => {
+    if (!form.title.trim()) return toast.error("Title is required");
+    if (form.classIds.length === 0) return toast.error("Please select at least one class");
+    if (form.subjectNames.length === 0) return toast.error("Select at least one subject");
+    if (!form.startsAt) return toast.error("Start date is required");
+
+    // Build (classId, subjectId) pairs by matching subject names per class
+    const pairs: Array<{ classId: string; subjectId: string }> = [];
+    for (const classId of form.classIds) {
+      const classSubjects = subjects.filter(
+        (s: any) => s.classId === classId && form.subjectNames.includes(s.name)
+      );
+      for (const s of classSubjects) {
+        pairs.push({ classId, subjectId: s.id });
+      }
+    }
+    if (pairs.length === 0) return toast.error("No matching subjects found for the selected classes");
+
+    setCreating(true);
+    try {
+      await Promise.all(
+        pairs.map(({ classId, subjectId }) =>
+          dispatch(createAssessment({
+            title: form.title.trim(),
+            subjectId,
+            classId,
+            categoryId: form.categoryId || undefined,
+            totalMarks: form.totalMarks ? Number(form.totalMarks) : undefined,
+            passingMarks: form.passingMarks ? Number(form.passingMarks) : undefined,
+            isOnline: form.isOnline,
+            durationMins: form.durationMins ? Number(form.durationMins) : undefined,
+            term: form.term || undefined,
+            instructions: form.instructions || undefined,
+            startsAt: new Date(form.startsAt).toISOString(),
+            questions: [],
+          })).unwrap()
+        )
+      );
+      toast.success(`${pairs.length} assessment${pairs.length > 1 ? "s" : ""} created successfully`);
+      resetForm();
+      setShowCreateModal(false);
+      dispatch(fetchAssessments());
+    } catch (e: any) {
+      toast.error(e || "Failed to create assessment(s)");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this assessment? This action cannot be undone.")) {
       try {
@@ -201,14 +301,23 @@ export function AdminAssessmentsPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">Assessments Overview</h1>
           <p className="text-slate-500 text-sm mt-1 font-coolvetica">
-            View all assessments created by teachers. Assessments are managed by teachers only.
+            Create and monitor assessments across all classes and subjects.
           </p>
         </div>
-        <ManageCategoriesDialog>
-          <Button variant="outline" className="assessments-manage-categories-btn gap-2 border-slate-200 shadow-sm">
-            <Settings className="w-4 h-4" /> Manage Categories
+        <div className="flex items-center gap-3">
+          <ManageCategoriesDialog>
+            <Button variant="outline" className="assessments-manage-categories-btn gap-2 border-slate-200 shadow-sm">
+              <Settings className="w-4 h-4" /> Manage Categories
+            </Button>
+          </ManageCategoriesDialog>
+          <Button
+            className="gap-2 text-white shadow-sm"
+            style={{ backgroundColor: primaryColor }}
+            onClick={() => setShowCreateModal(true)}
+          >
+            <Plus className="w-4 h-4" /> Create Assessment
           </Button>
-        </ManageCategoriesDialog>
+        </div>
       </div>
 
       {/* Info Banner */}
@@ -217,8 +326,7 @@ export function AdminAssessmentsPage() {
         <div>
           <p className="text-sm font-semibold text-blue-900">Assessment Management</p>
           <p className="text-sm text-blue-700 mt-0.5">
-            Assessments and scores are created and managed by teachers. As an admin, you can view all assessments 
-            and monitor progress. To create an assessment, assign a teacher to a subject first.
+            Create assessments for one or more subjects at once by selecting a class and checking the subjects. Teachers can also create assessments from their dashboard.
           </p>
         </div>
       </div>
@@ -315,7 +423,7 @@ export function AdminAssessmentsPage() {
           {filtered.map((assessment) => {
             const subjectName = subjectNameById.get(assessment.subjectId || "") || "Subject";
             const className = classNameById.get(assessment.classId || "") || "Class";
-            const statusStyle = getStatusStyle(assessment.status, assessment.isOnline);
+            const statusStyle = getStatusStyle(assessment.status);
             const Icon = getAssessmentIcon(subjectName);
             const iconBg = getIconBg(subjectName);
 
@@ -412,11 +520,217 @@ export function AdminAssessmentsPage() {
               <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500 font-medium">No assessments found</p>
               <p className="text-slate-400 text-sm mt-1">
-                Assessments will appear here once teachers create them.
+                Create an assessment or wait for teachers to create them.
               </p>
             </div>
           )}
         </div>
+      )}
+
+      {/* Create Assessment Modal */}
+      {showCreateModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowCreateModal(false); resetForm(); }} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Create Assessments</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Select multiple classes and subjects — one assessment is created per matching pair</p>
+              </div>
+              <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="p-2 rounded-lg hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Body — wider modal, 3 columns: details | classes | subjects */}
+            <div className="px-6 py-5 overflow-y-auto flex-1 grid grid-cols-3 gap-5">
+
+              {/* Col 1 — assessment details */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Assessment Title <span className="text-red-500">*</span></label>
+                  <Input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="e.g. First Term Exam" className="mt-2 h-10 rounded-xl text-sm" />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Category</label>
+                  <Select value={form.categoryId} onValueChange={(v) => setForm((p) => ({ ...p, categoryId: v }))}>
+                    <SelectTrigger className="mt-2 h-10 rounded-xl text-sm"><SelectValue placeholder="Select category" /></SelectTrigger>
+                    <SelectContent className="rounded-xl z-[99999]">
+                      {assessmentCategories.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Total Marks</label>
+                    <Input type="number" min={0} value={form.totalMarks} onChange={(e) => setForm((p) => ({ ...p, totalMarks: e.target.value }))} placeholder="100" className="mt-2 h-10 rounded-xl text-sm" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Pass Mark</label>
+                    <Input type="number" min={0} value={form.passingMarks} onChange={(e) => setForm((p) => ({ ...p, passingMarks: e.target.value }))} placeholder="50" className="mt-2 h-10 rounded-xl text-sm" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Duration (mins)</label>
+                    <Input type="number" min={0} value={form.durationMins} onChange={(e) => setForm((p) => ({ ...p, durationMins: e.target.value }))} placeholder="60" className="mt-2 h-10 rounded-xl text-sm" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Term</label>
+                    <Select value={form.term} onValueChange={(v) => setForm((p) => ({ ...p, term: v }))}>
+                      <SelectTrigger className="mt-2 h-10 rounded-xl text-sm"><SelectValue placeholder="Term" /></SelectTrigger>
+                      <SelectContent className="rounded-xl z-[99999]">
+                        <SelectItem value="1st Term">1st Term</SelectItem>
+                        <SelectItem value="2nd Term">2nd Term</SelectItem>
+                        <SelectItem value="3rd Term">3rd Term</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Start Date <span className="text-red-500">*</span></label>
+                  <Input type="datetime-local" value={form.startsAt} onChange={(e) => setForm((p) => ({ ...p, startsAt: e.target.value }))} className="mt-2 h-10 rounded-xl text-sm" />
+                </div>
+
+                <div className="flex items-center gap-3 pt-1">
+                  <Checkbox id="isOnline" checked={form.isOnline} onCheckedChange={(v) => setForm((p) => ({ ...p, isOnline: !!v }))} />
+                  <label htmlFor="isOnline" className="text-sm font-medium text-slate-700 cursor-pointer">Online (CBT)</label>
+                </div>
+              </div>
+
+              {/* Col 2 — multi-class select */}
+              <div className="flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Classes <span className="text-red-500">*</span>
+                    {form.classIds.length > 0 && (
+                      <span className="ml-1.5 text-xs font-normal text-slate-500">({form.classIds.length})</span>
+                    )}
+                  </label>
+                  {form.classIds.length > 0 && (
+                    <button type="button" onClick={() => setForm((p) => ({ ...p, classIds: [], subjectNames: [] }))} className="text-xs text-slate-400 hover:text-slate-600">Clear</button>
+                  )}
+                </div>
+                <div className="border border-slate-200 rounded-xl overflow-hidden flex-1">
+                  <label className="flex items-center gap-3 px-3 py-2 cursor-pointer bg-slate-50 border-b border-slate-100 hover:bg-slate-100 transition-colors">
+                    <Checkbox
+                      checked={form.classIds.length === classes.length && classes.length > 0}
+                      onCheckedChange={(v) =>
+                        setForm((p) => ({ ...p, classIds: v ? classes.map((c) => c.id) : [], subjectNames: [] }))
+                      }
+                    />
+                    <span className="text-xs font-semibold text-slate-700">Select All</span>
+                  </label>
+                  <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                    {classes.map((c) => (
+                      <label key={c.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <Checkbox
+                          checked={form.classIds.includes(c.id)}
+                          onCheckedChange={(v) =>
+                            setForm((p) => ({
+                              ...p,
+                              classIds: v ? [...p.classIds, c.id] : p.classIds.filter((id) => id !== c.id),
+                              subjectNames: [], // reset subjects when classes change
+                            }))
+                          }
+                        />
+                        <span className="text-sm text-slate-800">{c.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Col 3 — subject names (de-duplicated across selected classes) */}
+              <div className="flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Subjects <span className="text-red-500">*</span>
+                    {form.subjectNames.length > 0 && (
+                      <span className="ml-1.5 text-xs font-normal text-slate-500">({form.subjectNames.length})</span>
+                    )}
+                  </label>
+                  {form.subjectNames.length > 0 && (
+                    <button type="button" onClick={() => setForm((p) => ({ ...p, subjectNames: [] }))} className="text-xs text-slate-400 hover:text-slate-600">Clear</button>
+                  )}
+                </div>
+
+                {form.classIds.length === 0 ? (
+                  <div className="border border-slate-200 rounded-xl flex items-center justify-center flex-1 text-xs text-slate-400 text-center px-3">
+                    Select classes first
+                  </div>
+                ) : uniqueSubjectNames.length === 0 ? (
+                  <div className="border border-slate-200 rounded-xl flex items-center justify-center flex-1 text-xs text-slate-400 text-center px-3">
+                    No subjects in selected classes
+                  </div>
+                ) : (
+                  <div className="border border-slate-200 rounded-xl overflow-hidden flex-1">
+                    <label className="flex items-center gap-3 px-3 py-2 cursor-pointer bg-slate-50 border-b border-slate-100 hover:bg-slate-100 transition-colors">
+                      <Checkbox
+                        checked={form.subjectNames.length === uniqueSubjectNames.length}
+                        onCheckedChange={(v) =>
+                          setForm((p) => ({ ...p, subjectNames: v ? [...uniqueSubjectNames] : [] }))
+                        }
+                      />
+                      <span className="text-xs font-semibold text-slate-700">Select All</span>
+                    </label>
+                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                      {uniqueSubjectNames.map((name) => (
+                        <label key={name} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 transition-colors">
+                          <Checkbox
+                            checked={form.subjectNames.includes(name)}
+                            onCheckedChange={(v) =>
+                              setForm((p) => ({
+                                ...p,
+                                subjectNames: v ? [...p.subjectNames, name] : p.subjectNames.filter((n) => n !== name),
+                              }))
+                            }
+                          />
+                          <span className="text-sm text-slate-800 flex-1">{name}</span>
+                          {subjectClassCount[name] > 1 && (
+                            <span className="text-xs text-slate-400 shrink-0">{subjectClassCount[name]} classes</span>
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 bg-slate-50/50 flex-shrink-0">
+              <p className="text-xs text-slate-400">
+                {form.classIds.length > 0 && form.subjectNames.length > 0
+                  ? (() => {
+                      let count = 0;
+                      for (const classId of form.classIds) {
+                        count += subjects.filter((s: any) => s.classId === classId && form.subjectNames.includes(s.name)).length;
+                      }
+                      return `${count} assessment${count !== 1 ? "s" : ""} will be created`;
+                    })()
+                  : "Select classes and subjects to see count"}
+              </p>
+              <div className="flex items-center gap-3">
+                <Button variant="outline" onClick={() => { setShowCreateModal(false); resetForm(); }} className="h-11 px-6 rounded-xl">Cancel</Button>
+                <Button
+                  onClick={handleCreateAssessment}
+                  disabled={creating}
+                  className="h-11 px-6 rounded-xl text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {creating ? "Creating..." : "Create Assessments"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

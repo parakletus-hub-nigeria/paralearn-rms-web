@@ -110,14 +110,22 @@ export const validateGender = (gender: string): boolean => {
 // --- Helper: Validate a complete row object ---
 // Requires email, firstName, lastName. Extra requirements based on type
 export const validateUserRow = (row: any, rowIndex: number, uploadType: "student" | "teacher", existingEmails: Set<string>) => {
+  // ── Normalized key lookup ──
+  // Strip spaces, underscores, hyphens and lowercase all keys so that
+  // "Email Address", "email_address", "EMAIL", "E-mail" etc. all resolve correctly.
+  const normMap: Record<string, any> = {};
+  for (const [k, v] of Object.entries(row)) {
+    normMap[k.toLowerCase().replace(/[\s_\-]+/g, "")] = v;
+  }
+  const norm = (key: string) => normMap[key] || "";
+
   // ── Smart Property Access Helpers ──
-  // Checks multiple possible key variations to avoid case-sensitivity bugs from CSV parsing
-  const getGender = () => row.gender || row.Gender || row.GENDER;
-  const getDob = () => row.dateOfBirth || row.DateOfBirth || row.DOB || row.dob;
-  const getClass = () => row.className || row.class || row.Class || row.ClassName || row.class_name;
-  const getFirstName = () => row.firstName || row.FirstName || row.first_name;
-  const getLastName = () => row.lastName || row.LastName || row.last_name;
-  const getEmail = () => row.email || row.Email || row.EMAIL;
+  const getGender = () => norm("gender") || norm("sex");
+  const getDob = () => norm("dateofbirth") || norm("dob") || norm("birthdate") || norm("birthday");
+  const getClass = () => norm("classname") || norm("class") || norm("grade") || norm("section");
+  const getFirstName = () => norm("firstname") || norm("first");
+  const getLastName = () => norm("lastname") || norm("surname") || norm("last");
+  const getEmail = () => norm("email") || norm("emailaddress") || norm("mail");
 
   const isEmailValid = validateEmail(getEmail());
   const isFirstNameValid = validateName(getFirstName());

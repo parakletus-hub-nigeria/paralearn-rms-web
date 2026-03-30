@@ -1,0 +1,18 @@
+node_modules/next/dist/client/image-component.d.ts(1,8): error TS1259: Module '"C:/Users/HP/paralearn-rms-web/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/sonner/dist/index.d.ts(1,8): error TS1259: Module '"C:/Users/HP/paralearn-rms-web/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/components/Teacher/TeacherHeader.tsx(4,27): error TS2307: Cannot find module '@/reduxToolKit/store' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(7,40): error TS2307: Cannot find module '@/reduxToolKit/store' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(13,8): error TS2307: Cannot find module '@/reduxToolKit/teacher/teacherThunks' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(14,37): error TS2307: Cannot find module '@/hooks/useSessionsAndTerms' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(15,54): error TS2307: Cannot find module '@/reduxToolKit/api/endpoints/settings' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(17,22): error TS2307: Cannot find module '@/components/ui/card' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(18,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(19,23): error TS2307: Cannot find module '@/components/ui/badge' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(20,26): error TS2307: Cannot find module '@/components/ui/checkbox' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(21,23): error TS2307: Cannot find module '@/components/ui/input' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(24,8): error TS2307: Cannot find module '@/components/ui/select' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(27,8): error TS2307: Cannot find module '@/components/ui/dialog' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(30,8): error TS2307: Cannot find module '@/components/ui/table' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(35,23): error TS2307: Cannot find module '@/lib/api' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(36,29): error TS2307: Cannot find module '@/components/common/ProductTour' or its corresponding type declarations.
+src/components/Teacher/TeacherReportsPage.tsx(532,22): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.

@@ -32,7 +32,7 @@ import {
   useRemoveSchoolTemplateMutation,
 } from "@/reduxToolKit/api/endpoints/settings";
 
-export function ReportCardTemplateSettings() {
+export function ReportCardTemplateSettings({ embedded = false }: { embedded?: boolean }) {
   const [browseOpen, setBrowseOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<string | null>(null);
 
@@ -89,17 +89,103 @@ export function ReportCardTemplateSettings() {
     }
   };
 
+  const templateContent = (
+    <>
+      {loadingSelections ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="h-7 w-7 animate-spin text-purple-600" />
+        </div>
+      ) : schoolSelections.length === 0 ? (
+        <div className="text-center py-10 text-slate-400 space-y-2">
+          <ImageOff className="mx-auto h-10 w-10" />
+          <p className="text-sm">No templates added yet. Click "Add Template" to browse.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {schoolSelections.map((sel: any) => {
+            const tpl = sel.template ?? {};
+            return (
+              <div
+                key={sel.id}
+                className={`rounded-xl border overflow-hidden ${
+                  sel.isActive ? "border-slate-200" : "border-slate-200 opacity-60"
+                }`}
+              >
+                <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
+                  {tpl.thumbnailUrl ? (
+                    <img src={tpl.thumbnailUrl} alt={tpl.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageOff className="h-8 w-8 text-slate-300" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-semibold text-sm text-slate-800 leading-tight">
+                      {tpl.name ?? "Template"}
+                    </p>
+                    <Badge
+                      className={`text-xs shrink-0 ${
+                        sel.isActive
+                          ? "bg-green-100 text-green-700 border-green-200"
+                          : "bg-slate-100 text-slate-500 border-slate-200"
+                      }`}
+                    >
+                      {sel.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                  {tpl.description && (
+                    <p className="text-xs text-slate-500 line-clamp-2">{tpl.description}</p>
+                  )}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggle(sel)}
+                      className="h-7 px-2 text-xs gap-1"
+                    >
+                      {sel.isActive ? (
+                        <>
+                          <ToggleRight className="h-4 w-4 text-green-600" />
+                          Deactivate
+                        </>
+                      ) : (
+                        <>
+                          <ToggleLeft className="h-4 w-4 text-slate-400" />
+                          Activate
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setRemoveTarget(sel.id)}
+                      className="h-7 px-2 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 gap-1 ml-auto"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Report Card Templates</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Manage the templates available for generating student report cards.
-              </p>
-            </div>
+      {embedded ? (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-slate-500">
+              {schoolSelections.length > 0
+                ? `${schoolSelections.length} template(s) added`
+                : "No templates added yet"}
+            </p>
             <Button
               variant="outline"
               size="sm"
@@ -110,92 +196,32 @@ export function ReportCardTemplateSettings() {
               Add Template
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          {loadingSelections ? (
-            <div className="flex items-center justify-center py-10">
-              <Loader2 className="h-7 w-7 animate-spin text-purple-600" />
+          {templateContent}
+        </>
+      ) : (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Report Card Templates</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Manage the templates available for generating student report cards.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBrowseOpen(true)}
+                className="gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Add Template
+              </Button>
             </div>
-          ) : schoolSelections.length === 0 ? (
-            <div className="text-center py-10 text-slate-400 space-y-2">
-              <ImageOff className="mx-auto h-10 w-10" />
-              <p className="text-sm">No templates added yet. Click "Add Template" to browse.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {schoolSelections.map((sel: any) => {
-                const tpl = sel.template ?? {};
-                return (
-                  <div
-                    key={sel.id}
-                    className={`rounded-xl border overflow-hidden ${
-                      sel.isActive ? "border-slate-200" : "border-slate-200 opacity-60"
-                    }`}
-                  >
-                    <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
-                      {tpl.thumbnailUrl ? (
-                        <img src={tpl.thumbnailUrl} alt={tpl.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageOff className="h-8 w-8 text-slate-300" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-semibold text-sm text-slate-800 leading-tight">
-                          {tpl.name ?? "Template"}
-                        </p>
-                        <Badge
-                          className={`text-xs shrink-0 ${
-                            sel.isActive
-                              ? "bg-green-100 text-green-700 border-green-200"
-                              : "bg-slate-100 text-slate-500 border-slate-200"
-                          }`}
-                        >
-                          {sel.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                      {tpl.description && (
-                        <p className="text-xs text-slate-500 line-clamp-2">{tpl.description}</p>
-                      )}
-                      <div className="flex items-center gap-2 pt-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggle(sel)}
-                          className="h-7 px-2 text-xs gap-1"
-                        >
-                          {sel.isActive ? (
-                            <>
-                              <ToggleRight className="h-4 w-4 text-green-600" />
-                              Deactivate
-                            </>
-                          ) : (
-                            <>
-                              <ToggleLeft className="h-4 w-4 text-slate-400" />
-                              Activate
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setRemoveTarget(sel.id)}
-                          className="h-7 px-2 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 gap-1 ml-auto"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>{templateContent}</CardContent>
+        </Card>
+      )}
 
       {/* Browse available templates dialog */}
       <Dialog open={browseOpen} onOpenChange={setBrowseOpen}>

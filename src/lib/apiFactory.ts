@@ -54,12 +54,20 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
         const reduxSubdomain = state?.user?.subdomain;
         const subdomain = getSubdomain(reduxSubdomain);
 
+        // For super-admin routes, prefer the k12 admin subdomain so it is not
+        // overwritten by the regular school user's subdomain.
+        const k12Subdomain = state?.superAdmin?.k12Subdomain;
+        const isSuperAdminRoute = (config.url || "").includes("/super-admin/");
+        const effectiveSubdomain = isSuperAdminRoute && k12Subdomain ? k12Subdomain : subdomain;
+
         // Attach tenant header for all requests where subdomain is found.
-        if (subdomain) {
+        // Do not overwrite if the caller already set it explicitly.
+        const alreadySet = config.headers["X-Tenant-Subdomain"];
+        if (!alreadySet && effectiveSubdomain) {
           if (typeof config.headers.set === "function") {
-            config.headers.set("X-Tenant-Subdomain", subdomain);
+            config.headers.set("X-Tenant-Subdomain", effectiveSubdomain);
           } else {
-            config.headers["X-Tenant-Subdomain"] = subdomain;
+            config.headers["X-Tenant-Subdomain"] = effectiveSubdomain;
           }
         }
 
@@ -105,7 +113,10 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
           routespath.API_CHANGE_PASSWORD,
         );
 
-        if (isLoginRequest || isChangePasswordRequest) {
+        // Super admin routes use their own auth — never redirect on 401
+        const isSuperAdminRequest = url.includes("/super-admin/");
+
+        if (isLoginRequest || isChangePasswordRequest || isSuperAdminRequest) {
           return Promise.reject(error);
         }
 

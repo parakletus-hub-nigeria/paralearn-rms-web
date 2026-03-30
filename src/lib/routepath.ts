@@ -13,6 +13,7 @@ export const routespath = {
   ATTENDANCE: "/RMS/attendance",
   ACADEMIC: "/RMS/academic",
   SCHOOL_SETTINGS: "/RMS/school-settings",
+  SETTINGS: "/RMS/settings",
   BRANDING: "/RMS/branding",
   ENROLLMENTS: "/RMS/enrollments",
   // Student routes

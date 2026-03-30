@@ -67,6 +67,18 @@ const subjectsApi = paraApi.injectEndpoints({
       invalidatesTags: [{ type: "SubjectList" }],
     }),
 
+    // DELETE /api/proxy/subjects/:id
+    deleteSubject: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/api/proxy/subjects/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Subject", id },
+        { type: "SubjectList" },
+      ],
+    }),
+
     // POST /api/proxy/subjects/:id/assign-teacher
     assignTeacherToSubject: builder.mutation<
       any,
@@ -91,5 +103,6 @@ export const {
   useGetSubjectsByClassQuery,
   useGetSubjectsByTeacherQuery,
   useCreateSubjectMutation,
+  useDeleteSubjectMutation,
   useAssignTeacherToSubjectMutation,
 } = subjectsApi;

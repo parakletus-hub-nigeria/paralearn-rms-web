@@ -130,6 +130,39 @@ const reportsApi = paraApi.injectEndpoints({
         };
       },
     }),
+
+    // DELETE /api/proxy/reports/report-cards/:id
+    deleteReportCard: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/api/proxy/reports/report-cards/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "ReportCard", id: "LIST" }],
+    }),
+
+    // DELETE /api/proxy/reports/class/:classId/report-cards?session=...&term=...
+    deleteClassReportCards: builder.mutation<
+      any,
+      { classId: string; session: string; term: string }
+    >({
+      query: ({ classId, session, term }) => {
+        const q = new URLSearchParams({ session, term });
+        return {
+          url: `/api/proxy/reports/class/${classId}/report-cards?${q.toString()}`,
+          method: "DELETE",
+        };
+      },
+      invalidatesTags: [{ type: "ReportCard", id: "LIST" }],
+    }),
+
+    // DELETE /api/proxy/reports/class-jobs/:id
+    deleteClassReportCardJob: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/api/proxy/reports/class-jobs/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "ReportCard", id: "LIST" }], // Or another suitable tag if you refactor
+    }),
   }),
   overrideExisting: false,
 });
@@ -144,4 +177,7 @@ export const {
   useSubmitForApprovalMutation,
   useGenerateAndNotifyMutation,
   useLazyQueueReportCardPdfQuery,
+  useDeleteReportCardMutation,
+  useDeleteClassReportCardsMutation,
+  useDeleteClassReportCardJobMutation,
 } = reportsApi;

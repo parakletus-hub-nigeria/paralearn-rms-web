@@ -798,6 +798,58 @@ export const updateUserProfile = createAsyncThunk(
   },
 );
 
+// Update user roles
+export const updateUserRoles = createAsyncThunk(
+  "user/updateUserRoles",
+  async (
+    data: { userId: string; roles: string[] },
+    { rejectWithValue },
+  ) => {
+    try {
+      if (!data.userId) return rejectWithValue("User ID is required");
+      const response = await apiClient.post(
+        `/api/proxy/users/${data.userId}/roles`,
+        { roles: data.roles },
+      );
+      return response.data.data || response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update user roles";
+      console.error("[Update User Roles Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  },
+);
+
+// Update user classes
+export const updateUserClasses = createAsyncThunk(
+  "user/updateUserClasses",
+  async (
+    data: { userId: string; classIds: string[] },
+    { rejectWithValue },
+  ) => {
+    try {
+      if (!data.userId) return rejectWithValue("User ID is required");
+      const response = await apiClient.post(
+        `/api/proxy/users/${data.userId}/classes`,
+        { classIds: data.classIds },
+      );
+      return response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update user classes";
+      console.error("[Update User Classes Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  },
+);
+
 // Change password
 export const changePassword = createAsyncThunk(
   "user/changePassword",
@@ -860,6 +912,10 @@ export const updateSchoolBranding = createAsyncThunk(
       secondaryColor?: string;
       accentColor?: string;
       motto?: string;
+      schoolName?: string;
+      address?: string;
+      phoneNumber?: string;
+      website?: string;
     },
     { rejectWithValue },
   ) => {

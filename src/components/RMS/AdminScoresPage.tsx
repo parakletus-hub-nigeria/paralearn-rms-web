@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchScoresByAssessment, fetchClasses, fetchSubjects, fetchAssessments } from "@/reduxToolKit/admin/adminThunks";
+import { fetchScoresByAssessment, fetchClasses, fetchSubjects, fetchAssessments, bulkUploadScores } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
+import { generateTemplate } from "@/lib/templates";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Download, FileText, Copy, TrendingUp, BookOpen, Calendar, Target, AlertCircle, Eye } from "lucide-react";
+import { Search, Download, FileText, Copy, TrendingUp, BookOpen, Calendar, Target, AlertCircle, Eye, Upload, FileSpreadsheet, TableProperties } from "lucide-react";
+import Link from "next/link";
 
 const DEFAULT_PRIMARY = "#641BC4";
 
@@ -47,6 +49,8 @@ export function AdminScoresPage() {
   const [selectedTerm, setSelectedTerm] = useState<string>("1st Term");
   const [selectedAssessment, setSelectedAssessment] = useState<string>("");
   const [q, setQ] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     dispatch(fetchClasses(undefined));
@@ -121,6 +125,39 @@ export function AdminScoresPage() {
     }
   };
 
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!selectedAssessment) {
+      toast.error("Please select an assessment before uploading scores");
+      e.target.value = "";
+      return;
+    }
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["xlsx", "xls", "csv"].includes(ext || "")) {
+      toast.error("Only Excel (.xlsx, .xls) or CSV files are supported");
+      e.target.value = "";
+      return;
+    }
+    try {
+      setUploading(true);
+      const result = await dispatch(bulkUploadScores({ assessmentId: selectedAssessment, file })).unwrap();
+      const { successfulRecords, failedRecords, totalRecords } = result?.data || result || {};
+      if (totalRecords !== undefined) {
+        toast.success(`Upload complete: ${successfulRecords ?? totalRecords} processed${failedRecords ? `, ${failedRecords} failed` : ""}`);
+      } else {
+        toast.success("Scores uploaded successfully");
+      }
+      // Reload scores to reflect upload
+      await dispatch(fetchScoresByAssessment(selectedAssessment)).unwrap();
+    } catch (err: any) {
+      toast.error(err || "Failed to upload scores");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
   const exportScores = () => {
     if (scores.length === 0) {
       toast.error("No scores to export");
@@ -157,15 +194,22 @@ export function AdminScoresPage() {
       />
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-semibold text-blue-900">Score Management</p>
-          <p className="text-sm text-blue-700 mt-0.5">
-            Scores are entered by teachers. As an admin, you can view and export scores for reporting purposes.
-            To enter scores, teachers should use their dashboard.
-          </p>
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-blue-900">Score Management</p>
+            <p className="text-sm text-blue-700 mt-0.5">
+              View, export, or bulk-upload scores. To import a full school record sheet (multiple subjects &amp; classes),
+              use the Import Wizard.
+            </p>
+          </div>
         </div>
+        <Link href="/RMS/scores/import" className="flex-shrink-0">
+          <Button variant="outline" className="h-9 rounded-xl gap-2 border-blue-200 text-blue-700 hover:bg-blue-100 text-sm whitespace-nowrap">
+            <TableProperties className="w-4 h-4" /> Import Wizard
+          </Button>
+        </Link>
       </div>
 
       {/* Score Sheet Header */}
@@ -294,6 +338,43 @@ export function AdminScoresPage() {
             <Eye className="w-4 h-4" />
             {loading ? "Loading..." : "View Scores"}
           </Button>
+        </div>
+
+        {/* Bulk Upload Section */}
+        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="flex items-center gap-2 flex-1">
+            <FileSpreadsheet className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-slate-700">Bulk Score Upload</p>
+              <p className="text-xs text-slate-500">Download the template, fill in scores, then upload for the selected assessment.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              className="h-10 rounded-xl gap-2 border-slate-200 text-sm"
+              onClick={() => generateTemplate("scores")}
+            >
+              <Download className="w-4 h-4" />
+              Download Template
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={handleBulkUpload}
+            />
+            <Button
+              className="h-10 rounded-xl gap-2 text-white text-sm"
+              style={{ backgroundColor: primaryColor }}
+              disabled={!selectedAssessment || uploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4" />
+              {uploading ? "Uploading..." : "Upload Scores"}
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -1,24 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { getTenantInfo, updateSchoolBranding } from "@/reduxToolKit/user/userThunks";
 import { Header } from "@/components/RMS/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import { Settings, Save, Palette, Building2, Globe, Phone, MapPin, Link as LinkIcon } from "lucide-react";
-import logo from "../../../public/mainLogo.svg";
+import {
+  Save,
+  Palette,
+  Building2,
+  Globe,
+  Phone,
+  MapPin,
+  Link as LinkIcon,
+  Settings,
+  FileText,
+  Upload,
+  X,
+  ImageIcon,
+} from "lucide-react";
+
+const ReportCardTemplateSettings = dynamic(
+  () => import("@/components/settings/ReportCardTemplateSettings").then(m => ({ default: m.ReportCardTemplateSettings })),
+  { ssr: false }
+);
 
 export const SettingsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { tenantInfo, loading, error, success } = useSelector(
-    (state: RootState) => state.user
-  );
+  const { tenantInfo, loading } = useSelector((state: RootState) => state.user);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [brandingData, setBrandingData] = useState({
     logoUrl: "",
@@ -27,6 +43,16 @@ export const SettingsPage = () => {
     accentColor: "#AD8ED6",
     motto: "",
   });
+
+  const [infoData, setInfoData] = useState({
+    schoolName: "",
+    address: "",
+    phoneNumber: "",
+    website: "",
+  });
+  // local preview: base64 string if file picked, otherwise the saved URL
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(getTenantInfo());
@@ -41,352 +67,296 @@ export const SettingsPage = () => {
         accentColor: tenantInfo.accentColor || "#AD8ED6",
         motto: tenantInfo.motto || "",
       });
+      setInfoData({
+        schoolName: tenantInfo.name || "",
+        address: tenantInfo.address || "",
+        phoneNumber: tenantInfo.phoneNumber || "",
+        website: tenantInfo.website || "",
+      });
+      setLogoPreview(tenantInfo.logoUrl || "");
+      setLogoBase64(null);
     }
   }, [tenantInfo]);
 
-  useEffect(() => {
-    if (success) {
-      toast.success("Settings updated successfully!");
-    }
-    if (error) {
-      toast.error(error);
-    }
-  }, [success, error]);
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleBrandingUpdate = async (e: React.FormEvent) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be smaller than 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target?.result as string;
+      setLogoBase64(base64);
+      setLogoPreview(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearLogo = () => {
+    setLogoBase64(null);
+    setLogoPreview("");
+    setBrandingData((prev) => ({ ...prev, logoUrl: "" }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      await dispatch(updateSchoolBranding(brandingData)).unwrap();
-      // Refresh tenant info
+      // If a new file was picked, send base64 as logoUrl — backend detects it and uploads to Cloudinary
+      const payload = {
+        ...brandingData,
+        ...(logoBase64 ? { logoUrl: logoBase64 } : {}),
+      };
+      await dispatch(updateSchoolBranding(payload)).unwrap();
+      toast.success("Settings saved!");
+      setLogoBase64(null);
       dispatch(getTenantInfo());
-    } catch (error: any) {
-      toast.error(error || "Failed to update settings");
+    } catch {
+      toast.error("Failed to save settings");
+    }
+  };
+
+  const handleSaveInfo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await dispatch(updateSchoolBranding(infoData)).unwrap();
+      toast.success("School information saved!");
+      dispatch(getTenantInfo());
+    } catch {
+      toast.error("Failed to save school information");
     }
   };
 
   return (
-    <div className="w-full min-h-screen pb-8">
-      <Header 
-        schoolLogo={tenantInfo?.logoUrl} 
+    <div className="w-full pb-8">
+      <Header
+        schoolLogo={tenantInfo?.logoUrl}
         schoolName={tenantInfo?.name || "ParaLearn School"}
       />
-      
-      <div className="max-w-5xl mx-auto sm:px-6 lg:px-8 mt-6 sm:mt-8">
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#641BC4] to-[#8538E0] flex items-center justify-center shadow-md">
-              <Settings className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
-              School Settings
-            </h1>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-8">
+        {/* Title */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#641BC4] to-[#8538E0] flex items-center justify-center shadow-md">
+            <Settings className="w-5 h-5 text-white" />
           </div>
-          <p className="text-sm sm:text-base text-slate-600 ml-13 sm:ml-14">
-            Manage your school information and branding
-          </p>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">School Settings</h1>
+            <p className="text-sm text-slate-500">Manage your school information and branding</p>
+          </div>
         </div>
 
-        {loading && !tenantInfo ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="relative w-20 h-20 flex items-center justify-center">
-              <Image
-                src={logo}
-                alt="Loading"
-                width={80}
-                height={80}
-                className="animate-pulse drop-shadow-lg"
-                priority
-              />
+        {/* ── School Information ── */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+            <div className="w-9 h-9 rounded-xl bg-[#641BC4] flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900">School Information</p>
+              <p className="text-xs text-slate-500">Your registered school details</p>
             </div>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {/* School Information Card */}
-            <Card className="border border-slate-200 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#641BC4] flex items-center justify-center">
-                    <Building2 className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl sm:text-2xl font-bold text-slate-900">
-                      School Information
-                    </CardTitle>
-                    <CardDescription className="text-sm sm:text-base text-slate-600 mt-1">
-                      View your school basic information
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6 sm:p-8">
-                {tenantInfo && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="space-y-2 p-4 rounded-lg bg-slate-50/50 border border-slate-200">
-                      <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                        School Name
-                      </Label>
-                      <p className="text-base sm:text-lg font-bold text-slate-900">
-                        {tenantInfo.name || "N/A"}
-                      </p>
-                    </div>
-                    <div className="space-y-2 p-4 rounded-lg bg-slate-50/50 border border-slate-200">
-                      <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                        <LinkIcon className="w-3 h-3" />
-                        Subdomain
-                      </Label>
-                      <p className="text-base sm:text-lg font-bold text-slate-900">
-                        {tenantInfo.subdomain || "N/A"}
-                        {tenantInfo.subdomain && (
-                          <span className="text-sm text-slate-500 font-normal ml-2">.pln.ng</span>
-                        )}
-                      </p>
-                    </div>
-                    <div className="space-y-2 p-4 rounded-lg bg-slate-50/50 border border-slate-200">
-                      <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                        <MapPin className="w-3 h-3" />
-                        Address
-                      </Label>
-                      <p className="text-base sm:text-lg font-bold text-slate-900">
-                        {tenantInfo.address || "N/A"}
-                      </p>
-                    </div>
-                    <div className="space-y-2 p-4 rounded-lg bg-slate-50/50 border border-slate-200">
-                      <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                        <Phone className="w-3 h-3" />
-                        Phone Number
-                      </Label>
-                      <p className="text-base sm:text-lg font-bold text-slate-900">
-                        {tenantInfo.phoneNumber || "N/A"}
-                      </p>
-                    </div>
-                    <div className="space-y-2 p-4 rounded-lg bg-slate-50/50 border border-slate-200 sm:col-span-2">
-                      <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                        <Globe className="w-3 h-3" />
-                        Website
-                      </Label>
-                      <p className="text-base sm:text-lg font-bold text-slate-900">
-                        {tenantInfo.website ? (
-                          <a
-                            href={tenantInfo.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[#641BC4] hover:text-[#8538E0] hover:underline flex items-center gap-2"
-                          >
-                            {tenantInfo.website}
-                            <LinkIcon className="w-4 h-4" />
-                          </a>
-                        ) : (
-                          "N/A"
-                        )}
-                      </p>
-                    </div>
-                    {tenantInfo.settings && (
-                      <>
-                        <div className="space-y-2 p-4 rounded-lg bg-slate-50/50 border border-slate-200">
-                          <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                            Timezone
-                          </Label>
-                          <p className="text-base sm:text-lg font-bold text-slate-900">
-                            {tenantInfo.settings.timezone || "N/A"}
-                          </p>
-                        </div>
-                        <div className="space-y-2 p-4 rounded-lg bg-slate-50/50 border border-slate-200">
-                          <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                            Grading Scale
-                          </Label>
-                          <p className="text-base sm:text-lg font-bold text-slate-900">
-                            {tenantInfo.settings.gradingScale || "N/A"}
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <form onSubmit={handleSaveInfo} className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="schoolName" className="text-sm font-semibold text-slate-700">School Name</Label>
+              <Input id="schoolName" value={infoData.schoolName}
+                onChange={(e) => setInfoData({ ...infoData, schoolName: e.target.value })}
+                placeholder="School Name"
+                className="h-11 rounded-xl border-slate-200" />
+            </div>
 
-            {/* Branding Card */}
-            <Card className="border border-slate-200 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#641BC4] flex items-center justify-center">
-                    <Palette className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl sm:text-2xl font-bold text-slate-900">
-                      School Branding
-                    </CardTitle>
-                    <CardDescription className="text-sm sm:text-base text-slate-600 mt-1">
-                      Customize your school colors, logo, and motto
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6 sm:p-8">
-                <form onSubmit={handleBrandingUpdate} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="logoUrl" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <LinkIcon className="w-4 h-4" />
-                      Logo URL
-                    </Label>
-                    <Input
-                      id="logoUrl"
-                      type="url"
-                      value={brandingData.logoUrl}
-                      onChange={(e) =>
-                        setBrandingData({ ...brandingData, logoUrl: e.target.value })
-                      }
-                      placeholder="https://example.com/logo.png"
-                      className="h-11 bg-slate-50/50 focus:bg-white border-slate-300"
-                    />
-                    {brandingData.logoUrl && (
-                      <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                        <p className="text-xs text-slate-500 mb-2">Logo Preview:</p>
-                        <div className="flex items-center justify-center p-4 bg-white rounded-lg border border-slate-200">
-                          <img
-                            src={brandingData.logoUrl}
-                            alt="School logo preview"
-                            className="max-h-24 w-auto object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+            <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <Label className="text-sm font-semibold text-slate-700">Subdomain</Label>
+              <p className="font-bold text-slate-900 mt-1">
+                {tenantInfo?.subdomain || "—"}
+                {tenantInfo?.subdomain && <span className="font-normal text-slate-400 text-sm ml-1">.pln.ng</span>}
+              </p>
+              <p className="text-xs text-slate-500">Subdomain is read-only.</p>
+            </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="motto" className="text-sm font-semibold text-slate-700">
-                      School Motto
-                    </Label>
-                    <Input
-                      id="motto"
-                      value={brandingData.motto}
-                      onChange={(e) =>
-                        setBrandingData({ ...brandingData, motto: e.target.value })
-                      }
-                      placeholder="Enter your school motto"
-                      className="h-11 bg-slate-50/50 focus:bg-white border-slate-300"
-                    />
-                  </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="address" className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                <MapPin className="w-3 h-3" /> Address
+              </Label>
+              <Input id="address" value={infoData.address}
+                onChange={(e) => setInfoData({ ...infoData, address: e.target.value })}
+                placeholder="School Address"
+                className="h-11 rounded-xl border-slate-200" />
+            </div>
 
-                  <div className="space-y-4">
-                    <Label className="text-sm font-semibold text-slate-700">
-                      Color Scheme
-                    </Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                      <div className="space-y-3 p-4 rounded-lg bg-slate-50/50 border border-slate-200">
-                        <Label htmlFor="primaryColor" className="text-xs font-semibold text-slate-600">
-                          Primary Color
-                        </Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="primaryColor"
-                            type="color"
-                            value={brandingData.primaryColor}
-                            onChange={(e) =>
-                              setBrandingData({ ...brandingData, primaryColor: e.target.value })
-                            }
-                            className="w-16 h-11 p-1 cursor-pointer rounded-lg border-2 border-slate-300"
-                          />
-                          <Input
-                            type="text"
-                            value={brandingData.primaryColor}
-                            onChange={(e) =>
-                              setBrandingData({ ...brandingData, primaryColor: e.target.value })
-                            }
-                            placeholder="#641BC4"
-                            className="flex-1 h-11 bg-white border-slate-300"
-                            pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                          />
-                        </div>
-                        <div
-                          className="h-16 rounded-lg border-2 border-slate-300 shadow-sm transition-all"
-                          style={{ backgroundColor: brandingData.primaryColor }}
-                        />
-                      </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="phoneNumber" className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                <Phone className="w-3 h-3" /> Phone Number
+              </Label>
+              <Input id="phoneNumber" value={infoData.phoneNumber}
+                onChange={(e) => setInfoData({ ...infoData, phoneNumber: e.target.value })}
+                placeholder="Phone Number"
+                className="h-11 rounded-xl border-slate-200" />
+            </div>
 
-                      <div className="space-y-3 p-4 rounded-lg bg-slate-50/50 border border-slate-200">
-                        <Label htmlFor="secondaryColor" className="text-xs font-semibold text-slate-600">
-                          Secondary Color
-                        </Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="secondaryColor"
-                            type="color"
-                            value={brandingData.secondaryColor}
-                            onChange={(e) =>
-                              setBrandingData({ ...brandingData, secondaryColor: e.target.value })
-                            }
-                            className="w-16 h-11 p-1 cursor-pointer rounded-lg border-2 border-slate-300"
-                          />
-                          <Input
-                            type="text"
-                            value={brandingData.secondaryColor}
-                            onChange={(e) =>
-                              setBrandingData({ ...brandingData, secondaryColor: e.target.value })
-                            }
-                            placeholder="#9747FF"
-                            className="flex-1 h-11 bg-white border-slate-300"
-                            pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                          />
-                        </div>
-                        <div
-                          className="h-16 rounded-lg border-2 border-slate-300 shadow-sm transition-all"
-                          style={{ backgroundColor: brandingData.secondaryColor }}
-                        />
-                      </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="website" className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                <Globe className="w-3 h-3" /> Website
+              </Label>
+              <Input id="website" value={infoData.website}
+                onChange={(e) => setInfoData({ ...infoData, website: e.target.value })}
+                placeholder="https://yourschool.com"
+                className="h-11 rounded-xl border-slate-200" />
+            </div>
 
-                      <div className="space-y-3 p-4 rounded-lg bg-slate-50/50 border border-slate-200 sm:col-span-2 lg:col-span-1">
-                        <Label htmlFor="accentColor" className="text-xs font-semibold text-slate-600">
-                          Accent Color
-                        </Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="accentColor"
-                            type="color"
-                            value={brandingData.accentColor}
-                            onChange={(e) =>
-                              setBrandingData({ ...brandingData, accentColor: e.target.value })
-                            }
-                            className="w-16 h-11 p-1 cursor-pointer rounded-lg border-2 border-slate-300"
-                          />
-                          <Input
-                            type="text"
-                            value={brandingData.accentColor}
-                            onChange={(e) =>
-                              setBrandingData({ ...brandingData, accentColor: e.target.value })
-                            }
-                            placeholder="#AD8ED6"
-                            className="flex-1 h-11 bg-white border-slate-300"
-                            pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                          />
-                        </div>
-                        <div
-                          className="h-16 rounded-lg border-2 border-slate-300 shadow-sm transition-all"
-                          style={{ backgroundColor: brandingData.accentColor }}
-                        />
-                      </div>
-                    </div>
-                  </div>
+            <div className="sm:col-span-2 flex justify-end pt-2 border-t border-slate-100 mt-2">
+              <Button type="submit" disabled={loading}
+                className="h-11 px-6 rounded-xl text-white gap-2"
+                style={{ backgroundColor: "#641BC4" }}>
+                <Save className="w-4 h-4" />
+                {loading ? "Saving…" : "Save Information"}
+              </Button>
+            </div>
+          </form>
+        </div>
 
-                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full sm:w-auto bg-gradient-to-r from-[#641BC4] to-[#8538E0] hover:from-[#5a2ba8] hover:to-[#7530c7] text-white shadow-md hover:shadow-lg transition-all"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      {loading ? "Saving..." : "Save Branding"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+        {/* ── Report Card Templates ── */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+            <div className="w-9 h-9 rounded-xl bg-[#641BC4] flex items-center justify-center">
+              <FileText className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900">Report Card Templates</p>
+              <p className="text-xs text-slate-500">Manage templates for generating student report cards</p>
+            </div>
           </div>
-        )}
+          <div className="p-6">
+            <ReportCardTemplateSettings embedded />
+          </div>
+        </div>
+
+        {/* ── Branding ── */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+            <div className="w-9 h-9 rounded-xl bg-[#641BC4] flex items-center justify-center">
+              <Palette className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900">School Branding</p>
+              <p className="text-xs text-slate-500">Upload logo, set colors, and motto</p>
+            </div>
+          </div>
+          <form onSubmit={handleSave} className="p-6 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* ── Logo Upload ── */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5" /> School Logo
+                </Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleLogoFileChange}
+                />
+                <div className="flex items-center gap-3">
+                  {/* Preview box */}
+                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+                    {logoPreview ? (
+                      <Image
+                        src={logoPreview}
+                        alt="Logo preview"
+                        width={80}
+                        height={80}
+                        className="w-full h-full object-contain"
+                        unoptimized={logoPreview.startsWith("data:")}
+                      />
+                    ) : (
+                      <ImageIcon className="w-8 h-8 text-slate-300" />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full gap-2 rounded-xl border-slate-300"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {logoPreview ? "Change Logo" : "Upload Logo"}
+                    </Button>
+                    {logoPreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearLogo}
+                        className="w-full gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                      >
+                        <X className="w-4 h-4" />
+                        Remove
+                      </Button>
+                    )}
+                    <p className="text-xs text-slate-400">PNG, JPG, SVG · max 2 MB</p>
+                    {logoBase64 && (
+                      <p className="text-xs text-emerald-600 font-medium">New logo ready to save</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="motto" className="text-sm font-semibold text-slate-700">Motto</Label>
+                <Input id="motto" value={brandingData.motto}
+                  onChange={(e) => setBrandingData({ ...brandingData, motto: e.target.value })}
+                  placeholder="Your school motto"
+                  className="h-11 rounded-xl border-slate-200" />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-semibold text-slate-700 mb-3 block">Colors</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { id: "primaryColor", label: "Primary", key: "primaryColor" as const },
+                  { id: "secondaryColor", label: "Secondary", key: "secondaryColor" as const },
+                  { id: "accentColor", label: "Accent", key: "accentColor" as const },
+                ].map(({ id, label, key }) => (
+                  <div key={id} className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <Label htmlFor={id} className="text-xs font-semibold text-slate-600">{label}</Label>
+                    <div className="flex gap-2">
+                      <input id={id} type="color" value={brandingData[key]}
+                        onChange={(e) => setBrandingData({ ...brandingData, [key]: e.target.value })}
+                        className="w-12 h-11 p-1 rounded-lg border-2 border-slate-200 cursor-pointer bg-white" />
+                      <Input type="text" value={brandingData[key]}
+                        onChange={(e) => setBrandingData({ ...brandingData, [key]: e.target.value })}
+                        className="flex-1 h-11 rounded-xl border-slate-200 font-mono text-sm"
+                        placeholder="#641BC4" />
+                    </div>
+                    <div className="h-8 rounded-lg border border-slate-200"
+                      style={{ backgroundColor: brandingData[key] }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <Button type="submit" disabled={loading}
+                className="h-11 px-6 rounded-xl text-white gap-2"
+                style={{ backgroundColor: "#641BC4" }}>
+                <Save className="w-4 h-4" />
+                {loading ? "Saving…" : "Save Settings"}
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

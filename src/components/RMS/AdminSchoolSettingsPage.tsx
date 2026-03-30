@@ -1,7 +1,7 @@
 "use client";
 
-import { ComingSoon } from "@/components/common/ComingSoon";
+import { SettingsPage } from "@/components/RMS/SettingsPage";
 
 export const AdminSchoolSettingsPage = () => {
-  return <ComingSoon featureName="School Settings" />;
+  return <SettingsPage />;
 };

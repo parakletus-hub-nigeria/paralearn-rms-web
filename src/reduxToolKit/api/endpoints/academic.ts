@@ -51,6 +51,19 @@ const academicApi = paraApi.injectEndpoints({
       ],
     }),
 
+    // POST /api/proxy/academic/sessions/:sessionId/terms
+    createTerm: builder.mutation<
+      any,
+      { sessionId: string; term: string; startsAt: string; endsAt: string }
+    >({
+      query: ({ sessionId, ...body }) => ({
+        url: `/api/proxy/academic/sessions/${sessionId}/terms`,
+        method: "POST",
+        data: body,
+      }),
+      invalidatesTags: [{ type: "SessionList" }, { type: "CurrentSession" }],
+    }),
+
     // POST /api/proxy/academic/sessions/:sessionId/terms/:termId/activate
     activateTerm: builder.mutation<
       any,
@@ -89,6 +102,7 @@ export const {
   useGetAllSessionsQuery,
   useGetCurrentSessionQuery,
   useCreateSessionMutation,
+  useCreateTermMutation,
   useActivateTermMutation,
   useOnboardingSetupMutation,
 } = academicApi;

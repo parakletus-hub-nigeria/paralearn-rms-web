@@ -9,6 +9,7 @@ import { assignTeacherToSubject, createSubject, fetchClasses, fetchSubjects } fr
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import apiClient from "@/lib/api";
+import { useDeleteSubjectMutation } from "@/reduxToolKit/api/endpoints/subjects";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,10 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus,
   Search,
   Pencil,
+  Trash2,
   X,
   ChevronLeft,
   ChevronRight,
@@ -90,10 +93,13 @@ export function AdminSubjectsPage() {
   const [form, setForm] = useState({
     name: "",
     code: "",
-    classId: "",
+    classIds: [] as string[],
     description: "",
   });
   const [assignTeacherId, setAssignTeacherId] = useState("");
+  const [deleteSubjectId, setDeleteSubjectId] = useState<string | null>(null);
+  const [deleteSubjectName, setDeleteSubjectName] = useState("");
+  const [deleteSubject, { isLoading: deleting }] = useDeleteSubjectMutation();
 
   useEffect(() => {
     dispatch(fetchSubjects());
@@ -176,22 +182,53 @@ export function AdminSubjectsPage() {
   }, [search, classFilter, levelFilter]);
 
   const handleCreateSubject = async () => {
+    if (!form.name.trim()) return toast.error("Subject name is required");
+    if (form.classIds.length === 0) return toast.error("Please select at least one class");
+    const multiple = form.classIds.length > 1;
     try {
-      if (!form.name.trim()) return toast.error("Subject name is required");
-      if (!form.classId.trim()) return toast.error("Please select a class");
-      await dispatch(
-        createSubject({
-          name: form.name.trim(),
-          code: form.code.trim() || undefined,
-          classId: form.classId.trim(),
-          description: form.description.trim() || undefined,
+      await Promise.all(
+        form.classIds.map((classId) => {
+          const cls = classById.get(classId);
+          const suffix = cls?.name ? `-${cls.name.replace(/\s+/g, "").toUpperCase()}` : "";
+          const code = form.code.trim()
+            ? multiple
+              ? `${form.code.trim()}${suffix}`
+              : form.code.trim()
+            : undefined;
+          return dispatch(
+            createSubject({
+              name: form.name.trim(),
+              code,
+              classId,
+              description: form.description.trim() || undefined,
+            })
+          ).unwrap();
         })
-      ).unwrap();
-      setForm({ name: "", code: "", classId: "", description: "" });
+      );
+      toast.success(
+        multiple
+          ? `${form.classIds.length} subjects created successfully`
+          : "Subject created successfully"
+      );
+      setForm({ name: "", code: "", classIds: [], description: "" });
       setShowCreateModal(false);
       dispatch(fetchSubjects());
     } catch (e: any) {
       toast.error(e || "Failed to create subject");
+    }
+  };
+
+  const handleDeleteSubject = async () => {
+    if (!deleteSubjectId) return;
+    try {
+      await deleteSubject(deleteSubjectId).unwrap();
+      toast.success("Subject deleted successfully");
+      dispatch(fetchSubjects());
+    } catch (e: any) {
+      toast.error(e?.data?.message ?? e?.message ?? "Failed to delete subject");
+    } finally {
+      setDeleteSubjectId(null);
+      setDeleteSubjectName("");
     }
   };
 
@@ -448,12 +485,22 @@ export function AdminSubjectsPage() {
                           )}
                         </td>
                         <td className="py-4 px-3 text-center">
-                          <button
-                            onClick={() => openAssignModal(subject)}
-                            className="p-2 rounded-lg hover:bg-slate-100 transition-colors inline-flex"
-                          >
-                            <Pencil className="w-4 h-4 text-slate-400" />
-                          </button>
+                          <div className="inline-flex items-center gap-1">
+                            <button
+                              onClick={() => openAssignModal(subject)}
+                              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                              title="Assign teacher"
+                            >
+                              <Pencil className="w-4 h-4 text-slate-400" />
+                            </button>
+                            <button
+                              onClick={() => { setDeleteSubjectId(subject.id); setDeleteSubjectName(subject.name); }}
+                              className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                              title="Delete subject"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-400" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -583,30 +630,31 @@ export function AdminSubjectsPage() {
       {/* Create Subject Modal */}
       {showCreateModal && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowCreateModal(false); setForm({ name: "", code: "", classIds: [], description: "" }); }} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Create Subject</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Add a new subject to a class</p>
+                <p className="text-sm text-slate-500 mt-0.5">Add a new subject to one or more classes</p>
               </div>
-              <button onClick={() => setShowCreateModal(false)} className="p-2 rounded-lg hover:bg-slate-100">
+              <button onClick={() => { setShowCreateModal(false); setForm({ name: "", code: "", classIds: [], description: "" }); }} className="p-2 rounded-lg hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-500" />
               </button>
             </div>
 
-            <div className="px-6 py-5 space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-slate-700">Subject Name</label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="e.g. Mathematics"
-                  className="mt-2 h-11 rounded-xl"
-                />
-              </div>
+            <div className="px-6 py-5 grid grid-cols-2 gap-6">
+              {/* Left column */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Subject Name</label>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="e.g. Mathematics"
+                    className="mt-2 h-11 rounded-xl"
+                  />
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold text-slate-700">Code</label>
                   <Input
@@ -615,34 +663,79 @@ export function AdminSubjectsPage() {
                     placeholder="e.g. MATH101"
                     className="mt-2 h-11 rounded-xl font-mono"
                   />
+                  {form.classIds.length > 1 && form.code.trim() && (
+                    <p className="text-xs text-slate-400 mt-1">
+                      A class suffix will be appended for each class (e.g. {form.code.trim()}-JSS1A)
+                    </p>
+                  )}
                 </div>
+
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Class</label>
-                  <div className="mt-2" style={{ position: "relative", zIndex: 10001 }}>
-                    <Select value={form.classId} onValueChange={(v) => setForm((p) => ({ ...p, classId: v }))}>
-                      <SelectTrigger className="h-11 w-full rounded-xl">
-                        <SelectValue placeholder="Select class" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl" style={{ zIndex: 10002 }}>
-                        {classes.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name} {c.level ? `(${c.level})` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <label className="text-sm font-semibold text-slate-700">Description (Optional)</label>
+                  <Input
+                    value={form.description}
+                    onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                    placeholder="Brief description of the subject"
+                    className="mt-2 h-11 rounded-xl"
+                  />
                 </div>
               </div>
 
+              {/* Right column — Classes */}
               <div>
-                <label className="text-sm font-semibold text-slate-700">Description (Optional)</label>
-                <Input
-                  value={form.description}
-                  onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                  placeholder="Brief description of the subject"
-                  className="mt-2 h-11 rounded-xl"
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Classes
+                    {form.classIds.length > 0 && (
+                      <span className="ml-2 text-xs font-normal text-slate-500">
+                        ({form.classIds.length} selected)
+                      </span>
+                    )}
+                  </label>
+                  {form.classIds.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setForm((p) => ({ ...p, classIds: [] }))}
+                      className="text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                </div>
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                    {classes.map((c) => {
+                      const checked = form.classIds.includes(c.id);
+                      return (
+                        <label
+                          key={c.id}
+                          className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-slate-50 transition-colors"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(val) =>
+                              setForm((p) => ({
+                                ...p,
+                                classIds: val
+                                  ? [...p.classIds, c.id]
+                                  : p.classIds.filter((id) => id !== c.id),
+                              }))
+                            }
+                          />
+                          <span className="text-sm text-slate-800">
+                            {c.name}
+                            {c.level ? (
+                              <span className="text-slate-400 ml-1">({c.level})</span>
+                            ) : null}
+                          </span>
+                        </label>
+                      );
+                    })}
+                    {classes.length === 0 && (
+                      <p className="px-4 py-4 text-sm text-slate-400 text-center">No classes found</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -656,7 +749,41 @@ export function AdminSubjectsPage() {
                 className="h-11 px-6 rounded-xl text-white"
                 style={{ backgroundColor: primaryColor }}
               >
-                {loading ? "Creating..." : "Create Subject"}
+                {loading ? "Creating..." : form.classIds.length > 1 ? `Create ${form.classIds.length} Subjects` : "Create Subject"}
+              </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteSubjectId && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+              <h2 className="text-lg font-bold text-slate-900">Delete Subject</h2>
+              <button onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} className="p-2 rounded-lg hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-sm text-slate-600">
+                Are you sure you want to delete <span className="font-semibold text-slate-900">{deleteSubjectName}</span>?
+                This will also remove teacher assignments for this subject. Associated assessments will be unlinked but not deleted.
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
+              <Button variant="outline" onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} className="h-10 px-5 rounded-xl">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteSubject}
+                disabled={deleting}
+                className="h-10 px-5 rounded-xl text-white bg-red-600 hover:bg-red-700"
+              >
+                {deleting ? "Deleting..." : "Delete"}
               </Button>
             </div>
           </div>

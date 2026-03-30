@@ -10,6 +10,7 @@ import {
   SidebarHeader,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "../ui/sidebar";
 import Image from "next/image";
 const logo = "/PL2 (1).svg";
@@ -66,30 +67,105 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
   const sideBarContent = useMemo(
     () => [
-      { label: "Dashboard", path: routespath.DASHBOARD, icon: Home, roles: ["admin", "teacher"] },
-      { label: "Users", path: routespath.USERS, icon: UserCircle, roles: ["admin"] },
-      { label: "Enrollments", path: routespath.ENROLLMENTS, icon: UserPlus, roles: ["admin"] },
-      { label: "Classes", path: routespath.CLASSES, icon: BookOpenCheck, roles: ["admin", "teacher"] },
-      { label: "Subjects", path: routespath.SUBJECTS, icon: BookOpen, roles: ["admin", "teacher"] },
-      { label: "Assessments", path: routespath.ASSESSMENTS, icon: ClipboardList, roles: ["admin", "teacher"] },
-      { label: "Report Cards", path: routespath.REPORT, icon: BookOpen, roles: ["admin", "teacher"] },
-      { label: "Comments", path: routespath.COMMENTS, icon: MessageSquareText, roles: ["admin", "teacher"] },
-      { label: "Attendance", path: routespath.ATTENDANCE, icon: Calendar, roles: ["admin", "teacher"] },
-      { label: "Bulk Upload", path: routespath.BULK_UPLOAD, icon: DownloadIcon, roles: ["admin"] },
-      { label: "Academic", path: routespath.ACADEMIC, icon: Calendar, roles: ["admin"] },
-      { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings, roles: ["admin"] },
-      { label: "Branding", path: routespath.BRANDING, icon: Palette, roles: ["admin"] },
-      { label: "Profile", path: "/profile", icon: User, roles: ["admin", "teacher"] },
-      { label: "Settings", path: "/settings", icon: Settings, roles: ["admin", "teacher"] },
+      {
+        label: "Dashboard",
+        path: routespath.DASHBOARD,
+        icon: Home,
+        roles: ["admin", "teacher"],
+      },
+      {
+        label: "Users",
+        path: routespath.USERS,
+        icon: UserCircle,
+        roles: ["admin"],
+      },
+      {
+        label: "Enrollments",
+        path: routespath.ENROLLMENTS,
+        icon: UserPlus,
+        roles: ["admin"],
+      },
+      {
+        label: "Classes",
+        path: routespath.CLASSES,
+        icon: BookOpenCheck,
+        roles: ["admin", "teacher"],
+      },
+      {
+        label: "Subjects",
+        path: routespath.SUBJECTS,
+        icon: BookOpen,
+        roles: ["admin", "teacher"],
+      },
+      {
+        label: "Assessments",
+        path: routespath.ASSESSMENTS,
+        icon: ClipboardList,
+        roles: ["admin", "teacher"],
+      },
+      {
+        label: "Report Cards",
+        path: routespath.REPORT,
+        icon: BookOpen,
+        roles: ["admin", "teacher"],
+      },
+      {
+        label: "Comments",
+        path: routespath.COMMENTS,
+        icon: MessageSquareText,
+        roles: ["admin", "teacher"],
+      },
+      {
+        label: "Attendance",
+        path: routespath.ATTENDANCE,
+        icon: Calendar,
+        roles: ["admin", "teacher"],
+      },
+      {
+        label: "Bulk Upload",
+        path: routespath.BULK_UPLOAD,
+        icon: DownloadIcon,
+        roles: ["admin"],
+      },
+      {
+        label: "Academic",
+        path: routespath.ACADEMIC,
+        icon: Calendar,
+        roles: ["admin"],
+      },
+      {
+        label: "School Settings",
+        path: routespath.SCHOOL_SETTINGS,
+        icon: Settings,
+        roles: ["admin"],
+      },
+      {
+        label: "Branding",
+        path: routespath.BRANDING,
+        icon: Palette,
+        roles: ["admin"],
+      },
+      {
+        label: "Profile",
+        path: "/profile",
+        icon: User,
+        roles: ["admin", "teacher"],
+      },
+      {
+        label: "Settings",
+        path: routespath.SETTINGS,
+        icon: Settings,
+        roles: ["admin", "teacher"],
+      },
     ],
-    []
+    [],
   );
 
   const filteredContent = useMemo(() => {
-    return sideBarContent.filter(item => {
+    return sideBarContent.filter((item) => {
       if (!item.roles) return true;
       const userRoles = user?.roles || [];
-      return item.roles.some(r => userRoles.includes(r));
+      return item.roles.some((r) => userRoles.includes(r));
     });
   }, [sideBarContent, user?.roles]);
 
@@ -104,24 +180,24 @@ const SideBar = ({ children }: { children: ReactNode }) => {
 
   return (
     <SidebarProvider>
-      <SidebarContentContainer 
-        logo={logo} 
-        tenantInfo={tenantInfo} 
-        user={user} 
-        filteredContent={filteredContent} 
-        pathname={pathname} 
+      <SidebarContentContainer
+        logo={logo}
+        tenantInfo={tenantInfo}
+        user={user}
+        filteredContent={filteredContent}
+        pathname={pathname}
         handleLogout={() => setIsLogoutModalOpen(true)}
         onBrandingClick={() => setIsBrandingModalOpen(true)}
       >
         {children}
       </SidebarContentContainer>
-      <LogoutConfirmModal 
+      <LogoutConfirmModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
         loading={isLoggingOut}
       />
-      <ComingSoonModal 
+      <ComingSoonModal
         open={isBrandingModalOpen}
         onOpenChange={setIsBrandingModalOpen}
         title="Branding & Customization"
@@ -130,16 +206,16 @@ const SideBar = ({ children }: { children: ReactNode }) => {
   );
 };
 
-const SidebarContentContainer = ({ 
-  children, 
-  logo, 
-  tenantInfo, 
-  user, 
-  filteredContent, 
-  pathname, 
+const SidebarContentContainer = ({
+  children,
+  logo,
+  tenantInfo,
+  user,
+  filteredContent,
+  pathname,
   handleLogout,
-  onBrandingClick 
-}: { 
+  onBrandingClick,
+}: {
   children: ReactNode;
   logo: string;
   tenantInfo: any;
@@ -149,14 +225,6 @@ const SidebarContentContainer = ({
   handleLogout: () => void;
   onBrandingClick: () => void;
 }) => {
-  // const { open, openMobile } = useSelector((s: RootState) => ({
-  //   // Note: We can't actually use useSidebar here if we want to determine 
-  //   // the layout *outside* the Sidebar component perfectly without hydration issues,
-  //   // but the SidebarProvider is already wrapping this.
-  // }));
-  
-  // Actually, we must import useSidebar inside the component
-  const { SidebarTrigger: UI_SidebarTrigger, useSidebar } = require("../ui/sidebar");
   const { open: isExpanded, isMobile } = useSidebar();
   const sidebarContentRef = useRef<HTMLDivElement>(null);
 
@@ -176,7 +244,10 @@ const SidebarContentContainer = ({
 
     // Save scroll position on scroll
     const handleScroll = () => {
-      sessionStorage.setItem("sidebar-scroll-pos", sidebar.scrollTop.toString());
+      sessionStorage.setItem(
+        "sidebar-scroll-pos",
+        sidebar.scrollTop.toString(),
+      );
     };
 
     sidebar.addEventListener("scroll", handleScroll);
@@ -191,7 +262,11 @@ const SidebarContentContainer = ({
             <SidebarTrigger className="hover:bg-purple-50 h-8 w-8 text-slate-500" />
           </div>
           <div className="flex flex-col items-center text-center gap-1 mt-2">
-            <Link href={routespath.DASHBOARD} className="block shrink-0">
+            <Link
+              href={routespath.DASHBOARD}
+              prefetch={false}
+              className="block shrink-0"
+            >
               <Image
                 src={logo}
                 width={930}
@@ -205,7 +280,11 @@ const SidebarContentContainer = ({
                 {tenantInfo?.name || "ParaLearn"}
               </p>
               <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
-                <span className="truncate">{user?.roles?.[0]?.charAt(0).toUpperCase() + user?.roles?.[0]?.slice(1) || "User"}{user?.firstName ? ` • ${user.firstName}` : ""}</span>
+                <span className="truncate">
+                  {user?.roles?.[0]?.charAt(0).toUpperCase() +
+                    user?.roles?.[0]?.slice(1) || "User"}
+                  {user?.firstName ? ` • ${user.firstName}` : ""}
+                </span>
               </p>
             </div>
           </div>
@@ -241,7 +320,7 @@ const SidebarContentContainer = ({
               );
 
               return (
-                <Link key={index} href={item.path}>
+                <Link key={index} href={item.path} prefetch={false}>
                   {content}
                 </Link>
               );
@@ -272,7 +351,7 @@ const SidebarContentContainer = ({
             </button>
           </div>
         )}
-        {(!isExpanded && !isMobile) && (
+        {!isExpanded && !isMobile && (
           <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50 hidden md:block">
             <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
           </div>

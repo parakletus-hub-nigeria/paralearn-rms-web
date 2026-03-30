@@ -10,12 +10,13 @@ import {
   createAcademicSession,
   updateCurrentSession,
 } from "@/reduxToolKit/setUp/setUpSlice";
+import { useCreateTermMutation } from "@/reduxToolKit/api/endpoints/academic";
 import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { Header } from "@/components/RMS/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Plus, CheckCircle2, AlertCircle, Clock, ArrowRight, Lock, MoreVertical, Edit2 } from "lucide-react";
+import { Calendar, Plus, CheckCircle2, AlertCircle, Clock, ArrowRight, Lock, MoreVertical, Edit2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -77,6 +78,42 @@ export const AcademicSessionsPage = () => {
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [updateSessionData, setUpdateSessionData] = useState<any>(null);
+
+  // Add Term
+  const [createTerm, { isLoading: creatingTerm }] = useCreateTermMutation();
+  const [addTermDialog, setAddTermDialog] = useState<{ open: boolean; sessionId: string; sessionLabel: string }>({
+    open: false, sessionId: "", sessionLabel: "",
+  });
+  const [termForm, setTermForm] = useState({ term: "", startsAt: "", endsAt: "" });
+
+  const openAddTerm = (sessionId: string, sessionLabel: string) => {
+    setTermForm({ term: "", startsAt: "", endsAt: "" });
+    setAddTermDialog({ open: true, sessionId, sessionLabel });
+  };
+
+  const handleCreateTerm = async () => {
+    if (!termForm.term.trim() || !termForm.startsAt || !termForm.endsAt) {
+      toast.error("Fill in all term fields");
+      return;
+    }
+    if (new Date(termForm.startsAt) >= new Date(termForm.endsAt)) {
+      toast.error("Start date must be before end date");
+      return;
+    }
+    try {
+      await createTerm({
+        sessionId: addTermDialog.sessionId,
+        term: termForm.term.trim(),
+        startsAt: `${termForm.startsAt}T00:00:00.000Z`,
+        endsAt: `${termForm.endsAt}T23:59:59.000Z`,
+      }).unwrap();
+      toast.success(`Term "${termForm.term}" created successfully!`);
+      setAddTermDialog({ open: false, sessionId: "", sessionLabel: "" });
+      dispatch(fetchAllSessions());
+    } catch (e: any) {
+      toast.error(e?.data?.message || "Failed to create term");
+    }
+  };
 
   useEffect(() => {
     dispatch(fetchAllSessions());
@@ -564,6 +601,15 @@ export const AcademicSessionsPage = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-3 py-1 font-bold">IN PROGRESS</Badge>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openAddTerm(session.id, session.session)}
+                                  className="gap-1.5 h-8 text-xs font-bold border-purple-200 text-purple-700 hover:bg-purple-50 rounded-lg"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                  Add Term
+                                </Button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900">
@@ -661,6 +707,64 @@ export const AcademicSessionsPage = () => {
             </TabsContent>
         </Tabs>
       </div>
+
+      {/* Add Term Dialog */}
+      <Dialog open={addTermDialog.open} onOpenChange={(v) => setAddTermDialog((p) => ({ ...p, open: v }))}>
+        <DialogContent className="max-w-sm rounded-3xl border-none shadow-2xl p-0">
+          <div className="bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-6 text-white rounded-t-3xl">
+            <DialogTitle className="text-xl font-black font-coolvetica">Add Term</DialogTitle>
+            <DialogDescription className="text-purple-100 font-medium mt-0.5 text-sm">
+              {addTermDialog.sessionLabel} session
+            </DialogDescription>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-slate-700 font-bold">Term Name</Label>
+              <Input
+                placeholder="e.g. Second Term"
+                value={termForm.term}
+                onChange={(e) => setTermForm((p) => ({ ...p, term: e.target.value }))}
+                className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-slate-700 font-bold">Start Date</Label>
+              <Input
+                type="date"
+                value={termForm.startsAt}
+                onChange={(e) => setTermForm((p) => ({ ...p, startsAt: e.target.value }))}
+                className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-slate-700 font-bold">End Date</Label>
+              <Input
+                type="date"
+                value={termForm.endsAt}
+                onChange={(e) => setTermForm((p) => ({ ...p, endsAt: e.target.value }))}
+                className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
+              />
+            </div>
+          </div>
+          <div className="p-6 pt-0 flex justify-end gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => setAddTermDialog((p) => ({ ...p, open: false }))}
+              className="rounded-xl font-bold text-slate-500 hover:bg-slate-100"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateTerm}
+              disabled={creatingTerm}
+              className="bg-[#641BC4] hover:bg-[#5217a1] rounded-xl px-6 font-bold shadow-lg shadow-purple-200 gap-2"
+            >
+              {creatingTerm ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Create Term
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
