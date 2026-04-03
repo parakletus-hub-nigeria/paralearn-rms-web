@@ -105,33 +105,49 @@ const unwrap = (res: any) => res?.data?.data ?? res?.data ?? null;
 // ---------- Admin: Classes ----------
 export const fetchClasses = createAsyncThunk(
   "admin/fetchClasses",
-  async (params: { level?: string; isActive?: boolean } | undefined, { rejectWithValue }) => {
+  async (
+    params: { level?: string; isActive?: boolean } | undefined,
+    { rejectWithValue },
+  ) => {
     try {
       const q = new URLSearchParams();
       if (params?.level) q.set("level", params.level);
-      if (typeof params?.isActive === "boolean") q.set("isActive", String(params.isActive));
-      const res = await apiClient.get(`/api/proxy/classes${q.toString() ? `?${q}` : ""}`);
+      if (typeof params?.isActive === "boolean")
+        q.set("isActive", String(params.isActive));
+      const res = await apiClient.get(
+        `/api/proxy/classes${q.toString() ? `?${q}` : ""}`,
+      );
       const data = unwrap(res) || [];
       return Array.isArray(data) ? (data as ClassItem[]) : [];
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch classes");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to fetch classes",
+      );
     }
-  }
+  },
 );
 
 export const createClass = createAsyncThunk(
   "admin/createClass",
   async (
-    payload: { name: string; level?: number; stream?: string; capacity?: number; academicYear?: string },
-    { rejectWithValue }
+    payload: {
+      name: string;
+      level?: number;
+      stream?: string;
+      capacity?: number;
+      academicYear?: string;
+    },
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.post("/api/proxy/classes", payload);
       return unwrap(res) as ClassItem;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to create class");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to create class",
+      );
     }
-  }
+  },
 );
 
 export const deleteClass = createAsyncThunk(
@@ -141,37 +157,84 @@ export const deleteClass = createAsyncThunk(
       await apiClient.delete(`/api/proxy/classes/${classId}`);
       return classId;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to delete class");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to delete class",
+      );
     }
-  }
+  },
+);
+
+export const updateClass = createAsyncThunk(
+  "admin/updateClass",
+  async (
+    payload: {
+      id: string;
+      data: {
+        name?: string;
+        level?: number;
+        stream?: string;
+        capacity?: number;
+        academicYear?: string;
+      };
+    },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await apiClient.put(
+        `/api/proxy/classes/${payload.id}`,
+        payload.data,
+      );
+      return unwrap(res) as ClassItem;
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to update class",
+      );
+    }
+  },
 );
 
 export const assignTeacherToClass = createAsyncThunk(
   "admin/assignTeacherToClass",
-  async (payload: { classId: string; teacherId: string }, { rejectWithValue }) => {
+  async (
+    payload: { classId: string; teacherId: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.post(`/api/proxy/classes/${payload.classId}/teachers`, {
-        teacherId: payload.teacherId,
-      });
+      const res = await apiClient.post(
+        `/api/proxy/classes/${payload.classId}/teachers`,
+        {
+          teacherId: payload.teacherId,
+        },
+      );
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to assign teacher");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to assign teacher",
+      );
     }
-  }
+  },
 );
 
 export const enrollStudentToClass = createAsyncThunk(
   "admin/enrollStudentToClass",
-  async (payload: { classId: string; studentId: string }, { rejectWithValue }) => {
+  async (
+    payload: { classId: string; studentId: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.post(`/api/proxy/classes/${payload.classId}/enroll`, {
-        studentId: payload.studentId,
-      });
+      const res = await apiClient.post(
+        `/api/proxy/classes/${payload.classId}/enroll`,
+        {
+          studentId: payload.studentId,
+        },
+      );
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to enroll student");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to enroll student",
+      );
     }
-  }
+  },
 );
 
 // Fetch class details with enrolled students and teacher assignments
@@ -184,11 +247,14 @@ export const fetchClassDetails = createAsyncThunk(
 
       let subjectTeachers: any[] = [];
       try {
-        const subjectsRes = await apiClient.get(`/api/proxy/subjects?classId=${classId}`);
+        const subjectsRes = await apiClient.get(
+          `/api/proxy/subjects?classId=${classId}`,
+        );
         const subjects = unwrap(subjectsRes) || subjectsRes.data || [];
         if (Array.isArray(subjects)) {
           for (const subject of subjects) {
-            const teachers = subject.teacherAssignments || subject.teachers || [];
+            const teachers =
+              subject.teacherAssignments || subject.teachers || [];
             if (Array.isArray(teachers)) {
               for (const ta of teachers) {
                 const teacher = ta.teacher || ta;
@@ -198,7 +264,7 @@ export const fetchClassDetails = createAsyncThunk(
                     teacher: { ...teacher, subjectName: subject.name },
                     subjectId: subject.id,
                     subjectName: subject.name,
-                    type: "subject_teacher"
+                    type: "subject_teacher",
                   });
                 }
               }
@@ -209,10 +275,11 @@ export const fetchClassDetails = createAsyncThunk(
         // Subject fetch failed — proceed without subject teachers
       }
 
-      const classTeachers = classData.teacherAssignments || classData.teachers || [];
+      const classTeachers =
+        classData.teacherAssignments || classData.teachers || [];
       const allTeachers = [
         ...classTeachers.map((t: any) => ({ ...t, type: "class_teacher" })),
-        ...subjectTeachers
+        ...subjectTeachers,
       ];
 
       const teacherMap = new Map();
@@ -229,22 +296,32 @@ export const fetchClassDetails = createAsyncThunk(
         subjectTeachers: subjectTeachers,
       };
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch class details");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch class details",
+      );
     }
-  }
+  },
 );
 
 // Bulk enroll multiple students to a class
 // Note: TEACHER_ADMIN_GUIDE uses /enroll with single studentId, Vaniah docs uses /students with array
 export const bulkEnrollStudents = createAsyncThunk(
   "admin/bulkEnrollStudents",
-  async (payload: { classId: string; studentIds: string[] }, { rejectWithValue }) => {
+  async (
+    payload: { classId: string; studentIds: string[] },
+    { rejectWithValue },
+  ) => {
     try {
       // Try bulk endpoint first (Vaniah docs: POST /classes/:classId/students)
       try {
-        const res = await apiClient.post(`/api/proxy/classes/${payload.classId}/students`, {
-          studentIds: payload.studentIds,
-        });
+        const res = await apiClient.post(
+          `/api/proxy/classes/${payload.classId}/students`,
+          {
+            studentIds: payload.studentIds,
+          },
+        );
         return unwrap(res);
       } catch (bulkError: any) {
         // If bulk endpoint fails (404), try single enrollment endpoint (TEACHER_ADMIN_GUIDE: POST /classes/:classId/enroll)
@@ -252,37 +329,49 @@ export const bulkEnrollStudents = createAsyncThunk(
           const results = [];
           for (const studentId of payload.studentIds) {
             try {
-              const res = await apiClient.post(`/api/proxy/classes/${payload.classId}/enroll`, { studentId });
+              const res = await apiClient.post(
+                `/api/proxy/classes/${payload.classId}/enroll`,
+                { studentId },
+              );
               results.push(unwrap(res));
             } catch {
               // Individual enroll failed — skip and continue
             }
           }
-          return { 
-            success: true, 
-            message: `${results.length} students enrolled`, 
-            enrolledCount: results.length 
+          return {
+            success: true,
+            message: `${results.length} students enrolled`,
+            enrolledCount: results.length,
           };
         }
         throw bulkError;
       }
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to enroll students");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to enroll students",
+      );
     }
-  }
+  },
 );
 
 // Remove student from class
 export const removeStudentFromClass = createAsyncThunk(
   "admin/removeStudentFromClass",
-  async (payload: { classId: string; studentId: string }, { rejectWithValue }) => {
+  async (
+    payload: { classId: string; studentId: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.delete(`/api/proxy/classes/${payload.classId}/enroll/${payload.studentId}`);
+      const res = await apiClient.delete(
+        `/api/proxy/classes/${payload.classId}/enroll/${payload.studentId}`,
+      );
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to remove student");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to remove student",
+      );
     }
-  }
+  },
 );
 
 // Fetch teacher's assigned classes (for admin to view)
@@ -290,25 +379,38 @@ export const fetchTeacherAssignedClasses = createAsyncThunk(
   "admin/fetchTeacherAssignedClasses",
   async (teacherId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/reports/teacher/${teacherId}/classes`);
+      const res = await apiClient.get(
+        `/api/proxy/reports/teacher/${teacherId}/classes`,
+      );
       return unwrap(res) || res.data || null;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch teacher classes");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch teacher classes",
+      );
     }
-  }
+  },
 );
 
 // Remove teacher from class
 export const removeTeacherFromClass = createAsyncThunk(
   "admin/removeTeacherFromClass",
-  async (payload: { classId: string; teacherId: string }, { rejectWithValue }) => {
+  async (
+    payload: { classId: string; teacherId: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.delete(`/api/proxy/classes/${payload.classId}/teachers/${payload.teacherId}`);
+      const res = await apiClient.delete(
+        `/api/proxy/classes/${payload.classId}/teachers/${payload.teacherId}`,
+      );
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to remove teacher");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to remove teacher",
+      );
     }
-  }
+  },
 );
 
 // ---------- Admin: Subjects ----------
@@ -319,7 +421,9 @@ export const fetchSubjects = createAsyncThunk(
       // Try fetching with include parameters to get teacher assignments
       let res;
       try {
-        res = await apiClient.get("/api/proxy/subjects?include=teachers,teacherAssignments");
+        res = await apiClient.get(
+          "/api/proxy/subjects?include=teachers,teacherAssignments",
+        );
       } catch (e) {
         // Fallback to basic endpoint
         res = await apiClient.get("/api/proxy/subjects");
@@ -327,52 +431,72 @@ export const fetchSubjects = createAsyncThunk(
       const data = unwrap(res) || [];
       return Array.isArray(data) ? (data as SubjectItem[]) : [];
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch subjects");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to fetch subjects",
+      );
     }
-  }
+  },
 );
 
 export const createSubject = createAsyncThunk(
   "admin/createSubject",
   async (
-    payload: { name: string; code?: string; classId: string; description?: string },
-    { rejectWithValue }
+    payload: {
+      name: string;
+      code?: string;
+      classId: string;
+      description?: string;
+    },
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.post("/api/proxy/subjects", payload);
       return unwrap(res) as SubjectItem;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to create subject");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to create subject",
+      );
     }
-  }
+  },
 );
 
 export const assignTeacherToSubject = createAsyncThunk(
   "admin/assignTeacherToSubject",
-  async (payload: { subjectId: string; teacherId: string }, { rejectWithValue }) => {
+  async (
+    payload: { subjectId: string; teacherId: string },
+    { rejectWithValue },
+  ) => {
     try {
       // Try the documented endpoint (TEACHER_ADMIN_GUIDE: /assign-teacher, Vaniah: /teachers)
       // First try /assign-teacher, fallback to /teachers if needed
       let res;
       try {
-        res = await apiClient.post(`/api/proxy/subjects/${payload.subjectId}/assign-teacher`, {
-          teacherId: payload.teacherId,
-        });
+        res = await apiClient.post(
+          `/api/proxy/subjects/${payload.subjectId}/assign-teacher`,
+          {
+            teacherId: payload.teacherId,
+          },
+        );
       } catch (e: any) {
         if (e?.response?.status === 404) {
           // Fallback to /teachers endpoint
-          res = await apiClient.post(`/api/proxy/subjects/${payload.subjectId}/teachers`, {
-            teacherId: payload.teacherId,
-          });
+          res = await apiClient.post(
+            `/api/proxy/subjects/${payload.subjectId}/teachers`,
+            {
+              teacherId: payload.teacherId,
+            },
+          );
         } else {
           throw e;
         }
       }
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to assign teacher");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to assign teacher",
+      );
     }
-  }
+  },
 );
 
 // ---------- Admin: Assessments ----------
@@ -397,13 +521,15 @@ export const fetchAssessments = createAsyncThunk(
           } catch (e: any) {
             // Fallback if backend expects query param instead of path
             if (e?.response?.status === 404) {
-              const res = await apiClient.get(`/api/proxy/assessments?status=${status}`);
+              const res = await apiClient.get(
+                `/api/proxy/assessments?status=${status}`,
+              );
               const data = unwrap(res) || [];
               return Array.isArray(data) ? (data as AssessmentItem[]) : [];
             }
             throw e;
           }
-        })
+        }),
       );
 
       const merged = results.flat();
@@ -413,9 +539,13 @@ export const fetchAssessments = createAsyncThunk(
       }
       return Array.from(byId.values());
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch assessments");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch assessments",
+      );
     }
-  }
+  },
 );
 
 export const createAssessment = createAsyncThunk(
@@ -425,21 +555,35 @@ export const createAssessment = createAsyncThunk(
       const res = await apiClient.post("/api/proxy/assessments", payload);
       return unwrap(res) as AssessmentItem;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to create assessment");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to create assessment",
+      );
     }
-  }
+  },
 );
 
 export const updateAssessment = createAsyncThunk(
   "admin/updateAssessment",
-  async (payload: { id: string; data: Partial<AssessmentItem> }, { rejectWithValue }) => {
+  async (
+    payload: { id: string; data: Partial<AssessmentItem> },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.patch(`/api/proxy/assessments/${payload.id}`, payload.data);
+      const res = await apiClient.patch(
+        `/api/proxy/assessments/${payload.id}`,
+        payload.data,
+      );
       return unwrap(res) as AssessmentItem;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to update assessment");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to update assessment",
+      );
     }
-  }
+  },
 );
 
 export const deleteAssessment = createAsyncThunk(
@@ -449,18 +593,28 @@ export const deleteAssessment = createAsyncThunk(
       await apiClient.delete(`/api/proxy/assessments/${id}`);
       return id;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to delete assessment");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to delete assessment",
+      );
     }
-  }
+  },
 );
 
 export const publishAssessmentAdmin = createAsyncThunk(
   "admin/publishAssessment",
-  async (payload: { assessmentId: string; publish: boolean }, { rejectWithValue }) => {
+  async (
+    payload: { assessmentId: string; publish: boolean },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.post(`/api/proxy/assessments/${payload.assessmentId}/publish`, {
-        publish: payload.publish,
-      });
+      const res = await apiClient.post(
+        `/api/proxy/assessments/${payload.assessmentId}/publish`,
+        {
+          publish: payload.publish,
+        },
+      );
       const data = unwrap(res) as any;
       return {
         id: data?.id || payload.assessmentId,
@@ -468,54 +622,77 @@ export const publishAssessmentAdmin = createAsyncThunk(
         ...data,
       };
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to publish assessment");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to publish assessment",
+      );
     }
-  }
+  },
 );
 
 export const fetchAssessmentDetail = createAsyncThunk(
   "admin/fetchAssessmentDetail",
   async (assessmentId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/assessments/details/${assessmentId}`);
+      const res = await apiClient.get(
+        `/api/proxy/assessments/details/${assessmentId}`,
+      );
       const data = unwrap(res) || res.data;
       if (!data) return rejectWithValue("Assessment not found");
       return data as AssessmentItem;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to load assessment details");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load assessment details",
+      );
     }
-  }
+  },
 );
 
 export const fetchAssessmentSubmissions = createAsyncThunk(
   "admin/fetchAssessmentSubmissions",
   async (assessmentId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/assessments/${assessmentId}/submissions`);
+      const res = await apiClient.get(
+        `/api/proxy/assessments/${assessmentId}/submissions`,
+      );
       const data = unwrap(res) || res.data || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to load submissions");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load submissions",
+      );
     }
-  }
+  },
 );
 
 export const bulkUploadQuestions = createAsyncThunk(
   "admin/bulkUploadQuestions",
-  async (payload: { assessmentId: string; file: File }, { rejectWithValue }) => {
+  async (
+    payload: { assessmentId: string; file: File },
+    { rejectWithValue },
+  ) => {
     try {
       const form = new FormData();
       form.append("file", payload.file);
       const res = await apiClient.post(
         `/api/proxy/assessments/${payload.assessmentId}/questions/bulk`,
         form,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to upload questions");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to upload questions",
+      );
     }
-  }
+  },
 );
 
 // ---------- Admin: Scores ----------
@@ -523,31 +700,40 @@ export const fetchScoresByAssessment = createAsyncThunk(
   "admin/fetchScoresByAssessment",
   async (assessmentId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/scores/assessment/${assessmentId}`);
+      const res = await apiClient.get(
+        `/api/proxy/scores/assessment/${assessmentId}`,
+      );
       const data = unwrap(res) || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch scores");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to fetch scores",
+      );
     }
-  }
+  },
 );
 
 export const bulkUploadScores = createAsyncThunk(
   "admin/bulkUploadScores",
-  async (payload: { assessmentId: string; file: File }, { rejectWithValue }) => {
+  async (
+    payload: { assessmentId: string; file: File },
+    { rejectWithValue },
+  ) => {
     try {
       const form = new FormData();
       form.append("file", payload.file);
       const res = await apiClient.post(
         `/api/proxy/scores/bulk?assessmentId=${encodeURIComponent(payload.assessmentId)}`,
         form,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to upload scores");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to upload scores",
+      );
     }
-  }
+  },
 );
 
 // ---------- Admin: Reports ----------
@@ -557,58 +743,81 @@ export const fetchSchoolStatistics = createAsyncThunk(
     try {
       const res = await apiClient.get(
         `/api/proxy/reports/school/statistics?session=${encodeURIComponent(params.session)}&term=${encodeURIComponent(
-          params.term
-        )}`
+          params.term,
+        )}`,
       );
       return (unwrap(res) || res.data) as SchoolStatistics;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch statistics");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch statistics",
+      );
     }
-  }
+  },
 );
 
 export const fetchApprovalQueue = createAsyncThunk(
   "admin/fetchApprovalQueue",
   async (status: string = "pending", { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/reports/approval-queue?status=${encodeURIComponent(status)}`);
+      const res = await apiClient.get(
+        `/api/proxy/reports/approval-queue?status=${encodeURIComponent(status)}`,
+      );
       const data = unwrap(res) || [];
       return Array.isArray(data) ? (data as ApprovalQueueItem[]) : [];
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch approval queue");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch approval queue",
+      );
     }
-  }
+  },
 );
 
 export const approveReports = createAsyncThunk(
   "admin/approveReports",
   async (
-    payload: { action: "approve" | "reject" | "publish"; reportCardIds: string[]; rejectionReason?: string },
-    { rejectWithValue }
+    payload: {
+      action: "approve" | "reject" | "publish";
+      reportCardIds: string[];
+      rejectionReason?: string;
+    },
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.post("/api/proxy/reports/approve", payload);
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to update reports");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to update reports",
+      );
     }
-  }
+  },
 );
 
 export const fetchBookletPreviewAdmin = createAsyncThunk(
   "admin/fetchBookletPreviewAdmin",
-  async (params: { classId: string; session: string; term: string }, { rejectWithValue }) => {
+  async (
+    params: { classId: string; session: string; term: string },
+    { rejectWithValue },
+  ) => {
     try {
       const res = await apiClient.get(
         `/api/proxy/reports/class/${params.classId}/booklet-preview?session=${encodeURIComponent(
-          params.session
-        )}&term=${encodeURIComponent(params.term)}`
+          params.session,
+        )}&term=${encodeURIComponent(params.term)}`,
       );
       return unwrap(res) || res.data || null;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch booklet preview");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch booklet preview",
+      );
     }
-  }
+  },
 );
 
 // ---------- Admin: School Settings (Guide section 11) ----------
@@ -620,10 +829,12 @@ export const fetchSchoolSettings = createAsyncThunk(
       return unwrap(res) || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to fetch school settings"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch school settings",
       );
     }
-  }
+  },
 );
 
 export const updateSchoolSettings = createAsyncThunk(
@@ -634,25 +845,31 @@ export const updateSchoolSettings = createAsyncThunk(
       return unwrap(res) || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to update school settings"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to update school settings",
       );
     }
-  }
+  },
 );
 
 export const fetchGradingTemplates = createAsyncThunk(
   "admin/fetchGradingTemplates",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get("/api/proxy/school-settings/grading/templates");
+      const res = await apiClient.get(
+        "/api/proxy/school-settings/grading/templates",
+      );
       const data = unwrap(res) || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to fetch grading templates"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch grading templates",
       );
     }
-  }
+  },
 );
 
 export const fetchGradingSystem = createAsyncThunk(
@@ -663,49 +880,69 @@ export const fetchGradingSystem = createAsyncThunk(
       return unwrap(res) || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to fetch grading system"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch grading system",
       );
     }
-  }
+  },
 );
 
 export const updateGradingSystem = createAsyncThunk(
   "admin/updateGradingSystem",
   async (payload: any, { rejectWithValue }) => {
     try {
-      const res = await apiClient.put("/api/proxy/school-settings/grading", payload);
+      const res = await apiClient.put(
+        "/api/proxy/school-settings/grading",
+        payload,
+      );
       return unwrap(res) || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to update grading system"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to update grading system",
       );
     }
-  }
+  },
 );
 
 // ---------- Attendance (Guide section 13) ----------
 export const recordAttendance = createAsyncThunk(
   "admin/recordAttendance",
   async (
-    payload: { studentId: string; session: string; term: string; daysPresent: number; totalDays: number },
-    { rejectWithValue }
+    payload: {
+      studentId: string;
+      session: string;
+      term: string;
+      daysPresent: number;
+      totalDays: number;
+    },
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.post("/api/proxy/attendance", payload);
       return unwrap(res) || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to record attendance"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to record attendance",
       );
     }
-  }
+  },
 );
 
 export const fetchAttendance = createAsyncThunk(
   "admin/fetchAttendance",
   async (
-    params: { studentId?: string; classId?: string; session: string; term: string },
-    { rejectWithValue }
+    params: {
+      studentId?: string;
+      classId?: string;
+      session: string;
+      term: string;
+    },
+    { rejectWithValue },
   ) => {
     try {
       const q = new URLSearchParams();
@@ -718,10 +955,12 @@ export const fetchAttendance = createAsyncThunk(
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to fetch attendance"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch attendance",
       );
     }
-  }
+  },
 );
 
 // ---------- Comments (Guide section 12) ----------
@@ -732,9 +971,11 @@ export const addCommentAdmin = createAsyncThunk(
       const res = await apiClient.post("/api/proxy/comments", payload);
       return unwrap(res) || res.data || payload;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to add comment");
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to add comment",
+      );
     }
-  }
+  },
 );
 
 export const bulkAddComments = createAsyncThunk(
@@ -744,28 +985,37 @@ export const bulkAddComments = createAsyncThunk(
       const res = await apiClient.post("/api/proxy/comments/bulk", payload);
       return unwrap(res) || res.data || null;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to bulk add comments");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to bulk add comments",
+      );
     }
-  }
+  },
 );
 
 export const fetchStudentComments = createAsyncThunk(
   "admin/fetchStudentComments",
-  async (params: { studentId: string; session: string; term: string }, { rejectWithValue }) => {
+  async (
+    params: { studentId: string; session: string; term: string },
+    { rejectWithValue },
+  ) => {
     try {
       const res = await apiClient.get(
         `/api/proxy/comments/student/${params.studentId}?term=${encodeURIComponent(params.term)}&session=${encodeURIComponent(
-          params.session
-        )}`
+          params.session,
+        )}`,
       );
       const data = unwrap(res) || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to fetch student comments"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch student comments",
       );
     }
-  }
+  },
 );
 
 // ---------- Admin: Assessment Categories ----------
@@ -777,21 +1027,40 @@ export const fetchAssessmentCategoriesMap = createAsyncThunk(
       const data = unwrap(res) || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to fetch assessment categories");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to fetch assessment categories",
+      );
     }
-  }
+  },
 );
 
 export const createAssessmentCategory = createAsyncThunk(
   "admin/createAssessmentCategory",
-  async (payload: { name: string; code: string; weight: number; description?: string }, { rejectWithValue }) => {
+  async (
+    payload: {
+      name: string;
+      code: string;
+      weight: number;
+      description?: string;
+    },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.post("/api/proxy/assessment-categories", payload);
+      const res = await apiClient.post(
+        "/api/proxy/assessment-categories",
+        payload,
+      );
       return unwrap(res);
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to create assessment category");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to create assessment category",
+      );
     }
-  }
+  },
 );
 
 export const deleteAssessmentCategory = createAsyncThunk(
@@ -801,9 +1070,13 @@ export const deleteAssessmentCategory = createAsyncThunk(
       await apiClient.delete(`/api/proxy/assessment-categories/${id}`);
       return id;
     } catch (e: any) {
-      return rejectWithValue(e?.response?.data?.message || e?.message || "Failed to delete assessment category");
+      return rejectWithValue(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to delete assessment category",
+      );
     }
-  }
+  },
 );
 
 // Fetch students by class using /users endpoint
@@ -811,34 +1084,43 @@ export const fetchStudentsByClass = createAsyncThunk(
   "admin/fetchStudentsByClass",
   async (params: { classId: string }, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/users?classId=${params.classId}&role=student`);
+      const res = await apiClient.get(
+        `/api/proxy/users?classId=${params.classId}&role=student`,
+      );
       const data = res.data?.data || res.data || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to fetch students"
+        e?.response?.data?.message || e?.message || "Failed to fetch students",
       );
     }
-  }
+  },
 );
 
 // Fetch generated report cards for a class
 export const fetchClassReportCards = createAsyncThunk(
   "admin/fetchClassReportCards",
-  async (params: { classId?: string; session?: string; term?: string }, { rejectWithValue }) => {
+  async (
+    params: { classId?: string; session?: string; term?: string },
+    { rejectWithValue },
+  ) => {
     try {
       const query = new URLSearchParams();
       if (params.classId) query.set("classId", params.classId);
       if (params.session) query.set("session", params.session);
       if (params.term) query.set("term", params.term);
-      
-      const res = await apiClient.get(`/api/proxy/reports/report-cards?${query}`);
+
+      const res = await apiClient.get(
+        `/api/proxy/reports/report-cards?${query}`,
+      );
       const data = res.data?.data || res.data || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load report cards"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load report cards",
       );
     }
-  }
+  },
 );

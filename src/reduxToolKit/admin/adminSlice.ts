@@ -34,6 +34,7 @@ import {
   removeStudentFromClass,
   removeTeacherFromClass,
   updateAssessment,
+  updateClass,
   updateGradingSystem,
   updateSchoolSettings,
   fetchAssessmentCategoriesMap,
@@ -146,6 +147,20 @@ const adminSlice = createSlice({
         state.success = "Class created";
       })
       .addCase(createClass.rejected, (state, action) => rejected(state, action, "Failed to create class"));
+
+    builder
+      .addCase(updateClass.pending, pending)
+      .addCase(updateClass.fulfilled, (state, action) => {
+        state.loading = false;
+        state.classes = state.classes.map((c) =>
+          c.id === action.payload.id ? action.payload : c
+        );
+        state.success = "Class updated";
+      })
+      .addCase(updateClass.rejected, (state, action) =>
+        rejected(state, action, "Failed to update class")
+      );
+
 
     builder
       .addCase(deleteClass.pending, pending)

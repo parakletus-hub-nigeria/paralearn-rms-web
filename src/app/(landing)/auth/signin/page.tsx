@@ -36,7 +36,7 @@ const Signin = () => {
       return emailRe.test(data.email) && data.password.length >= 8;
     }
     // Teacher / Student: username (subdomain) + user code
-    return data.email.trim().length >= 2 && data.password.trim().length >= 3;
+    return data.email.trim().length >= 2 && data.password.trim().length >= 4;
   };
 
   const submit = async () => {
@@ -190,7 +190,7 @@ const Signin = () => {
 
         <button
           onClick={submit}
-          disabled={loading}
+          disabled={loading || !isValid()}
           style={
             isValid()
               ? { backgroundColor: "#641BC4" }

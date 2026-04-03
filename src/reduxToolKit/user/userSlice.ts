@@ -581,10 +581,15 @@ const userSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUserProfile = action.payload;
-        state.user = {
-          ...state.user,
-          ...action.payload,
-        };
+        // Only merge into the logged-in user's state if the updated user IS
+        // the currently authenticated user. Admins updating other users' profiles
+        // must NOT overwrite the current session's roles/data.
+        if (action.payload?.id && state.user?.id && action.payload.id === state.user.id) {
+          state.user = {
+            ...state.user,
+            ...action.payload,
+          };
+        }
         state.success = true;
         state.error = null;
       })

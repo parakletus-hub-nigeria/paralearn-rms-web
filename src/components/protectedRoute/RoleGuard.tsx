@@ -152,9 +152,20 @@ export default function RoleGuard({
         <div className="max-w-lg w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
           <p className="text-2xl font-black text-slate-900">Unauthorized</p>
           <p className="text-slate-500 mt-2">
-            You don’t have permission to access this page with your current
-            account.
+            You don’t have permission to access this page.
           </p>
+          <div className="mt-4 rounded-xl bg-slate-50 border border-slate-100 p-4 text-sm space-y-1.5">
+            <p className="text-slate-500">
+              <span className="font-semibold text-slate-700">Required: </span>
+              {allow.map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(", ")}
+            </p>
+            <p className="text-slate-500">
+              <span className="font-semibold text-slate-700">Your role: </span>
+              {roles.length > 0
+                ? roles.map((r: string) => r.charAt(0).toUpperCase() + r.slice(1)).join(", ")
+                : "None / not logged in"}
+            </p>
+          </div>
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <Button
               variant="outline"

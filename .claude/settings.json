@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/HP/paralearn-backend/src/super-admin/services/**)"
+      "Read(//c/Users/HP/paralearn-backend/src/super-admin/services/**)",
+      "Bash(find /c/Users/HP/paralearn-rms-web/src/components -name \"*.tsx\" -exec grep -l \"setError\\\\|errorMessage\" {} \\\\;)"
     ]
   }
 }

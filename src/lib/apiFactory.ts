@@ -139,7 +139,7 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
             const currentPath = window.location.pathname;
             if (!currentPath.includes("/auth/")) {
               toast.error("Session expired, please log in again");
-              window.location.href = "/auth/signin";
+              setTimeout(() => { window.location.href = "/auth/signin"; }, 1500);
             }
           }
           return Promise.reject(error);
@@ -168,7 +168,7 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
             const currentPath = window.location.pathname;
             if (!currentPath.includes("/auth/")) {
               toast.error("Session expired, please log in again");
-              window.location.href = "/auth/signin";
+              setTimeout(() => { window.location.href = "/auth/signin"; }, 1500);
             }
           }
           return Promise.reject(refreshError);

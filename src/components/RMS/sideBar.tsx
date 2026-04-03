@@ -29,6 +29,7 @@ import {
   Settings,
   Palette,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
@@ -144,6 +145,12 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         path: routespath.BRANDING,
         icon: Palette,
         roles: ["admin"],
+      },
+      {
+        label: "Lesson Generator",
+        path: routespath.LESSON_GENERATOR,
+        icon: Sparkles,
+        roles: ["admin", "teacher"],
       },
       {
         label: "Profile",

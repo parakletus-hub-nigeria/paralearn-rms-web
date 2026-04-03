@@ -13,6 +13,7 @@ import {
   removeStudentFromClass,
   removeTeacherFromClass,
   deleteClass,
+  updateClass,
 } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
@@ -48,6 +49,7 @@ import {
   Trash,
   AlertTriangle,
   GraduationCap,
+  Pencil,
 } from "lucide-react";
 import { ProductTour } from "@/components/common/ProductTour";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
@@ -95,10 +97,13 @@ export function AdminClassesPage() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [classToDelete, setClassToDelete] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
 
   const [form, setForm] = useState({
     name: "",
@@ -107,7 +112,14 @@ export function AdminClassesPage() {
     capacity: "",
     academicYear: "",
   });
-  const  [assignTeacherId, setAssignTeacherId] = useState("");
+  const [editForm, setEditForm] = useState({
+    name: "",
+    level: "",
+    stream: "",
+    capacity: "",
+    academicYear: "",
+  });
+  const [assignTeacherId, setAssignTeacherId] = useState("");
 
   useEffect(() => {
     dispatch(fetchClasses(undefined));
@@ -207,6 +219,32 @@ export function AdminClassesPage() {
       toast.error(e || "Failed to delete class");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleUpdateClass = async () => {
+    if (!selectedClass) return;
+    try {
+      if (!editForm.name.trim()) return toast.error("Class name is required");
+      setIsUpdating(true);
+      await dispatch(
+        updateClass({
+          id: selectedClass.id,
+          data: {
+            name: editForm.name.trim(),
+            level: Number(editForm.level) || undefined,
+            stream: editForm.stream.trim() || undefined,
+            capacity: Number(editForm.capacity) || undefined,
+            academicYear: editForm.academicYear.trim() || undefined,
+          },
+        })
+      ).unwrap();
+      setShowEditModal(false);
+      setSelectedClass(null);
+    } catch (e: any) {
+      toast.error(e || "Failed to update class");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -542,6 +580,23 @@ export function AdminClassesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40 rounded-xl">
                         <DropdownMenuItem 
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSelectedClass(cls);
+                            setEditForm({
+                              name: cls.name || "",
+                              level: String(cls.level || ""),
+                              stream: cls.stream || "",
+                              capacity: String(cls.capacity || ""),
+                              academicYear: cls.academicYear || "",
+                            });
+                            setShowEditModal(true);
+                          }}
+                        >
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
                           className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer"
                           onClick={() => {
                             setClassToDelete(cls);
@@ -702,6 +757,25 @@ export function AdminClassesPage() {
                         <Button
                           size="sm"
                           variant="outline"
+                          className="h-9 w-9 p-0 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                          onClick={() => {
+                            setSelectedClass(cls);
+                            setEditForm({
+                              name: cls.name || "",
+                              level: String(cls.level || ""),
+                              stream: cls.stream || "",
+                              capacity: String(cls.capacity || ""),
+                              academicYear: cls.academicYear || "",
+                            });
+                            setShowEditModal(true);
+                          }}
+                          title="Edit class"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="h-9 w-9 p-0 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
                           onClick={() => {
                             setClassToDelete(cls);
@@ -798,10 +872,96 @@ export function AdminClassesPage() {
               <Button
                 onClick={submit}
                 disabled={loading}
-                className="h-11 px-6 rounded-xl text-white"
+                className="h-11 px-6 rounded-xl text-white font-semibold shadow-lg shadow-purple-200"
                 style={{ backgroundColor: primaryColor }}
               >
                 {loading ? "Creating..." : "Create Class"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Class Modal */}
+      {showEditModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Edit Class</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Update class details</p>
+              </div>
+              <button onClick={() => setShowEditModal(false)} className="p-2 rounded-lg hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Class Name</label>
+                <Input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g. JSS 1A"
+                  className="mt-2 h-11 rounded-xl"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Level</label>
+                  <Input
+                    value={editForm.level}
+                    onChange={(e) => setEditForm((p) => ({ ...p, level: e.target.value }))}
+                    placeholder="e.g. JSS1"
+                    className="mt-2 h-11 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Stream</label>
+                  <Input
+                    value={editForm.stream}
+                    onChange={(e) => setEditForm((p) => ({ ...p, stream: e.target.value }))}
+                    placeholder="e.g. A"
+                    className="mt-2 h-11 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Capacity</label>
+                  <Input
+                    value={editForm.capacity}
+                    onChange={(e) => setEditForm((p) => ({ ...p, capacity: e.target.value }))}
+                    placeholder="e.g. 40"
+                    className="mt-2 h-11 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Academic Year</label>
+                  <Input
+                    value={editForm.academicYear}
+                    onChange={(e) => setEditForm((p) => ({ ...p, academicYear: e.target.value }))}
+                    placeholder={currentSession || "2024/2025"}
+                    className="mt-2 h-11 rounded-xl"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
+              <Button variant="outline" onClick={() => setShowEditModal(false)} className="h-11 px-6 rounded-xl">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateClass}
+                disabled={isUpdating}
+                className="h-11 px-6 rounded-xl text-white font-semibold shadow-lg shadow-purple-200"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {isUpdating ? "Updating..." : "Update Class"}
               </Button>
             </div>
           </div>

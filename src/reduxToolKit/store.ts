@@ -5,6 +5,7 @@ import teacherReducer from "./teacher/teacherSlice";
 import adminReducer from "./admin/adminSlice";
 import studentReducer from "./student/studentSlice";
 import superAdminReducer from "./superAdmin/superAdminSlice";
+import lessonGeneratorReducer from "./lessonGenerator/lessonGeneratorSlice";
 import { paraApi } from "./api";
 import { uniApi } from "./api/uniBaseApi";
 import { superAdminApi } from "./api/superAdminBaseApi";
@@ -17,6 +18,7 @@ export const store = configureStore({
     admin: adminReducer,
     student: studentReducer,
     superAdmin: superAdminReducer,
+    lessonGenerator: lessonGeneratorReducer,
     [paraApi.reducerPath]: paraApi.reducer,
     [uniApi.reducerPath]: uniApi.reducer,
     [superAdminApi.reducerPath]: superAdminApi.reducer,

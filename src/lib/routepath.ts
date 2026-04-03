@@ -16,6 +16,10 @@ export const routespath = {
   SETTINGS: "/RMS/settings",
   BRANDING: "/RMS/branding",
   ENROLLMENTS: "/RMS/enrollments",
+  LESSON_GENERATOR: "/RMS/lesson-generator",
+  LESSON_GENERATOR_NEW: "/RMS/lesson-generator/new",
+  LESSON_GENERATOR_DETAILS: "/RMS/lesson-generator/:id",
+  LESSON_GENERATOR_WALLET: "/RMS/lesson-generator/wallet",
   // Student routes
   STUDENT_DASHBOARD: "/student/dashboard",
   STUDENT_EXAM: "/student/exam",

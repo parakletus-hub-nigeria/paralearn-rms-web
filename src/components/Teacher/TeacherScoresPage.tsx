@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import {
@@ -41,7 +41,14 @@ import {
 import { toast } from "sonner";
 import { generateTemplate } from "@/lib/templates";
 import apiClient from "@/lib/api";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import * as XLSX from "xlsx";
 
 const DEFAULT_PRIMARY = "#641BC4";
 import { ProductTour } from "@/components/common/ProductTour";
@@ -97,6 +104,11 @@ export function TeacherScoresPage() {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [loadingScores, setLoadingScores] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Bulk Upload State
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadAssessmentId, setUploadAssessmentId] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Extract unique classes
   const uniqueClasses = useMemo(() => {
@@ -406,13 +418,126 @@ export function TeacherScoresPage() {
     }
   };
 
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Current backend bulk upload is per-assessment based on file.
-    // Matrix import is complex without a robust parser that matches columns to assessment IDs.
-    // For now, we will disable this or restrict it to single assessment selection, but UI has changed.
-    // Alternative: We can ask user which assessment this file is for?
-    // Implementing simple single-file import is tricky in matrix view without more UI.
-    toast.info("Bulk import is currently supported per-assessment in detailed view.");
+  const handleImport = () => {
+    // Only allow import if we have offline assessments and students
+    const offlineAssessments = relevantAssessments.filter((a: any) => !a.isOnline);
+    if (offlineAssessments.length === 0) {
+      toast.info("No offline assessments available to import scores for.");
+      return;
+    }
+    if (students.length === 0) {
+      toast.info("No students loaded in this class.");
+      return;
+    }
+    setUploadAssessmentId(offlineAssessments[0].id);
+    setShowUploadModal(true);
+  };
+
+  const handleDownloadTemplate = () => {
+    if (!uploadAssessmentId || students.length === 0) return;
+    const assessment = relevantAssessments.find((a: any) => a.id === uploadAssessmentId);
+    if (!assessment) return;
+
+    // Create a template pre-filled with the students currently in the table
+    const data = students.map((s) => ({
+      studentId: s.studentId || s.id,
+      studentName: `${s.firstName || ""} ${s.lastName || ""} (Reference Only — do not edit)`,
+      marksAwarded: "", // Teacher fills this
+      remarks: ""
+    }));
+
+    const filename = `scores_template_${(assessment.title || "assessment").replace(/\s+/g, '_')}.xlsx`;
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wscols = Object.keys(data[0]).map(() => ({ wch: 30 }));
+    ws['!cols'] = wscols;
+    XLSX.utils.book_append_sheet(wb, ws, "Scores Template");
+    XLSX.writeFile(wb, filename);
+
+    toast.success("Template downloaded successfully");
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!uploadAssessmentId) {
+      toast.error("Please select an assessment.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: "binary" });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json<any>(ws);
+
+        if (data.length === 0) {
+           toast.error("The uploaded file is empty.");
+           return;
+        }
+
+        const assessment = relevantAssessments.find((a: any) => a.id === uploadAssessmentId);
+        const maxMarks = assessment?.totalMarks || 100;
+        let importCount = 0;
+
+        setEditedScores((prev) => {
+          const newMap = new Map(prev);
+          
+          data.forEach((row) => {
+             // Try to find the student ID column
+             const rawStudentId = row.studentId || row.studentID || row["Student ID"] || row["StudentId"];
+             const rawMarks = row.marksAwarded || row.Marks || row["Marks Awarded"] || row.score || row.Score;
+
+             if (!rawStudentId || rawMarks === undefined || rawMarks === "") return;
+             
+             // Match student ID robustly
+             const studentIdStr = String(rawStudentId).trim().toLowerCase();
+             const studentMatch = students.find((s) => 
+               (s.id && String(s.id).toLowerCase() === studentIdStr) || 
+               (s.studentId && String(s.studentId).toLowerCase() === studentIdStr) ||
+               (s.admissionNo && String(s.admissionNo).toLowerCase() === studentIdStr)
+             );
+             
+             if (studentMatch) {
+               let marksNum = parseFloat(rawMarks);
+               if (isNaN(marksNum)) return;
+               
+               // Clamp the imported value
+               marksNum = Math.min(maxMarks, Math.max(0, marksNum));
+
+               if (!newMap.has(studentMatch.id)) {
+                 newMap.set(studentMatch.id, new Map());
+               }
+               const studentScores = new Map(newMap.get(studentMatch.id)!);
+               studentScores.set(uploadAssessmentId, String(marksNum));
+               newMap.set(studentMatch.id, studentScores);
+               importCount++;
+             }
+          });
+          return newMap;
+        });
+
+        if (importCount > 0) {
+           toast.success(`Successfully imported ${importCount} scores.`);
+           setShowUploadModal(false);
+        } else {
+           toast.error("Could not match any student IDs from the file. Please ensure you used the downloaded template.");
+        }
+      } catch (err) {
+        console.error("Error reading Excel", err);
+        toast.error("Failed to parse the file. Please upload a valid Excel or CSV.");
+      } finally {
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    };
+    reader.readAsBinaryString(file);
   };
 
   const selectedSubject = subjects.find((s: any) => s.id === selectedSubjectId);
@@ -799,6 +924,14 @@ export function TeacherScoresPage() {
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <Button
                   variant="outline"
+                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+                  onClick={handleImport}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Bulk Upload
+                </Button>
+                <Button
+                  variant="outline"
                   className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none"
                   disabled={totalEntries === 0}
                   onClick={() => setEditedScores(new Map())}
@@ -819,6 +952,54 @@ export function TeacherScoresPage() {
           </div>
         )}
       </div>
+
+      <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Bulk Upload Scores</DialogTitle>
+            <DialogDescription>
+              Select an offline assessment, download the template, fill it, and upload the file.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-slate-700">Assessment</label>
+              <Select value={uploadAssessmentId} onValueChange={setUploadAssessmentId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Assessment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {relevantAssessments.filter((a: any) => !a.isOnline).map((a: any) => (
+                    <SelectItem key={a.id} value={a.id}>{a.title} ({a.totalMarks} marks)</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex flex-col gap-3 mt-2">
+              <Button onClick={handleDownloadTemplate} variant="outline" className="w-full flex justify-between items-center bg-slate-50">
+                <span>1. Download Pre-filled Template</span>
+                <Download className="w-4 h-4" />
+              </Button>
+              
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  title="Upload Filled Template"
+                />
+                <Button variant="outline" className="w-full flex justify-between items-center bg-emerald-600 text-white hover:bg-emerald-700 pointer-events-none border-none">
+                  <span>2. Upload Filled Template</span>
+                  <Upload className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

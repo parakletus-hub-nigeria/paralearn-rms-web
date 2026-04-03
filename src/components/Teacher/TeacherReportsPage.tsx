@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/table";
 import {
   Download, FileText, ChevronLeft, ChevronRight,
-  Loader2, ExternalLink, Users, LayoutTemplate, CheckCircle2, ImageOff, XCircle, Trash
+  Loader2, RefreshCw, ExternalLink, Users, LayoutTemplate, CheckCircle2, ImageOff, XCircle, Trash
 } from "lucide-react";
 import apiClient from "@/lib/api";
 import { ProductTour } from "@/components/common/ProductTour";
@@ -919,7 +919,7 @@ export function TeacherReportsPage() {
                   <p className="text-sm text-gray-500 mt-1">Recent combined PDF generations for this class</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={fetchClassHistory} disabled={loadingHistory}>
-                  {loadingHistory ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Loader2 className="w-4 h-4 mr-2" />} 
+                  {loadingHistory ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                   Refresh
                 </Button>
               </div>
