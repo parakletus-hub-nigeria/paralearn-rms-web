@@ -5,9 +5,27 @@ import { createApiClient } from "./apiFactory";
  * It uses the same backend as the rest of the application but forces
  * the 'sabinote' tenant context via headers.
  */
+const STANDALONE_TOKEN_KEY = "sabiStandaloneToken";
+
 const sabinoteApi = createApiClient(""); // Uses NextJS relative proxy routing
 
-// Add specific lesson generator prefix to all requests
+// Interceptor 1: inject standalone JWT when no main-app token is already set
+sabinoteApi.interceptors.request.use((config) => {
+  const alreadyHasAuth = config.headers?.["Authorization"] || config.headers?.["authorization"];
+  if (!alreadyHasAuth && typeof window !== "undefined") {
+    const standaloneToken = localStorage.getItem(STANDALONE_TOKEN_KEY);
+    if (standaloneToken) {
+      if (typeof config.headers?.set === "function") {
+        config.headers.set("Authorization", `Bearer ${standaloneToken}`);
+      } else if (config.headers) {
+        config.headers["Authorization"] = `Bearer ${standaloneToken}`;
+      }
+    }
+  }
+  return config;
+});
+
+// Interceptor 2: force sabinote tenant + rewrite URL to /api/proxy/lesson-generator/**
 sabinoteApi.interceptors.request.use((config) => {
   // 1. Ensure the 'X-Tenant-Subdomain' is ALWAYS 'sabinote' for this service
   if (config.headers) {

@@ -20,6 +20,11 @@ export const routespath = {
   LESSON_GENERATOR_NEW: "/RMS/lesson-generator/new",
   LESSON_GENERATOR_DETAILS: "/RMS/lesson-generator/:id",
   LESSON_GENERATOR_WALLET: "/RMS/lesson-generator/wallet",
+  // SabiNote Standalone routes
+  SABINOTE_LOGIN: "/sabinote/auth/login",
+  SABINOTE_REGISTER: "/sabinote/auth/register",
+  SABINOTE_DASHBOARD: "/sabinote/dashboard",
+  SABINOTE_PROFILE: "/sabinote/profile",
   // Student routes
   STUDENT_DASHBOARD: "/student/dashboard",
   STUDENT_EXAM: "/student/exam",

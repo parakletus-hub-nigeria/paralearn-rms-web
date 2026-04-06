@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import LandingPage from "@/components/landingpage/page";
+import SabiNoteLanding from "@/components/landingpage/SabiNoteLanding";
 import { extractSubdomainFromURL } from "@/lib/subdomainManager";
 import { useRouter } from "next/navigation";
 import { routespath } from "@/lib/routepath";

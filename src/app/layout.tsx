@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import {Inter, Geist, Geist_Mono, Outfit } from "next/font/google";
+import {Inter, Geist, Geist_Mono, Outfit, Manrope } from "next/font/google";
 import "./globals.css";
 import ClientComponent from "@/clientcomponet/ClientComponent";
 
@@ -24,6 +24,11 @@ const outfit = Outfit({
   variable: "--font-outfit",
 });
 
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "ParaLearn - Modern Result Management for African Schools",
@@ -43,8 +48,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-white">
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      </head>
       <body
-        className={`${inter.variable} ${outfit.variable} antialiased`}
+        className={`${inter.variable} ${outfit.variable} ${manrope.variable} antialiased`}
       >
         <ClientComponent>
            {children}

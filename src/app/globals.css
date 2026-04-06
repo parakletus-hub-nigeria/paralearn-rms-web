@@ -29,6 +29,55 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* SabiNote MD3 Theme Variables (Prefixed with sabi-) */
+  --color-sabi-inverse-on-surface: #efefff;
+  --color-sabi-surface-container-low: #f3f2ff;
+  --color-sabi-on-surface: #001453;
+  --color-sabi-on-tertiary-fixed-variant: #005236;
+  --color-sabi-surface: #fbf8ff;
+  --color-sabi-background: #fbf8ff;
+  --color-sabi-on-secondary-fixed-variant: #173bab;
+  --color-sabi-outline-variant: #c3c6d7;
+  --color-sabi-primary-container: #2563eb;
+  --color-sabi-secondary-fixed-dim: #b8c4ff;
+  --color-sabi-on-tertiary-fixed: #002113;
+  --color-sabi-on-secondary-container: #00217a;
+  --color-sabi-inverse-surface: #002584;
+  --color-sabi-primary: #004ac6;
+  --color-sabi-inverse-primary: #b4c5ff;
+  --color-sabi-tertiary-container: #007d55;
+  --color-sabi-surface-bright: #fbf8ff;
+  --color-sabi-on-tertiary-container: #bdffdb;
+  --color-sabi-tertiary: #006242;
+  --color-sabi-surface-container: #ecedff;
+  --color-sabi-outline: #737686;
+  --color-sabi-secondary: #3755c3;
+  --color-sabi-primary-fixed-dim: #b4c5ff;
+  --color-sabi-surface-container-high: #e4e7ff;
+  --color-sabi-surface-container-highest: #dde1ff;
+  --color-sabi-on-primary: #ffffff;
+  --color-sabi-surface-tint: #0053db;
+  --color-sabi-on-primary-container: #eeefff;
+  --color-sabi-on-error: #ffffff;
+  --color-sabi-primary-fixed: #dbe1ff;
+  --color-sabi-on-secondary-fixed: #001453;
+  --color-sabi-surface-dim: #d2d8ff;
+  --color-sabi-tertiary-fixed: #6ffbbe;
+  --color-sabi-surface-variant: #dde1ff;
+  --color-sabi-on-primary-fixed-variant: #003ea8;
+  --color-sabi-on-primary-fixed: #00174b;
+  --color-sabi-on-background: #001453;
+  --color-sabi-error: #ba1a1a;
+  --color-sabi-error-container: #ffdad6;
+  --color-sabi-on-error-container: #93000a;
+  --color-sabi-secondary-fixed: #dde1ff;
+  --color-sabi-tertiary-fixed-dim: #4edea3;
+  --color-sabi-secondary-container: #708cfd;
+  --color-sabi-on-tertiary: #ffffff;
+  --color-sabi-surface-container-lowest: #ffffff;
+  --color-sabi-on-secondary: #ffffff;
+  --color-sabi-on-surface-variant: #434655;
 }
 
 .dark {
@@ -141,6 +190,12 @@ Cream / Off-White: #FFFBEB */
 @layer base {
   .font-coolvetica {
     font-family: var(--font-outfit), sans-serif;
+  }
+  .font-headline {
+    font-family: var(--font-manrope), sans-serif;
+  }
+  .font-body {
+    font-family: var(--font-inter), sans-serif;
   }
 
   * {

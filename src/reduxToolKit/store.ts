@@ -6,6 +6,7 @@ import adminReducer from "./admin/adminSlice";
 import studentReducer from "./student/studentSlice";
 import superAdminReducer from "./superAdmin/superAdminSlice";
 import lessonGeneratorReducer from "./lessonGenerator/lessonGeneratorSlice";
+import sabiStandaloneAuthReducer from "./sabiStandaloneAuth/sabiStandaloneAuthSlice";
 import { paraApi } from "./api";
 import { uniApi } from "./api/uniBaseApi";
 import { superAdminApi } from "./api/superAdminBaseApi";
@@ -19,6 +20,7 @@ export const store = configureStore({
     student: studentReducer,
     superAdmin: superAdminReducer,
     lessonGenerator: lessonGeneratorReducer,
+    sabiStandaloneAuth: sabiStandaloneAuthReducer,
     [paraApi.reducerPath]: paraApi.reducer,
     [uniApi.reducerPath]: uniApi.reducer,
     [superAdminApi.reducerPath]: superAdminApi.reducer,
