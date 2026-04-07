@@ -32,6 +32,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     setMounted(true);
   }, []);
 
+  const standaloneToken = useSelector((s: any) => s.sabiStandaloneAuth.token);
+
   useEffect(() => {
     if (!mounted) return;
 
@@ -108,7 +110,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
 
     // ── Auth gate ───────────────────────────────────────────────────────────
-    const hasToken = !!accesstoken || tokenManager.hasToken() || tokensExisted;
+    const hasStandaloneToken = !!standaloneToken || (typeof window !== "undefined" && !!localStorage.getItem("sabiStandaloneToken"));
+
+    const hasToken = !!accesstoken || tokenManager.hasToken() || tokensExisted || hasStandaloneToken;
 
     if (!hasToken) {
       router.replace(`${routespath.SIGNIN}?redirect=${encodeURIComponent(pathName)}`);
@@ -119,10 +123,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     // K12 only: fetch the academic session for session-aware routing.
     // University users do not have academic sessions on the K12 backend.
-    if (hasToken && !currentSession && localInstitutionType !== "university") {
+    // Standalone SabiNote users also do not have school-specific academic sessions.
+    if (hasToken && !hasStandaloneToken && !currentSession && localInstitutionType !== "university") {
       dispatch(fetchCurrentSession());
     }
-  }, [mounted, accesstoken, pathName, router, currentSession, dispatch, reduxInstitutionType]);
+  }, [mounted, accesstoken, pathName, router, currentSession, dispatch, reduxInstitutionType, standaloneToken]);
 
   // SSR guard — avoid hydration mismatch
   if (!mounted) return null;

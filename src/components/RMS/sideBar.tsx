@@ -48,19 +48,25 @@ const SideBar = ({ children }: { children: ReactNode }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
 
+  const { token: standaloneToken, user: standaloneUser } = useSelector((s: RootState) => s.sabiStandaloneAuth);
+  const isStandalone = !!standaloneToken || (typeof window !== "undefined" && !!localStorage.getItem("sabiStandaloneToken"));
+
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await dispatch(logoutUser()).unwrap();
-
-      // Show success message
+      if (isStandalone) {
+        const { standaloneLogout } = await import("@/reduxToolKit/sabiStandaloneAuth/sabiStandaloneAuthThunks");
+        await dispatch(standaloneLogout()).unwrap();
+        router.push(routespath.SABINOTE_LOGIN);
+      } else {
+        await dispatch(logoutUser()).unwrap();
+        router.push(routespath.SIGNIN);
+      }
       toast.success("Logged out successfully");
-
-      // Redirect to signin page
-      router.push(routespath.SIGNIN);
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout");
+    } finally {
       setIsLoggingOut(false);
       setIsLogoutModalOpen(false);
     }
@@ -70,115 +76,140 @@ const SideBar = ({ children }: { children: ReactNode }) => {
     () => [
       {
         label: "Dashboard",
-        path: routespath.DASHBOARD,
+        path: isStandalone ? routespath.SABINOTE_DASHBOARD : routespath.DASHBOARD,
         icon: Home,
         roles: ["admin", "teacher"],
       },
-      {
-        label: "Users",
-        path: routespath.USERS,
-        icon: UserCircle,
-        roles: ["admin"],
-      },
-      {
-        label: "Enrollments",
-        path: routespath.ENROLLMENTS,
-        icon: UserPlus,
-        roles: ["admin"],
-      },
-      {
-        label: "Classes",
-        path: routespath.CLASSES,
-        icon: BookOpenCheck,
-        roles: ["admin", "teacher"],
-      },
-      {
-        label: "Subjects",
-        path: routespath.SUBJECTS,
-        icon: BookOpen,
-        roles: ["admin", "teacher"],
-      },
-      {
-        label: "Assessments",
-        path: routespath.ASSESSMENTS,
-        icon: ClipboardList,
-        roles: ["admin", "teacher"],
-      },
-      {
-        label: "Report Cards",
-        path: routespath.REPORT,
-        icon: BookOpen,
-        roles: ["admin", "teacher"],
-      },
-      {
-        label: "Comments",
-        path: routespath.COMMENTS,
-        icon: MessageSquareText,
-        roles: ["admin", "teacher"],
-      },
-      {
-        label: "Attendance",
-        path: routespath.ATTENDANCE,
-        icon: Calendar,
-        roles: ["admin", "teacher"],
-      },
-      {
-        label: "Bulk Upload",
-        path: routespath.BULK_UPLOAD,
-        icon: DownloadIcon,
-        roles: ["admin"],
-      },
-      {
-        label: "Academic",
-        path: routespath.ACADEMIC,
-        icon: Calendar,
-        roles: ["admin"],
-      },
-      {
-        label: "School Settings",
-        path: routespath.SCHOOL_SETTINGS,
-        icon: Settings,
-        roles: ["admin"],
-      },
-      {
-        label: "Branding",
-        path: routespath.BRANDING,
-        icon: Palette,
-        roles: ["admin"],
-      },
+      ...(!isStandalone
+        ? [
+            {
+              label: "Users",
+              path: routespath.USERS,
+              icon: UserCircle,
+              roles: ["admin"],
+            },
+            {
+              label: "Enrollments",
+              path: routespath.ENROLLMENTS,
+              icon: UserPlus,
+              roles: ["admin"],
+            },
+            {
+              label: "Classes",
+              path: routespath.CLASSES,
+              icon: BookOpenCheck,
+              roles: ["admin", "teacher"],
+            },
+            {
+              label: "Subjects",
+              path: routespath.SUBJECTS,
+              icon: BookOpen,
+              roles: ["admin", "teacher"],
+            },
+            {
+              label: "Assessments",
+              path: routespath.ASSESSMENTS,
+              icon: ClipboardList,
+              roles: ["admin", "teacher"],
+            },
+            {
+              label: "Report Cards",
+              path: routespath.REPORT,
+              icon: BookOpen,
+              roles: ["admin", "teacher"],
+            },
+            {
+              label: "Comments",
+              path: routespath.COMMENTS,
+              icon: MessageSquareText,
+              roles: ["admin", "teacher"],
+            },
+            {
+              label: "Attendance",
+              path: routespath.ATTENDANCE,
+              icon: Calendar,
+              roles: ["admin", "teacher"],
+            },
+            {
+              label: "Bulk Upload",
+              path: routespath.BULK_UPLOAD,
+              icon: DownloadIcon,
+              roles: ["admin"],
+            },
+            {
+              label: "Academic",
+              path: routespath.ACADEMIC,
+              icon: Calendar,
+              roles: ["admin"],
+            },
+            {
+              label: "School Settings",
+              path: routespath.SCHOOL_SETTINGS,
+              icon: Settings,
+              roles: ["admin"],
+            },
+            {
+              label: "Branding",
+              path: routespath.BRANDING,
+              icon: Palette,
+              roles: ["admin"],
+            },
+          ]
+        : []),
       {
         label: "Lesson Generator",
-        path: routespath.LESSON_GENERATOR,
+        path: routespath.LESSON_GENERATOR_NEW,
         icon: Sparkles,
         roles: ["admin", "teacher"],
       },
       {
         label: "Profile",
-        path: "/profile",
+        path: isStandalone ? routespath.SABINOTE_PROFILE : "/profile",
         icon: User,
         roles: ["admin", "teacher"],
       },
-      {
-        label: "Settings",
-        path: routespath.SETTINGS,
-        icon: Settings,
-        roles: ["admin", "teacher"],
-      },
+      ...(!isStandalone
+        ? [
+            {
+              label: "Settings",
+              path: routespath.SETTINGS,
+              icon: Settings,
+              roles: ["admin", "teacher"],
+            },
+          ]
+        : []),
     ],
-    [],
+    [isStandalone],
   );
 
   const filteredContent = useMemo(() => {
     return sideBarContent.filter((item) => {
+      if (isStandalone) return true; // Standalone users already have their menu pre-filtered
       if (!item.roles) return true;
       const userRoles = user?.roles || [];
       return item.roles.some((r) => userRoles.includes(r));
     });
-  }, [sideBarContent, user?.roles]);
+  }, [sideBarContent, user?.roles, isStandalone]);
+
+  // Use either standalone user info or regular user info for display
+  const effectiveUser = isStandalone
+    ? {
+        name: standaloneUser?.name || "Teacher",
+        role: "Teacher",
+        firstName: standaloneUser?.name?.split(" ")[0] || "",
+        roles: ["teacher"],
+      }
+    : user;
+
+  const effectiveTenantInfo = isStandalone
+    ? { name: "SabiNote" }
+    : tenantInfo;
 
   const getInitials = (name: string) => {
+    if (!name) return "??";
     return name
       .split(" ")
+      .filter(Boolean)
       .map((n) => n[0])
       .join("")
       .substring(0, 2)
@@ -189,8 +220,8 @@ const SideBar = ({ children }: { children: ReactNode }) => {
     <SidebarProvider>
       <SidebarContentContainer
         logo={logo}
-        tenantInfo={tenantInfo}
-        user={user}
+        tenantInfo={effectiveTenantInfo}
+        user={effectiveUser}
         filteredContent={filteredContent}
         pathname={pathname}
         handleLogout={() => setIsLogoutModalOpen(true)}

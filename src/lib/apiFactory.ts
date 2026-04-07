@@ -75,7 +75,10 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
         const isAuthAction =
           (config.url || "").includes(routespath.API_LOGIN) ||
           (config.url || "").includes("/auth/forgot-password") ||
-          (config.url || "").includes("/auth/reset-password");
+          (config.url || "").includes("/auth/reset-password") ||
+          (config.url || "").includes("/sabinote/auth/") ||
+          (config.url || "").includes("/lesson-generator/auth/") ||
+          (config.url || "").includes("/api/proxy/lesson-generator/");
 
         // Log warnings in development
         if (process.env.NODE_ENV === "development") {
@@ -113,6 +116,9 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
           routespath.API_CHANGE_PASSWORD,
         );
 
+        // Standalone lesson-generator requests
+        const isSabinoteRequest = url.includes("/lesson-generator") || url.includes("/sabinote/auth");
+
         // Super admin routes use their own auth — never redirect on 401
         const isSuperAdminRequest = url.includes("/super-admin/");
 
@@ -137,9 +143,10 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
 
           if (typeof window !== "undefined") {
             const currentPath = window.location.pathname;
-            if (!currentPath.includes("/auth/")) {
+            if (!currentPath.includes("/auth/") && !currentPath.includes("/sabinote/auth/")) {
               toast.error("Session expired, please log in again");
-              setTimeout(() => { window.location.href = "/auth/signin"; }, 1500);
+              const redirectPath = isSabinoteRequest ? routespath.SABINOTE_LOGIN : routespath.SIGNIN;
+              setTimeout(() => { window.location.href = redirectPath; }, 1500);
             }
           }
           return Promise.reject(error);
@@ -166,9 +173,10 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
 
           if (typeof window !== "undefined") {
             const currentPath = window.location.pathname;
-            if (!currentPath.includes("/auth/")) {
+            if (!currentPath.includes("/auth/") && !currentPath.includes("/sabinote/auth/")) {
               toast.error("Session expired, please log in again");
-              setTimeout(() => { window.location.href = "/auth/signin"; }, 1500);
+              const redirectPath = isSabinoteRequest ? routespath.SABINOTE_LOGIN : routespath.SIGNIN;
+              setTimeout(() => { window.location.href = redirectPath; }, 1500);
             }
           }
           return Promise.reject(refreshError);

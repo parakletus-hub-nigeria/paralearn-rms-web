@@ -45,7 +45,15 @@ export default function RoleGuard({
     setMounted(true);
   }, []);
 
+  const standaloneToken = useSelector((s: any) => s.sabiStandaloneAuth.token);
+  const isStandalone = !!standaloneToken || (typeof window !== "undefined" && !!localStorage.getItem("sabiStandaloneToken"));
+
   const ok = useMemo(() => {
+    // If user is a standalone SabiNote user, we treat them as a 'teacher' for role-guarding purposes
+    if (isStandalone && (allow.includes("teacher") || allow.includes("admin"))) {
+      return true;
+    }
+
     if (!Array.isArray(roles)) return false;
     if (roles.length === 0) return false;
 
@@ -58,9 +66,9 @@ export default function RoleGuard({
     return normalizedUserRoles.some((r: string) =>
       normalizedAllowedRoles.includes(r),
     );
-  }, [roles, allow]);
+  }, [roles, allow, isStandalone]);
 
-  const hasToken = !!tokenManager.getToken();
+  const hasToken = !!tokenManager.getToken() || isStandalone;
 
   // If we have a token but roles are empty (e.g. page refresh), fetch /users/me once.
   useEffect(() => {
@@ -126,6 +134,7 @@ export default function RoleGuard({
   // While roles are being resolved after refresh
   if (
     hasToken &&
+    !isStandalone &&
     Array.isArray(roles) &&
     roles.length === 0 &&
     !checkedProfile
