@@ -10,7 +10,10 @@ import {
   Calendar, Clock, Sparkles, ClipboardList,
   ExternalLink, ChevronRight, FileText, AlertCircle, Share2,
   Users, CheckSquare, MessageSquare, Lightbulb, Link2, Package,
+  Loader2,
 } from "lucide-react";
+import sabinoteApi from "@/lib/sabinoteApi";
+import { toast } from "sonner";
 import { format } from "date-fns";
 
 // ── Small helpers ──────────────────────────────────────────────────────────────
@@ -63,13 +66,31 @@ export function LessonGeneratorDetail() {
   const { currentLesson, loading, error } = useSelector((s: RootState) => s.lessonGenerator);
 
   const [activeTab, setActiveTab] = useState<"content" | "assessment" | "resources">("content");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchLessonDetail(id));
   }, [dispatch, id]);
 
-  const handleExport = () => {
-    window.open(`/api/proxy/lesson-generator/${id}/export-pdf`, "_blank");
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      // Endpoint returns styled HTML — fetch with auth then open in new tab for Ctrl+P printing
+      const res = await sabinoteApi.get(`/api/proxy/lesson-generator/${id}/export-pdf`, {
+        responseType: "text",
+      });
+      const blob = new Blob([res.data], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, "_blank");
+      // Revoke after a short delay so the new tab has time to load the blob
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      if (!win) toast.info("Popup blocked — allow popups and try again.");
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || "Failed to export PDF");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handlePrint = () => window.print();
@@ -172,9 +193,11 @@ export function LessonGeneratorDetail() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-5 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 transition-all active:scale-95 shadow-sm"
+            disabled={exporting}
+            className="flex items-center gap-2 px-5 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 transition-all active:scale-95 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4" />Export PDF
+            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {exporting ? "Opening…" : "Export PDF"}
           </button>
           <button
             onClick={handlePrint}

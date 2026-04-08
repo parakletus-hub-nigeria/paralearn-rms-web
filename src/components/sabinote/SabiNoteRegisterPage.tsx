@@ -41,7 +41,7 @@ export default function SabiNoteRegisterPage() {
           </Link>
           <h1 className="text-3xl font-headline font-bold text-[#001453] tracking-tight">Create your account</h1>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#6ffbbe] border border-[#4edea3] text-[#002113] text-xs font-bold shadow-sm">
-            <span className="material-symbols-outlined text-sm" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span> 5 free Parats on signup
+            <span className="material-symbols-outlined text-sm" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span> 20 free Parats on signup
           </div>
         </div>
 
