@@ -27,12 +27,24 @@ export type SubjectItem = {
   id: string;
   name: string;
   code?: string;
+  schoolId?: string;
+  /** @deprecated classId is kept for backward compat only — use classSubjects[] */
   classId?: string;
   description?: string;
   teacherId?: string;
   createdAt?: string;
   teacherAssignments?: any[];
   teachers?: any[];
+  /** New model: per-class assignment records */
+  classSubjects?: Array<{
+    id: string;
+    classId: string;
+    subjectType?: string;
+    difficulty?: string;
+    description?: string;
+    isActive?: boolean;
+    class?: { id: string; name: string; code?: string };
+  }>;
 };
 
 export type AssessmentItem = {
@@ -444,7 +456,9 @@ export const createSubject = createAsyncThunk(
     payload: {
       name: string;
       code?: string;
-      classId: string;
+      classId?: string;
+      subjectType?: string;
+      difficulty?: string;
       description?: string;
     },
     { rejectWithValue },
@@ -455,6 +469,67 @@ export const createSubject = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to create subject",
+      );
+    }
+  },
+);
+
+export const assignSubjectToClass = createAsyncThunk(
+  "admin/assignSubjectToClass",
+  async (
+    payload: {
+      subjectId: string;
+      classId: string;
+      subjectType?: string;
+      difficulty?: string;
+      description?: string;
+    },
+    { rejectWithValue },
+  ) => {
+    try {
+      const { subjectId, ...body } = payload;
+      const res = await apiClient.post(`/api/proxy/subjects/${subjectId}/classes`, body);
+      return unwrap(res);
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to assign subject to class",
+      );
+    }
+  },
+);
+
+export const removeSubjectFromClass = createAsyncThunk(
+  "admin/removeSubjectFromClass",
+  async (
+    payload: { subjectId: string; classId: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await apiClient.delete(
+        `/api/proxy/subjects/${payload.subjectId}/classes/${payload.classId}`,
+      );
+      return unwrap(res);
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to remove subject from class",
+      );
+    }
+  },
+);
+
+export const updateSubjectDetails = createAsyncThunk(
+  "admin/updateSubjectDetails",
+  async (
+    payload: { id: string; name?: string; code?: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const { id, ...body } = payload;
+      const res = await apiClient.patch(`/api/proxy/subjects/${id}`, body);
+      return unwrap(res) as SubjectItem;
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to update subject",
       );
     }
   },

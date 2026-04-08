@@ -73,6 +73,7 @@ export const paraApi = createApi({
     "ClassList",
     "Subject",
     "SubjectList",
+    "ClassSubject",
     "Assessment",
     "AssessmentList",
     "AssessmentCategory",

@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { assignTeacherToSubject, createSubject, fetchClasses, fetchSubjects } from "@/reduxToolKit/admin/adminThunks";
+import {
+  assignTeacherToSubject,
+  createSubject,
+  assignSubjectToClass,
+  removeSubjectFromClass,
+  updateSubjectDetails,
+  fetchClasses,
+  fetchSubjects,
+} from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
-import apiClient from "@/lib/api";
-import { useDeleteSubjectMutation } from "@/reduxToolKit/api/endpoints/subjects";
+import {
+  useDeleteSubjectMutation,
+  useAssignTeacherToClassSubjectMutation,
+  useRemoveTeacherFromClassSubjectMutation,
+} from "@/reduxToolKit/api/endpoints/subjects";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,9 +39,9 @@ import {
   Pencil,
   Trash2,
   X,
-  ChevronLeft,
-  ChevronRight,
   UserPlus,
+  Link,
+  Unlink,
 } from "lucide-react";
 import { ProductTour } from "@/components/common/ProductTour";
 
@@ -100,6 +111,19 @@ export function AdminSubjectsPage() {
   const [deleteSubjectId, setDeleteSubjectId] = useState<string | null>(null);
   const [deleteSubjectName, setDeleteSubjectName] = useState("");
   const [deleteSubject, { isLoading: deleting }] = useDeleteSubjectMutation();
+  const [assignTeacherToClassSubject] = useAssignTeacherToClassSubjectMutation();
+  const [removeTeacherFromClassSubject] = useRemoveTeacherFromClassSubjectMutation();
+
+  // Edit subject (name/code at school level)
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editSubject, setEditSubject] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: "", code: "" });
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Manage class assignments for a subject
+  const [showManageClassesModal, setShowManageClassesModal] = useState(false);
+  const [managingSubject, setManagingSubject] = useState<any>(null);
+  const [manageClassLoading, setManageClassLoading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchSubjects());
@@ -119,18 +143,6 @@ export function AdminSubjectsPage() {
     }
   }, [error, success, dispatch]);
 
-  // Get unique levels from classes for filter tabs
-  // Use level if available, otherwise use class name
-  const uniqueLevels = useMemo(() => {
-    const levels = new Set<string>();
-    classes.forEach((c) => {
-      // Use level if available, otherwise use name
-      const label = c.level || c.name;
-      if (label) levels.add(label);
-    });
-    return Array.from(levels).sort();
-  }, [classes]);
-
   // Create class name lookup
   const classById = useMemo(() => {
     const map = new Map<string, any>();
@@ -139,18 +151,29 @@ export function AdminSubjectsPage() {
   }, [classes]);
 
 
-  // Filter subjects
+  // Filter subjects — new model: classSubjects[] array instead of classId
   const filtered = useMemo(() => {
     let result = subjects;
 
-    // Filter by class
+    // Filter by class using classSubjects[] join records
     if (classFilter !== "all") {
-      result = result.filter((s: any) => s.classId === classFilter);
+      result = result.filter((s: any) => {
+        const cs: any[] = s.classSubjects || [];
+        // Fallback to legacy classId for backward compat
+        return cs.some((c: any) => c.classId === classFilter) || s.classId === classFilter;
+      });
     }
 
-    // Filter by level (check both level and name)
+    // Filter by level via class lookup
     if (levelFilter !== "all") {
       result = result.filter((s: any) => {
+        const cs: any[] = s.classSubjects || [];
+        // Check classSubjects[].class
+        if (cs.some((c: any) => {
+          const cls = c.class || classById.get(c.classId);
+          return cls?.level === levelFilter || cls?.name === levelFilter;
+        })) return true;
+        // Legacy fallback
         const cls = classById.get(s.classId);
         return cls?.level === levelFilter || cls?.name === levelFilter;
       });
@@ -183,38 +206,94 @@ export function AdminSubjectsPage() {
 
   const handleCreateSubject = async () => {
     if (!form.name.trim()) return toast.error("Subject name is required");
-    if (form.classIds.length === 0) return toast.error("Please select at least one class");
-    const multiple = form.classIds.length > 1;
     try {
-      await Promise.all(
-        form.classIds.map((classId) => {
-          const cls = classById.get(classId);
-          const suffix = cls?.name ? `-${cls.name.replace(/\s+/g, "").toUpperCase()}` : "";
-          const code = form.code.trim()
-            ? multiple
-              ? `${form.code.trim()}${suffix}`
-              : form.code.trim()
-            : undefined;
-          return dispatch(
-            createSubject({
-              name: form.name.trim(),
-              code,
-              classId,
-              description: form.description.trim() || undefined,
-            })
-          ).unwrap();
+      // Step 1: Create the school-level subject (classId optional)
+      const firstClassId = form.classIds[0];
+      const created = await dispatch(
+        createSubject({
+          name: form.name.trim(),
+          code: form.code.trim() || undefined,
+          // Pass first classId inline if provided — backend auto-links it
+          classId: firstClassId || undefined,
+          description: form.description.trim() || undefined,
         })
-      );
+      ).unwrap();
+
+      // Step 2: Assign remaining classes (if any) via POST /subjects/:id/classes
+      const remainingClassIds = form.classIds.slice(1);
+      if (remainingClassIds.length > 0 && created?.id) {
+        await Promise.all(
+          remainingClassIds.map((classId) =>
+            dispatch(assignSubjectToClass({ subjectId: created.id, classId })).unwrap()
+          )
+        );
+      }
+
       toast.success(
-        multiple
-          ? `${form.classIds.length} subjects created successfully`
-          : "Subject created successfully"
+        form.classIds.length > 1
+          ? `Subject created and assigned to ${form.classIds.length} classes`
+          : form.classIds.length === 1
+            ? "Subject created and assigned to class"
+            : "Subject created in school catalogue"
       );
       setForm({ name: "", code: "", classIds: [], description: "" });
       setShowCreateModal(false);
       dispatch(fetchSubjects());
     } catch (e: any) {
-      toast.error(e || "Failed to create subject");
+      toast.error(typeof e === "string" ? e : e?.message || "Failed to create subject");
+    }
+  };
+
+  const handleEditSubject = async () => {
+    if (!editSubject) return;
+    if (!editForm.name.trim()) return toast.error("Subject name is required");
+    setEditLoading(true);
+    try {
+      await dispatch(updateSubjectDetails({ id: editSubject.id, name: editForm.name.trim(), code: editForm.code.trim() || undefined })).unwrap();
+      toast.success("Subject updated");
+      setShowEditModal(false);
+      setEditSubject(null);
+      dispatch(fetchSubjects());
+    } catch (e: any) {
+      toast.error(typeof e === "string" ? e : e?.message || "Failed to update subject");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleAssignToClass = async (classId: string) => {
+    if (!managingSubject) return;
+    setManageClassLoading(true);
+    try {
+      await dispatch(assignSubjectToClass({ subjectId: managingSubject.id, classId })).unwrap();
+      toast.success("Subject assigned to class");
+      dispatch(fetchSubjects());
+      // Update local managing subject state
+      const res = await dispatch(fetchSubjects()).unwrap();
+      const updated = (res as any[])?.find((s: any) => s.id === managingSubject.id);
+      if (updated) setManagingSubject(updated);
+    } catch (e: any) {
+      toast.error(typeof e === "string" ? e : e?.message || "Failed to assign to class");
+    } finally {
+      setManageClassLoading(false);
+    }
+  };
+
+  const handleRemoveFromClass = async (classId: string) => {
+    if (!managingSubject) return;
+    if (!confirm("Remove this subject from the class? The subject stays in the school catalogue.")) return;
+    setManageClassLoading(true);
+    try {
+      await dispatch(removeSubjectFromClass({ subjectId: managingSubject.id, classId })).unwrap();
+      toast.success("Subject removed from class");
+      dispatch(fetchSubjects());
+      const res = await dispatch(fetchSubjects()).unwrap();
+      const updated = (res as any[])?.find((s: any) => s.id === managingSubject.id);
+      if (updated) setManagingSubject(updated);
+    } catch (e: any) {
+      toast.error(typeof e === "string" ? e : e?.message || "Failed to remove from class");
+    } finally {
+      setManageClassLoading(false);
     }
   };
 
@@ -232,27 +311,40 @@ export function AdminSubjectsPage() {
     }
   };
 
+  // assignClassSubjectId: the classSubjectId to scope teacher assignment to
+  // null means "no specific class" — falls back to legacy school-wide endpoint
+  const [assignClassSubjectId, setAssignClassSubjectId] = useState<string | null>(null);
+
   const handleAssignTeacher = async () => {
+    if (!selectedSubject) return toast.error("Please select a subject");
+    if (!assignTeacherId) return toast.error("Please select a teacher");
     try {
-      if (!selectedSubject) return toast.error("Please select a subject");
-      if (!assignTeacherId) return toast.error("Please select a teacher");
-      await dispatch(assignTeacherToSubject({ subjectId: selectedSubject.id, teacherId: assignTeacherId })).unwrap();
-      toast.success("Teacher assigned to subject");
+      if (assignClassSubjectId) {
+        // New model: assign to specific class-subject
+        await assignTeacherToClassSubject({ classSubjectId: assignClassSubjectId, teacherId: assignTeacherId }).unwrap();
+      } else {
+        // Legacy fallback: school-wide assignment
+        await dispatch(assignTeacherToSubject({ subjectId: selectedSubject.id, teacherId: assignTeacherId })).unwrap();
+      }
+      toast.success("Teacher assigned successfully");
       setAssignTeacherId("");
-      setShowAssignModal(false);
-      // Remove only the specific subject from the cache so it re-fetches with new teacher data
-      setAssignTeacherId("");
+      setAssignClassSubjectId(null);
       setShowAssignModal(false);
       setSelectedSubject(null);
       dispatch(fetchSubjects());
     } catch (e: any) {
-      toast.error(e || "Failed to assign teacher");
+      toast.error(typeof e === "string" ? e : e?.data?.message || "Failed to assign teacher");
     }
   };
 
-  const openAssignModal = (subject: any) => {
+  // Open assign modal — if subject has classSubjects, pick the first classSubjectId
+  // so we default to the new scoped assignment
+  const openAssignModal = (subject: any, classSubjectId?: string) => {
     setSelectedSubject(subject);
     setAssignTeacherId("");
+    // Use explicitly passed classSubjectId, or first classSubject from subject
+    const csId = classSubjectId ?? subject.classSubjects?.[0]?.id ?? null;
+    setAssignClassSubjectId(csId);
     setShowAssignModal(true);
   };
 
@@ -266,41 +358,21 @@ export function AdminSubjectsPage() {
   }, [teachers]);
 
   const getTeacherInfo = (subject: any) => {
-    const subjectToCheck = subject;
-    
-    // 1. Check teacherAssignments array (primary source from API list)
-    if (subjectToCheck.teacherAssignments && subjectToCheck.teacherAssignments.length > 0) {
-      const assignment = subjectToCheck.teacherAssignments[0];
-      if (assignment.teacher) {
-        return assignment.teacher;
-      }
-      if (assignment.teacherId) {
-        return teacherById.get(assignment.teacherId);
-      }
+    // 1. New model: teachers[] from GET /subjects/by-class (class-scoped TeacherClassSubject)
+    if (subject.teachers?.length > 0) {
+      return subject.teachers[0].teacher ?? null;
     }
-    
-    // 2. Check teachers array
-    if (subjectToCheck.teachers && subjectToCheck.teachers.length > 0) {
-      const teacher = subjectToCheck.teachers[0];
-      if (teacher) {
-        if (teacher.name && !teacher.firstName) {
-          const parts = teacher.name.split(' ');
-          return {
-            ...teacher,
-            firstName: parts[0] || '',
-            lastName: parts.slice(1).join(' ') || '',
-          };
-        }
-        return teacher;
-      }
+
+    // 2. Legacy: teacherAssignments[] from GET /subjects (school-wide TeacherSubject)
+    if (subject.teacherAssignments?.length > 0) {
+      const a = subject.teacherAssignments[0];
+      return a.teacher ?? teacherById.get(a.teacherId) ?? null;
     }
-    
-    // 3. Check direct teacher field
-    if (subjectToCheck.teacher) return subjectToCheck.teacher;
-    
-    // 4. Check teacherId field and look up
-    if (subjectToCheck.teacherId) return teacherById.get(subjectToCheck.teacherId);
-    
+
+    // 3. Direct teacher field or teacherId lookup
+    if (subject.teacher) return subject.teacher;
+    if (subject.teacherId) return teacherById.get(subject.teacherId);
+
     return null;
   };
 
@@ -423,11 +495,9 @@ export function AdminSubjectsPage() {
                 </thead>
                 <tbody>
                   {paginatedSubjects.map((subject: any, idx) => {
-                    const cls = classById.get(subject.classId);
-                    const level = cls?.level || cls?.name || "—";
-                    // Use shuffled colors based on global index in filtered list
+                    // New model: classes come from classSubjects[]
+                    const classSubjects: any[] = subject.classSubjects || [];
                     const globalIdx = (page - 1) * ITEMS_PER_PAGE + idx;
-                    const levelColor = getColorByIndex(globalIdx);
                     const teacher = getTeacherInfo(subject);
 
                     return (
@@ -446,9 +516,26 @@ export function AdminSubjectsPage() {
                           </span>
                         </td>
                         <td className="py-4 px-3">
-                          <Badge className={`rounded-lg px-3 py-1 font-medium text-xs ${levelColor.bg} ${levelColor.text}`}>
-                            {level}
-                          </Badge>
+                          {classSubjects.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {classSubjects.slice(0, 3).map((cs: any, i: number) => {
+                                const color = getColorByIndex(globalIdx + i);
+                                const name = cs.class?.name || classById.get(cs.classId)?.name || cs.classId;
+                                return (
+                                  <Badge key={cs.id || i} className={`rounded-lg px-2 py-0.5 font-medium text-xs ${color.bg} ${color.text}`}>
+                                    {name}
+                                  </Badge>
+                                );
+                              })}
+                              {classSubjects.length > 3 && (
+                                <Badge className="rounded-lg px-2 py-0.5 font-medium text-xs bg-slate-100 text-slate-500">
+                                  +{classSubjects.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-sm italic">No classes</span>
+                          )}
                         </td>
                         <td className="py-4 px-3">
                           {teacher ? (
@@ -458,7 +545,7 @@ export function AdminSubjectsPage() {
                                   teacher.name || `${teacher.firstName || ""}${teacher.lastName || ""}`
                                 )}`}
                               >
-                                {teacher.name 
+                                {teacher.name
                                   ? teacher.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
                                   : getInitials(teacher.firstName, teacher.lastName)
                                 }
@@ -467,9 +554,7 @@ export function AdminSubjectsPage() {
                                 <p className="font-semibold text-slate-900 text-sm">
                                   {teacher.name || `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim() || "Teacher"}
                                 </p>
-                                <p className="text-slate-500 text-xs">
-                                  {teacher.role || teacher.teacherId || "Subject Teacher"}
-                                </p>
+                                <p className="text-slate-500 text-xs">Subject Teacher</p>
                               </div>
                             </div>
                           ) : (
@@ -487,11 +572,25 @@ export function AdminSubjectsPage() {
                         <td className="py-4 px-3 text-center">
                           <div className="inline-flex items-center gap-1">
                             <button
+                              onClick={() => { setEditSubject(subject); setEditForm({ name: subject.name, code: subject.code || "" }); setShowEditModal(true); }}
+                              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                              title="Edit subject name/code"
+                            >
+                              <Pencil className="w-4 h-4 text-slate-400" />
+                            </button>
+                            <button
                               onClick={() => openAssignModal(subject)}
                               className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
                               title="Assign teacher"
                             >
-                              <Pencil className="w-4 h-4 text-slate-400" />
+                              <UserPlus className="w-4 h-4 text-slate-400" />
+                            </button>
+                            <button
+                              onClick={() => { setManagingSubject(subject); setShowManageClassesModal(true); }}
+                              className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                              title="Manage class assignments"
+                            >
+                              <Link className="w-4 h-4 text-blue-400" />
                             </button>
                             <button
                               onClick={() => { setDeleteSubjectId(subject.id); setDeleteSubjectName(subject.name); }}
@@ -791,6 +890,94 @@ export function AdminSubjectsPage() {
         document.body
       )}
 
+      {/* Edit Subject Modal */}
+      {showEditModal && editSubject && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Edit Subject</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Updates the school-wide subject name and code</p>
+              </div>
+              <button onClick={() => setShowEditModal(false)} className="p-2 rounded-lg hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Subject Name</label>
+                <Input value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} className="mt-2 h-11 rounded-xl" placeholder="e.g. Mathematics" />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Code</label>
+                <Input value={editForm.code} onChange={(e) => setEditForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))} className="mt-2 h-11 rounded-xl font-mono" placeholder="e.g. MTH101" />
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
+              <Button variant="outline" onClick={() => setShowEditModal(false)} className="h-11 px-6 rounded-xl">Cancel</Button>
+              <Button onClick={handleEditSubject} disabled={editLoading} className="h-11 px-6 rounded-xl text-white" style={{ backgroundColor: primaryColor }}>
+                {editLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Manage Class Assignments Modal */}
+      {showManageClassesModal && managingSubject && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowManageClassesModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Manage Classes</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Assign or remove <span className="font-semibold">{managingSubject.name}</span> from classes</p>
+              </div>
+              <button onClick={() => setShowManageClassesModal(false)} className="p-2 rounded-lg hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            <div className="px-6 py-4 max-h-[60vh] overflow-y-auto space-y-1">
+              {classes.map((cls: any) => {
+                const assigned = (managingSubject.classSubjects || []).some((cs: any) => cs.classId === cls.id);
+                return (
+                  <div key={cls.id} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-slate-50">
+                    <div>
+                      <p className="font-semibold text-slate-800 text-sm">{cls.name}</p>
+                      {cls.level && <p className="text-slate-400 text-xs">{cls.level}</p>}
+                    </div>
+                    {assigned ? (
+                      <button
+                        onClick={() => handleRemoveFromClass(cls.id)}
+                        disabled={manageClassLoading}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <Unlink className="w-3.5 h-3.5" /> Remove
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleAssignToClass(cls.id)}
+                        disabled={manageClassLoading}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <Link className="w-3.5 h-3.5" /> Assign
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {classes.length === 0 && <p className="text-center text-slate-400 py-6 text-sm">No classes found</p>}
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end bg-slate-50/50">
+              <Button variant="outline" onClick={() => setShowManageClassesModal(false)} className="h-11 px-6 rounded-xl">Done</Button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* Assign Teacher Modal */}
       {showAssignModal && selectedSubject && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
@@ -808,31 +995,53 @@ export function AdminSubjectsPage() {
               </button>
             </div>
 
-            <div className="px-6 py-5">
-              <label className="text-sm font-semibold text-slate-700">Select Teacher</label>
-              <div className="mt-2" style={{ position: "relative", zIndex: 10001 }}>
-                <Select value={assignTeacherId} onValueChange={setAssignTeacherId}>
-                  <SelectTrigger className="h-11 w-full rounded-xl">
-                    <SelectValue placeholder="Choose a teacher" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl max-h-[300px]" style={{ zIndex: 10002 }}>
-                    {(teachers || []).map((t: any) => {
-                      const name = `${t.firstName || ""} ${t.lastName || ""}`.trim();
-                      return (
-                        <SelectItem key={t.id} value={t.id}>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold ${getAvatarColor(name)}`}
-                            >
-                              {getInitials(t.firstName, t.lastName)}
+            <div className="px-6 py-5 space-y-4">
+              {/* Class scope selector — shown when subject is in multiple classes */}
+              {selectedSubject.classSubjects?.length > 1 && (
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Assign for Class</label>
+                  <Select
+                    value={assignClassSubjectId ?? ""}
+                    onValueChange={(v) => setAssignClassSubjectId(v || null)}
+                  >
+                    <SelectTrigger className="mt-2 h-11 w-full rounded-xl">
+                      <SelectValue placeholder="Select class" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl" style={{ zIndex: 10002 }}>
+                      {selectedSubject.classSubjects.map((cs: any) => {
+                        const name = cs.class?.name ?? classById.get(cs.classId)?.name ?? cs.classId;
+                        return <SelectItem key={cs.id} value={cs.id}>{name}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-400 mt-1">Teacher will be scoped to this class only</p>
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Select Teacher</label>
+                <div className="mt-2" style={{ position: "relative", zIndex: 10001 }}>
+                  <Select value={assignTeacherId} onValueChange={setAssignTeacherId}>
+                    <SelectTrigger className="h-11 w-full rounded-xl">
+                      <SelectValue placeholder="Choose a teacher" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl max-h-[300px]" style={{ zIndex: 10002 }}>
+                      {(teachers || []).map((t: any) => {
+                        const name = `${t.firstName || ""} ${t.lastName || ""}`.trim();
+                        return (
+                          <SelectItem key={t.id} value={t.id}>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold ${getAvatarColor(name)}`}>
+                                {getInitials(t.firstName, t.lastName)}
+                              </div>
+                              <span>{name || t.email || t.id}</span>
                             </div>
-                            <span>{name || t.email || t.id}</span>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 

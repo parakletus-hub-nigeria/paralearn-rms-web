@@ -156,6 +156,41 @@ const assessmentsApi = paraApi.injectEndpoints({
         data: body,
       }),
     }),
+
+    // POST /api/proxy/assessments/:id/class-subjects ⭐ NEW — link assessment to ClassSubject
+    linkAssessmentToClassSubject: builder.mutation<any, { assessmentId: string; classSubjectId: string }>({
+      query: ({ assessmentId, classSubjectId }) => ({
+        url: `/api/proxy/assessments/${assessmentId}/class-subjects`,
+        method: "POST",
+        data: { classSubjectId },
+      }),
+      invalidatesTags: (_r, _e, { assessmentId }) => [
+        { type: "Assessment" as const, id: assessmentId },
+      ],
+    }),
+
+    // DELETE /api/proxy/assessments/:id/class-subjects/:classSubjectId ⭐ NEW — unlink
+    unlinkAssessmentFromClassSubject: builder.mutation<
+      any,
+      { assessmentId: string; classSubjectId: string }
+    >({
+      query: ({ assessmentId, classSubjectId }) => ({
+        url: `/api/proxy/assessments/${assessmentId}/class-subjects/${classSubjectId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, { assessmentId }) => [
+        { type: "Assessment" as const, id: assessmentId },
+      ],
+    }),
+
+    // GET /api/proxy/assessments/:id/class-subjects ⭐ NEW — list class-subject links
+    getAssessmentClassSubjects: builder.query<any[], string>({
+      query: (assessmentId) => ({
+        url: `/api/proxy/assessments/${assessmentId}/class-subjects`,
+      }),
+      transformResponse: (res: any) => (Array.isArray(res) ? res : []),
+      providesTags: (_r, _e, id) => [{ type: "Assessment" as const, id: `cs-${id}` }],
+    }),
   }),
   overrideExisting: false,
 });
@@ -172,4 +207,7 @@ export const {
   useCreateAssessmentCategoryMutation,
   useDeleteAssessmentCategoryMutation,
   useGradeAnswerMutation,
+  useLinkAssessmentToClassSubjectMutation,
+  useUnlinkAssessmentFromClassSubjectMutation,
+  useGetAssessmentClassSubjectsQuery,
 } = assessmentsApi;

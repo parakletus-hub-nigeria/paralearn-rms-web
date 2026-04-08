@@ -879,7 +879,8 @@ export function AdminClassesPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit Class Modal */}

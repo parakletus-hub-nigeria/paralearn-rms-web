@@ -16,6 +16,7 @@ import {
 } from "@/reduxToolKit/admin/adminThunks";
 import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
+import { useLinkAssessmentToClassSubjectMutation } from "@/reduxToolKit/api/endpoints/assessments";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -116,6 +117,7 @@ export function AdminAssessmentsPage() {
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   const { assessmentCategories } = useSelector((s: RootState) => s.admin);
+  const [linkToClassSubject] = useLinkAssessmentToClassSubjectMutation();
 
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -202,16 +204,30 @@ export function AdminAssessmentsPage() {
     return result;
   }, [assessments, statusFilter, typeFilter, classFilter, q, subjectNameById]);
 
-  // All subjects belonging to the selected classes
+  // New model: subjects have classSubjects[] instead of classId
+  // Build flat list of { subjectId, subjectName, classId, classSubjectId } for selected classes
   const subjectsInSelectedClasses = useMemo(() => {
     if (form.classIds.length === 0) return [];
-    return subjects.filter((s: any) => form.classIds.includes(s.classId));
+    const flat: Array<{ subjectId: string; name: string; classId: string; classSubjectId: string }> = [];
+    for (const s of subjects) {
+      const cs: any[] = s.classSubjects || [];
+      for (const c of cs) {
+        if (form.classIds.includes(c.classId)) {
+          flat.push({ subjectId: s.id, name: s.name, classId: c.classId, classSubjectId: c.id });
+        }
+      }
+      // Legacy fallback: subject has direct classId
+      if (cs.length === 0 && s.classId && form.classIds.includes(s.classId)) {
+        flat.push({ subjectId: s.id, name: s.name, classId: s.classId, classSubjectId: "" });
+      }
+    }
+    return flat;
   }, [subjects, form.classIds]);
 
   // De-duplicated subject names across all selected classes (sorted)
   const uniqueSubjectNames = useMemo(() => {
     const names = new Set<string>();
-    subjectsInSelectedClasses.forEach((s: any) => names.add(s.name));
+    subjectsInSelectedClasses.forEach((s) => names.add(s.name));
     return Array.from(names).sort();
   }, [subjectsInSelectedClasses]);
 
@@ -219,7 +235,7 @@ export function AdminAssessmentsPage() {
   const subjectClassCount = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const name of uniqueSubjectNames) {
-      counts[name] = subjectsInSelectedClasses.filter((s: any) => s.name === name).length;
+      counts[name] = subjectsInSelectedClasses.filter((s) => s.name === name).length;
     }
     return counts;
   }, [uniqueSubjectNames, subjectsInSelectedClasses]);
@@ -234,21 +250,13 @@ export function AdminAssessmentsPage() {
     if (form.subjectNames.length === 0) return toast.error("Select at least one subject");
     if (!form.startsAt) return toast.error("Start date is required");
 
-    // Build (classId, subjectId) pairs by matching subject names per class
-    const pairs: Array<{ classId: string; subjectId: string }> = [];
-    for (const classId of form.classIds) {
-      const classSubjects = subjects.filter(
-        (s: any) => s.classId === classId && form.subjectNames.includes(s.name)
-      );
-      for (const s of classSubjects) {
-        pairs.push({ classId, subjectId: s.id });
-      }
-    }
+    // Build pairs from new model flat list (classSubjectId included)
+    const pairs = subjectsInSelectedClasses.filter((s) => form.subjectNames.includes(s.name));
     if (pairs.length === 0) return toast.error("No matching subjects found for the selected classes");
 
     setCreating(true);
     try {
-      await Promise.all(
+      const created = await Promise.all(
         pairs.map(({ classId, subjectId }) =>
           dispatch(createAssessment({
             title: form.title.trim(),
@@ -266,6 +274,17 @@ export function AdminAssessmentsPage() {
           })).unwrap()
         )
       );
+
+      // Link each created assessment to its ClassSubject (best-effort, non-fatal)
+      await Promise.allSettled(
+        created.map((assessment: any, i) => {
+          const csId = pairs[i]?.classSubjectId;
+          if (assessment?.id && csId) {
+            return linkToClassSubject({ assessmentId: assessment.id, classSubjectId: csId }).unwrap();
+          }
+        })
+      );
+
       toast.success(`${pairs.length} assessment${pairs.length > 1 ? "s" : ""} created successfully`);
       resetForm();
       setShowCreateModal(false);

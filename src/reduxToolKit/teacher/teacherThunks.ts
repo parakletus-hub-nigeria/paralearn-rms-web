@@ -568,23 +568,15 @@ export const fetchClassStudents = createAsyncThunk(
   }
 );
 
-// Fetch subjects for a class
-// Fetch subjects for a class - Enforcing Isolation
+// Fetch subjects for a class — uses GET /subjects/by-class/:classId (new model)
+// Returns subjects with classSubjectId, subjectType, difficulty, isActive flattened
 export const fetchClassSubjects = createAsyncThunk(
   "teacher/fetchClassSubjects",
-  async (classId: string, { rejectWithValue, getState }) => {
+  async (classId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/subjects?classId=${classId}`);
+      const res = await apiClient.get(`/api/proxy/subjects/by-class/${classId}`);
       const data = res.data?.data || res.data || [];
-      const allSubjects = Array.isArray(data) ? data : [];
-
-      // Filter by Class ID to ensure we only show subjects for the selected class
-      // regardless of what the API returns.
-      const filteredByClass = allSubjects.filter((s: any) => 
-        s.classId === classId || s.class?.id === classId
-      );
-      
-      return filteredByClass;
+      return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to load subjects"

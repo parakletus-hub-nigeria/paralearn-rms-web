@@ -16,8 +16,8 @@ import {
   deleteTeacherAssessment,
   publishAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
-import { generateTemplate } from "@/lib/templates";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
+import { useLinkAssessmentToClassSubjectMutation } from "@/reduxToolKit/api/endpoints/assessments";
 
 import { TeacherHeader } from "./TeacherHeader";
 import { Input } from "@/components/ui/input";
@@ -40,8 +40,6 @@ import {
   Search,
   Plus,
   MoreVertical,
-  Calendar,
-  Users,
   Clock,
   RefreshCcw,
   FileText,
@@ -52,13 +50,8 @@ import {
   ClipboardList,
   Grid3X3,
   List,
-  Filter,
-  GraduationCap,
   CheckCircle,
-  AlertCircle,
   PlayCircle,
-  Download,
-  Upload,
   Sparkles,
   Send,
   Trash2,
@@ -98,16 +91,16 @@ export function TeacherAssessmentsPage() {
   const { 
     assessments, 
     teacherClasses, 
-    academicCurrent, 
-    assessmentCategories, 
+    academicCurrent,
+    assessmentCategories,
     loading,
     assessmentsLoading,
     classesLoading,
-    categoriesLoading
   } = useSelector((s: RootState) => s.teacher);
   const { user } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
+  const [linkToClassSubject] = useLinkAssessmentToClassSubjectMutation();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -117,6 +110,8 @@ export function TeacherAssessmentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [classSubjects, setClassSubjects] = useState<any[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
+  // classSubjectId is stored separately to link assessment after creation
+  const [selectedClassSubjectId, setSelectedClassSubjectId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -271,7 +266,7 @@ export function TeacherAssessmentsPage() {
       //   return toast.error("Online assessments must have at least one question");
       // }
 
-      await dispatch(
+      const created = await dispatch(
         createTeacherAssessment({
           title: createForm.title.trim(),
           classId: createForm.classId,
@@ -289,8 +284,18 @@ export function TeacherAssessmentsPage() {
         })
       ).unwrap();
 
+      // Link to ClassSubject so report card engine can resolve class+subject combination
+      if (created?.id && selectedClassSubjectId) {
+        try {
+          await linkToClassSubject({ assessmentId: created.id, classSubjectId: selectedClassSubjectId }).unwrap();
+        } catch {
+          // Non-fatal — assessment is created, linking is best-effort
+        }
+      }
+
       toast.success("Assessment created successfully");
       setShowCreateModal(false);
+      setSelectedClassSubjectId(null);
       setCreateForm({
         title: "",
         classId: "",
@@ -379,27 +384,7 @@ export function TeacherAssessmentsPage() {
     }
   };
 
-  const addQuestion = () => {
-    if (!newQuestion.text) return toast.error("Question text is required");
-    setCreateForm(prev => ({
-      ...prev,
-      questions: [...prev.questions, { ...newQuestion, id: Date.now() }]
-    }));
-    setNewQuestion({
-      text: "",
-      type: "MCQ",
-      marks: "1",
-      options: [{ text: "", isCorrect: false }, { text: "", isCorrect: false }],
-      correctAnswer: "",
-    });
-  };
 
-  const removeQuestion = (idx: number) => {
-    setCreateForm(prev => ({
-      ...prev,
-      questions: prev.questions.filter((_, i) => i !== idx)
-    }));
-  };
 
   const getClassName = (classId: string) => {
     const cls = uniqueClasses.find((c: any) => c.id === classId);
@@ -876,7 +861,7 @@ export function TeacherAssessmentsPage() {
                   <label className="text-sm font-semibold text-slate-700">Class *</label>
                   <Select
                     value={createForm.classId}
-                    onValueChange={(v) => setCreateForm((p) => ({ ...p, classId: v, subjectId: "" }))}
+                    onValueChange={(v) => { setCreateForm((p) => ({ ...p, classId: v, subjectId: "" })); setSelectedClassSubjectId(null); }}
                   >
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
                       <SelectValue placeholder="Select Class" />
@@ -895,7 +880,12 @@ export function TeacherAssessmentsPage() {
                   <label className="text-sm font-semibold text-slate-700">Subject *</label>
                   <Select
                     value={createForm.subjectId}
-                    onValueChange={(v) => setCreateForm((p) => ({ ...p, subjectId: v }))}
+                    onValueChange={(v) => {
+                      // New model: each subject has classSubjectId from by-class endpoint
+                      const subj = classSubjects.find((s: any) => s.id === v);
+                      setSelectedClassSubjectId(subj?.classSubjectId ?? null);
+                      setCreateForm((p) => ({ ...p, subjectId: v }));
+                    }}
                     disabled={!createForm.classId || loadingSubjects}
                   >
                     <SelectTrigger className="mt-2 h-11 rounded-xl">
@@ -905,6 +895,7 @@ export function TeacherAssessmentsPage() {
                       {classSubjects.map((subj: any) => (
                         <SelectItem key={subj.id} value={subj.id}>
                           {subj.name}
+                          {subj.subjectType && <span className="text-slate-400 ml-1 text-xs">({subj.subjectType})</span>}
                         </SelectItem>
                       ))}
                     </SelectContent>
