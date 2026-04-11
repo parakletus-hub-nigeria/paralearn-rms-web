@@ -47,6 +47,9 @@ import {
   fetchClassSubjects,
   deleteClass,
   fetchAssessmentDetail,
+  previewSchoolPromotion,
+  executeSchoolPromotion,
+  type PromotionPreviewResponse,
 } from "./adminThunks";
 
 type AdminState = {
@@ -79,6 +82,10 @@ type AdminState = {
   selectedAssessment: AssessmentItem | null;
   assessmentSubmissions: any[];
   selectedClassSubjects: any[];
+
+  promotionPreview: PromotionPreviewResponse | null;
+  promotionLoading: boolean;
+  promotionError: string | null;
 };
 
 const ensureString = (val: any, fallback: string): string => {
@@ -109,6 +116,10 @@ const initialState: AdminState = {
   selectedAssessment: null,
   assessmentSubmissions: [],
   selectedClassSubjects: [],
+
+  promotionPreview: null,
+  promotionLoading: false,
+  promotionError: null,
 };
 
 const adminSlice = createSlice({
@@ -606,6 +617,36 @@ const adminSlice = createSlice({
       .addCase(fetchAssessmentSubmissions.rejected, (state, action) =>
         rejected(state, action, "Failed to load assessment submissions")
       );
+
+    // Class Promotion
+    builder
+      .addCase(previewSchoolPromotion.pending, (state) => {
+        state.promotionLoading = true;
+        state.promotionError = null;
+        state.promotionPreview = null;
+      })
+      .addCase(previewSchoolPromotion.fulfilled, (state, action) => {
+        state.promotionLoading = false;
+        state.promotionPreview = action.payload;
+      })
+      .addCase(previewSchoolPromotion.rejected, (state, action) => {
+        state.promotionLoading = false;
+        state.promotionError = ensureString(action.payload, "Failed to preview promotion");
+      });
+
+    builder
+      .addCase(executeSchoolPromotion.pending, (state) => {
+        state.promotionLoading = true;
+        state.promotionError = null;
+      })
+      .addCase(executeSchoolPromotion.fulfilled, (state) => {
+        state.promotionLoading = false;
+        state.promotionPreview = null;
+      })
+      .addCase(executeSchoolPromotion.rejected, (state, action) => {
+        state.promotionLoading = false;
+        state.promotionError = ensureString(action.payload, "Failed to execute promotion");
+      });
   },
 });
 

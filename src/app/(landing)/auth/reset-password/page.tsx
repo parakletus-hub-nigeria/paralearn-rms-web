@@ -7,8 +7,9 @@ import { Suspense } from "react";
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
+  const subdomain = searchParams.get("subdomain") || undefined;
 
-  return <ResetPasswordPage code={token} />;
+  return <ResetPasswordPage code={token} subdomain={subdomain} />;
 }
 
 export default function ResetPassword() {

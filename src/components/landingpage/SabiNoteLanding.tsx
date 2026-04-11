@@ -44,14 +44,23 @@ const SabiNoteLanding = () => {
             </div>
           </div>
 
-          {/* CTA */}
-          <Link
-            href={routespath.SABINOTE_LOGIN}
-            className="rounded-full px-6 py-2.5 text-sm font-black text-white transition-all hover:opacity-90"
-            style={{ background: "linear-gradient(135deg, #641bc4 0%, #9747ff 100%)" }}
-          >
-            Log in
-          </Link>
+          {/* CTA Group */}
+          <div className="flex items-center gap-3 sm:gap-6">
+            <Link
+              href={routespath.SABINOTE_LOGIN}
+              className="text-sm font-bold transition-all hover:text-[#641bc4]"
+              style={{ color: "#64748b" }}
+            >
+              Log in
+            </Link>
+            <Link
+              href={routespath.SABINOTE_REGISTER}
+              className="rounded-full px-6 py-2.5 text-sm font-black text-white transition-all hover:opacity-90 hover:shadow-lg"
+              style={{ background: "linear-gradient(135deg, #641bc4 0%, #9747ff 100%)" }}
+            >
+              Sign up
+            </Link>
+          </div>
         </nav>
       </header>
 

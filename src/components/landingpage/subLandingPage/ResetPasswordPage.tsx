@@ -11,9 +11,10 @@ import { getSubdomain } from "@/lib/subdomainManager";
 
 type ResetPasswordPageProps = {
   code: string;
+  subdomain?: string;
 };
 
-export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
+export default function ResetPasswordPage({ code, subdomain: subdomainProp }: ResetPasswordPageProps) {
   const [resetPassword, { isLoading: loading }] = useResetPasswordMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
@@ -25,9 +26,10 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  // Check if we have a natural subdomain
+  // Subdomain resolution: prop (from email link) > URL > manual input
   const naturalSubdomain = typeof window !== 'undefined' ? getSubdomain() : null;
-  const needsSubdomainInput = !naturalSubdomain;
+  const effectiveSubdomain = subdomainProp || naturalSubdomain;
+  const needsSubdomainInput = !effectiveSubdomain;
 
   const exp = false;
 
@@ -68,7 +70,7 @@ export default function ResetPasswordPage({ code }: ResetPasswordPageProps) {
       await resetPassword({
         token: code,
         newPassword: data.password,
-        subdomain: needsSubdomainInput ? data.subdomainFallback.trim() : undefined
+        subdomain: needsSubdomainInput ? data.subdomainFallback.trim() : (effectiveSubdomain || undefined)
       }).unwrap();
 
       setSubmitted(true);

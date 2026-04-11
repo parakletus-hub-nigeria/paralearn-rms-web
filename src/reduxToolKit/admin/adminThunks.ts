@@ -328,6 +328,61 @@ export const fetchClassDetails = createAsyncThunk(
   },
 );
 
+// ---------- Class Promotion ----------
+
+export type PromotionStudentPreview = {
+  studentId: string;
+  studentName: string;
+  studentIdNumber?: string;
+  action: "promote" | "graduate" | "repeat" | string;
+  targetClassId?: string;
+  targetClassName?: string;
+  overrideTargetClassId?: string;
+};
+
+export type PromotionClassPreview = {
+  fromClass: { id: string; name: string };
+  toClass: { id: string; name: string } | null;
+  students: PromotionStudentPreview[];
+};
+
+export type PromotionPreviewResponse = {
+  classes: PromotionClassPreview[];
+  totalStudents?: number;
+  summary?: Record<string, number>;
+};
+
+export const previewSchoolPromotion = createAsyncThunk(
+  "admin/previewSchoolPromotion",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.post("/api/proxy/classes/promote/preview");
+      return unwrap(res) as PromotionPreviewResponse;
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to preview promotion",
+      );
+    }
+  },
+);
+
+export const executeSchoolPromotion = createAsyncThunk(
+  "admin/executeSchoolPromotion",
+  async (
+    payload: { overrides?: Array<{ studentId: string; targetClassId: string }> },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await apiClient.post("/api/proxy/classes/promote/execute", payload);
+      return unwrap(res);
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to execute promotion",
+      );
+    }
+  },
+);
+
 // Bulk enroll multiple students to a class
 // Note: TEACHER_ADMIN_GUIDE uses /enroll with single studentId, Vaniah docs uses /students with array
 export const bulkEnrollStudents = createAsyncThunk(

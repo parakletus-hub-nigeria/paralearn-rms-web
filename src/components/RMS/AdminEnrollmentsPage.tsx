@@ -5,7 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
-import { bulkEnrollStudents, fetchClasses, fetchClassDetails, removeStudentFromClass } from "@/reduxToolKit/admin/adminThunks";
+import { bulkEnrollStudents, fetchClasses, fetchClassDetails, removeStudentFromClass, previewSchoolPromotion, executeSchoolPromotion } from "@/reduxToolKit/admin/adminThunks";
+import type { PromotionStudentPreview, PromotionClassPreview } from "@/reduxToolKit/admin/adminThunks";
 import { AddStudentDialog } from "@/components/RMS/dialogs";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, UserPlus, X, Download, Users, BarChart3, FileText } from "lucide-react";
+import { Search, UserPlus, X, Users, BarChart3, FileText, ArrowRight, AlertCircle, CheckCircle2, RefreshCw, ChevronDown } from "lucide-react";
 import { ProductTour } from "@/components/common/ProductTour";
 
 const enrollmentTourSteps = [
@@ -44,7 +45,7 @@ const DEFAULT_PRIMARY = "#641BC4";
 export function AdminEnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { students, teachers, loading: usersLoading, tenantInfo } = useSelector((s: RootState) => s.user);
-  const { classes, loading: adminLoading, selectedClassDetails } = useSelector((s: RootState) => s.admin);
+  const { classes, selectedClassDetails, promotionPreview, promotionLoading, promotionError } = useSelector((s: RootState) => s.admin);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
@@ -53,6 +54,10 @@ export function AdminEnrollmentsPage() {
   const [enrolling, setEnrolling] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
   const [loadingClassDetails, setLoadingClassDetails] = useState(false);
+
+  // Promotion overrides: map of studentId -> targetClassId
+  const [promotionOverrides, setPromotionOverrides] = useState<Record<string, string>>({});
+  const [executing, setExecuting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAllUsers());
@@ -160,30 +165,9 @@ export function AdminEnrollmentsPage() {
     }
   };
 
-  // Get initials for avatar
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${(firstName || "")[0] || ""}${(lastName || "")[0] || ""}`.toUpperCase() || "?";
-  };
-
-  // Get avatar color
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      "bg-violet-500", "bg-blue-500", "bg-emerald-500", 
-      "bg-amber-500", "bg-rose-500", "bg-cyan-500",
-      "bg-indigo-500", "bg-teal-500", "bg-orange-500"
-    ];
-    const index = (name || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
-    return colors[index];
-  };
-
-  // Format date
   const formatDate = (date: string) => {
     if (!date) return "—";
-    return new Date(date).toLocaleDateString("en-US", { 
-      month: "short", 
-      day: "numeric", 
-      year: "numeric" 
-    });
+    return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
   // Get class teacher name
@@ -258,6 +242,10 @@ export function AdminEnrollmentsPage() {
           <TabsTrigger value="stats" className="rounded-lg px-4 sm:px-6 py-2 sm:py-1.5 data-[state=active]:bg-white w-full sm:w-auto">
             <BarChart3 className="w-4 h-4 mr-2" />
             Class Stats
+          </TabsTrigger>
+          <TabsTrigger value="promotion" className="rounded-lg px-4 sm:px-6 py-2 sm:py-1.5 data-[state=active]:bg-white w-full sm:w-auto">
+            <FileText className="w-4 h-4 mr-2" />
+            Class Promotion
           </TabsTrigger>
         </TabsList>
 
@@ -456,6 +444,36 @@ export function AdminEnrollmentsPage() {
               Enrollment statistics and analytics coming soon.
             </p>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="promotion" className="mt-6">
+          <ClassPromotionTab
+            classes={classes}
+            promotionPreview={promotionPreview}
+            promotionLoading={promotionLoading}
+            promotionError={promotionError}
+            promotionOverrides={promotionOverrides}
+            setPromotionOverrides={setPromotionOverrides}
+            executing={executing}
+            primaryColor={primaryColor}
+            onPreview={() => dispatch(previewSchoolPromotion())}
+            onExecute={async () => {
+              setExecuting(true);
+              try {
+                const overridesList = Object.entries(promotionOverrides).map(
+                  ([studentId, targetClassId]) => ({ studentId, targetClassId }),
+                );
+                await dispatch(executeSchoolPromotion({ overrides: overridesList })).unwrap();
+                toast.success("Class promotion executed successfully");
+                setPromotionOverrides({});
+                dispatch(fetchClasses(undefined));
+              } catch (e: any) {
+                toast.error(e || "Failed to execute promotion");
+              } finally {
+                setExecuting(false);
+              }
+            }}
+          />
         </TabsContent>
 
       </Tabs>
