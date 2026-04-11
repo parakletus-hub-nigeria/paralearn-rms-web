@@ -63,38 +63,57 @@ export const fetchStudentAssessments = createAsyncThunk(
   "student/fetchAssessments",
   async (_, { rejectWithValue }) => {
     try {
-      console.log("[fetchStudentAssessments] Fetching published assessments from backend...");
-      
+      console.log(
+        "[fetchStudentAssessments] Fetching published assessments from backend...",
+      );
+
       // K-12 Endpoint: Fetch all statuses (started, ended, not_started)
       // Backend filters by publication status and student eligibility automatically
-      const statuses: Array<"started" | "ended" | "not_started"> = ["started", "ended", "not_started"];
+      const statuses: Array<"started" | "ended" | "not_started"> = [
+        "started",
+        "ended",
+        "not_started",
+      ];
       const results = await Promise.all(
         statuses.map(async (status) => {
           try {
             const res = await apiClient.get(`/api/proxy/assessments/${status}`);
             const data = res.data?.data || res.data || [];
-            console.log(`[fetchStudentAssessments] Response for status=${status}:`, data);
+            console.log(
+              `[fetchStudentAssessments] Response for status=${status}:`,
+              data,
+            );
             return Array.isArray(data) ? data : [];
           } catch (e: any) {
-            console.error(`[fetchStudentAssessments] Failed to fetch status=${status}:`, {
-              httpStatus: e?.response?.status,
-              error: e?.message,
-            });
+            console.error(
+              `[fetchStudentAssessments] Failed to fetch status=${status}:`,
+              {
+                httpStatus: e?.response?.status,
+                error: e?.message,
+              },
+            );
             return [];
           }
-        })
+        }),
       );
 
       const rawCombined = results.flat();
-      console.log("[fetchStudentAssessments] Total items from all statuses:", rawCombined.length);
-      
+      console.log(
+        "[fetchStudentAssessments] Total items from all statuses:",
+        rawCombined.length,
+      );
+
       // Handle grouped response structure (grouped by subject)
       // Teacher endpoint returns: [ { name: "Subject", class: {...}, assessments: [...] }, ... ]
       let assessments: any[] = [];
-      const isGrouped = rawCombined.some((item: any) => item.assessments && Array.isArray(item.assessments));
-      
+      const isGrouped = rawCombined.some(
+        (item: any) => item.assessments && Array.isArray(item.assessments),
+      );
+
       if (isGrouped) {
-        console.log("[fetchStudentAssessments] Response is GROUPED by subject - flattening...");
+        console.log(
+          "[fetchStudentAssessments] Response is GROUPED by subject - flattening...",
+        );
         rawCombined.forEach((group: any) => {
           if (group.assessments && Array.isArray(group.assessments)) {
             group.assessments.forEach((assess: any) => {
@@ -115,7 +134,9 @@ export const fetchStudentAssessments = createAsyncThunk(
           }
         });
       } else {
-        console.log("[fetchStudentAssessments] Response is FLAT array - using directly");
+        console.log(
+          "[fetchStudentAssessments] Response is FLAT array - using directly",
+        );
         assessments = rawCombined.map((a: any) => ({
           ...a,
           isPublished: true,
@@ -123,13 +144,22 @@ export const fetchStudentAssessments = createAsyncThunk(
         }));
       }
 
-      console.log(`[fetchStudentAssessments] Final flattened count: ${assessments.length} assessments`);
+      console.log(
+        `[fetchStudentAssessments] Final flattened count: ${assessments.length} assessments`,
+      );
       return assessments;
     } catch (error: any) {
-      console.error(`[fetchStudentAssessments] Error:`, error.response?.data || error.message);
-      return rejectWithValue(error.response?.data?.message || error.message || "Failed to fetch assessments");
+      console.error(
+        `[fetchStudentAssessments] Error:`,
+        error.response?.data || error.message,
+      );
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch assessments",
+      );
     }
-  }
+  },
 );
 
 // Fetch details for a specific assessment (Lobby/Exam)
@@ -137,12 +167,16 @@ export const fetchAssessmentDetails = createAsyncThunk(
   "student/fetchDetails",
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/api/proxy/assessments/details/${id}`);
+      const response = await apiClient.get(
+        `/api/proxy/assessments/details/${id}`,
+      );
       return response.data?.data || response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Failed to fetch assessment details");
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch assessment details",
+      );
     }
-  }
+  },
 );
 
 // Start an assessment session
@@ -150,12 +184,15 @@ export const startAssessment = createAsyncThunk(
   "student/startAssessment",
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(`/api/proxy/assessments/${id}/start`, {
-        deviceMeta: {
-          userAgent: window.navigator.userAgent,
-          platform: window.navigator.platform
-        }
-      });
+      const response = await apiClient.post(
+        `/api/proxy/assessments/${id}/start`,
+        {
+          deviceMeta: {
+            userAgent: window.navigator.userAgent,
+            platform: window.navigator.platform,
+          },
+        },
+      );
       return response.data?.data || response.data;
     } catch (error: any) {
       if (error.response?.data) {
@@ -163,15 +200,21 @@ export const startAssessment = createAsyncThunk(
       }
       return rejectWithValue(error.message || "Failed to start assessment");
     }
-  }
+  },
 );
 
 // Submit assessment answers
 export const submitAssessment = createAsyncThunk(
   "student/submitAssessment",
-  async ({ assessmentId, data }: { assessmentId: string, data: any }, { rejectWithValue }) => {
+  async (
+    { assessmentId, data }: { assessmentId: string; data: any },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await apiClient.post(`/api/proxy/assessments/${assessmentId}/submissions`, data);
+      const response = await apiClient.post(
+        `/api/proxy/assessments/${assessmentId}/submissions`,
+        data,
+      );
       return response.data?.data || response.data;
     } catch (error: any) {
       if (error.response?.data) {
@@ -179,7 +222,7 @@ export const submitAssessment = createAsyncThunk(
       }
       return rejectWithValue(error.message || "Failed to submit assessment");
     }
-  }
+  },
 );
 
 // Sync offline submissions
@@ -187,15 +230,20 @@ export const syncOfflineSubmissions = createAsyncThunk(
   "student/syncOfflineSubmissions",
   async (submissions: any[], { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(`/api/proxy/assessments/offline-submissions/sync`, {
-        submissions
-      });
+      const response = await apiClient.post(
+        `/api/proxy/assessments/offline-submissions/sync`,
+        {
+          submissions,
+        },
+      );
       return response.data?.data || response.data;
     } catch (error: any) {
       if (error.response?.data) {
         return rejectWithValue(error.response.data);
       }
-      return rejectWithValue(error.message || "Failed to sync offline submissions");
+      return rejectWithValue(
+        error.message || "Failed to sync offline submissions",
+      );
     }
-  }
+  },
 );

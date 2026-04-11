@@ -55,23 +55,28 @@ import { ProductTour } from "@/components/common/ProductTour";
 
 const teacherScoresTourSteps = [
   {
-    target: '.teacher-scores-filter-bar',
-    content: "Start by selecting a class, subject, and term. The score sheet below will populate with your enrolled students ready for you to fill in their scores.",
+    target: ".teacher-scores-filter-bar",
+    content:
+      "Start by selecting a class, subject, and term. The score sheet below will populate with your enrolled students ready for you to fill in their scores.",
     disableBeacon: true,
   },
   {
-    target: '.teacher-scores-table',
-    content: "This is the live score sheet. Click any cell to enter or edit a student's score for each assessment. Changes are tracked automatically and highlighted.",
+    target: ".teacher-scores-table",
+    content:
+      "This is the live score sheet. Click any cell to enter or edit a student's score for each assessment. Changes are tracked automatically and highlighted.",
   },
   {
-    target: '.teacher-scores-save-btn',
-    content: "Once you've entered all scores, click 'Save Scores' to push them to the system. You can also download a CSV template to fill offline and import it back.",
+    target: ".teacher-scores-save-btn",
+    content:
+      "Once you've entered all scores, click 'Save Scores' to push them to the system. You can also download a CSV template to fill offline and import it back.",
   },
 ];
 
 export function TeacherScoresPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { teacherClasses, assessmentsByClassSubject, loading } = useSelector((s: RootState) => s.teacher);
+  const { teacherClasses, assessmentsByClassSubject, loading } = useSelector(
+    (s: RootState) => s.teacher,
+  );
   const { user } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -83,10 +88,7 @@ export function TeacherScoresPage() {
   const [search, setSearch] = useState("");
 
   // Get dynamic session/term options
-  const {
-    allTermOptions,
-    currentTerm: apiCurrentTerm,
-  } = useSessionsAndTerms();
+  const { allTermOptions, currentTerm: apiCurrentTerm } = useSessionsAndTerms();
 
   // Set default term from API
   useEffect(() => {
@@ -98,7 +100,9 @@ export function TeacherScoresPage() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [existingScores, setExistingScores] = useState<any[]>([]);
-  const [editedScores, setEditedScores] = useState<Map<string, Map<string, string>>>(new Map()); // studentId -> assessmentId -> score
+  const [editedScores, setEditedScores] = useState<
+    Map<string, Map<string, string>>
+  >(new Map()); // studentId -> assessmentId -> score
 
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -116,8 +120,12 @@ export function TeacherScoresPage() {
     (teacherClasses || []).forEach((item: any) => {
       const classId = item.class?.id || item.classId || item.id;
       const className = item.class?.name || item.className || item.name;
-      const studentCount = item.class?.studentCount || item.class?.enrollmentCount || 
-                          item.studentCount || item.enrollmentCount || 0;
+      const studentCount =
+        item.class?.studentCount ||
+        item.class?.enrollmentCount ||
+        item.studentCount ||
+        item.enrollmentCount ||
+        0;
       if (classId && className && !classMap.has(classId)) {
         classMap.set(classId, { id: classId, name: className, studentCount });
       }
@@ -154,7 +162,12 @@ export function TeacherScoresPage() {
       return;
     }
     setLoadingScores(true);
-    dispatch(fetchAssessmentsByClassSubject({ classId: selectedClassId, subjectId: selectedSubjectId }))
+    dispatch(
+      fetchAssessmentsByClassSubject({
+        classId: selectedClassId,
+        subjectId: selectedSubjectId,
+      }),
+    )
       .unwrap()
       .catch(() => {
         console.error("[TeacherScoresPage] Failed to fetch assessments");
@@ -169,7 +182,7 @@ export function TeacherScoresPage() {
       return;
     }
     setLoadingStudents(true);
-    
+
     // First fetch basic student list from class
     dispatch(fetchClassStudents(selectedClassId))
       .unwrap()
@@ -180,7 +193,9 @@ export function TeacherScoresPage() {
             const usersData = usersResp.data;
             const allUsers = usersData?.data || usersData || [];
             const enrichedStudents = data.map((student: any) => {
-              const matchingUser = allUsers.find((u: any) => u.id === student.id);
+              const matchingUser = allUsers.find(
+                (u: any) => u.id === student.id,
+              );
               return { ...student, ...matchingUser };
             });
             setStudents(enrichedStudents);
@@ -217,13 +232,17 @@ export function TeacherScoresPage() {
     //   - Offline      → hit /scores/assessment/:id as usual
     Promise.all(
       relevantAssessments.map(async (assessment: any) => {
-        const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
+        const isOnline =
+          assessment.assessmentType === "online" ||
+          assessment.isOnline === true;
 
         if (isOnline) {
           try {
-            const res = await apiClient.get(`/api/proxy/assessments/${assessment.id}/submissions`);
+            const res = await apiClient.get(
+              `/api/proxy/assessments/${assessment.id}/submissions`,
+            );
             const submissions = res.data?.data || res.data || [];
-            
+
             // CBT scores come from submissions — pick the latest one per student
             const gradedByStudent = new Map<string, any>();
 
@@ -231,69 +250,86 @@ export function TeacherScoresPage() {
               if (sub.studentId) {
                 // Keep the most-recently-created submission per student
                 const existing = gradedByStudent.get(sub.studentId);
-                if (!existing || new Date(sub.createdAt) > new Date(existing.createdAt)) {
+                if (
+                  !existing ||
+                  new Date(sub.createdAt) > new Date(existing.createdAt)
+                ) {
                   gradedByStudent.set(sub.studentId, sub);
                 }
               }
             });
 
             // Convert to a shape compatible with the offline score format
-            const scores = Array.from(gradedByStudent.values()).map((sub: any) => ({
-              studentId: sub.studentId,
-              marksAwarded: sub.score ?? 0,
-              score: sub.score ?? 0,
-              assessmentId: assessment.id
-            }));
+            const scores = Array.from(gradedByStudent.values()).map(
+              (sub: any) => ({
+                studentId: sub.studentId,
+                marksAwarded: sub.score ?? 0,
+                score: sub.score ?? 0,
+                assessmentId: assessment.id,
+              }),
+            );
 
             return { assessmentId: assessment.id, scores };
           } catch (e) {
-            console.error(`[TeacherScores] Failed to fetch CBT submissions for ${assessment.id}`, e);
+            console.error(
+              `[TeacherScores] Failed to fetch CBT submissions for ${assessment.id}`,
+              e,
+            );
             return { assessmentId: assessment.id, scores: [] };
           }
         }
 
         // Offline — fetch from dedicated scores endpoint
         try {
-          const result = await dispatch(fetchScoresByAssessmentTeacher(assessment.id)).unwrap();
+          const result = await dispatch(
+            fetchScoresByAssessmentTeacher(assessment.id),
+          ).unwrap();
           return { assessmentId: assessment.id, scores: result || [] };
         } catch (e) {
-          console.error(`Failed to fetch scores for assessment ${assessment.id}`, e);
+          console.error(
+            `Failed to fetch scores for assessment ${assessment.id}`,
+            e,
+          );
           return { assessmentId: assessment.id, scores: [] };
         }
-      })
-    ).then((results) => {
-      const allScores = results.flatMap(r => r.scores);
-      setExistingScores(allScores);
-      
-      // Populate editedScores map: StudentId → AssessmentId → Score
-      const scoreMap = new Map<string, Map<string, string>>();
-      
-      results.forEach(({ assessmentId, scores }) => {
-        scores.forEach((s: any) => {
-          const studentId = s.studentId || s.student?.id;
-          if (studentId) {
-            if (!scoreMap.has(studentId)) {
-              scoreMap.set(studentId, new Map());
-            }
-            // Prefer marksAwarded, fall back to score
-            const val = s.marksAwarded?.toString() ?? s.score?.toString() ?? "";
-            scoreMap.get(studentId)!.set(assessmentId, val);
-          }
-        });
-      });
+      }),
+    )
+      .then((results) => {
+        const allScores = results.flatMap((r) => r.scores);
+        setExistingScores(allScores);
 
-      setEditedScores(scoreMap);
-    }).catch(() => {
-      // FIX #6: Promise.all outer catch — show error instead of silently leaving empty
-      toast.error("Failed to load scores. Please refresh and try again.");
-    }).finally(() => setLoadingScores(false));
+        // Populate editedScores map: StudentId → AssessmentId → Score
+        const scoreMap = new Map<string, Map<string, string>>();
+
+        results.forEach(({ assessmentId, scores }) => {
+          scores.forEach((s: any) => {
+            const studentId = s.studentId || s.student?.id;
+            if (studentId) {
+              if (!scoreMap.has(studentId)) {
+                scoreMap.set(studentId, new Map());
+              }
+              // Prefer marksAwarded, fall back to score
+              const val =
+                s.marksAwarded?.toString() ?? s.score?.toString() ?? "";
+              scoreMap.get(studentId)!.set(assessmentId, val);
+            }
+          });
+        });
+
+        setEditedScores(scoreMap);
+      })
+      .catch(() => {
+        // FIX #6: Promise.all outer catch — show error instead of silently leaving empty
+        toast.error("Failed to load scores. Please refresh and try again.");
+      })
+      .finally(() => setLoadingScores(false));
   }, [dispatch, relevantAssessments]);
 
   // Calculate composite Total per student (sum of all assessment scores)
   const getStudentTotal = (studentId: string) => {
     const studentScores = editedScores.get(studentId);
     if (!studentScores) return 0;
-    
+
     let total = 0;
     studentScores.forEach((val) => {
       total += parseFloat(val) || 0;
@@ -306,7 +342,7 @@ export function TeacherScoresPage() {
     if (editedScores.size === 0) return 0;
     let totalSum = 0;
     let count = 0;
-    
+
     editedScores.forEach((_, studentId) => {
       const studentTotal = getStudentTotal(studentId);
       if (studentTotal > 0) {
@@ -314,7 +350,7 @@ export function TeacherScoresPage() {
         count++;
       }
     });
-    
+
     return count > 0 ? Math.round(totalSum / count) : 0;
   }, [editedScores]);
 
@@ -325,13 +361,19 @@ export function TeacherScoresPage() {
     return students.filter(
       (s) =>
         `${s.firstName} ${s.lastName}`.toLowerCase().includes(term) ||
-        (s.studentId || "").toLowerCase().includes(term)
+        (s.studentId || "").toLowerCase().includes(term),
     );
   }, [students, search]);
 
-  const handleScoreChange = (studentId: string, assessmentId: string, value: string) => {
+  const handleScoreChange = (
+    studentId: string,
+    assessmentId: string,
+    value: string,
+  ) => {
     // Clamp to valid range [0, totalMarks]
-    const assessment = relevantAssessments.find((a: any) => a.id === assessmentId);
+    const assessment = relevantAssessments.find(
+      (a: any) => a.id === assessmentId,
+    );
     const max = assessment?.totalMarks || 100;
     const numVal = parseFloat(value);
     const clamped = !isNaN(numVal)
@@ -351,24 +393,44 @@ export function TeacherScoresPage() {
   };
 
   const getGrade = (total: number) => {
-    if (total >= 70) return { grade: "A", color: "bg-emerald-500", textColor: "text-emerald-600" };
-    if (total >= 60) return { grade: "B", color: "bg-blue-500", textColor: "text-blue-600" };
-    if (total >= 50) return { grade: "C", color: "bg-amber-500", textColor: "text-amber-600" };
-    if (total >= 40) return { grade: "D", color: "bg-orange-500", textColor: "text-orange-600" };
+    if (total >= 70)
+      return {
+        grade: "A",
+        color: "bg-emerald-500",
+        textColor: "text-emerald-600",
+      };
+    if (total >= 60)
+      return { grade: "B", color: "bg-blue-500", textColor: "text-blue-600" };
+    if (total >= 50)
+      return { grade: "C", color: "bg-amber-500", textColor: "text-amber-600" };
+    if (total >= 40)
+      return {
+        grade: "D",
+        color: "bg-orange-500",
+        textColor: "text-orange-600",
+      };
     return { grade: "F", color: "bg-red-500", textColor: "text-red-600" };
   };
 
   const handleSaveScores = async () => {
     if (!selectedClassId) return toast.error("Please select a class");
-    if (relevantAssessments.length === 0) return toast.error("No assessments available");
+    if (relevantAssessments.length === 0)
+      return toast.error("No assessments available");
     if (students.length === 0) return toast.error("No students found");
 
     // Group scores by assessmentId: { assessmentId -> [{studentId, marksAwarded, maxMarks}] }
-    const scoresByAssessment = new Map<string, Array<{ studentId: string; marksAwarded: number; maxMarks: number }>>();
+    const scoresByAssessment = new Map<
+      string,
+      Array<{ studentId: string; marksAwarded: number; maxMarks: number }>
+    >();
 
     relevantAssessments.forEach((assessment: any) => {
       const maxMarks = assessment.totalMarks || 100;
-      const scoresForAssessment: Array<{ studentId: string; marksAwarded: number; maxMarks: number }> = [];
+      const scoresForAssessment: Array<{
+        studentId: string;
+        marksAwarded: number;
+        maxMarks: number;
+      }> = [];
 
       students.forEach((student: any) => {
         const studentId = student.id;
@@ -385,21 +447,30 @@ export function TeacherScoresPage() {
       }
     });
 
-    if (scoresByAssessment.size === 0) return toast.error("No valid scores to save");
+    if (scoresByAssessment.size === 0)
+      return toast.error("No valid scores to save");
 
     setSaving(true);
     try {
       // Execute uploads in parallel
-      const uploadPromises = Array.from(scoresByAssessment.entries()).map(([assessmentId, scores]) => {
-         return dispatch(uploadOfflineScores({ assessmentId, scores })).unwrap();
-      });
+      const uploadPromises = Array.from(scoresByAssessment.entries()).map(
+        ([assessmentId, scores]) => {
+          return dispatch(
+            uploadOfflineScores({ assessmentId, scores }),
+          ).unwrap();
+        },
+      );
 
       await Promise.all(uploadPromises);
-      toast.success(`Detailed scores saved successfully for ${uploadPromises.length} assessments`);
-      
+      toast.success(
+        `Detailed scores saved successfully for ${uploadPromises.length} assessments`,
+      );
+
       // Reload logic omitted to prevent breaking UI state if it fails, but user gets success toast
     } catch (e: any) {
-      toast.error(e?.data?.message || e?.message || "Failed to save some scores");
+      toast.error(
+        e?.data?.message || e?.message || "Failed to save some scores",
+      );
     } finally {
       setSaving(false);
     }
@@ -407,7 +478,9 @@ export function TeacherScoresPage() {
 
   const handleImport = () => {
     // Only allow import if we have offline assessments and students
-    const offlineAssessments = relevantAssessments.filter((a: any) => !a.isOnline);
+    const offlineAssessments = relevantAssessments.filter(
+      (a: any) => !a.isOnline,
+    );
     if (offlineAssessments.length === 0) {
       toast.info("No offline assessments available to import scores for.");
       return;
@@ -422,7 +495,9 @@ export function TeacherScoresPage() {
 
   const handleDownloadTemplate = () => {
     if (!uploadAssessmentId || students.length === 0) return;
-    const assessment = relevantAssessments.find((a: any) => a.id === uploadAssessmentId);
+    const assessment = relevantAssessments.find(
+      (a: any) => a.id === uploadAssessmentId,
+    );
     if (!assessment) return;
 
     // Create a template pre-filled with the students currently in the table
@@ -430,14 +505,14 @@ export function TeacherScoresPage() {
       studentId: s.studentId || s.id,
       studentName: `${s.firstName || ""} ${s.lastName || ""} (Reference Only — do not edit)`,
       marksAwarded: "", // Teacher fills this
-      remarks: ""
+      remarks: "",
     }));
 
-    const filename = `scores_template_${(assessment.title || "assessment").replace(/\s+/g, '_')}.xlsx`;
+    const filename = `scores_template_${(assessment.title || "assessment").replace(/\s+/g, "_")}.xlsx`;
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     const wscols = Object.keys(data[0]).map(() => ({ wch: 30 }));
-    ws['!cols'] = wscols;
+    ws["!cols"] = wscols;
     XLSX.utils.book_append_sheet(wb, ws, "Scores Template");
     XLSX.writeFile(wb, filename);
 
@@ -463,60 +538,79 @@ export function TeacherScoresPage() {
         const data = XLSX.utils.sheet_to_json<any>(ws);
 
         if (data.length === 0) {
-           toast.error("The uploaded file is empty.");
-           return;
+          toast.error("The uploaded file is empty.");
+          return;
         }
 
-        const assessment = relevantAssessments.find((a: any) => a.id === uploadAssessmentId);
+        const assessment = relevantAssessments.find(
+          (a: any) => a.id === uploadAssessmentId,
+        );
         const maxMarks = assessment?.totalMarks || 100;
         let importCount = 0;
 
         setEditedScores((prev) => {
           const newMap = new Map(prev);
-          
+
           data.forEach((row) => {
-             // Try to find the student ID column
-             const rawStudentId = row.studentId || row.studentID || row["Student ID"] || row["StudentId"];
-             const rawMarks = row.marksAwarded || row.Marks || row["Marks Awarded"] || row.score || row.Score;
+            // Try to find the student ID column
+            const rawStudentId =
+              row.studentId ||
+              row.studentID ||
+              row["Student ID"] ||
+              row["StudentId"];
+            const rawMarks =
+              row.marksAwarded ||
+              row.Marks ||
+              row["Marks Awarded"] ||
+              row.score ||
+              row.Score;
 
-             if (!rawStudentId || rawMarks === undefined || rawMarks === "") return;
-             
-             // Match student ID robustly
-             const studentIdStr = String(rawStudentId).trim().toLowerCase();
-             const studentMatch = students.find((s) => 
-               (s.id && String(s.id).toLowerCase() === studentIdStr) || 
-               (s.studentId && String(s.studentId).toLowerCase() === studentIdStr) ||
-               (s.admissionNo && String(s.admissionNo).toLowerCase() === studentIdStr)
-             );
-             
-             if (studentMatch) {
-               let marksNum = parseFloat(rawMarks);
-               if (isNaN(marksNum)) return;
-               
-               // Clamp the imported value
-               marksNum = Math.min(maxMarks, Math.max(0, marksNum));
+            if (!rawStudentId || rawMarks === undefined || rawMarks === "")
+              return;
 
-               if (!newMap.has(studentMatch.id)) {
-                 newMap.set(studentMatch.id, new Map());
-               }
-               const studentScores = new Map(newMap.get(studentMatch.id)!);
-               studentScores.set(uploadAssessmentId, String(marksNum));
-               newMap.set(studentMatch.id, studentScores);
-               importCount++;
-             }
+            // Match student ID robustly
+            const studentIdStr = String(rawStudentId).trim().toLowerCase();
+            const studentMatch = students.find(
+              (s) =>
+                (s.id && String(s.id).toLowerCase() === studentIdStr) ||
+                (s.studentId &&
+                  String(s.studentId).toLowerCase() === studentIdStr) ||
+                (s.admissionNo &&
+                  String(s.admissionNo).toLowerCase() === studentIdStr),
+            );
+
+            if (studentMatch) {
+              let marksNum = parseFloat(rawMarks);
+              if (isNaN(marksNum)) return;
+
+              // Clamp the imported value
+              marksNum = Math.min(maxMarks, Math.max(0, marksNum));
+
+              if (!newMap.has(studentMatch.id)) {
+                newMap.set(studentMatch.id, new Map());
+              }
+              const studentScores = new Map(newMap.get(studentMatch.id)!);
+              studentScores.set(uploadAssessmentId, String(marksNum));
+              newMap.set(studentMatch.id, studentScores);
+              importCount++;
+            }
           });
           return newMap;
         });
 
         if (importCount > 0) {
-           toast.success(`Successfully imported ${importCount} scores.`);
-           setShowUploadModal(false);
+          toast.success(`Successfully imported ${importCount} scores.`);
+          setShowUploadModal(false);
         } else {
-           toast.error("Could not match any student IDs from the file. Please ensure you used the downloaded template.");
+          toast.error(
+            "Could not match any student IDs from the file. Please ensure you used the downloaded template.",
+          );
         }
       } catch (err) {
         console.error("Error reading Excel", err);
-        toast.error("Failed to parse the file. Please upload a valid Excel or CSV.");
+        toast.error(
+          "Failed to parse the file. Please upload a valid Excel or CSV.",
+        );
       } finally {
         // Reset file input
         if (fileInputRef.current) {
@@ -529,7 +623,10 @@ export function TeacherScoresPage() {
 
   const selectedSubject = subjects.find((s: any) => s.id === selectedSubjectId);
 
-  const totalEntries = Array.from(editedScores.values()).reduce((acc, map) => acc + map.size, 0);
+  const totalEntries = Array.from(editedScores.values()).reduce(
+    (acc, map) => acc + map.size,
+    0,
+  );
 
   return (
     <div className="w-full">
@@ -541,9 +638,12 @@ export function TeacherScoresPage() {
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
           <div className="flex flex-col gap-3 sm:gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold font-coolvetica">Score Sheet</h1>
+              <h1 className="text-xl sm:text-2xl font-bold font-coolvetica">
+                Score Sheet
+              </h1>
               <p className="text-emerald-100 text-xs sm:text-sm mt-1 font-coolvetica">
-                {selectedSubject?.name || "Select a subject"} • {selectedTerm} • {new Date().getFullYear()}/{new Date().getFullYear() + 1}
+                {selectedSubject?.name || "Select a subject"} • {selectedTerm} •{" "}
+                {new Date().getFullYear()}/{new Date().getFullYear() + 1}
               </p>
             </div>
 
@@ -568,10 +668,13 @@ export function TeacherScoresPage() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <GraduationCap className="w-3.5 h-3.5" /> Class
               </span>
-              <Select value={selectedClassId} onValueChange={(v) => {
-                setSelectedClassId(v);
-                setSelectedSubjectId("");
-              }}>
+              <Select
+                value={selectedClassId}
+                onValueChange={(v) => {
+                  setSelectedClassId(v);
+                  setSelectedSubjectId("");
+                }}
+              >
                 <SelectTrigger className="h-10 sm:h-11 w-full rounded-xl border-slate-200 bg-white">
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
@@ -590,13 +693,17 @@ export function TeacherScoresPage() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <BookOpen className="w-3.5 h-3.5" /> Subject
               </span>
-              <Select 
-                value={selectedSubjectId} 
-                onValueChange={setSelectedSubjectId} 
+              <Select
+                value={selectedSubjectId}
+                onValueChange={setSelectedSubjectId}
                 disabled={!selectedClassId || loadingSubjects}
               >
                 <SelectTrigger className="h-10 sm:h-11 w-full rounded-xl border-slate-200 bg-white">
-                  <SelectValue placeholder={loadingSubjects ? "Loading..." : "Select Subject"} />
+                  <SelectValue
+                    placeholder={
+                      loadingSubjects ? "Loading..." : "Select Subject"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   {subjects.map((subj: any) => (
@@ -610,7 +717,9 @@ export function TeacherScoresPage() {
 
             {/* Term */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Term</span>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Term
+              </span>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                 <SelectTrigger className="h-10 sm:h-11 w-full rounded-xl border-slate-200 bg-white">
                   <SelectValue />
@@ -627,9 +736,13 @@ export function TeacherScoresPage() {
 
             {/* Class Average */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Class Average</span>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Class Average
+              </span>
               <div className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 rounded-xl border border-emerald-200 bg-emerald-50">
-                <span className="text-xl sm:text-2xl font-bold text-emerald-600">{classAverage}%</span>
+                <span className="text-xl sm:text-2xl font-bold text-emerald-600">
+                  {classAverage}%
+                </span>
                 <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-500" />
               </div>
             </div>
@@ -648,22 +761,32 @@ export function TeacherScoresPage() {
           ) : !selectedClassId ? (
             <div className="text-center py-20">
               <GraduationCap className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">Select a class to view students</p>
+              <p className="text-slate-500 font-medium">
+                Select a class to view students
+              </p>
             </div>
           ) : !selectedSubjectId ? (
             <div className="text-center py-20">
               <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">Select a subject to view assessments</p>
+              <p className="text-slate-500 font-medium">
+                Select a subject to view assessments
+              </p>
             </div>
           ) : relevantAssessments.length === 0 ? (
             <div className="text-center py-20">
               <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">No assessments found for this subject</p>
-              <p className="text-sm text-slate-400 mt-1">Create an assessment to start grading</p>
+              <p className="text-slate-500 font-medium">
+                No assessments found for this subject
+              </p>
+              <p className="text-sm text-slate-400 mt-1">
+                Create an assessment to start grading
+              </p>
             </div>
           ) : filteredStudents.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-slate-500 font-medium">No students found in this class</p>
+              <p className="text-slate-500 font-medium">
+                No students found in this class
+              </p>
             </div>
           ) : (
             <>
@@ -671,7 +794,11 @@ export function TeacherScoresPage() {
               <div className="block lg:hidden px-4 pb-4">
                 {filteredStudents.map((student: any, idx: number) => {
                   const studentId = student.id;
-                  const displayId = student.studentId || student.code || student.admissionNo || "—";
+                  const displayId =
+                    student.studentId ||
+                    student.code ||
+                    student.admissionNo ||
+                    "—";
                   const studentTotal = getStudentTotal(studentId);
                   const { grade, color, textColor } = getGrade(studentTotal);
 
@@ -705,9 +832,13 @@ export function TeacherScoresPage() {
                       {/* Assessment Scores */}
                       <div className="space-y-3 mb-4">
                         {relevantAssessments.map((assessment: any) => {
-                          const score = editedScores.get(studentId)?.get(assessment.id) || "";
+                          const score =
+                            editedScores.get(studentId)?.get(assessment.id) ||
+                            "";
                           const max = assessment.totalMarks || 100;
-                          const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
+                          const isOnline =
+                            assessment.assessmentType === "online" ||
+                            assessment.isOnline === true;
 
                           return (
                             <div key={assessment.id} className="space-y-1">
@@ -721,7 +852,10 @@ export function TeacherScoresPage() {
                               </label>
                               <div
                                 onClick={() => {
-                                  if (isOnline) toast.info("You cannot overwrite CBT scores manually.");
+                                  if (isOnline)
+                                    toast.info(
+                                      "You cannot overwrite CBT scores manually.",
+                                    );
                                 }}
                               >
                                 <Input
@@ -731,7 +865,11 @@ export function TeacherScoresPage() {
                                   value={score}
                                   onChange={(e) => {
                                     if (isOnline) return;
-                                    handleScoreChange(studentId, assessment.id, e.target.value);
+                                    handleScoreChange(
+                                      studentId,
+                                      assessment.id,
+                                      e.target.value,
+                                    );
                                   }}
                                   readOnly={isOnline}
                                   placeholder="—"
@@ -753,7 +891,9 @@ export function TeacherScoresPage() {
                           <div className="text-xs text-slate-400 uppercase tracking-wide mb-1">
                             Total Score
                           </div>
-                          <span className={`font-bold text-2xl ${studentTotal > 0 ? textColor : "text-slate-400"}`}>
+                          <span
+                            className={`font-bold text-2xl ${studentTotal > 0 ? textColor : "text-slate-400"}`}
+                          >
                             {studentTotal > 0 ? studentTotal : "—"}
                           </span>
                         </div>
@@ -762,7 +902,9 @@ export function TeacherScoresPage() {
                             Grade
                           </div>
                           {studentTotal > 0 ? (
-                            <span className={`inline-flex items-center justify-center w-12 h-12 rounded-xl text-white font-bold text-lg ${color}`}>
+                            <span
+                              className={`inline-flex items-center justify-center w-12 h-12 rounded-xl text-white font-bold text-lg ${color}`}
+                            >
                               {grade}
                             </span>
                           ) : (
@@ -783,14 +925,25 @@ export function TeacherScoresPage() {
                   <table className="w-full min-w-[800px]">
                     <thead>
                       <tr className="bg-slate-800 text-white">
-                        <th className="sticky left-0 z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm w-[50px] sm:w-[60px]">S/N</th>
-                        <th className="sticky left-[50px] sm:left-[60px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[100px] sm:min-w-[120px]">ID</th>
-                        <th className="sticky left-[150px] sm:left-[180px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[150px] sm:min-w-[200px]">NAME</th>
+                        <th className="sticky left-0 z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm w-[50px] sm:w-[60px]">
+                          S/N
+                        </th>
+                        <th className="sticky left-[50px] sm:left-[60px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[100px] sm:min-w-[120px]">
+                          ID
+                        </th>
+                        <th className="sticky left-[150px] sm:left-[180px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[150px] sm:min-w-[200px]">
+                          NAME
+                        </th>
                         {/* Dynamic Assessment Columns */}
                         {relevantAssessments.map((assessment: any) => {
-                          const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
+                          const isOnline =
+                            assessment.assessmentType === "online" ||
+                            assessment.isOnline === true;
                           return (
-                            <th key={assessment.id} className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[90px] sm:min-w-[100px]">
+                            <th
+                              key={assessment.id}
+                              className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[90px] sm:min-w-[100px]"
+                            >
                               <div className="flex flex-col items-center">
                                 <span className="truncate max-w-[80px] sm:max-w-none flex items-center justify-center gap-1">
                                   {assessment.title}
@@ -800,46 +953,72 @@ export function TeacherScoresPage() {
                                     </span>
                                   )}
                                 </span>
-                                <span className="text-[10px] opacity-70">({assessment.totalMarks || 100})</span>
+                                <span className="text-[10px] opacity-70">
+                                  ({assessment.totalMarks || 100})
+                                </span>
                               </div>
                             </th>
                           );
                         })}
-                        <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[80px] sm:w-[100px] border-l border-slate-700">TOTAL</th>
-                        <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[70px] sm:w-[80px]">GRADE</th>
+                        <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[80px] sm:w-[100px] border-l border-slate-700">
+                          TOTAL
+                        </th>
+                        <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[70px] sm:w-[80px]">
+                          GRADE
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredStudents.map((student: any, idx: number) => {
                         const studentId = student.id;
-                        const displayId = student.studentId || student.code || student.admissionNo || "—";
+                        const displayId =
+                          student.studentId ||
+                          student.code ||
+                          student.admissionNo ||
+                          "—";
                         const studentTotal = getStudentTotal(studentId);
-                        const { grade, color, textColor } = getGrade(studentTotal);
+                        const { grade, color, textColor } =
+                          getGrade(studentTotal);
 
                         return (
                           <tr
                             key={studentId || idx}
                             className={`border-b border-slate-100 ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"} hover:bg-slate-100/50 transition-colors`}
                           >
-                            <td className="sticky left-0 z-10 bg-inherit py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm text-slate-500 font-medium">{idx + 1}</td>
-                            <td className="sticky left-[50px] sm:left-[60px] z-10 bg-inherit py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm text-slate-700 font-mono font-semibold">{displayId}</td>
+                            <td className="sticky left-0 z-10 bg-inherit py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm text-slate-500 font-medium">
+                              {idx + 1}
+                            </td>
+                            <td className="sticky left-[50px] sm:left-[60px] z-10 bg-inherit py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm text-slate-700 font-mono font-semibold">
+                              {displayId}
+                            </td>
                             <td className="sticky left-[150px] sm:left-[180px] z-10 bg-inherit py-3 sm:py-4 px-2 sm:px-3">
                               <span className="font-semibold text-slate-900 text-xs sm:text-sm">
                                 {student.firstName} {student.lastName}
                               </span>
                             </td>
-                            
+
                             {/* Dynamic Assessment Inputs */}
                             {relevantAssessments.map((assessment: any) => {
-                              const score = editedScores.get(studentId)?.get(assessment.id) || "";
+                              const score =
+                                editedScores
+                                  .get(studentId)
+                                  ?.get(assessment.id) || "";
                               const max = assessment.totalMarks || 100;
-                              const isOnline = assessment.assessmentType === "online" || assessment.isOnline === true;
-                              
+                              const isOnline =
+                                assessment.assessmentType === "online" ||
+                                assessment.isOnline === true;
+
                               return (
-                                <td key={assessment.id} className="py-3 sm:py-4 px-2 sm:px-3 text-center">
+                                <td
+                                  key={assessment.id}
+                                  className="py-3 sm:py-4 px-2 sm:px-3 text-center"
+                                >
                                   <div
                                     onClick={() => {
-                                      if (isOnline) toast.info("You cannot overwrite CBT scores manually.");
+                                      if (isOnline)
+                                        toast.info(
+                                          "You cannot overwrite CBT scores manually.",
+                                        );
                                     }}
                                   >
                                     <Input
@@ -849,7 +1028,11 @@ export function TeacherScoresPage() {
                                       value={score}
                                       onChange={(e) => {
                                         if (isOnline) return;
-                                        handleScoreChange(studentId, assessment.id, e.target.value);
+                                        handleScoreChange(
+                                          studentId,
+                                          assessment.id,
+                                          e.target.value,
+                                        );
                                       }}
                                       readOnly={isOnline}
                                       placeholder="—"
@@ -865,13 +1048,17 @@ export function TeacherScoresPage() {
                             })}
 
                             <td className="py-3 sm:py-4 px-2 sm:px-3 text-center border-l border-slate-100 bg-slate-50/50">
-                              <span className={`font-bold text-base sm:text-lg ${studentTotal > 0 ? textColor : "text-slate-400"}`}>
+                              <span
+                                className={`font-bold text-base sm:text-lg ${studentTotal > 0 ? textColor : "text-slate-400"}`}
+                              >
                                 {studentTotal > 0 ? studentTotal : "—"}
                               </span>
                             </td>
                             <td className="py-3 sm:py-4 px-2 sm:px-3 text-center bg-slate-50/50">
                               {studentTotal > 0 ? (
-                                <span className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-white font-bold text-xs sm:text-sm ${color}`}>
+                                <span
+                                  className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-white font-bold text-xs sm:text-sm ${color}`}
+                                >
                                   {grade}
                                 </span>
                               ) : (
@@ -890,54 +1077,58 @@ export function TeacherScoresPage() {
         </div>
 
         {/* Footer */}
-        {selectedClassId && selectedSubjectId && filteredStudents.length > 0 && (
-          <div className="px-4 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-              <div className="flex items-center gap-3">
-                {totalEntries > 0 ? (
-                  <>
-                    <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="text-xs sm:text-sm text-slate-600">
-                      Ready to save scores
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs sm:text-sm text-slate-500">No scores entered yet</span>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none border-emerald-500 text-emerald-600 hover:bg-emerald-50"
-                  onClick={handleImport}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Bulk Upload
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none"
-                  disabled={totalEntries === 0}
-                  onClick={() => setEditedScores(new Map())}
-                >
-                  Clear All
-                </Button>
-                <Button
-                  onClick={handleSaveScores}
-                  disabled={saving || totalEntries === 0}
-                  className="teacher-scores-save-btn h-10 sm:h-11 px-5 sm:px-6 rounded-xl text-white font-semibold gap-2 text-sm flex-1 sm:flex-none"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <Save className="w-4 h-4" />
-                  {saving ? "Saving..." : "Save Scores"}
-                </Button>
+        {selectedClassId &&
+          selectedSubjectId &&
+          filteredStudents.length > 0 && (
+            <div className="px-4 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="flex items-center gap-3">
+                  {totalEntries > 0 ? (
+                    <>
+                      <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-xs sm:text-sm text-slate-600">
+                        Ready to save scores
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-slate-400" />
+                      <span className="text-xs sm:text-sm text-slate-500">
+                        No scores entered yet
+                      </span>
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+                    onClick={handleImport}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Bulk Upload
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none"
+                    disabled={totalEntries === 0}
+                    onClick={() => setEditedScores(new Map())}
+                  >
+                    Clear All
+                  </Button>
+                  <Button
+                    onClick={handleSaveScores}
+                    disabled={saving || totalEntries === 0}
+                    className="teacher-scores-save-btn h-10 sm:h-11 px-5 sm:px-6 rounded-xl text-white font-semibold gap-2 text-sm flex-1 sm:flex-none"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    <Save className="w-4 h-4" />
+                    {saving ? "Saving..." : "Save Scores"}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
@@ -945,30 +1136,44 @@ export function TeacherScoresPage() {
           <DialogHeader>
             <DialogTitle>Bulk Upload Scores</DialogTitle>
             <DialogDescription>
-              Select an offline assessment, download the template, fill it, and upload the file.
+              Select an offline assessment, download the template, fill it, and
+              upload the file.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700">Assessment</label>
-              <Select value={uploadAssessmentId} onValueChange={setUploadAssessmentId}>
+              <label className="text-sm font-medium text-slate-700">
+                Assessment
+              </label>
+              <Select
+                value={uploadAssessmentId}
+                onValueChange={setUploadAssessmentId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Assessment" />
                 </SelectTrigger>
                 <SelectContent>
-                  {relevantAssessments.filter((a: any) => !a.isOnline).map((a: any) => (
-                    <SelectItem key={a.id} value={a.id}>{a.title} ({a.totalMarks} marks)</SelectItem>
-                  ))}
+                  {relevantAssessments
+                    .filter((a: any) => !a.isOnline)
+                    .map((a: any) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.title} ({a.totalMarks} marks)
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex flex-col gap-3 mt-2">
-              <Button onClick={handleDownloadTemplate} variant="outline" className="w-full flex justify-between items-center bg-slate-50">
+              <Button
+                onClick={handleDownloadTemplate}
+                variant="outline"
+                className="w-full flex justify-between items-center bg-slate-50"
+              >
                 <span>1. Download Pre-filled Template</span>
                 <Download className="w-4 h-4" />
               </Button>
-              
+
               <div className="relative">
                 <input
                   type="file"
@@ -978,7 +1183,10 @@ export function TeacherScoresPage() {
                   onChange={handleFileUpload}
                   title="Upload Filled Template"
                 />
-                <Button variant="outline" className="w-full flex justify-between items-center bg-emerald-600 text-white hover:bg-emerald-700 pointer-events-none border-none">
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between items-center bg-emerald-600 text-white hover:bg-emerald-700 pointer-events-none border-none"
+                >
                   <span>2. Upload Filled Template</span>
                   <Upload className="w-4 h-4" />
                 </Button>

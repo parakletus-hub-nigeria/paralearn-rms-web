@@ -56,10 +56,13 @@ export const fetchAcademicCurrent = createAsyncThunk(
       if (!data) return rejectWithValue("No academic session returned");
       return data as AcademicCurrent;
     } catch (e: any) {
-      console.error("[fetchAcademicCurrent] Failed to fetch current academic session:", e);
+      console.error(
+        "[fetchAcademicCurrent] Failed to fetch current academic session:",
+        e,
+      );
       return rejectWithValue(e?.message || "Failed to load academic session");
     }
-  }
+  },
 );
 
 export const fetchMyAssessments = createAsyncThunk(
@@ -68,13 +71,14 @@ export const fetchMyAssessments = createAsyncThunk(
     try {
       // REFACTORED (April 2026): Backend now returns flattened assessments with classId/subjectId at root
       // No need for complex grouping logic or deep normalization
-      
+
       const state: any = getState();
-      const teacherClasses = state.teacher?.teacherClasses || state.teacher?.classes || [];
-      
+      const teacherClasses =
+        state.teacher?.teacherClasses || state.teacher?.classes || [];
+
       // Build map of teacher's assigned class-subject pairs for filtering
       const assignedClassSubjectPairs = new Map<string, Set<string>>();
-      
+
       teacherClasses.forEach((c: any) => {
         if (c.type === "subject_assignment" && c.subjectId && c.classId) {
           if (!assignedClassSubjectPairs.has(c.classId)) {
@@ -82,7 +86,11 @@ export const fetchMyAssessments = createAsyncThunk(
           }
           assignedClassSubjectPairs.get(c.classId)!.add(c.subjectId);
         }
-        if (c.type === "class_assignment" && c.classId && Array.isArray(c.class?.subjects)) {
+        if (
+          c.type === "class_assignment" &&
+          c.classId &&
+          Array.isArray(c.class?.subjects)
+        ) {
           if (!assignedClassSubjectPairs.has(c.classId)) {
             assignedClassSubjectPairs.set(c.classId, new Set());
           }
@@ -102,26 +110,38 @@ export const fetchMyAssessments = createAsyncThunk(
       console.log("[fetchMyAssessments] Teacher assignments loaded");
 
       // Fetch assessments from all statuses
-      const statuses: Array<"started" | "ended" | "not_started"> = ["started", "ended", "not_started"];
+      const statuses: Array<"started" | "ended" | "not_started"> = [
+        "started",
+        "ended",
+        "not_started",
+      ];
       const results = await Promise.all(
         statuses.map(async (status) => {
           try {
             const res = await apiClient.get(`/api/proxy/assessments/${status}`);
             const data = res.data?.data || res.data || [];
             if (Array.isArray(data)) {
-              return data.map((item: any) => ({ ...item, _fetchedStatus: status }));
+              return data.map((item: any) => ({
+                ...item,
+                _fetchedStatus: status,
+              }));
             }
             return [];
           } catch (e: any) {
-            console.error(`[fetchMyAssessments] Failed to fetch /assessments/${status}:`, e?.message);
+            console.error(
+              `[fetchMyAssessments] Failed to fetch /assessments/${status}:`,
+              e?.message,
+            );
             return [];
           }
-        })
+        }),
       );
 
       const rawCombined = results.flat();
-      console.log(`[fetchMyAssessments] Fetched ${rawCombined.length} total assessments`);
-      
+      console.log(
+        `[fetchMyAssessments] Fetched ${rawCombined.length} total assessments`,
+      );
+
       if (rawCombined.length === 0) {
         console.warn("[fetchMyAssessments] No assessments found");
         return [];
@@ -129,35 +149,46 @@ export const fetchMyAssessments = createAsyncThunk(
 
       // NEW (APRIL 2026): Backend now returns flat array structure with flattened IDs
       // Check if response is still grouped (old model) or flat (new model)
-      const isGrouped = rawCombined.some((item: any) => item.assessments && Array.isArray(item.assessments));
-      
+      const isGrouped = rawCombined.some(
+        (item: any) => item.assessments && Array.isArray(item.assessments),
+      );
+
       let items: Assessment[] = [];
 
       if (isGrouped) {
         // LEGACY PATH: Handle grouped response (backward compatibility)
-        console.log("[fetchMyAssessments] Processing grouped response (legacy)");
-        
+        console.log(
+          "[fetchMyAssessments] Processing grouped response (legacy)",
+        );
+
         items = rawCombined.flatMap((group: any) => {
-          if (!group.assessments || !Array.isArray(group.assessments)) return [];
-          
+          if (!group.assessments || !Array.isArray(group.assessments))
+            return [];
+
           const subjectId = group.id || group.subjectId || group.subject?.id;
           const classId = group.class?.id || group.classId;
-          
+
           // Filter by teacher assignments
-          const isAssigned = assignedClassSubjectPairs.has(classId) && 
-                            assignedClassSubjectPairs.get(classId)!.has(subjectId);
-          
+          const isAssigned =
+            assignedClassSubjectPairs.has(classId) &&
+            assignedClassSubjectPairs.get(classId)!.has(subjectId);
+
           if (!isAssigned) {
-            console.warn(`[fetchMyAssessments] Skipping group: class=${classId}, subject=${subjectId}`);
+            console.warn(
+              `[fetchMyAssessments] Skipping group: class=${classId}, subject=${subjectId}`,
+            );
             return [];
           }
-          
+
           return group.assessments.map((a: any) => ({
             ...a,
             classId: classId || a.classId,
             subjectId: subjectId || a.subjectId,
             class: group.class || a.class || { id: classId, name: "Unknown" },
-            subject: { id: subjectId, name: group.name || a.subject?.name || "Unknown" },
+            subject: {
+              id: subjectId,
+              name: group.name || a.subject?.name || "Unknown",
+            },
             isOnline: a.assessmentType === "online" || a.isOnline === true,
             submissionCount: a.submissionCount ?? 0,
           }));
@@ -165,20 +196,26 @@ export const fetchMyAssessments = createAsyncThunk(
       } else {
         // NEW PATH (PRIMARY): Backend returns flat array with flattened classId/subjectId
         // Simply validate assignments and normalize field names
-        console.log("[fetchMyAssessments] Processing flat response (new model)");
-        
+        console.log(
+          "[fetchMyAssessments] Processing flat response (new model)",
+        );
+
         items = rawCombined.filter((a: any) => {
           const classId = a.classId;
           const subjectId = a.subjectId;
-          
+
           if (!classId || !subjectId) {
-            console.warn("[fetchMyAssessments] Assessment missing classId or subjectId:", a.title);
+            console.warn(
+              "[fetchMyAssessments] Assessment missing classId or subjectId:",
+              a.title,
+            );
             return false;
           }
-          
-          const isAssigned = assignedClassSubjectPairs.has(classId) && 
-                            assignedClassSubjectPairs.get(classId)!.has(subjectId);
-          
+
+          const isAssigned =
+            assignedClassSubjectPairs.has(classId) &&
+            assignedClassSubjectPairs.get(classId)!.has(subjectId);
+
           return isAssigned;
         }) as Assessment[];
       }
@@ -186,7 +223,7 @@ export const fetchMyAssessments = createAsyncThunk(
       // NORMALIZATION: Ensure consistent field naming across model versions
       items = items.map((a: any) => ({
         ...a,
-        isOnline: a.isOnline ?? (a.assessmentType === "online"),
+        isOnline: a.isOnline ?? a.assessmentType === "online",
         totalMarks: a.totalMarks ?? a.marks ?? a.totalScore ?? 100,
         duration: a.duration ?? a.durationMins ?? a.durationMinutes ?? 60,
         submissionCount: a.submissionCount ?? 0,
@@ -194,125 +231,152 @@ export const fetchMyAssessments = createAsyncThunk(
 
       // Deduplicate by ID
       const byId = new Map<string, Assessment>();
-      items.forEach(a => {
+      items.forEach((a) => {
         if (a?.id) byId.set(a.id, a);
       });
-      
-      const finalItems = Array.from(byId.values());
-      console.log(`[fetchMyAssessments] Returning ${finalItems.length} assessments`);
-      return finalItems;
 
+      const finalItems = Array.from(byId.values());
+      console.log(
+        `[fetchMyAssessments] Returning ${finalItems.length} assessments`,
+      );
+      return finalItems;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load assessments"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load assessments",
       );
     }
-  }
+  },
 );
 
 export const fetchTeacherClasses = createAsyncThunk(
   "teacher/fetchTeacherClasses",
   async (params: { teacherId: string }, { rejectWithValue }) => {
-      // DUAL FETCH STRATEGY:
-      // 1. Fetch classes explicitly assigned to teacher (e.g. Class Teacher role)
-      // 2. Fetch subjects explicitly assigned to teacher (Subject Teacher role)
-      // Merge results to provide full access list.
-      
-      try {
-        const [classesRes, subjectsRes] = await Promise.allSettled([
-          apiClient.get(`/api/proxy/classes/teacher/${params.teacherId}`),
-          apiClient.get(`/api/proxy/subjects?teacherId=${params.teacherId}`)
-        ]);
+    // DUAL FETCH STRATEGY:
+    // 1. Fetch classes explicitly assigned to teacher (e.g. Class Teacher role)
+    // 2. Fetch subjects explicitly assigned to teacher (Subject Teacher role)
+    // Merge results to provide full access list.
 
-        const mergedItems: any[] = [];
-        const seenIds = new Set<string>();
+    try {
+      const [classesRes, subjectsRes] = await Promise.allSettled([
+        apiClient.get(`/api/proxy/classes/teacher/${params.teacherId}`),
+        apiClient.get(`/api/proxy/subjects?teacherId=${params.teacherId}`),
+      ]);
 
-        if (classesRes.status === "fulfilled") {
-          const rawClasses = classesRes.value.data?.data || classesRes.value.data || [];
-          if (Array.isArray(rawClasses)) {
-            rawClasses.forEach((c: any) => {
-              const item = {
-                id: `class-${c.id}`,
-                classId: c.id,
-                className: c.name,
-                class: { ...c, id: c.id, name: c.name },
-                subject: null,
-                teacherId: params.teacherId,
-                type: "class_assignment"
-              };
-              mergedItems.push(item);
-            });
-          }
+      const mergedItems: any[] = [];
+      const seenIds = new Set<string>();
+
+      if (classesRes.status === "fulfilled") {
+        const rawClasses =
+          classesRes.value.data?.data || classesRes.value.data || [];
+        if (Array.isArray(rawClasses)) {
+          rawClasses.forEach((c: any) => {
+            const item = {
+              id: `class-${c.id}`,
+              classId: c.id,
+              className: c.name,
+              class: { ...c, id: c.id, name: c.name },
+              subject: null,
+              teacherId: params.teacherId,
+              type: "class_assignment",
+            };
+            mergedItems.push(item);
+          });
         }
-
-        if (subjectsRes.status === "fulfilled") {
-          const allSubjects = subjectsRes.value.data?.data || subjectsRes.value.data || [];
-          if (Array.isArray(allSubjects)) {
-            const assignedSubjects = allSubjects.filter((s: any) => {
-               // Check new model (direct 'teachers' array on subject)
-               if (s.teachers && Array.isArray(s.teachers)) {
-                 if (s.teachers.some((t: any) => t.teacherId === params.teacherId || t.id === params.teacherId)) return true;
-               }
-               // Check legacy model
-               if (s.teacherAssignments && Array.isArray(s.teacherAssignments)) {
-                  return s.teacherAssignments.some((assignment: any) => 
-                    assignment.teacherId === params.teacherId || 
-                    (assignment.teacher && assignment.teacher.id === params.teacherId)
-                  );
-               }
-               return s.teacherId === params.teacherId;
-            });
-
-            assignedSubjects.forEach((s: any) => {
-              const classId = s.class?.id || s.classId || s.id;
-              const item = {
-                id: s.id,
-                subjectId: s.id,
-                subjectName: s.name,
-                classId: classId,
-                className: s.class?.name || s.className || `Class ${classId?.substring(0,6) || "Unknown"}`,
-                class: s.class || { id: classId, name: s.className || `Class ${classId?.substring(0,6) || "Unknown"}` },
-                subject: { id: s.id, name: s.name },
-                teacherId: params.teacherId,
-                type: "subject_assignment"
-              };
-              mergedItems.push(item);
-            });
-          }
-        }
-
-        const classesNeedingSubjects = mergedItems.filter(
-          item => item.type === "class_assignment" && (!item.class?.subjects || item.class.subjects.length === 0)
-        );
-
-        if (classesNeedingSubjects.length > 0) {
-          await Promise.all(
-            classesNeedingSubjects.map(async (item: any) => {
-              try {
-                const subjectsRes = await apiClient.get(`/api/proxy/subjects?classId=${item.classId}`);
-                const subjects = subjectsRes.data?.data || subjectsRes.data || [];
-                // Update the class object with subjects
-                if (item.class) {
-                  item.class.subjects = Array.isArray(subjects) ? subjects : [];
-                }
-              } catch (err) {
-                console.error(`[fetchTeacherClasses] Failed to fetch subjects for class ${item.classId}:`, err);
-                if (item.class) {
-                  item.class.subjects = [];
-                }
-              }
-            })
-          );
-        }
-        
-        return mergedItems;
-
-      } catch (err: any) {
-        console.error("fetchTeacherClasses critical failure", err);
-        return rejectWithValue(err?.message || "Failed to load teacher classes");
       }
 
-  }
+      if (subjectsRes.status === "fulfilled") {
+        const allSubjects =
+          subjectsRes.value.data?.data || subjectsRes.value.data || [];
+        if (Array.isArray(allSubjects)) {
+          const assignedSubjects = allSubjects.filter((s: any) => {
+            // Check new model (direct 'teachers' array on subject)
+            if (s.teachers && Array.isArray(s.teachers)) {
+              if (
+                s.teachers.some(
+                  (t: any) =>
+                    t.teacherId === params.teacherId ||
+                    t.id === params.teacherId,
+                )
+              )
+                return true;
+            }
+            // Check legacy model
+            if (s.teacherAssignments && Array.isArray(s.teacherAssignments)) {
+              return s.teacherAssignments.some(
+                (assignment: any) =>
+                  assignment.teacherId === params.teacherId ||
+                  (assignment.teacher &&
+                    assignment.teacher.id === params.teacherId),
+              );
+            }
+            return s.teacherId === params.teacherId;
+          });
+
+          assignedSubjects.forEach((s: any) => {
+            const classId = s.class?.id || s.classId || s.id;
+            const item = {
+              id: s.id,
+              subjectId: s.id,
+              subjectName: s.name,
+              classId: classId,
+              className:
+                s.class?.name ||
+                s.className ||
+                `Class ${classId?.substring(0, 6) || "Unknown"}`,
+              class: s.class || {
+                id: classId,
+                name:
+                  s.className ||
+                  `Class ${classId?.substring(0, 6) || "Unknown"}`,
+              },
+              subject: { id: s.id, name: s.name },
+              teacherId: params.teacherId,
+              type: "subject_assignment",
+            };
+            mergedItems.push(item);
+          });
+        }
+      }
+
+      const classesNeedingSubjects = mergedItems.filter(
+        (item) =>
+          item.type === "class_assignment" &&
+          (!item.class?.subjects || item.class.subjects.length === 0),
+      );
+
+      if (classesNeedingSubjects.length > 0) {
+        await Promise.all(
+          classesNeedingSubjects.map(async (item: any) => {
+            try {
+              const subjectsRes = await apiClient.get(
+                `/api/proxy/subjects?classId=${item.classId}`,
+              );
+              const subjects = subjectsRes.data?.data || subjectsRes.data || [];
+              // Update the class object with subjects
+              if (item.class) {
+                item.class.subjects = Array.isArray(subjects) ? subjects : [];
+              }
+            } catch (err) {
+              console.error(
+                `[fetchTeacherClasses] Failed to fetch subjects for class ${item.classId}:`,
+                err,
+              );
+              if (item.class) {
+                item.class.subjects = [];
+              }
+            }
+          }),
+        );
+      }
+
+      return mergedItems;
+    } catch (err: any) {
+      console.error("fetchTeacherClasses critical failure", err);
+      return rejectWithValue(err?.message || "Failed to load teacher classes");
+    }
+  },
 );
 
 // Create assessment with atomic class-subject linking (APRIL 2026 REFACTOR)
@@ -322,95 +386,143 @@ export const createTeacherAssessment = createAsyncThunk(
   "teacher/createTeacherAssessment",
   async (payload: any, { rejectWithValue }) => {
     try {
-      console.log("[createTeacherAssessment] Creating assessment with classSubjectIds", {
-        title: payload.title,
-        classSubjectIds: payload.classSubjectIds,
-      });
-      
+      console.log(
+        "[createTeacherAssessment] Creating assessment with classSubjectIds",
+        {
+          title: payload.title,
+          classSubjectIds: payload.classSubjectIds,
+        },
+      );
+
       const res = await apiClient.post("/api/proxy/assessments", payload);
       const data = res.data?.data || res.data || null;
-      
+
       console.log("[createTeacherAssessment] Assessment created successfully", {
         assessmentId: data?.id,
         classSubjectIds: payload.classSubjectIds,
       });
-      
+
       return data;
     } catch (e: any) {
       console.error("[createTeacherAssessment] Failed to create assessment", {
         error: e?.response?.data?.message || e?.message,
-        payload: { title: payload.title, classSubjectIds: payload.classSubjectIds },
+        payload: {
+          title: payload.title,
+          classSubjectIds: payload.classSubjectIds,
+        },
       });
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to create assessment"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to create assessment",
       );
     }
-  }
+  },
 );
 
 export const fetchAssessmentsByClassSubject = createAsyncThunk(
   "teacher/fetchAssessmentsByClassSubject",
-  async (params: { classId: string; subjectId: string }, { rejectWithValue }) => {
+  async (
+    params: { classId: string; subjectId: string },
+    { rejectWithValue },
+  ) => {
     try {
-      console.log("[fetchAssessmentsByClassSubject] Fetching assessments for class:", params.classId, "subject:", params.subjectId);
-      
+      console.log(
+        "[fetchAssessmentsByClassSubject] Fetching assessments for class:",
+        params.classId,
+        "subject:",
+        params.subjectId,
+      );
+
       // The API doesn't support query filtering by classId/subjectId
       // Instead, we fetch all assessments and filter client-side
       // The endpoint /api/proxy/assessments/:status returns grouped by subject
-      
-      const statuses: Array<"started" | "ended" | "not_started"> = ["started", "ended", "not_started"];
+
+      const statuses: Array<"started" | "ended" | "not_started"> = [
+        "started",
+        "ended",
+        "not_started",
+      ];
       const results = await Promise.all(
         statuses.map(async (status) => {
           try {
             const res = await apiClient.get(`/api/proxy/assessments/${status}`);
             const data = res.data?.data || res.data || [];
-            console.log(`[fetchAssessmentsByClassSubject] API response for status=${status}:`, data);
+            console.log(
+              `[fetchAssessmentsByClassSubject] API response for status=${status}:`,
+              data,
+            );
             if (Array.isArray(data)) {
-              return data.map((item: any) => ({ ...item, _fetchedStatus: status }));
+              return data.map((item: any) => ({
+                ...item,
+                _fetchedStatus: status,
+              }));
             }
             return [];
           } catch (e: any) {
-            console.error(`[fetchAssessmentsByClassSubject] Failed to fetch status=${status}:`, e?.message);
+            console.error(
+              `[fetchAssessmentsByClassSubject] Failed to fetch status=${status}:`,
+              e?.message,
+            );
             return [];
           }
-        })
+        }),
       );
 
       const rawCombined = results.flat();
-      console.log("[fetchAssessmentsByClassSubject] Combined results:", rawCombined);
-      
+      console.log(
+        "[fetchAssessmentsByClassSubject] Combined results:",
+        rawCombined,
+      );
+
       if (rawCombined.length === 0) {
         console.warn("[fetchAssessmentsByClassSubject] No assessments found");
         return [];
       }
 
       // Handle grouped structure (Subject -> Assessments)
-      const isGrouped = rawCombined.some((item: any) => item.assessments && Array.isArray(item.assessments));
+      const isGrouped = rawCombined.some(
+        (item: any) => item.assessments && Array.isArray(item.assessments),
+      );
       let items: Assessment[] = [];
 
       if (isGrouped) {
-        console.log("[fetchAssessmentsByClassSubject] Response is grouped by subject");
+        console.log(
+          "[fetchAssessmentsByClassSubject] Response is grouped by subject",
+        );
         const flattened: Assessment[] = [];
-        
+
         rawCombined.forEach((group: any) => {
           if (group.assessments && Array.isArray(group.assessments)) {
             const subjectId = group.id || group.subjectId || group.subject?.id;
             const classData = group.class || {};
             const classId = classData.id || group.classId;
-            
+
             // Filter: Only include assessments matching the selected class/subject
-            if (String(classId).toLowerCase() !== String(params.classId).toLowerCase()) {
-              console.log(`[fetchAssessmentsByClassSubject] Skipping class=${classId} (looking for ${params.classId})`);
+            if (
+              String(classId).toLowerCase() !==
+              String(params.classId).toLowerCase()
+            ) {
+              console.log(
+                `[fetchAssessmentsByClassSubject] Skipping class=${classId} (looking for ${params.classId})`,
+              );
               return;
             }
-            
-            if (String(subjectId).toLowerCase() !== String(params.subjectId).toLowerCase()) {
-              console.log(`[fetchAssessmentsByClassSubject] Skipping subject=${subjectId} (looking for ${params.subjectId})`);
+
+            if (
+              String(subjectId).toLowerCase() !==
+              String(params.subjectId).toLowerCase()
+            ) {
+              console.log(
+                `[fetchAssessmentsByClassSubject] Skipping subject=${subjectId} (looking for ${params.subjectId})`,
+              );
               return;
             }
-            
-            console.log(`[fetchAssessmentsByClassSubject] ✓ Including ${group.assessments.length} assessments for class=${classId}, subject=${subjectId}`);
-            
+
+            console.log(
+              `[fetchAssessmentsByClassSubject] ✓ Including ${group.assessments.length} assessments for class=${classId}, subject=${subjectId}`,
+            );
+
             group.assessments.forEach((assess: any) => {
               flattened.push({
                 ...assess,
@@ -426,7 +538,9 @@ export const fetchAssessmentsByClassSubject = createAsyncThunk(
                 totalMarks: assess.totalMarks ?? assess.marks ?? 100,
                 duration: assess.durationMins ?? assess.duration ?? 60,
                 status: assess.status || "not_started",
-                isOnline: assess.assessmentType === "online" || assess.isOnline === true,
+                isOnline:
+                  assess.assessmentType === "online" ||
+                  assess.isOnline === true,
               });
             });
           }
@@ -434,47 +548,64 @@ export const fetchAssessmentsByClassSubject = createAsyncThunk(
         items = flattened;
       } else {
         // Flat array response - filter by class/subject
-        items = (Array.isArray(rawCombined) ? rawCombined : []).filter((a: any) => {
-          const matchClass = String(a.classId).toLowerCase() === String(params.classId).toLowerCase() ||
-                            String(a.class?.id).toLowerCase() === String(params.classId).toLowerCase();
-          const matchSubject = String(a.subjectId).toLowerCase() === String(params.subjectId).toLowerCase() ||
-                              String(a.subject?.id).toLowerCase() === String(params.subjectId).toLowerCase();
-          return matchClass && matchSubject;
-        }).map((a: any) => ({
-          ...a,
-          classId: a.classId || params.classId,
-          subjectId: a.subjectId || params.subjectId,
-          totalMarks: a.totalMarks ?? a.marks ?? 100,
-          duration: a.durationMins ?? a.duration ?? 60,
-          status: a.status || "not_started",
-          isOnline: a.assessmentType === "online" || a.isOnline === true,
-        })) as Assessment[];
+        items = (Array.isArray(rawCombined) ? rawCombined : [])
+          .filter((a: any) => {
+            const matchClass =
+              String(a.classId).toLowerCase() ===
+                String(params.classId).toLowerCase() ||
+              String(a.class?.id).toLowerCase() ===
+                String(params.classId).toLowerCase();
+            const matchSubject =
+              String(a.subjectId).toLowerCase() ===
+                String(params.subjectId).toLowerCase() ||
+              String(a.subject?.id).toLowerCase() ===
+                String(params.subjectId).toLowerCase();
+            return matchClass && matchSubject;
+          })
+          .map((a: any) => ({
+            ...a,
+            classId: a.classId || params.classId,
+            subjectId: a.subjectId || params.subjectId,
+            totalMarks: a.totalMarks ?? a.marks ?? 100,
+            duration: a.durationMins ?? a.duration ?? 60,
+            status: a.status || "not_started",
+            isOnline: a.assessmentType === "online" || a.isOnline === true,
+          })) as Assessment[];
       }
 
-      console.log(`[fetchAssessmentsByClassSubject] Returning ${items.length} assessments`);
+      console.log(
+        `[fetchAssessmentsByClassSubject] Returning ${items.length} assessments`,
+      );
       return items;
     } catch (e: any) {
-      console.error("[fetchAssessmentsByClassSubject] Critical error:", e?.message);
+      console.error(
+        "[fetchAssessmentsByClassSubject] Critical error:",
+        e?.message,
+      );
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load assessments for class/subject"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load assessments for class/subject",
       );
     }
-  }
+  },
 );
 
 export const fetchScoresByAssessmentTeacher = createAsyncThunk(
   "teacher/fetchScoresByAssessmentTeacher",
   async (assessmentId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/scores/assessment/${assessmentId}`);
+      const res = await apiClient.get(
+        `/api/proxy/scores/assessment/${assessmentId}`,
+      );
       const items = res.data?.data || res.data || [];
       return Array.isArray(items) ? items : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load scores"
+        e?.response?.data?.message || e?.message || "Failed to load scores",
       );
     }
-  }
+  },
 );
 
 export const fetchAssessmentsByStatus = createAsyncThunk(
@@ -494,13 +625,18 @@ export const fetchAssessmentsByStatus = createAsyncThunk(
       }
 
       const items = res.data?.data || res.data || [];
-      return { status, items: Array.isArray(items) ? (items as Assessment[]) : [] };
+      return {
+        status,
+        items: Array.isArray(items) ? (items as Assessment[]) : [],
+      };
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load assessments"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load assessments",
       );
     }
-  }
+  },
 );
 
 export const fetchAssessmentDetail = createAsyncThunk(
@@ -508,43 +644,49 @@ export const fetchAssessmentDetail = createAsyncThunk(
   async (assessmentId: string, { rejectWithValue }) => {
     try {
       // Updated endpoint to avoid collision with :status route
-      const res = await apiClient.get(`/api/proxy/assessments/details/${assessmentId}`);
+      const res = await apiClient.get(
+        `/api/proxy/assessments/details/${assessmentId}`,
+      );
       const data = res.data?.data || res.data;
       if (!data) return rejectWithValue("Assessment not found");
       return data as Assessment;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load assessment"
+        e?.response?.data?.message || e?.message || "Failed to load assessment",
       );
     }
-  }
+  },
 );
 
 export const fetchAssessmentSubmissions = createAsyncThunk(
   "teacher/fetchAssessmentSubmissions",
   async (assessmentId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/assessments/${assessmentId}/submissions`);
+      const res = await apiClient.get(
+        `/api/proxy/assessments/${assessmentId}/submissions`,
+      );
       const items = res.data?.data || res.data || [];
       return Array.isArray(items) ? items : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load submissions"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load submissions",
       );
     }
-  }
+  },
 );
 
 export const publishAssessment = createAsyncThunk(
   "teacher/publishAssessment",
   async (
     params: { assessmentId: string; publish: boolean },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.post(
         `/api/proxy/assessments/${params.assessmentId}/publish`,
-        { publish: params.publish }
+        { publish: params.publish },
       );
       const data = res.data?.data || res.data || {};
       // Always return id + isPublished so the slice reducer can update the right assessment
@@ -555,10 +697,12 @@ export const publishAssessment = createAsyncThunk(
       };
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to update publish state"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to update publish state",
       );
     }
-  }
+  },
 );
 
 export const gradeAnswer = createAsyncThunk(
@@ -570,20 +714,20 @@ export const gradeAnswer = createAsyncThunk(
       marksAwarded: number;
       comment?: string;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.post(
         `/api/proxy/assessments/submissions/${params.submissionId}/answers/${params.answerId}/grade`,
-        { marksAwarded: params.marksAwarded, comment: params.comment }
+        { marksAwarded: params.marksAwarded, comment: params.comment },
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to grade answer"
+        e?.response?.data?.message || e?.message || "Failed to grade answer",
       );
     }
-  }
+  },
 );
 
 export const uploadOfflineScores = createAsyncThunk(
@@ -591,27 +735,32 @@ export const uploadOfflineScores = createAsyncThunk(
   async (
     params: {
       assessmentId: string;
-      scores: Array<{ studentId: string; marksAwarded: number; maxMarks: number; comment?: string }>;
+      scores: Array<{
+        studentId: string;
+        marksAwarded: number;
+        maxMarks: number;
+        comment?: string;
+      }>;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const payload = {
         scores: params.scores,
         // Optional defaultMaxMarks can be omitted if per-student is provided
       };
-      
+
       const res = await apiClient.post(
         `/api/proxy/assessments/${params.assessmentId}/scores`,
-        payload
+        payload,
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to upload scores"
+        e?.response?.data?.message || e?.message || "Failed to upload scores",
       );
     }
-  }
+  },
 );
 
 export const bulkUploadScoresExcel = createAsyncThunk(
@@ -623,15 +772,17 @@ export const bulkUploadScoresExcel = createAsyncThunk(
       const res = await apiClient.post(
         `/api/proxy/scores/bulk?assessmentId=${encodeURIComponent(params.assessmentId)}`,
         form,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to bulk upload scores"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to bulk upload scores",
       );
     }
-  }
+  },
 );
 
 export const addComment = createAsyncThunk(
@@ -642,10 +793,10 @@ export const addComment = createAsyncThunk(
       return res.data?.data || res.data || payload;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to add comment"
+        e?.response?.data?.message || e?.message || "Failed to add comment",
       );
     }
-  }
+  },
 );
 
 export const fetchMyComments = createAsyncThunk(
@@ -654,52 +805,62 @@ export const fetchMyComments = createAsyncThunk(
     try {
       const res = await apiClient.get(
         `/api/proxy/comments/my-comments?session=${encodeURIComponent(params.session)}&term=${encodeURIComponent(
-          params.term
-        )}`
+          params.term,
+        )}`,
       );
       const items = res.data?.data || res.data || [];
       return Array.isArray(items) ? (items as TeacherComment[]) : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load comments"
+        e?.response?.data?.message || e?.message || "Failed to load comments",
       );
     }
-  }
+  },
 );
 
 export const fetchBookletPreview = createAsyncThunk(
   "teacher/fetchBookletPreview",
   async (
     params: { classId: string; session: string; term: string },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.get(
         `/api/proxy/reports/class/${params.classId}/booklet-preview?session=${encodeURIComponent(
-          params.session
-        )}&term=${encodeURIComponent(params.term)}`
+          params.session,
+        )}&term=${encodeURIComponent(params.term)}`,
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load booklet preview"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load booklet preview",
       );
     }
-  }
+  },
 );
 
 export const submitReportsForApproval = createAsyncThunk(
   "teacher/submitReportsForApproval",
-  async (params: { classId: string; session: string; term: string }, { rejectWithValue }) => {
+  async (
+    params: { classId: string; session: string; term: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.post("/api/proxy/reports/submit-for-approval", params);
+      const res = await apiClient.post(
+        "/api/proxy/reports/submit-for-approval",
+        params,
+      );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to submit for approval"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to submit for approval",
       );
     }
-  }
+  },
 );
 
 // Fetch students in a class (for score entry)
@@ -714,18 +875,21 @@ export const fetchClassStudents = createAsyncThunk(
 
       const classRes = await apiClient.get(`/api/proxy/classes/${classId}`);
       const classData = classRes.data?.data || classRes.data || {};
-      
+
       if (classData.students && Array.isArray(classData.students)) {
-         students = classData.students;
-         return students;
-      } else if (classData.enrollments && Array.isArray(classData.enrollments)) {
-         students = classData.enrollments
-           .map((e: any) => {
-             const base = e.student || e;
-             return base;
-           })
-           .filter((s: any) => s && (s.id || s.firstName));
-         return students;
+        students = classData.students;
+        return students;
+      } else if (
+        classData.enrollments &&
+        Array.isArray(classData.enrollments)
+      ) {
+        students = classData.enrollments
+          .map((e: any) => {
+            const base = e.student || e;
+            return base;
+          })
+          .filter((s: any) => s && (s.id || s.firstName));
+        return students;
       }
 
       // Return empty array if no students found, avoiding insecure fallbacks
@@ -733,10 +897,12 @@ export const fetchClassStudents = createAsyncThunk(
     } catch (e: any) {
       console.error("[fetchClassStudents] Critical Error:", e);
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load class students"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load class students",
       );
     }
-  }
+  },
 );
 
 // Fetch subjects for a class — uses GET /subjects/by-class/:classId (new model)
@@ -745,15 +911,17 @@ export const fetchClassSubjects = createAsyncThunk(
   "teacher/fetchClassSubjects",
   async (classId: string, { rejectWithValue }) => {
     try {
-      const res = await apiClient.get(`/api/proxy/subjects/by-class/${classId}`);
+      const res = await apiClient.get(
+        `/api/proxy/subjects/by-class/${classId}`,
+      );
       const data = res.data?.data || res.data || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load subjects"
+        e?.response?.data?.message || e?.message || "Failed to load subjects",
       );
     }
-  }
+  },
 );
 
 // Fetch teacher's assigned subjects with class info (for authorization)
@@ -762,15 +930,19 @@ export const fetchTeacherSubjectsWithClasses = createAsyncThunk(
   async (teacherId: string, { rejectWithValue }) => {
     try {
       // Per API docs: GET /subjects?teacherId=:id returns subjects with class info
-      const res = await apiClient.get(`/api/proxy/subjects?teacherId=${teacherId}`);
+      const res = await apiClient.get(
+        `/api/proxy/subjects?teacherId=${teacherId}`,
+      );
       const data = res.data?.data || res.data || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load teacher subjects"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load teacher subjects",
       );
     }
-  }
+  },
 );
 
 // Fetch individual student report card
@@ -778,21 +950,23 @@ export const fetchStudentReportCard = createAsyncThunk(
   "teacher/fetchStudentReportCard",
   async (
     params: { studentId: string; session: string; term: string },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.get(
         `/api/proxy/reports/student/${params.studentId}/report-card?session=${encodeURIComponent(
-          params.session
-        )}&term=${encodeURIComponent(params.term)}`
+          params.session,
+        )}&term=${encodeURIComponent(params.term)}`,
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load report card"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load report card",
       );
     }
-  }
+  },
 );
 
 // Fetch class report summary (all students with averages, ranks)
@@ -800,23 +974,25 @@ export const fetchClassReportSummary = createAsyncThunk(
   "teacher/fetchClassReportSummary",
   async (
     params: { classId: string; session: string; term: string },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       // Try booklet preview first as it has summary data
       const res = await apiClient.get(
         `/api/proxy/reports/class/${params.classId}/booklet-preview?session=${encodeURIComponent(
-          params.session
+          params.session,
         )}&term=${encodeURIComponent(params.term)}`,
-        { skipGlobalRedirect: true } as any
+        { skipGlobalRedirect: true } as any,
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load class report summary"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load class report summary",
       );
     }
-  }
+  },
 );
 
 // Generate and notify (email) report cards
@@ -824,17 +1000,22 @@ export const generateAndNotifyReports = createAsyncThunk(
   "teacher/generateAndNotifyReports",
   async (
     params: { studentIds: string[]; session: string; term: string },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
-      const res = await apiClient.post("/api/proxy/reports/generate-and-notify", params);
+      const res = await apiClient.post(
+        "/api/proxy/reports/generate-and-notify",
+        params,
+      );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to generate and send reports"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to generate and send reports",
       );
     }
-  }
+  },
 );
 
 export const fetchAssessmentCategories = createAsyncThunk(
@@ -846,22 +1027,24 @@ export const fetchAssessmentCategories = createAsyncThunk(
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load assessment categories"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load assessment categories",
       );
     }
-  }
+  },
 );
 
 export const updateTeacherAssessment = createAsyncThunk(
   "teacher/updateTeacherAssessment",
   async (
     params: { id: string; data: Partial<Assessment> },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const res = await apiClient.patch(
         `/api/proxy/assessments/${params.id}`,
-        params.data
+        params.data,
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
@@ -874,7 +1057,7 @@ export const updateTeacherAssessment = createAsyncThunk(
         "Failed to update assessment";
       return rejectWithValue(msg);
     }
-  }
+  },
 );
 
 export const deleteTeacherAssessment = createAsyncThunk(
@@ -885,50 +1068,63 @@ export const deleteTeacherAssessment = createAsyncThunk(
       return id;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to delete assessment"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to delete assessment",
       );
     }
-  }
+  },
 );
 
 export const bulkUploadQuestions = createAsyncThunk(
   "teacher/bulkUploadQuestions",
-  async (payload: { assessmentId: string; file: File }, { rejectWithValue }) => {
+  async (
+    payload: { assessmentId: string; file: File },
+    { rejectWithValue },
+  ) => {
     try {
       const form = new FormData();
       form.append("file", payload.file);
       const res = await apiClient.post(
         `/api/proxy/assessments/${payload.assessmentId}/questions/bulk`,
         form,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       return res.data?.data || res.data || null;
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to upload questions"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to upload questions",
       );
     }
-  }
+  },
 );
 
 // Fetch generated report cards for a class (for Download tab)
 export const fetchClassReportCards = createAsyncThunk(
   "teacher/fetchClassReportCards",
-  async (params: { classId?: string; session?: string; term?: string }, { rejectWithValue }) => {
+  async (
+    params: { classId?: string; session?: string; term?: string },
+    { rejectWithValue },
+  ) => {
     try {
       const query = new URLSearchParams();
       if (params.classId) query.set("classId", params.classId);
       if (params.session) query.set("session", params.session);
       if (params.term) query.set("term", params.term);
-      
-      const res = await apiClient.get(`/api/proxy/reports/report-cards?${query}`);
+
+      const res = await apiClient.get(
+        `/api/proxy/reports/report-cards?${query}`,
+      );
       const data = res.data?.data || res.data || [];
       return Array.isArray(data) ? data : [];
     } catch (e: any) {
       return rejectWithValue(
-        e?.response?.data?.message || e?.message || "Failed to load report cards"
+        e?.response?.data?.message ||
+          e?.message ||
+          "Failed to load report cards",
       );
     }
-  }
+  },
 );
-

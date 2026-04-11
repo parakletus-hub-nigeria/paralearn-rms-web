@@ -3,7 +3,11 @@
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchAcademicCurrent, fetchMyAssessments, fetchTeacherClasses } from "@/reduxToolKit/teacher/teacherThunks";
+import {
+  fetchAcademicCurrent,
+  fetchMyAssessments,
+  fetchTeacherClasses,
+} from "@/reduxToolKit/teacher/teacherThunks";
 import { TeacherHeader } from "./TeacherHeader";
 import Link from "next/link";
 import { routespath } from "@/lib/routepath";
@@ -25,17 +29,20 @@ import { ProductTour } from "@/components/common/ProductTour";
 
 const teacherTourSteps = [
   {
-    target: '.teacher-status-cards',
-    content: "Keep an eye on what needs your attention right now. This pipeline shows you exactly how many exams you've created and which ones still need grading.",
+    target: ".teacher-status-cards",
+    content:
+      "Keep an eye on what needs your attention right now. This pipeline shows you exactly how many exams you've created and which ones still need grading.",
     disableBeacon: true,
   },
   {
-    target: '.teacher-quick-actions',
-    content: "Your daily toolkit lives here. Jump straight into creating assessments, entering student scores, or writing report card remarks with a single click.",
+    target: ".teacher-quick-actions",
+    content:
+      "Your daily toolkit lives here. Jump straight into creating assessments, entering student scores, or writing report card remarks with a single click.",
   },
   {
-    target: '.teacher-recent-graded',
-    content: "Monitor your class's pulse. This section highlights recent grading progress so you know exactly where your students stand.",
+    target: ".teacher-recent-graded",
+    content:
+      "Monitor your class's pulse. This section highlights recent grading progress so you know exactly where your students stand.",
   },
 ];
 
@@ -43,7 +50,9 @@ const DEFAULT_PRIMARY = "#641BC4";
 
 export function TeacherDashboardPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { academicCurrent, assessments, teacherClasses, loading } = useSelector((s: RootState) => s.teacher);
+  const { academicCurrent, assessments, teacherClasses, loading } = useSelector(
+    (s: RootState) => s.teacher,
+  );
   const { user } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -51,30 +60,39 @@ export function TeacherDashboardPage() {
   useEffect(() => {
     const loadData = async () => {
       dispatch(fetchAcademicCurrent());
-      
+
       const teacherId = (user as any)?.id || (user as any)?.teacherId;
       if (teacherId) {
         // IMPORTANT: Fetch teacher classes FIRST so assessments can be filtered by teacher's assignments
         try {
           await dispatch(fetchTeacherClasses({ teacherId })).unwrap();
         } catch (err) {
-          console.error("[TeacherDashboardPage] Failed to fetch teacher classes:", err);
+          console.error(
+            "[TeacherDashboardPage] Failed to fetch teacher classes:",
+            err,
+          );
         }
       }
-      
+
       // Then fetch assessments (uses teacher classes from redux state to filter)
       dispatch(fetchMyAssessments());
     };
-    
+
     loadData();
   }, [dispatch, user]);
 
   // Calculate dashboard statistics
   const stats = useMemo(() => {
     const totalAssessments = assessments.length;
-    const activeAssessments = assessments.filter((a) => a.status === "started").length;
-    const pendingGrading = assessments.filter((a) => a.status === "ended").length;
-    const notStarted = assessments.filter((a) => a.status === "not_started").length;
+    const activeAssessments = assessments.filter(
+      (a) => a.status === "started",
+    ).length;
+    const pendingGrading = assessments.filter(
+      (a) => a.status === "ended",
+    ).length;
+    const notStarted = assessments.filter(
+      (a) => a.status === "not_started",
+    ).length;
 
     // Extract unique classes and subjects from teacherClasses
     const classSet = new Set<string>();
@@ -85,8 +103,14 @@ export function TeacherDashboardPage() {
       const classId = item.class?.id || item.classId || item.id;
       const className = item.class?.name || item.className || item.name;
       const subjectName = item.subject?.name || item.subjectName || item.name;
-      const studentCount = item.class?.studentCount || item.class?.enrollmentCount || item.class?.currentEnrollment ||
-                          item.studentCount || item.enrollmentCount || item.currentEnrollment || 0;
+      const studentCount =
+        item.class?.studentCount ||
+        item.class?.enrollmentCount ||
+        item.class?.currentEnrollment ||
+        item.studentCount ||
+        item.enrollmentCount ||
+        item.currentEnrollment ||
+        0;
 
       if (classId && className) {
         if (!classSet.has(classId)) {
@@ -124,13 +148,29 @@ export function TeacherDashboardPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "started":
-        return { bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" };
+        return {
+          bg: "bg-emerald-100",
+          text: "text-emerald-700",
+          dot: "bg-emerald-500",
+        };
       case "ended":
-        return { bg: "bg-amber-100", text: "text-amber-700", dot: "bg-amber-500" };
+        return {
+          bg: "bg-amber-100",
+          text: "text-amber-700",
+          dot: "bg-amber-500",
+        };
       case "not_started":
-        return { bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" };
+        return {
+          bg: "bg-slate-100",
+          text: "text-slate-600",
+          dot: "bg-slate-400",
+        };
       default:
-        return { bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" };
+        return {
+          bg: "bg-slate-100",
+          text: "text-slate-600",
+          dot: "bg-slate-400",
+        };
     }
   };
 
@@ -144,15 +184,19 @@ export function TeacherDashboardPage() {
         <div className="card-premium p-5 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 md:gap-6">
             <div className="space-y-2">
-              <p className="text-slate-400 font-medium font-coolvetica">Welcome back,</p>
+              <p className="text-slate-400 font-medium font-coolvetica">
+                Welcome back,
+              </p>
               <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">
-                {(user as any)?.firstName || "Teacher"} {(user as any)?.lastName || ""}
+                {(user as any)?.firstName || "Teacher"}{" "}
+                {(user as any)?.lastName || ""}
               </h1>
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm">
                   <CalendarDays className="w-4 h-4 text-purple-400" />
                   <span className="text-sm font-medium">
-                    {academicCurrent?.session || "—"} • {academicCurrent?.term || "—"}
+                    {academicCurrent?.session || "—"} •{" "}
+                    {academicCurrent?.term || "—"}
                   </span>
                 </div>
               </div>
@@ -161,10 +205,30 @@ export function TeacherDashboardPage() {
             {/* Quick Stats Pills */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: "Classes", value: stats.totalClasses, icon: GraduationCap, color: "#8B5CF6" },
-                { label: "Subjects", value: stats.totalSubjects, icon: BookOpen, color: "#3B82F6" },
-                { label: "Students", value: stats.totalStudents, icon: Users, color: "#10B981" },
-                { label: "Assessments", value: stats.totalAssessments, icon: ClipboardList, color: "#F59E0B" },
+                {
+                  label: "Classes",
+                  value: stats.totalClasses,
+                  icon: GraduationCap,
+                  color: "#8B5CF6",
+                },
+                {
+                  label: "Subjects",
+                  value: stats.totalSubjects,
+                  icon: BookOpen,
+                  color: "#3B82F6",
+                },
+                {
+                  label: "Students",
+                  value: stats.totalStudents,
+                  icon: Users,
+                  color: "#10B981",
+                },
+                {
+                  label: "Assessments",
+                  value: stats.totalAssessments,
+                  icon: ClipboardList,
+                  color: "#F59E0B",
+                },
               ].map((stat) => {
                 const Icon = stat.icon;
                 return (
@@ -192,10 +256,34 @@ export function TeacherDashboardPage() {
         {/* Assessment Status Cards */}
         <div className="teacher-status-cards grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { label: "Active", value: stats.activeAssessments, bg: "#DFF9D8", fg: "#16A34A", icon: TrendingUp },
-            { label: "Pending", value: stats.pendingGrading, bg: "#FEF3C7", fg: "#D97706", icon: Clock },
-            { label: "Not Started", value: stats.notStarted, bg: "#F0E5FF", fg: "#9747FF", icon: FileText },
-            { label: "Total", value: stats.totalAssessments, bg: "#DBE9FF", fg: "#2563EB", icon: Layers },
+            {
+              label: "Active",
+              value: stats.activeAssessments,
+              bg: "#DFF9D8",
+              fg: "#16A34A",
+              icon: TrendingUp,
+            },
+            {
+              label: "Pending",
+              value: stats.pendingGrading,
+              bg: "#FEF3C7",
+              fg: "#D97706",
+              icon: Clock,
+            },
+            {
+              label: "Not Started",
+              value: stats.notStarted,
+              bg: "#F0E5FF",
+              fg: "#9747FF",
+              icon: FileText,
+            },
+            {
+              label: "Total",
+              value: stats.totalAssessments,
+              bg: "#DBE9FF",
+              fg: "#2563EB",
+              icon: Layers,
+            },
           ].map((c) => {
             const Icon = c.icon;
             return (
@@ -215,7 +303,9 @@ export function TeacherDashboardPage() {
                     {c.value}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm font-semibold text-slate-700 truncate">{c.label} {c.label !== "Total" && "Exams"}</p>
+                <p className="text-xs sm:text-sm font-semibold text-slate-700 truncate">
+                  {c.label} {c.label !== "Total" && "Exams"}
+                </p>
               </div>
             );
           })}
@@ -234,13 +324,20 @@ export function TeacherDashboardPage() {
                   className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0"
                   style={{ backgroundColor: `${primaryColor}15` }}
                 >
-                  <ClipboardList className="w-5 h-5 md:w-6 md:h-6" style={{ color: primaryColor }} />
+                  <ClipboardList
+                    className="w-5 h-5 md:w-6 md:h-6"
+                    style={{ color: primaryColor }}
+                  />
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-purple-500 transition-colors" />
               </div>
               <div className="mt-auto">
-                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Assessments</h3>
-                <p className="text-xs text-slate-500 leading-tight">Create & grade exams</p>
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">
+                  Assessments
+                </h3>
+                <p className="text-xs text-slate-500 leading-tight">
+                  Create & grade exams
+                </p>
               </div>
             </Link>
 
@@ -255,8 +352,12 @@ export function TeacherDashboardPage() {
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 transition-colors" />
               </div>
               <div className="mt-auto">
-                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Enter Scores</h3>
-                <p className="text-xs text-slate-500 leading-tight">Input student marks</p>
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">
+                  Enter Scores
+                </h3>
+                <p className="text-xs text-slate-500 leading-tight">
+                  Input student marks
+                </p>
               </div>
             </Link>
 
@@ -271,8 +372,12 @@ export function TeacherDashboardPage() {
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
               </div>
               <div className="mt-auto">
-                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Comments</h3>
-                <p className="text-xs text-slate-500 leading-tight">Add remarks</p>
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">
+                  Comments
+                </h3>
+                <p className="text-xs text-slate-500 leading-tight">
+                  Add remarks
+                </p>
               </div>
             </Link>
 
@@ -287,8 +392,12 @@ export function TeacherDashboardPage() {
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-orange-500 transition-colors" />
               </div>
               <div className="mt-auto">
-                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Reports</h3>
-                <p className="text-xs text-slate-500 leading-tight">Download cards</p>
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">
+                  Reports
+                </h3>
+                <p className="text-xs text-slate-500 leading-tight">
+                  Download cards
+                </p>
               </div>
             </Link>
 
@@ -303,8 +412,12 @@ export function TeacherDashboardPage() {
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-cyan-500 transition-colors" />
               </div>
               <div className="mt-auto">
-                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Classes</h3>
-                <p className="text-xs text-slate-500 leading-tight">View groups</p>
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">
+                  Classes
+                </h3>
+                <p className="text-xs text-slate-500 leading-tight">
+                  View groups
+                </p>
               </div>
             </Link>
 
@@ -319,8 +432,12 @@ export function TeacherDashboardPage() {
                 <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-rose-500 transition-colors" />
               </div>
               <div className="mt-auto">
-                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">Attendance</h3>
-                <p className="text-xs text-slate-500 leading-tight">Take attendance</p>
+                <h3 className="text-sm md:text-lg font-bold text-slate-900 mb-1">
+                  Attendance
+                </h3>
+                <p className="text-xs text-slate-500 leading-tight">
+                  Take attendance
+                </p>
               </div>
             </Link>
           </div>
@@ -363,18 +480,32 @@ export function TeacherDashboardPage() {
                         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${primaryColor}15` }}
                       >
-                        <FileText className="w-5 h-5" style={{ color: primaryColor }} />
+                        <FileText
+                          className="w-5 h-5"
+                          style={{ color: primaryColor }}
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-900 truncate">{assessment.title}</p>
+                        <p className="font-semibold text-slate-900 truncate">
+                          {assessment.title}
+                        </p>
                         <p className="text-xs text-slate-500">
-                          {assessment.subject?.name || "Subject"} • {assessment.totalMarks || 100} marks
+                          {assessment.subject?.name || "Subject"} •{" "}
+                          {assessment.totalMarks || 100} marks
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${statusStyle.dot}`} />
-                        <span className={`text-xs font-medium ${statusStyle.text}`}>
-                          {status === "started" ? "Active" : status === "ended" ? "Ended" : "Draft"}
+                        <span
+                          className={`w-2 h-2 rounded-full ${statusStyle.dot}`}
+                        />
+                        <span
+                          className={`text-xs font-medium ${statusStyle.text}`}
+                        >
+                          {status === "started"
+                            ? "Active"
+                            : status === "ended"
+                              ? "Ended"
+                              : "Draft"}
                         </span>
                       </div>
                     </Link>

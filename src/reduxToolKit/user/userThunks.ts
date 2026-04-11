@@ -181,7 +181,9 @@ export const loginUser = createAsyncThunk(
               currentHost.includes("localhost") ||
               currentHost.includes("127.0.0.1")
             ) {
-              const port = currentHost.includes(":") ? currentHost.split(":")[1] : "";
+              const port = currentHost.includes(":")
+                ? currentHost.split(":")[1]
+                : "";
               targetHost = port
                 ? `${uniSubdomain}.localhost:${port}`
                 : `${uniSubdomain}.localhost`;
@@ -198,10 +200,15 @@ export const loginUser = createAsyncThunk(
           try {
             localStorage.setItem("currentUser", JSON.stringify(userToSave));
           } catch (e) {
-            console.error("[Login Thunk] Failed to save uni user to localStorage:", e);
+            console.error(
+              "[Login Thunk] Failed to save uni user to localStorage:",
+              e,
+            );
           }
 
-          const urlObj = new URL(`${currentProtocol}//${targetHost}${redirectPath}`);
+          const urlObj = new URL(
+            `${currentProtocol}//${targetHost}${redirectPath}`,
+          );
           urlObj.searchParams.set("auth_token", accessToken);
           urlObj.searchParams.set(
             "auth_user",
@@ -377,9 +384,7 @@ export const loginUser = createAsyncThunk(
           }
         }
 
-        const urlObj = new URL(
-          `${currentProtocol}//${newHost}${redirectPath}`,
-        );
+        const urlObj = new URL(`${currentProtocol}//${newHost}${redirectPath}`);
         urlObj.searchParams.set("auth_token", accessToken);
         urlObj.searchParams.set(
           "auth_user",
@@ -588,12 +593,28 @@ export const fetchAllUsers = createAsyncThunk(
       // Separate students and teachers by checking all assigned roles
       const students = users.filter((item: any) => {
         const roles = item.roles || [];
-        return Array.isArray(roles) && roles.some((r: any) => (r.role?.name === "student" || r.name === "student" || r === "student"));
+        return (
+          Array.isArray(roles) &&
+          roles.some(
+            (r: any) =>
+              r.role?.name === "student" ||
+              r.name === "student" ||
+              r === "student",
+          )
+        );
       });
 
       const teachers = users.filter((item: any) => {
         const roles = item.roles || [];
-        return Array.isArray(roles) && roles.some((r: any) => (r.role?.name === "teacher" || r.name === "teacher" || r === "teacher"));
+        return (
+          Array.isArray(roles) &&
+          roles.some(
+            (r: any) =>
+              r.role?.name === "teacher" ||
+              r.name === "teacher" ||
+              r === "teacher",
+          )
+        );
       });
 
       return {
@@ -813,10 +834,7 @@ export const updateUserProfile = createAsyncThunk(
 // Update user roles
 export const updateUserRoles = createAsyncThunk(
   "user/updateUserRoles",
-  async (
-    data: { userId: string; roles: string[] },
-    { rejectWithValue },
-  ) => {
+  async (data: { userId: string; roles: string[] }, { rejectWithValue }) => {
     try {
       if (!data.userId) return rejectWithValue("User ID is required");
       const response = await apiClient.post(
@@ -839,10 +857,7 @@ export const updateUserRoles = createAsyncThunk(
 // Update user classes
 export const updateUserClasses = createAsyncThunk(
   "user/updateUserClasses",
-  async (
-    data: { userId: string; classIds: string[] },
-    { rejectWithValue },
-  ) => {
+  async (data: { userId: string; classIds: string[] }, { rejectWithValue }) => {
     try {
       if (!data.userId) return rejectWithValue("User ID is required");
       const response = await apiClient.post(

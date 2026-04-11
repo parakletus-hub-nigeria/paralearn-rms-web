@@ -1,7 +1,11 @@
 "use client";
 
 import { createSlice } from "@reduxjs/toolkit";
-import type { AcademicCurrent, Assessment, TeacherComment } from "./teacherThunks";
+import type {
+  AcademicCurrent,
+  Assessment,
+  TeacherComment,
+} from "./teacherThunks";
 import {
   addComment,
   bulkUploadScoresExcel,
@@ -98,7 +102,8 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchAcademicCurrent.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to load academic session";
+        state.error =
+          (action.payload as string) || "Failed to load academic session";
       });
 
     builder
@@ -112,7 +117,8 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchMyAssessments.rejected, (state, action) => {
         state.assessmentsLoading = false;
-        state.error = (action.payload as string) || "Failed to load assessments";
+        state.error =
+          (action.payload as string) || "Failed to load assessments";
       });
 
     builder
@@ -126,7 +132,8 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchTeacherClasses.rejected, (state, action) => {
         state.classesLoading = false;
-        state.error = (action.payload as string) || "Failed to load teacher classes";
+        state.error =
+          (action.payload as string) || "Failed to load teacher classes";
       });
 
     builder
@@ -149,7 +156,7 @@ const teacherSlice = createSlice({
             hasNestedClass: !!payload.class?.id,
             hasNestedSubject: !!payload.subject?.id,
           });
-          
+
           const newAssessment = {
             id: payload.id,
             title: payload.title || "Untitled Assessment",
@@ -161,15 +168,15 @@ const teacherSlice = createSlice({
             isOnline: payload.assessmentType === "online",
             ...payload,
           };
-          
+
           // Warn if classId is missing - helps debug response structure issues
           if (!newAssessment.classId) {
             console.warn(
               "[teacherSlice] WARNING: Assessment created but classId not found in response",
-              { assessmentId: newAssessment.id, response: payload }
+              { assessmentId: newAssessment.id, response: payload },
             );
           }
-          
+
           // Check if assessment already exists to avoid duplicates
           if (!state.assessments.find((a) => a.id === newAssessment.id)) {
             state.assessments.unshift(newAssessment);
@@ -178,7 +185,8 @@ const teacherSlice = createSlice({
       })
       .addCase(createTeacherAssessment.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to create assessment";
+        state.error =
+          (action.payload as string) || "Failed to create assessment";
       });
 
     // Fetch Assessments by Class/Subject
@@ -195,7 +203,9 @@ const teacherSlice = createSlice({
       .addCase(fetchAssessmentsByClassSubject.rejected, (state, action) => {
         state.loading = false;
         state.assessmentsByClassSubject = [];
-        state.error = (action.payload as string) || "Failed to load assessments for class/subject";
+        state.error =
+          (action.payload as string) ||
+          "Failed to load assessments for class/subject";
       });
 
     builder
@@ -209,7 +219,8 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchAssessmentsByStatus.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to load assessments";
+        state.error =
+          (action.payload as string) || "Failed to load assessments";
       });
 
     builder
@@ -239,7 +250,8 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchAssessmentSubmissions.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to load submissions";
+        state.error =
+          (action.payload as string) || "Failed to load submissions";
       });
 
     builder
@@ -272,14 +284,19 @@ const teacherSlice = createSlice({
         if (assessmentId) {
           state.assessments = state.assessments.map((a) =>
             a.id === assessmentId
-              ? { ...a, status: isPublished ? "started" : "not_started", isPublished }
-              : a
+              ? {
+                  ...a,
+                  status: isPublished ? "started" : "not_started",
+                  isPublished,
+                }
+              : a,
           );
         }
       })
       .addCase(publishAssessment.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to update publish state";
+        state.error =
+          (action.payload as string) || "Failed to update publish state";
       });
 
     builder
@@ -321,7 +338,8 @@ const teacherSlice = createSlice({
       })
       .addCase(bulkUploadScoresExcel.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to bulk upload scores";
+        state.error =
+          (action.payload as string) || "Failed to bulk upload scores";
       });
 
     builder
@@ -368,7 +386,8 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchBookletPreview.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to load booklet preview";
+        state.error =
+          (action.payload as string) || "Failed to load booklet preview";
       });
 
     builder
@@ -382,7 +401,8 @@ const teacherSlice = createSlice({
       })
       .addCase(submitReportsForApproval.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to submit for approval";
+        state.error =
+          (action.payload as string) || "Failed to submit for approval";
       });
 
     builder
@@ -434,13 +454,14 @@ const teacherSlice = createSlice({
         // Merge the updated fields into the matching assessment in state
         if (action.payload?.id) {
           state.assessments = state.assessments.map((a) =>
-            a.id === action.payload.id ? { ...a, ...action.payload } : a
+            a.id === action.payload.id ? { ...a, ...action.payload } : a,
           );
         }
       })
       .addCase(updateTeacherAssessment.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to update assessment";
+        state.error =
+          (action.payload as string) || "Failed to update assessment";
       });
 
     // Delete Assessment
@@ -451,17 +472,22 @@ const teacherSlice = createSlice({
       })
       .addCase(deleteTeacherAssessment.fulfilled, (state, action) => {
         state.loading = false;
-        state.assessments = state.assessments.filter((a) => a.id !== action.payload);
+        state.assessments = state.assessments.filter(
+          (a) => a.id !== action.payload,
+        );
         state.success = "Assessment deleted successfully";
       })
       .addCase(deleteTeacherAssessment.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Failed to delete assessment";
+        state.error =
+          (action.payload as string) || "Failed to delete assessment";
       });
   },
 });
 
-export const { clearTeacherError, clearTeacherSuccess, clearSelectedAssessment } =
-  teacherSlice.actions;
+export const {
+  clearTeacherError,
+  clearTeacherSuccess,
+  clearSelectedAssessment,
+} = teacherSlice.actions;
 export default teacherSlice.reducer;
-

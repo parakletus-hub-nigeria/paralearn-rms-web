@@ -62,33 +62,64 @@ import { ProductTour } from "@/components/common/ProductTour";
 
 const teacherAssessmentsTourSteps = [
   {
-    target: '.teacher-assessments-create-btn',
-    content: "Create a new assessment here. You can set it as an online exam for students to take directly on the platform, or an offline assessment where you record scores manually.",
+    target: ".teacher-assessments-create-btn",
+    content:
+      "Create a new assessment here. You can set it as an online exam for students to take directly on the platform, or an offline assessment where you record scores manually.",
     disableBeacon: true,
   },
   {
-    target: '.teacher-assessments-stats',
-    content: "These status counts give you a live overview of all your assessments — how many are active (live now), not yet started, or have ended.",
+    target: ".teacher-assessments-stats",
+    content:
+      "These status counts give you a live overview of all your assessments — how many are active (live now), not yet started, or have ended.",
   },
   {
-    target: '.teacher-assessments-filter-bar',
-    content: "Use these filters to narrow down your assessment list by class, subject, or status. The search bar also lets you find a specific assessment by title.",
+    target: ".teacher-assessments-filter-bar",
+    content:
+      "Use these filters to narrow down your assessment list by class, subject, or status. The search bar also lets you find a specific assessment by title.",
   },
 ];
 
-const statusConfig: Record<string, { bg: string; text: string; icon: typeof CheckCircle; label: string }> = {
-  started: { bg: "bg-emerald-100", text: "text-emerald-700", icon: PlayCircle, label: "Active" },
-  active: { bg: "bg-emerald-100", text: "text-emerald-700", icon: PlayCircle, label: "Active" },
-  ended: { bg: "bg-slate-100", text: "text-slate-600", icon: CheckCircle, label: "Ended" },
-  not_started: { bg: "bg-amber-100", text: "text-amber-700", icon: Clock, label: "Not Started" },
-  draft: { bg: "bg-slate-100", text: "text-slate-600", icon: FileText, label: "Draft" },
+const statusConfig: Record<
+  string,
+  { bg: string; text: string; icon: typeof CheckCircle; label: string }
+> = {
+  started: {
+    bg: "bg-emerald-100",
+    text: "text-emerald-700",
+    icon: PlayCircle,
+    label: "Active",
+  },
+  active: {
+    bg: "bg-emerald-100",
+    text: "text-emerald-700",
+    icon: PlayCircle,
+    label: "Active",
+  },
+  ended: {
+    bg: "bg-slate-100",
+    text: "text-slate-600",
+    icon: CheckCircle,
+    label: "Ended",
+  },
+  not_started: {
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+    icon: Clock,
+    label: "Not Started",
+  },
+  draft: {
+    bg: "bg-slate-100",
+    text: "text-slate-600",
+    icon: FileText,
+    label: "Draft",
+  },
 };
 
 export function TeacherAssessmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { 
-    assessments, 
-    teacherClasses, 
+  const {
+    assessments,
+    teacherClasses,
     academicCurrent,
     assessmentCategories,
     loading,
@@ -99,7 +130,6 @@ export function TeacherAssessmentsPage() {
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
-
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -109,7 +139,9 @@ export function TeacherAssessmentsPage() {
   const [classSubjects, setClassSubjects] = useState<any[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   // classSubjectId is stored separately to link assessment after creation
-  const [selectedClassSubjectId, setSelectedClassSubjectId] = useState<string | null>(null);
+  const [selectedClassSubjectId, setSelectedClassSubjectId] = useState<
+    string | null
+  >(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -138,13 +170,17 @@ export function TeacherAssessmentsPage() {
     text: "",
     type: "MCQ",
     marks: "1",
-    options: [{ text: "", isCorrect: false }, { text: "", isCorrect: false }],
+    options: [
+      { text: "", isCorrect: false },
+      { text: "", isCorrect: false },
+    ],
     correctAnswer: "",
   });
 
   // Edit Modal State
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedEditAssessment, setSelectedEditAssessment] = useState<any>(null);
+  const [selectedEditAssessment, setSelectedEditAssessment] =
+    useState<any>(null);
   const [editForm, setEditForm] = useState({
     title: "",
     totalMarks: "",
@@ -156,20 +192,24 @@ export function TeacherAssessmentsPage() {
 
   const refreshData = async (force = false) => {
     const teacherId = (user as any)?.id || (user as any)?.teacherId;
-    
+
     // Load academic info and categories in parallel
     if (force || !academicCurrent) dispatch(fetchAcademicCurrent());
-    if (force || assessmentCategories.length === 0) dispatch(fetchAssessmentCategories());
-    
+    if (force || assessmentCategories.length === 0)
+      dispatch(fetchAssessmentCategories());
+
     // IMPORTANT: Fetch teacher classes FIRST so assessments can be filtered by teacher's assignments
     if (teacherId && (force || teacherClasses.length === 0)) {
       try {
         await dispatch(fetchTeacherClasses({ teacherId })).unwrap();
       } catch (err) {
-        console.error("[TeacherAssessmentsPage] Failed to fetch teacher classes:", err);
+        console.error(
+          "[TeacherAssessmentsPage] Failed to fetch teacher classes:",
+          err,
+        );
       }
     }
-    
+
     // Then fetch assessments (uses teacher classes from redux state to filter)
     if (force || assessments.length === 0) {
       dispatch(fetchMyAssessments());
@@ -181,10 +221,7 @@ export function TeacherAssessmentsPage() {
   }, [dispatch, user]);
 
   // Get dynamic session/term options
-  const {
-    currentSession,
-    currentTerm,
-  } = useSessionsAndTerms();
+  const { currentSession, currentTerm } = useSessionsAndTerms();
 
   // Pre-fill session from current academic (API)
   useEffect(() => {
@@ -215,7 +252,7 @@ export function TeacherAssessmentsPage() {
       setClassSubjects([]);
       return;
     }
-    
+
     setLoadingSubjects(true);
     dispatch(fetchClassSubjects(createForm.classId))
       .unwrap()
@@ -225,21 +262,29 @@ export function TeacherAssessmentsPage() {
           const itemClassId = item.class?.id || item.classId || item.id;
           return itemClassId === createForm.classId;
         });
-        
+
         if (!isTeacherAssignedToClass) {
-          console.warn("[TeacherAssessmentsPage] Teacher not assigned to selected class", {
-            selectedClassId: createForm.classId,
-            teacherClasses: teacherClasses?.map((c: any) => c.classId || c.class?.id),
-          });
+          console.warn(
+            "[TeacherAssessmentsPage] Teacher not assigned to selected class",
+            {
+              selectedClassId: createForm.classId,
+              teacherClasses: teacherClasses?.map(
+                (c: any) => c.classId || c.class?.id,
+              ),
+            },
+          );
           toast.error("You are not assigned to this class");
           setClassSubjects([]);
           return;
         }
-        
+
         setClassSubjects(data || []);
       })
       .catch((err) => {
-        console.error("[TeacherAssessmentsPage] Failed to fetch subjects:", err);
+        console.error(
+          "[TeacherAssessmentsPage] Failed to fetch subjects:",
+          err,
+        );
         toast.error("Failed to load subjects for this class");
         setClassSubjects([]);
       })
@@ -257,7 +302,9 @@ export function TeacherAssessmentsPage() {
 
     // Type filter
     if (typeFilter !== "all") {
-      result = result.filter((a: any) => (typeFilter === "online" ? a.isOnline : !a.isOnline));
+      result = result.filter((a: any) =>
+        typeFilter === "online" ? a.isOnline : !a.isOnline,
+      );
     }
 
     // Class filter
@@ -268,9 +315,10 @@ export function TeacherAssessmentsPage() {
     // Search
     const term = search.trim().toLowerCase();
     if (term) {
-      result = result.filter((a: any) =>
-        (a.title || "").toLowerCase().includes(term) ||
-        (a.subject?.name || "").toLowerCase().includes(term)
+      result = result.filter(
+        (a: any) =>
+          (a.title || "").toLowerCase().includes(term) ||
+          (a.subject?.name || "").toLowerCase().includes(term),
       );
     }
 
@@ -278,28 +326,39 @@ export function TeacherAssessmentsPage() {
   }, [assessments, statusFilter, typeFilter, classFilter, search]);
 
   // Assessment stats
-  const stats = useMemo(() => ({
-    total: assessments.length,
-    active: assessments.filter((a: any) => a.status === "started").length,
-    ended: assessments.filter((a: any) => a.status === "ended").length,
-    notStarted: assessments.filter((a: any) => a.status === "not_started").length,
-  }), [assessments]);
+  const stats = useMemo(
+    () => ({
+      total: assessments.length,
+      active: assessments.filter((a: any) => a.status === "started").length,
+      ended: assessments.filter((a: any) => a.status === "ended").length,
+      notStarted: assessments.filter((a: any) => a.status === "not_started")
+        .length,
+    }),
+    [assessments],
+  );
 
   const handleCreate = async () => {
     try {
       if (!createForm.title.trim()) return toast.error("Title is required");
       if (!createForm.classId) return toast.error("Please select a class");
       if (!createForm.subjectId) return toast.error("Please select a subject");
-      if (!selectedClassSubjectId) return toast.error("Invalid class-subject combination. Please select both class and subject correctly.");
-      if (!createForm.categoryId) return toast.error("Please select a category");
+      if (!selectedClassSubjectId)
+        return toast.error(
+          "Invalid class-subject combination. Please select both class and subject correctly.",
+        );
+      if (!createForm.categoryId)
+        return toast.error("Please select a category");
       if (!createForm.startsAt) return toast.error("Start date is required");
       if (!createForm.endsAt) return toast.error("End date is required");
 
-      console.log("[TeacherAssessmentsPage] Creating assessment with classSubjectIds", {
-        title: createForm.title,
-        classSubjectIds: [selectedClassSubjectId],
-        categoryId: createForm.categoryId,
-      });
+      console.log(
+        "[TeacherAssessmentsPage] Creating assessment with classSubjectIds",
+        {
+          title: createForm.title,
+          classSubjectIds: [selectedClassSubjectId],
+          categoryId: createForm.categoryId,
+        },
+      );
 
       // NEW FLOW: Backend handles class-subject linking atomically
       // Pass classSubjectIds + classId/subjectId for redundancy and proper response normalization
@@ -310,16 +369,22 @@ export function TeacherAssessmentsPage() {
           classId: createForm.classId, // Include for response normalization & error recovery
           subjectId: createForm.subjectId, // Include for response normalization & error recovery
           categoryId: createForm.categoryId,
-          totalMarks: createForm.totalMarks ? Number(createForm.totalMarks) : 100,
+          totalMarks: createForm.totalMarks
+            ? Number(createForm.totalMarks)
+            : 100,
           durationMins: createForm.duration ? Number(createForm.duration) : 60,
           session: createForm.session || currentSession,
           term: createForm.term,
           assessmentType: createForm.isOnline === "true" ? "online" : "offline",
-          startsAt: createForm.startsAt ? new Date(createForm.startsAt).toISOString() : undefined,
-          endsAt: createForm.endsAt ? new Date(createForm.endsAt).toISOString() : undefined,
+          startsAt: createForm.startsAt
+            ? new Date(createForm.startsAt).toISOString()
+            : undefined,
+          endsAt: createForm.endsAt
+            ? new Date(createForm.endsAt).toISOString()
+            : undefined,
           instructions: createForm.instructions,
           questions: createForm.isOnline === "true" ? createForm.questions : [],
-        })
+        }),
       ).unwrap();
 
       console.log("[TeacherAssessmentsPage] Assessment created successfully", {
@@ -359,9 +424,18 @@ export function TeacherAssessmentsPage() {
     setEditForm({
       title: assessment.title || "",
       totalMarks: String(assessment.totalMarks ?? assessment.marks ?? 100),
-      durationMins: String(assessment.durationMins ?? assessment.durationMinutes ?? assessment.duration ?? 60),
-      startsAt: assessment.startsAt ? new Date(assessment.startsAt).toISOString().slice(0, 16) : "",
-      endsAt: assessment.endsAt ? new Date(assessment.endsAt).toISOString().slice(0, 16) : "",
+      durationMins: String(
+        assessment.durationMins ??
+          assessment.durationMinutes ??
+          assessment.duration ??
+          60,
+      ),
+      startsAt: assessment.startsAt
+        ? new Date(assessment.startsAt).toISOString().slice(0, 16)
+        : "",
+      endsAt: assessment.endsAt
+        ? new Date(assessment.endsAt).toISOString().slice(0, 16)
+        : "",
       instructions: assessment.instructions || "",
     });
     setShowEditModal(true);
@@ -370,17 +444,27 @@ export function TeacherAssessmentsPage() {
   const handleUpdateAssessment = async () => {
     if (!selectedEditAssessment) return;
     try {
-      await dispatch(updateTeacherAssessment({
-        id: selectedEditAssessment.id,
-        data: {
-          title: editForm.title.trim() || undefined,
-          totalMarks: editForm.totalMarks ? Number(editForm.totalMarks) : undefined,
-          durationMins: editForm.durationMins ? Number(editForm.durationMins) : undefined,
-          startsAt: editForm.startsAt ? new Date(editForm.startsAt).toISOString() : undefined,
-          endsAt: editForm.endsAt ? new Date(editForm.endsAt).toISOString() : undefined,
-          instructions: editForm.instructions
-        }
-      })).unwrap();
+      await dispatch(
+        updateTeacherAssessment({
+          id: selectedEditAssessment.id,
+          data: {
+            title: editForm.title.trim() || undefined,
+            totalMarks: editForm.totalMarks
+              ? Number(editForm.totalMarks)
+              : undefined,
+            durationMins: editForm.durationMins
+              ? Number(editForm.durationMins)
+              : undefined,
+            startsAt: editForm.startsAt
+              ? new Date(editForm.startsAt).toISOString()
+              : undefined,
+            endsAt: editForm.endsAt
+              ? new Date(editForm.endsAt).toISOString()
+              : undefined,
+            instructions: editForm.instructions,
+          },
+        }),
+      ).unwrap();
       setShowEditModal(false);
       refreshData(true);
       toast.success("Assessment updated successfully");
@@ -392,17 +476,25 @@ export function TeacherAssessmentsPage() {
   const handlePublishToggle = async (publish: boolean) => {
     if (!selectedEditAssessment) return;
     try {
-      await dispatch(publishAssessment({ assessmentId: selectedEditAssessment.id, publish })).unwrap();
+      await dispatch(
+        publishAssessment({ assessmentId: selectedEditAssessment.id, publish }),
+      ).unwrap();
       refreshData(true);
-      toast.success(`Assessment ${publish ? 'published' : 'unpublished'} successfully`);
+      toast.success(
+        `Assessment ${publish ? "published" : "unpublished"} successfully`,
+      );
     } catch (e: any) {
-       toast.error(e || `Failed to ${publish ? 'publish' : 'unpublish'} assessment`);
+      toast.error(
+        e || `Failed to ${publish ? "publish" : "unpublish"} assessment`,
+      );
     }
   };
 
   const handlePublish = async (assessmentId: string) => {
     try {
-      await dispatch(publishAssessment({ assessmentId, publish: true })).unwrap();
+      await dispatch(
+        publishAssessment({ assessmentId, publish: true }),
+      ).unwrap();
       toast.success("Assessment published and is now active!");
       refreshData(true);
     } catch (e: any) {
@@ -411,7 +503,11 @@ export function TeacherAssessmentsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this assessment? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this assessment? This action cannot be undone.",
+      )
+    ) {
       try {
         await dispatch(deleteTeacherAssessment(id)).unwrap();
         dispatch(fetchMyAssessments());
@@ -420,8 +516,6 @@ export function TeacherAssessmentsPage() {
       }
     }
   };
-
-
 
   const getClassName = (classId: string) => {
     const cls = uniqueClasses.find((c: any) => c.id === classId);
@@ -435,49 +529,67 @@ export function TeacherAssessmentsPage() {
   return (
     <div className="w-full">
       <TeacherHeader />
-      <ProductTour tourKey="teacher_assessments" steps={teacherAssessmentsTourSteps} />
-      
+      <ProductTour
+        tourKey="teacher_assessments"
+        steps={teacherAssessmentsTourSteps}
+      />
+
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">Assessment Management</h1>
-                <p className="text-purple-200 mt-1 font-coolvetica">
-                  Create, manage, and grade your assessments
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={() => refreshData(true)}
-                  disabled={assessmentsLoading || classesLoading}
-                  variant="outline"
-                  className="h-12 w-12 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 p-0"
-                  title="Refresh Data"
-                >
-                  <RefreshCcw className={`w-5 h-5 ${assessmentsLoading ? 'animate-spin' : ''}`} />
-                </Button>
-                
-                <Button
-                  onClick={() => setShowCreateModal(true)}
-                  className="teacher-assessments-create-btn h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  Create Assessment
-                </Button>
-              </div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">
+                Assessment Management
+              </h1>
+              <p className="text-purple-200 mt-1 font-coolvetica">
+                Create, manage, and grade your assessments
+              </p>
             </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => refreshData(true)}
+                disabled={assessmentsLoading || classesLoading}
+                variant="outline"
+                className="h-12 w-12 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 p-0"
+                title="Refresh Data"
+              >
+                <RefreshCcw
+                  className={`w-5 h-5 ${assessmentsLoading ? "animate-spin" : ""}`}
+                />
+              </Button>
+
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="teacher-assessments-create-btn h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Create Assessment
+              </Button>
+            </div>
+          </div>
 
           {/* Stats Row */}
           <div className="teacher-assessments-stats grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             {[
               { label: "Total", value: stats.total, color: "bg-white/20" },
-              { label: "Active", value: stats.active, color: "bg-emerald-500/30" },
-              { label: "Not Started", value: stats.notStarted, color: "bg-amber-500/30" },
+              {
+                label: "Active",
+                value: stats.active,
+                color: "bg-emerald-500/30",
+              },
+              {
+                label: "Not Started",
+                value: stats.notStarted,
+                color: "bg-amber-500/30",
+              },
               { label: "Ended", value: stats.ended, color: "bg-slate-500/30" },
             ].map((stat) => (
-              <div key={stat.label} className={`${stat.color} rounded-xl px-4 py-3 backdrop-blur-sm`}>
+              <div
+                key={stat.label}
+                className={`${stat.color} rounded-xl px-4 py-3 backdrop-blur-sm`}
+              >
                 <p className="text-2xl font-bold">{stat.value}</p>
                 <p className="text-sm text-purple-100">{stat.label}</p>
               </div>
@@ -544,7 +656,9 @@ export function TeacherAssessmentsPage() {
               <button
                 onClick={() => setViewMode("grid")}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "grid" ? "bg-white shadow-sm text-slate-900" : "text-slate-500"
+                  viewMode === "grid"
+                    ? "bg-white shadow-sm text-slate-900"
+                    : "text-slate-500"
                 }`}
               >
                 <Grid3X3 className="w-5 h-5" />
@@ -552,7 +666,9 @@ export function TeacherAssessmentsPage() {
               <button
                 onClick={() => setViewMode("list")}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "list" ? "bg-white shadow-sm text-slate-900" : "text-slate-500"
+                  viewMode === "list"
+                    ? "bg-white shadow-sm text-slate-900"
+                    : "text-slate-500"
                 }`}
               >
                 <List className="w-5 h-5" />
@@ -572,7 +688,9 @@ export function TeacherAssessmentsPage() {
         ) : filteredAssessments.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
             <ClipboardList className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-900 mb-2">No Assessments Found</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">
+              No Assessments Found
+            </h3>
             <p className="text-slate-500 max-w-md mx-auto mb-4">
               {search || statusFilter !== "all" || classFilter !== "all"
                 ? "Try adjusting your filters"
@@ -593,7 +711,11 @@ export function TeacherAssessmentsPage() {
               const status = assessment.status || "draft";
               const statusStyle = getStatusConfig(status);
               const StatusIcon = statusStyle.icon;
-              const duration = assessment.durationMinutes ?? assessment.durationMins ?? assessment.duration ?? 30;
+              const duration =
+                assessment.durationMinutes ??
+                assessment.durationMins ??
+                assessment.duration ??
+                30;
               const bgPattern = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
 
               return (
@@ -611,7 +733,9 @@ export function TeacherAssessmentsPage() {
                       >
                         <ClipboardList className="w-5 h-5" />
                       </div>
-                      <Badge className={`rounded-lg ${statusStyle.bg} ${statusStyle.text} backdrop-blur-sm bg-opacity-90`}>
+                      <Badge
+                        className={`rounded-lg ${statusStyle.bg} ${statusStyle.text} backdrop-blur-sm bg-opacity-90`}
+                      >
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {statusStyle.label}
                       </Badge>
@@ -619,8 +743,8 @@ export function TeacherAssessmentsPage() {
                     <h3 className="font-bold text-slate-900 text-lg mb-1 line-clamp-1 pr-24 relative">
                       {assessment.title}
                       <div className="absolute top-0 right-0 flex items-center gap-1">
-                        <button 
-                          onClick={() => handleEditClick(assessment)} 
+                        <button
+                          onClick={() => handleEditClick(assessment)}
                           className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-purple-100 text-slate-500 hover:text-purple-600 transition-colors bg-white shadow-sm border border-slate-100 text-xs font-semibold"
                         >
                           <Edit className="w-3.5 h-3.5" />
@@ -632,8 +756,11 @@ export function TeacherAssessmentsPage() {
                               <MoreVertical className="w-4 h-4" />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-xl min-w-[140px] z-50">
-                            <DropdownMenuItem 
+                          <DropdownMenuContent
+                            align="end"
+                            className="rounded-xl min-w-[140px] z-50"
+                          >
+                            <DropdownMenuItem
                               onClick={() => handleDelete(assessment.id)}
                               className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer text-sm"
                             >
@@ -646,7 +773,8 @@ export function TeacherAssessmentsPage() {
                     </h3>
                     <p className="text-sm text-slate-500 flex items-center gap-2 mb-4">
                       <BookOpen className="w-4 h-4" />
-                      {assessment.subject?.name || "Subject"} • {getClassName(assessment.classId)}
+                      {assessment.subject?.name || "Subject"} •{" "}
+                      {getClassName(assessment.classId)}
                     </p>
 
                     {/* Stats Grid */}
@@ -658,7 +786,9 @@ export function TeacherAssessmentsPage() {
                         <p className="text-xs text-slate-500">Marks</p>
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-900">{duration}m</p>
+                        <p className="text-lg font-bold text-slate-900">
+                          {duration}m
+                        </p>
                         <p className="text-xs text-slate-500">Duration</p>
                       </div>
                       <div>
@@ -668,10 +798,18 @@ export function TeacherAssessmentsPage() {
                             if (Array.isArray(subs) && subs.length > 0) {
                               return subs.filter((s: any) => {
                                 const st = (s.status || "").toLowerCase();
-                                return st !== "in_progress" && st !== "in progress" && st !== "not_started";
+                                return (
+                                  st !== "in_progress" &&
+                                  st !== "in progress" &&
+                                  st !== "not_started"
+                                );
                               }).length;
                             }
-                            return assessment.submissionCount ?? assessment._count?.submissions ?? 0;
+                            return (
+                              assessment.submissionCount ??
+                              assessment._count?.submissions ??
+                              0
+                            );
                           })()}
                         </p>
                         <p className="text-xs text-slate-500">Submitted</p>
@@ -679,41 +817,41 @@ export function TeacherAssessmentsPage() {
                     </div>
                   </div>
 
-                    {/* Card Footer */}
+                  {/* Card Footer */}
                   <div className="px-5 py-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-2 gap-2">
                     {assessment.isOnline ? (
                       <>
-                      {status !== "ended" && (
-                        <Link
-                           href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
-                           className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors col-span-2 mb-1"
-                        >
-                           <Sparkles className="w-4 h-4 text-purple-600" />
-                           Draft Questions
-                        </Link>
-                      )}
-                      {status === "not_started" ? (
-                        <Button
-                          onClick={() => handlePublish(assessment.id)}
-                          className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          <Send className="w-4 h-4" />
-                          Publish Assessment
-                        </Button>
-                      ) : (
-                        <Link
-                           href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
-                           className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
-                           style={{ backgroundColor: primaryColor }}
-                        >
-                           <BarChart3 className="w-4 h-4 mr-1" />
-                           Grade Submissions
-                        </Link>
-                      )}
+                        {status !== "ended" && (
+                          <Link
+                            href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
+                            className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors col-span-2 mb-1"
+                          >
+                            <Sparkles className="w-4 h-4 text-purple-600" />
+                            Draft Questions
+                          </Link>
+                        )}
+                        {status === "not_started" ? (
+                          <Button
+                            onClick={() => handlePublish(assessment.id)}
+                            className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
+                            style={{ backgroundColor: primaryColor }}
+                          >
+                            <Send className="w-4 h-4" />
+                            Publish Assessment
+                          </Button>
+                        ) : (
+                          <Link
+                            href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
+                            className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
+                            style={{ backgroundColor: primaryColor }}
+                          >
+                            <BarChart3 className="w-4 h-4 mr-1" />
+                            Grade Submissions
+                          </Link>
+                        )}
                       </>
                     ) : (
-                        <>
+                      <>
                         <button
                           onClick={() => handleEditClick(assessment)}
                           className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
@@ -722,14 +860,14 @@ export function TeacherAssessmentsPage() {
                           Edit
                         </button>
                         <Link
-                        href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}
-                        className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors"
-                        style={{ backgroundColor: primaryColor }}
+                          href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}
+                          className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors"
+                          style={{ backgroundColor: primaryColor }}
                         >
-                        <BarChart3 className="w-4 h-4" />
-                        Grade
+                          <BarChart3 className="w-4 h-4" />
+                          Grade
                         </Link>
-                        </>
+                      </>
                     )}
                   </div>
                 </div>
@@ -741,12 +879,24 @@ export function TeacherAssessmentsPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="text-left py-4 px-5 text-sm font-semibold text-slate-600">Assessment</th>
-                  <th className="text-left py-4 px-3 text-sm font-semibold text-slate-600">Class</th>
-                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">Marks</th>
-                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">Duration</th>
-                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">Status</th>
-                  <th className="text-right py-4 px-5 text-sm font-semibold text-slate-600">Actions</th>
+                  <th className="text-left py-4 px-5 text-sm font-semibold text-slate-600">
+                    Assessment
+                  </th>
+                  <th className="text-left py-4 px-3 text-sm font-semibold text-slate-600">
+                    Class
+                  </th>
+                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">
+                    Marks
+                  </th>
+                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">
+                    Duration
+                  </th>
+                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">
+                    Status
+                  </th>
+                  <th className="text-right py-4 px-5 text-sm font-semibold text-slate-600">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -767,70 +917,113 @@ export function TeacherAssessmentsPage() {
                             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                             style={{ backgroundColor: `${primaryColor}15` }}
                           >
-                            <ClipboardList className="w-5 h-5" style={{ color: primaryColor }} />
+                            <ClipboardList
+                              className="w-5 h-5"
+                              style={{ color: primaryColor }}
+                            />
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-900">{assessment.title}</p>
-                            <p className="text-sm text-slate-500">{assessment.subject?.name || "Subject"}</p>
+                            <p className="font-semibold text-slate-900">
+                              {assessment.title}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {assessment.subject?.name || "Subject"}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-3 text-slate-600">{getClassName(assessment.classId)}</td>
-                      <td className="py-4 px-3 text-center font-semibold">{assessment.totalMarks ?? assessment.marks ?? 100}</td>
-                      <td className="py-4 px-3 text-center">{assessment.durationMinutes ?? assessment.durationMins ?? assessment.duration ?? 30}m</td>
+                      <td className="py-4 px-3 text-slate-600">
+                        {getClassName(assessment.classId)}
+                      </td>
+                      <td className="py-4 px-3 text-center font-semibold">
+                        {assessment.totalMarks ?? assessment.marks ?? 100}
+                      </td>
                       <td className="py-4 px-3 text-center">
-                        <Badge className={`rounded ${statusStyle.bg} ${statusStyle.text}`}>
+                        {assessment.durationMinutes ??
+                          assessment.durationMins ??
+                          assessment.duration ??
+                          30}
+                        m
+                      </td>
+                      <td className="py-4 px-3 text-center">
+                        <Badge
+                          className={`rounded ${statusStyle.bg} ${statusStyle.text}`}
+                        >
                           {statusStyle.label}
                         </Badge>
                       </td>
                       <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-2">
                           {assessment.isOnline ? (
-                             <div className="flex items-center gap-2">
-                                {status !== "ended" && (
-                                  <Link href={`/teacher/question-drafting?assessmentId=${assessment.id}`}>
-                                      <Button variant="outline" size="sm" className="rounded-lg h-9 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100">
-                                      <Sparkles className="w-4 h-4 mr-1" />
-                                      Questions
-                                      </Button>
-                                  </Link>
-                                )}
-                                {status === "not_started" ? (
-                                    <Button 
-                                        onClick={() => handlePublish(assessment.id)}
-                                        size="sm" 
-                                        className="rounded-lg h-9 text-white" 
-                                        style={{ backgroundColor: primaryColor }}
-                                    >
-                                        <Send className="w-4 h-4 mr-1" />
-                                        Publish
-                                    </Button>
-                                ) : (
-                                    <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
-                                      <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
-                                        <BarChart3 className="w-4 h-4 mr-1" />
-                                        Grade
-                                      </Button>
-                                    </Link>
-                                )}
-                             </div>
-                          ) : (
-                              <div className="flex items-center gap-2">
-                               <button onClick={() => handleEditClick(assessment)}>
-                                  <Button variant="outline" size="sm" className="rounded-lg h-9">
-                                    <Edit className="w-4 h-4 mr-1" />
-                                    Edit
+                            <div className="flex items-center gap-2">
+                              {status !== "ended" && (
+                                <Link
+                                  href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-lg h-9 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100"
+                                  >
+                                    <Sparkles className="w-4 h-4 mr-1" />
+                                    Questions
                                   </Button>
-                               </button>
-                               <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}>
-                                 <Button size="sm" className="rounded-lg h-9 text-white" style={{ backgroundColor: primaryColor }}>
-                                   <BarChart3 className="w-4 h-4 mr-1" />
-                                   Grade
-                                 </Button>
-                               </Link>
-                             </div>
+                                </Link>
+                              )}
+                              {status === "not_started" ? (
+                                <Button
+                                  onClick={() => handlePublish(assessment.id)}
+                                  size="sm"
+                                  className="rounded-lg h-9 text-white"
+                                  style={{ backgroundColor: primaryColor }}
+                                >
+                                  <Send className="w-4 h-4 mr-1" />
+                                  Publish
+                                </Button>
+                              ) : (
+                                <Link
+                                  href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
+                                >
+                                  <Button
+                                    size="sm"
+                                    className="rounded-lg h-9 text-white"
+                                    style={{ backgroundColor: primaryColor }}
+                                  >
+                                    <BarChart3 className="w-4 h-4 mr-1" />
+                                    Grade
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEditClick(assessment)}
+                              >
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="rounded-lg h-9"
+                                >
+                                  <Edit className="w-4 h-4 mr-1" />
+                                  Edit
+                                </Button>
+                              </button>
+                              <Link
+                                href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}
+                              >
+                                <Button
+                                  size="sm"
+                                  className="rounded-lg h-9 text-white"
+                                  style={{ backgroundColor: primaryColor }}
+                                >
+                                  <BarChart3 className="w-4 h-4 mr-1" />
+                                  Grade
+                                </Button>
+                              </Link>
+                            </div>
                           )}
-                          
+
                           {/* Delete Dropdown for List View */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -838,8 +1031,11 @@ export function TeacherAssessmentsPage() {
                                 <MoreVertical className="w-4 h-4" />
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="rounded-xl min-w-[140px]">
-                              <DropdownMenuItem 
+                            <DropdownMenuContent
+                              align="end"
+                              className="rounded-xl min-w-[140px]"
+                            >
+                              <DropdownMenuItem
                                 onClick={() => handleDelete(assessment.id)}
                                 className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer text-sm"
                               >
@@ -860,334 +1056,459 @@ export function TeacherAssessmentsPage() {
       </div>
 
       {/* Create Assessment Modal */}
-      {showCreateModal && isMounted && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowCreateModal(false)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-            {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between" style={{ backgroundColor: `${primaryColor}10` }}>
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">Create New Assessment</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Create a quiz, exam, or homework</p>
-              </div>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="p-2 rounded-lg hover:bg-white/50"
+      {showCreateModal &&
+        isMounted &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowCreateModal(false)}
+            />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+              {/* Modal Header */}
+              <div
+                className="px-6 py-5 border-b border-slate-100 flex items-center justify-between"
+                style={{ backgroundColor: `${primaryColor}10` }}
               >
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div>
-                <label className="text-sm font-semibold text-slate-700">Title *</label>
-                <Input
-                  value={createForm.title}
-                  onChange={(e) => setCreateForm((p) => ({ ...p, title: e.target.value }))}
-                  placeholder="e.g., Mid-Term Mathematics Test"
-                  className="mt-2 h-11 rounded-xl"
-                />
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Create New Assessment
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    Create a quiz, exam, or homework
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="p-2 rounded-lg hover:bg-white/50"
+                >
+                  <X className="w-5 h-5 text-slate-500" />
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Modal Content */}
+              <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Class *</label>
-                  <Select
-                    value={createForm.classId}
-                    onValueChange={(v) => { setCreateForm((p) => ({ ...p, classId: v, subjectId: "" })); setSelectedClassSubjectId(null); }}
-                  >
-                    <SelectTrigger className="mt-2 h-11 rounded-xl">
-                      <SelectValue placeholder="Select Class" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl z-[10000]">
-                      {uniqueClasses.map((cls: any) => (
-                        <SelectItem key={cls.id} value={cls.id}>
-                          {cls.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Title *
+                  </label>
+                  <Input
+                    value={createForm.title}
+                    onChange={(e) =>
+                      setCreateForm((p) => ({ ...p, title: e.target.value }))
+                    }
+                    placeholder="e.g., Mid-Term Mathematics Test"
+                    className="mt-2 h-11 rounded-xl"
+                  />
                 </div>
 
-                <div>
-                  <label className="text-sm font-semibold text-slate-700">Subject *</label>
-                  <Select
-                    value={createForm.subjectId}
-                    onValueChange={(v) => {
-                      // New model: each subject has classSubjectId from by-class endpoint
-                      const subj = classSubjects.find((s: any) => s.id === v);
-                      setSelectedClassSubjectId(subj?.classSubjectId ?? null);
-                      setCreateForm((p) => ({ ...p, subjectId: v }));
-                    }}
-                    disabled={!createForm.classId || loadingSubjects}
-                  >
-                    <SelectTrigger className="mt-2 h-11 rounded-xl">
-                      <SelectValue placeholder={loadingSubjects ? "Loading..." : "Select Subject"} />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl z-[10000]">
-                      {classSubjects.map((subj: any) => (
-                        <SelectItem key={subj.id} value={subj.id}>
-                          {subj.name}
-                          {subj.subjectType && <span className="text-slate-400 ml-1 text-xs">({subj.subjectType})</span>}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Category *</label>
-                  <Select
-                    value={createForm.categoryId}
-                    onValueChange={(v) => setCreateForm((p) => ({ ...p, categoryId: v }))}
-                  >
-                    <SelectTrigger className="mt-2 h-11 rounded-xl">
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl z-[10000]">
-                      {assessmentCategories.length === 0 ? (
-                         <div className="p-2 text-sm text-slate-500 text-center">
-                           No categories found. Ask Admin to create them.
-                         </div>
-                      ) : (
-                        assessmentCategories.map((cat: any) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name} ({cat.weight}%)
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Class *
+                    </label>
+                    <Select
+                      value={createForm.classId}
+                      onValueChange={(v) => {
+                        setCreateForm((p) => ({
+                          ...p,
+                          classId: v,
+                          subjectId: "",
+                        }));
+                        setSelectedClassSubjectId(null);
+                      }}
+                    >
+                      <SelectTrigger className="mt-2 h-11 rounded-xl">
+                        <SelectValue placeholder="Select Class" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl z-[10000]">
+                        {uniqueClasses.map((cls: any) => (
+                          <SelectItem key={cls.id} value={cls.id}>
+                            {cls.name}
                           </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Subject *
+                    </label>
+                    <Select
+                      value={createForm.subjectId}
+                      onValueChange={(v) => {
+                        // New model: each subject has classSubjectId from by-class endpoint
+                        const subj = classSubjects.find((s: any) => s.id === v);
+                        setSelectedClassSubjectId(subj?.classSubjectId ?? null);
+                        setCreateForm((p) => ({ ...p, subjectId: v }));
+                      }}
+                      disabled={!createForm.classId || loadingSubjects}
+                    >
+                      <SelectTrigger className="mt-2 h-11 rounded-xl">
+                        <SelectValue
+                          placeholder={
+                            loadingSubjects ? "Loading..." : "Select Subject"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl z-[10000]">
+                        {classSubjects.map((subj: any) => (
+                          <SelectItem key={subj.id} value={subj.id}>
+                            {subj.name}
+                            {subj.subjectType && (
+                              <span className="text-slate-400 ml-1 text-xs">
+                                ({subj.subjectType})
+                              </span>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Category *
+                    </label>
+                    <Select
+                      value={createForm.categoryId}
+                      onValueChange={(v) =>
+                        setCreateForm((p) => ({ ...p, categoryId: v }))
+                      }
+                    >
+                      <SelectTrigger className="mt-2 h-11 rounded-xl">
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl z-[10000]">
+                        {assessmentCategories.length === 0 ? (
+                          <div className="p-2 text-sm text-slate-500 text-center">
+                            No categories found. Ask Admin to create them.
+                          </div>
+                        ) : (
+                          assessmentCategories.map((cat: any) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name} ({cat.weight}%)
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Total Marks
+                    </label>
+                    <Input
+                      type="number"
+                      value={createForm.totalMarks}
+                      onChange={(e) =>
+                        setCreateForm((p) => ({
+                          ...p,
+                          totalMarks: e.target.value,
+                        }))
+                      }
+                      placeholder="100"
+                      className="mt-2 h-11 rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Start Date
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={createForm.startsAt}
+                      onChange={(e) =>
+                        setCreateForm((p) => ({
+                          ...p,
+                          startsAt: e.target.value,
+                        }))
+                      }
+                      className="mt-2 h-11 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      End Date
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={createForm.endsAt}
+                      onChange={(e) =>
+                        setCreateForm((p) => ({ ...p, endsAt: e.target.value }))
+                      }
+                      className="mt-2 h-11 rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Assessment Type
+                    </label>
+                    <Select
+                      value={createForm.isOnline}
+                      onValueChange={(v) =>
+                        setCreateForm((p) => ({ ...p, isOnline: v }))
+                      }
+                    >
+                      <SelectTrigger className="mt-2 h-11 rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl z-[10000]">
+                        <SelectItem value="false">
+                          Offline / Paper-based
+                        </SelectItem>
+                        <SelectItem value="true">Online</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Duration (mins)
+                    </label>
+                    <Input
+                      type="number"
+                      value={createForm.duration}
+                      onChange={(e) =>
+                        setCreateForm((p) => ({
+                          ...p,
+                          duration: e.target.value,
+                        }))
+                      }
+                      placeholder="60"
+                      className="mt-2 h-11 rounded-xl"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Total Marks</label>
-                  <Input
-                    type="number"
-                    value={createForm.totalMarks}
-                    onChange={(e) => setCreateForm((p) => ({ ...p, totalMarks: e.target.value }))}
-                    placeholder="100"
-                    className="mt-2 h-11 rounded-xl"
+                  <label className="text-sm font-semibold text-slate-700">
+                    Instructions
+                  </label>
+                  <textarea
+                    value={createForm.instructions}
+                    onChange={(e) =>
+                      setCreateForm((p) => ({
+                        ...p,
+                        instructions: e.target.value,
+                      }))
+                    }
+                    className="mt-2 w-full p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    rows={3}
+                    placeholder="Instructions for students..."
                   />
                 </div>
-              </div>
 
-               <div className="grid grid-cols-2 gap-4">
-                 <div>
-                   <label className="text-sm font-semibold text-slate-700">Start Date</label>
-                   <Input
-                     type="datetime-local"
-                     value={createForm.startsAt}
-                     onChange={(e) => setCreateForm((p) => ({ ...p, startsAt: e.target.value }))}
-                     className="mt-2 h-11 rounded-xl"
-                   />
-                 </div>
-                 <div>
-                   <label className="text-sm font-semibold text-slate-700">End Date</label>
-                   <Input
-                     type="datetime-local"
-                     value={createForm.endsAt}
-                     onChange={(e) => setCreateForm((p) => ({ ...p, endsAt: e.target.value }))}
-                     className="mt-2 h-11 rounded-xl"
-                   />
-                 </div>
-               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold text-slate-700">Assessment Type</label>
-                   <Select
-                    value={createForm.isOnline}
-                    onValueChange={(v) => setCreateForm((p) => ({ ...p, isOnline: v }))}
-                  >
-                    <SelectTrigger className="mt-2 h-11 rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl z-[10000]">
-                      <SelectItem value="false">Offline / Paper-based</SelectItem>
-                      <SelectItem value="true">Online</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-slate-700">Duration (mins)</label>
-                  <Input
-                    type="number"
-                    value={createForm.duration}
-                    onChange={(e) => setCreateForm((p) => ({ ...p, duration: e.target.value }))}
-                    placeholder="60"
-                    className="mt-2 h-11 rounded-xl"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-semibold text-slate-700">Instructions</label>
-                <textarea
-                  value={createForm.instructions}
-                  onChange={(e) => setCreateForm((p) => ({ ...p, instructions: e.target.value }))}
-                  className="mt-2 w-full p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  rows={3}
-                  placeholder="Instructions for students..."
-                />
-              </div>
-
-              {/* Online Questions Builder Removed */}
-              {createForm.isOnline === "true" && (
-                <div className="mt-6 pt-6 border-t border-slate-100">
+                {/* Online Questions Builder Removed */}
+                {createForm.isOnline === "true" && (
+                  <div className="mt-6 pt-6 border-t border-slate-100">
                     <div className="bg-purple-50 rounded-xl p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Sparkles className="w-5 h-5 text-purple-600" />
-                            <div>
-                                <h3 className="font-bold text-slate-900 text-sm">AI Question Drafter Available</h3>
-                                <p className="text-xs text-slate-500">Create the assessment first, then click "Draft Questions" to use our new AI tools.</p>
-                            </div>
+                      <div className="flex items-center gap-3">
+                        <Sparkles className="w-5 h-5 text-purple-600" />
+                        <div>
+                          <h3 className="font-bold text-slate-900 text-sm">
+                            AI Question Drafter Available
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Create the assessment first, then click "Draft
+                            Questions" to use our new AI tools.
+                          </p>
                         </div>
+                      </div>
                     </div>
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
 
-
+              {/* Modal Footer */}
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateModal(false)}
+                  className="h-11 px-6 rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreate}
+                  disabled={loading}
+                  className="h-11 px-6 rounded-xl text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {loading ? "Creating..." : "Create Assessment"}
+                </Button>
+              </div>
             </div>
-
-            {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowCreateModal(false)}
-                className="h-11 px-6 rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreate}
-                disabled={loading}
-                className="h-11 px-6 rounded-xl text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {loading ? "Creating..." : "Create Assessment"}
-              </Button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body,
+        )}
 
       {/* Edit Assessment Modal */}
-      {showEditModal && selectedEditAssessment && isMounted && createPortal(
-        <div className="fixed inset-0 z-[500] flex items-center justify-center">
-           <div 
-             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-             onClick={() => setShowEditModal(false)}
-           />
-           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 animate-in fade-in zoom-in-95 max-h-[90vh] flex flex-col">
+      {showEditModal &&
+        selectedEditAssessment &&
+        isMounted &&
+        createPortal(
+          <div className="fixed inset-0 z-[500] flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowEditModal(false)}
+            />
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 animate-in fade-in zoom-in-95 max-h-[90vh] flex flex-col">
               <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4 shrink-0">
-                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-50 text-purple-600">
-                     <Edit className="w-4 h-4" />
-                   </div>
-                   Edit Assessment
-                 </h3>
-                 <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
-                   <X className="w-5 h-5" />
-                 </button>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-50 text-purple-600">
+                    <Edit className="w-4 h-4" />
+                  </div>
+                  Edit Assessment
+                </h3>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              
+
               <div className="space-y-4 overflow-y-auto pr-2 pb-2 flex-grow custom-scrollbar">
-                 <div>
-                   <label className="text-sm font-semibold text-slate-700">Assessment Title</label>
-                   <Input
-                     type="text"
-                     value={editForm.title}
-                     onChange={(e) => setEditForm(p => ({ ...p, title: e.target.value }))}
-                     className="mt-1 h-11 rounded-xl"
-                   />
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                   <div>
-                     <label className="text-sm font-semibold text-slate-700">Total Marks</label>
-                     <Input
-                       type="number"
-                       value={editForm.totalMarks}
-                       onChange={(e) => setEditForm(p => ({ ...p, totalMarks: e.target.value }))}
-                       className="mt-1 h-11 rounded-xl"
-                     />
-                   </div>
-                   <div>
-                     <label className="text-sm font-semibold text-slate-700">Duration (mins)</label>
-                     <Input
-                       type="number"
-                       value={editForm.durationMins}
-                       onChange={(e) => setEditForm(p => ({ ...p, durationMins: e.target.value }))}
-                       className="mt-1 h-11 rounded-xl"
-                     />
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                   <div>
-                     <label className="text-sm font-semibold text-slate-700">Start Date</label>
-                     <Input
-                       type="datetime-local"
-                       value={editForm.startsAt}
-                       onChange={(e) => setEditForm(p => ({ ...p, startsAt: e.target.value }))}
-                       className="mt-1 h-11 rounded-xl"
-                     />
-                   </div>
-                   <div>
-                     <label className="text-sm font-semibold text-slate-700">End Date</label>
-                     <Input
-                       type="datetime-local"
-                       value={editForm.endsAt}
-                       onChange={(e) => setEditForm(p => ({ ...p, endsAt: e.target.value }))}
-                       className="mt-1 h-11 rounded-xl"
-                     />
-                   </div>
-                 </div>
-                 <div>
-                   <label className="text-sm font-semibold text-slate-700">Instructions</label>
-                   <textarea
-                      value={editForm.instructions}
-                      onChange={(e) => setEditForm(p => ({ ...p, instructions: e.target.value }))}
-                      className="mt-1 w-full p-3 border border-slate-200 rounded-xl text-sm"
-                      rows={3}
-                   />
-                 </div>
-                 
-                 <div className="pt-4 border-t border-slate-100 flex flex-col gap-3 shrink-0">
-                   <Button onClick={handleUpdateAssessment} className="w-full bg-[#641BC4] hover:bg-purple-700 text-white h-11 rounded-xl font-semibold">
-                     Save Changes
-                   </Button>
-                   <div className="flex gap-3">
-                     <Button 
-                       onClick={() => handlePublishToggle(true)} 
-                       variant="outline"
-                       disabled={selectedEditAssessment.status === 'started' || selectedEditAssessment.status === 'active'}
-                       className="flex-1 h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 font-semibold"
-                     >
-                       <CheckCircle className="w-4 h-4 mr-2" />
-                       Publish
-                     </Button>
-                     <Button 
-                       onClick={() => handlePublishToggle(false)} 
-                       variant="outline"
-                       disabled={selectedEditAssessment.status === 'not_started' || selectedEditAssessment.status === 'draft'}
-                       className="flex-1 h-11 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
-                     >
-                       <X className="w-4 h-4 mr-2" />
-                       Unpublish
-                     </Button>
-                   </div>
-                 </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Assessment Title
+                  </label>
+                  <Input
+                    type="text"
+                    value={editForm.title}
+                    onChange={(e) =>
+                      setEditForm((p) => ({ ...p, title: e.target.value }))
+                    }
+                    className="mt-1 h-11 rounded-xl"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Total Marks
+                    </label>
+                    <Input
+                      type="number"
+                      value={editForm.totalMarks}
+                      onChange={(e) =>
+                        setEditForm((p) => ({
+                          ...p,
+                          totalMarks: e.target.value,
+                        }))
+                      }
+                      className="mt-1 h-11 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Duration (mins)
+                    </label>
+                    <Input
+                      type="number"
+                      value={editForm.durationMins}
+                      onChange={(e) =>
+                        setEditForm((p) => ({
+                          ...p,
+                          durationMins: e.target.value,
+                        }))
+                      }
+                      className="mt-1 h-11 rounded-xl"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      Start Date
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={editForm.startsAt}
+                      onChange={(e) =>
+                        setEditForm((p) => ({ ...p, startsAt: e.target.value }))
+                      }
+                      className="mt-1 h-11 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">
+                      End Date
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={editForm.endsAt}
+                      onChange={(e) =>
+                        setEditForm((p) => ({ ...p, endsAt: e.target.value }))
+                      }
+                      className="mt-1 h-11 rounded-xl"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Instructions
+                  </label>
+                  <textarea
+                    value={editForm.instructions}
+                    onChange={(e) =>
+                      setEditForm((p) => ({
+                        ...p,
+                        instructions: e.target.value,
+                      }))
+                    }
+                    className="mt-1 w-full p-3 border border-slate-200 rounded-xl text-sm"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex flex-col gap-3 shrink-0">
+                  <Button
+                    onClick={handleUpdateAssessment}
+                    className="w-full bg-[#641BC4] hover:bg-purple-700 text-white h-11 rounded-xl font-semibold"
+                  >
+                    Save Changes
+                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => handlePublishToggle(true)}
+                      variant="outline"
+                      disabled={
+                        selectedEditAssessment.status === "started" ||
+                        selectedEditAssessment.status === "active"
+                      }
+                      className="flex-1 h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 font-semibold"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Publish
+                    </Button>
+                    <Button
+                      onClick={() => handlePublishToggle(false)}
+                      variant="outline"
+                      disabled={
+                        selectedEditAssessment.status === "not_started" ||
+                        selectedEditAssessment.status === "draft"
+                      }
+                      className="flex-1 h-11 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Unpublish
+                    </Button>
+                  </div>
+                </div>
               </div>
-           </div>
-        </div>,
-        document.body
-      )}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
