@@ -67,7 +67,7 @@ export function StudentReportPreview({
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      await downloadStudentReportCardPdf({ studentId, session, term, classId });
+      await downloadStudentReportCardPdf({ studentId, session, term });
       toast.success("Report downloaded");
     } catch (e: any) {
       toast.error("Failed to download report");

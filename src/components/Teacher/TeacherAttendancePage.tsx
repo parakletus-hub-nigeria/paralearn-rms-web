@@ -194,21 +194,21 @@ export default function TeacherAttendancePage() {
     setDraftAttendance((prev) => ({ ...prev, ...updates }));
     setHasUnsavedChanges(true);
     toast.success(
-      filteredData.length === (attendanceData?.length || 0)
+      filteredData.length === (studentOnlyData?.length || 0)
         ? "Marked all students as Present"
         : `Marked ${filteredData.length} visible students as Present`
     );
   };
 
   const handleSave = async () => {
-    if (!attendanceData) return;
+    if (!studentOnlyData) return;
     // Don't blast the API with all-ABSENT if teacher hasn't touched anything yet
     if (Object.keys(draftAttendance).length === 0) {
       toast.warning("No attendance changes to save. Please mark at least one student.");
       return;
     }
     try {
-      const records = attendanceData.map((record: any) => {
+      const records = studentOnlyData.map((record: any) => {
         const effective = getEffectiveRecord(record);
         return {
           id: record.attendance?.id, // CRITICAL: This prevents the backend from wiping untouched students on a secondary save.
@@ -241,28 +241,41 @@ export default function TeacherAttendancePage() {
     }
   };
 
+  // Strip teacher enrollments — only genuine students should appear in attendance.
+  // The attendance API returns lightweight student objects with no `roles` field,
+  // so role-based filtering is not possible here. Instead, use the `studentId` code
+  // field (e.g. "STU-S-26-00001") as the discriminator: every real student in the
+  // system is assigned this code, while teachers enrolled in a class will not have
+  // a studentId value on their user record.
+  const studentOnlyData = useMemo(() => {
+    if (!attendanceData) return null;
+    return (attendanceData as any[]).filter(
+      (record: any) => !!record.student?.studentId,
+    );
+  }, [attendanceData]);
+
   // Filtered Data
   const filteredData = useMemo(() => {
-    if (!attendanceData) return [];
-    return attendanceData.filter((record: any) => {
+    if (!studentOnlyData) return [];
+    return studentOnlyData.filter((record: any) => {
       const fullName =
         `${record.student?.firstName} ${record.student?.lastName}`.toLowerCase();
       return fullName.includes(searchQuery.toLowerCase());
     });
-  }, [attendanceData, searchQuery]);
+  }, [studentOnlyData, searchQuery]);
 
   // Stats
   const stats = useMemo(() => {
-    if (!attendanceData) return { total: 0, present: 0, late: 0, absent: 0 };
+    if (!studentOnlyData) return { total: 0, present: 0, late: 0, absent: 0 };
     let present = 0, late = 0, absent = 0;
-    attendanceData.forEach((record: any) => {
+    studentOnlyData.forEach((record: any) => {
       const { status } = getEffectiveRecord(record);
       if (status === "PRESENT") present++;
       else if (status === "LATE") late++;
       else absent++;
     });
-    return { total: attendanceData.length, present, late, absent };
-  }, [attendanceData, draftAttendance, isReadOnly]);
+    return { total: studentOnlyData.length, present, late, absent };
+  }, [studentOnlyData, draftAttendance, isReadOnly]);
 
   const getInitials = (f?: string, l?: string) =>
     `${(f || "")[0] || ""}${(l || "")[0] || ""}`.toUpperCase() || "?";

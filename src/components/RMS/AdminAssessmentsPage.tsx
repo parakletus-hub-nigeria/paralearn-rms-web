@@ -433,7 +433,7 @@ export function AdminAssessmentsPage() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <Select value={classFilter} onValueChange={setClassFilter}>
-            <SelectTrigger className="h-11 w-[150px] rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectTrigger className="h-11 w-full sm:w-[150px] rounded-xl border-slate-200 bg-white shadow-sm">
               <SelectValue placeholder="All Classes" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -446,7 +446,7 @@ export function AdminAssessmentsPage() {
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-11 w-[150px] rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectTrigger className="h-11 w-full sm:w-[150px] rounded-xl border-slate-200 bg-white shadow-sm">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -457,7 +457,7 @@ export function AdminAssessmentsPage() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-11 w-[140px] rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectTrigger className="h-11 w-full sm:w-[140px] rounded-xl border-slate-200 bg-white shadow-sm">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">

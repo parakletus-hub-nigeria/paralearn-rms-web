@@ -41,13 +41,13 @@ const reportsApi = paraApi.injectEndpoints({
       ],
     }),
 
-    // GET /api/proxy/reports/student/:id/report-card?session=...&term=...
+    // GET /api/proxy/grades/report-cards/:studentId?session=...&term=...
     getStudentReportCard: builder.query<
       any,
       { studentId: string; session: string; term: string }
     >({
       query: ({ studentId, session, term }) => ({
-        url: `/api/proxy/reports/student/${studentId}/report-card?session=${encodeURIComponent(session)}&term=${encodeURIComponent(term)}`,
+        url: `/api/proxy/grades/report-cards/${studentId}?session=${encodeURIComponent(session)}&term=${encodeURIComponent(term)}`,
       }),
       providesTags: (_r, _e, { studentId }) => [
         { type: "ReportCard", id: studentId },

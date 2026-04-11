@@ -706,9 +706,9 @@ export function AdminClassesPage() {
             className="pl-10 h-11 rounded-xl border-slate-200 bg-white shadow-sm"
           />
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <Select value={sessionFilter} onValueChange={setSessionFilter}>
-            <SelectTrigger className="h-11 w-[160px] rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectTrigger className="h-11 w-full sm:w-[160px] rounded-xl border-slate-200 bg-white shadow-sm">
               <SelectValue placeholder="Session" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">

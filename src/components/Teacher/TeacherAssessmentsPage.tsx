@@ -613,7 +613,7 @@ export function TeacherAssessmentsPage() {
 
             {/* Class Filter */}
             <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="h-11 w-[160px] rounded-xl border-slate-200">
+              <SelectTrigger className="h-11 w-full sm:w-[160px] rounded-xl border-slate-200">
                 <SelectValue placeholder="All Classes" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -628,7 +628,7 @@ export function TeacherAssessmentsPage() {
 
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-11 w-[140px] rounded-xl border-slate-200">
+              <SelectTrigger className="h-11 w-full sm:w-[140px] rounded-xl border-slate-200">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -641,7 +641,7 @@ export function TeacherAssessmentsPage() {
 
             {/* Type Filter */}
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-11 w-[120px] rounded-xl border-slate-200">
+              <SelectTrigger className="h-11 w-full sm:w-[120px] rounded-xl border-slate-200">
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">

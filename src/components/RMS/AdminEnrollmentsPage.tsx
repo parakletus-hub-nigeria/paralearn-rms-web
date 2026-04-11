@@ -6,13 +6,13 @@ import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { bulkEnrollStudents, fetchClasses, fetchClassDetails, removeStudentFromClass, previewSchoolPromotion, executeSchoolPromotion } from "@/reduxToolKit/admin/adminThunks";
-import type { PromotionStudentPreview, PromotionClassPreview } from "@/reduxToolKit/admin/adminThunks";
+import type { PromotionPreviewResponse, ClassItem } from "@/reduxToolKit/admin/adminThunks";
 import { AddStudentDialog } from "@/components/RMS/dialogs";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge"; // used in ClassPromotionTab
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -44,7 +44,7 @@ const DEFAULT_PRIMARY = "#641BC4";
 
 export function AdminEnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { students, teachers, loading: usersLoading, tenantInfo } = useSelector((s: RootState) => s.user);
+  const { students, teachers, tenantInfo } = useSelector((s: RootState) => s.user);
   const { classes, selectedClassDetails, promotionPreview, promotionLoading, promotionError } = useSelector((s: RootState) => s.admin);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -165,10 +165,6 @@ export function AdminEnrollmentsPage() {
     }
   };
 
-  const formatDate = (date: string) => {
-    if (!date) return "—";
-    return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  };
 
   // Get class teacher name
   const classTeacher = useMemo(() => {
@@ -183,6 +179,7 @@ export function AdminEnrollmentsPage() {
       ? `${teachers[0].teacher.firstName} ${teachers[0].teacher.lastName || ""}`.trim()
       : "Not assigned";
   }, [selectedClassDetails]);
+
 
   const capacity = selectedClass?.capacity || 30;
   const enrolled = enrolledStudents.length;
@@ -477,6 +474,237 @@ export function AdminEnrollmentsPage() {
         </TabsContent>
 
       </Tabs>
+    </div>
+  );
+}
+
+// ─── Class Promotion Tab ──────────────────────────────────────────────────────
+
+type ClassPromotionTabProps = {
+  classes: ClassItem[];
+  promotionPreview: PromotionPreviewResponse | null;
+  promotionLoading: boolean;
+  promotionError: string | null;
+  promotionOverrides: Record<string, string>;
+  setPromotionOverrides: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  executing: boolean;
+  primaryColor: string;
+  onPreview: () => void;
+  onExecute: () => void;
+};
+
+const ACTION_LABELS: Record<string, { label: string; color: string }> = {
+  promote:  { label: "Promote",  color: "bg-emerald-100 text-emerald-700" },
+  graduate: { label: "Graduate", color: "bg-blue-100 text-blue-700" },
+  repeat:   { label: "Repeat",   color: "bg-amber-100 text-amber-700" },
+};
+
+function ClassPromotionTab({
+  classes,
+  promotionPreview,
+  promotionLoading,
+  promotionError,
+  promotionOverrides,
+  setPromotionOverrides,
+  executing,
+  primaryColor,
+  onPreview,
+  onExecute,
+}: ClassPromotionTabProps) {
+  const previewClasses = promotionPreview?.classes ?? [];
+  const totalStudents  = previewClasses.reduce((n, c) => n + (c.students?.length ?? 0), 0);
+  const summary = promotionPreview?.summary ?? {};
+
+  return (
+    <div className="space-y-6">
+      {/* Header card */}
+      <Card className="rounded-2xl border-slate-100 p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-slate-900">School-Wide Class Promotion</h3>
+            <p className="text-sm text-slate-500 mt-1">
+              Preview which students will be promoted, graduated, or held back before committing
+              any changes. You can override individual students using the dropdowns below.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <Button
+              variant="outline"
+              onClick={onPreview}
+              disabled={promotionLoading}
+              className="h-10 rounded-xl border-slate-200 gap-2 w-full sm:w-auto"
+            >
+              <RefreshCw className={`w-4 h-4 ${promotionLoading ? "animate-spin" : ""}`} />
+              {promotionPreview ? "Re-run Preview" : "Preview Promotion"}
+            </Button>
+            {promotionPreview && (
+              <Button
+                onClick={onExecute}
+                disabled={executing || promotionLoading}
+                className="h-10 rounded-xl text-white font-semibold gap-2 w-full sm:w-auto"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                {executing ? "Executing…" : "Execute Promotion"}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Summary pills */}
+        {promotionPreview && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-medium">
+              {totalStudents} students total
+            </span>
+            {Object.entries(summary).map(([action, count]) => {
+              const meta = ACTION_LABELS[action] ?? { label: action, color: "bg-slate-100 text-slate-600" };
+              return (
+                <span key={action} className={`text-xs px-3 py-1 rounded-full font-medium ${meta.color}`}>
+                  {count} {meta.label.toLowerCase()}
+                </span>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
+      {/* Error */}
+      {promotionError && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+          {promotionError}
+        </div>
+      )}
+
+      {/* Loading skeleton */}
+      {promotionLoading && (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="rounded-2xl border-slate-100 p-5 animate-pulse">
+              <div className="h-4 bg-slate-200 rounded w-1/3 mb-3" />
+              <div className="space-y-2">
+                {[1, 2].map((j) => (
+                  <div key={j} className="h-10 bg-slate-100 rounded-xl" />
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!promotionLoading && !promotionPreview && !promotionError && (
+        <Card className="p-10 rounded-2xl border-slate-100 text-center">
+          <ArrowRight className="w-14 h-14 text-slate-200 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-900">Run a Preview First</h3>
+          <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm">
+            Click "Preview Promotion" to see a dry-run of how each student will be moved
+            before any changes are saved.
+          </p>
+        </Card>
+      )}
+
+      {/* Per-class breakdown */}
+      {!promotionLoading && previewClasses.length > 0 && (
+        <div className="space-y-4">
+          {previewClasses.map((cls, idx) => (
+            <Card key={idx} className="rounded-2xl border-slate-100 overflow-hidden">
+              {/* Class header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 sm:p-5 border-b border-slate-100 bg-slate-50">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-bold text-slate-900 truncate">{cls.fromClass?.name}</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
+                  <span className="font-semibold text-slate-600 truncate">
+                    {cls.toClass?.name ?? <span className="italic text-slate-400">No next class</span>}
+                  </span>
+                </div>
+                <Badge variant="secondary" className="shrink-0 self-start sm:self-auto">
+                  {cls.students?.length ?? 0} students
+                </Badge>
+              </div>
+
+              {/* Students */}
+              {(cls.students?.length ?? 0) === 0 ? (
+                <p className="p-4 text-sm text-slate-400 text-center">No students in this class.</p>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {cls.students.map((student) => {
+                    const meta = ACTION_LABELS[student.action] ?? { label: student.action, color: "bg-slate-100 text-slate-600" };
+                    const override = promotionOverrides[student.studentId];
+                    return (
+                      <div
+                        key={student.studentId}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 sm:px-5 py-3 hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+                            <span className="text-xs font-bold text-slate-500">
+                              {(student.studentName || "?")[0].toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-slate-900 text-sm truncate">{student.studentName}</p>
+                            {student.studentIdNumber && (
+                              <p className="text-xs text-slate-400">{student.studentIdNumber}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${meta.color}`}>
+                            {meta.label}
+                          </span>
+
+                          {/* Override select */}
+                          <div className="relative">
+                            <select
+                              value={override ?? ""}
+                              onChange={(e) =>
+                                setPromotionOverrides((prev) => {
+                                  const next = { ...prev };
+                                  if (e.target.value) next[student.studentId] = e.target.value;
+                                  else delete next[student.studentId];
+                                  return next;
+                                })
+                              }
+                              className="text-xs h-8 pl-3 pr-7 rounded-lg border border-slate-200 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-purple-200 cursor-pointer"
+                            >
+                              <option value="">Default</option>
+                              {classes.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
+                          </div>
+
+                          {override && (
+                            <button
+                              onClick={() =>
+                                setPromotionOverrides((prev) => {
+                                  const next = { ...prev };
+                                  delete next[student.studentId];
+                                  return next;
+                                })
+                              }
+                              className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                              title="Clear override"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
   bulkUploadScoresExcel,
   fetchClassStudents,
   fetchClassSubjects,
+  publishAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 import { TeacherHeader } from "./TeacherHeader";
@@ -114,6 +115,27 @@ export function TeacherScoresPage() {
   const [uploadAssessmentId, setUploadAssessmentId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Assessment publish state
+  const [publishingAssessmentId, setPublishingAssessmentId] = useState<string | null>(null);
+
+  const handlePublishToggle = async (assessmentId: string, currentlyPublished: boolean) => {
+    setPublishingAssessmentId(assessmentId);
+    try {
+      await dispatch(
+        publishAssessment({ assessmentId, publish: !currentlyPublished }),
+      ).unwrap();
+      toast.success(
+        currentlyPublished
+          ? "Assessment unpublished — students can no longer see scores"
+          : "Assessment published — students can now view their scores",
+      );
+    } catch (e: any) {
+      toast.error(e || `Failed to ${currentlyPublished ? "unpublish" : "publish"} assessment`);
+    } finally {
+      setPublishingAssessmentId(null);
+    }
+  };
+
   // Extract unique classes
   const uniqueClasses = useMemo(() => {
     const classMap = new Map<string, any>();
@@ -189,19 +211,30 @@ export function TeacherScoresPage() {
       .then(async (data) => {
         if (data && data.length > 0) {
           try {
-            const usersResp = await apiClient.get("/api/proxy/users");
+            // Fetch ONLY users with role=student — this is the authoritative whitelist.
+            // The enrollment response does NOT include roles on student objects, so we
+            // cannot filter by role on the enrollment data itself. Instead, we cross-reference
+            // against the student-only users list.
+            const usersResp = await apiClient.get("/api/proxy/users?role=student");
             const usersData = usersResp.data;
-            const allUsers = usersData?.data || usersData || [];
-            const enrichedStudents = data.map((student: any) => {
-              const matchingUser = allUsers.find(
-                (u: any) => u.id === student.id,
-              );
-              return { ...student, ...matchingUser };
-            });
+            const studentUsers: any[] = usersData?.data || usersData || [];
+
+            // Build an ID set of confirmed students
+            const studentIdSet = new Set(studentUsers.map((u: any) => u.id));
+
+            const enrichedStudents = data
+              .filter((student: any) => studentIdSet.has(student.id))
+              .map((student: any) => {
+                const match = studentUsers.find((u: any) => u.id === student.id);
+                return { ...student, ...match };
+              });
+
             setStudents(enrichedStudents);
           } catch (error) {
-            console.error("[TeacherScores] Failed to fetch user data:", error);
-            setStudents(data);
+            console.error("[TeacherScores] Failed to fetch student data:", error);
+            // Fallback: enrollment records include studentId (e.g. STU-S-26-00001) for real
+            // students. Teachers enrolled in a class won't have this code field.
+            setStudents(data.filter((u: any) => !!u.studentId));
           }
         } else {
           setStudents([]);
@@ -839,17 +872,34 @@ export function TeacherScoresPage() {
                           const isOnline =
                             assessment.assessmentType === "online" ||
                             assessment.isOnline === true;
+                          const isPublished = !!assessment.isPublished;
+                          const isToggling = publishingAssessmentId === assessment.id;
 
                           return (
                             <div key={assessment.id} className="space-y-1">
-                              <label className="text-xs text-slate-500 flex items-center gap-1.5">
-                                {assessment.title} ({max})
-                                {isOnline && (
-                                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 text-[9px] uppercase tracking-wider font-bold leading-none">
-                                    CBT
-                                  </span>
+                              <div className="flex items-center justify-between">
+                                <label className="text-xs text-slate-500 flex items-center gap-1.5">
+                                  {assessment.title} ({max})
+                                  {isOnline && (
+                                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 text-[9px] uppercase tracking-wider font-bold leading-none">
+                                      CBT
+                                    </span>
+                                  )}
+                                </label>
+                                {idx === 0 && (
+                                  <button
+                                    onClick={() => handlePublishToggle(assessment.id, isPublished)}
+                                    disabled={isToggling}
+                                    className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 ${
+                                      isPublished
+                                        ? "bg-emerald-100 text-emerald-700"
+                                        : "bg-amber-100 text-amber-700"
+                                    }`}
+                                  >
+                                    {isToggling ? "…" : isPublished ? "Published" : "Unpublished"}
+                                  </button>
                                 )}
-                              </label>
+                              </div>
                               <div
                                 onClick={() => {
                                   if (isOnline)
@@ -939,12 +989,14 @@ export function TeacherScoresPage() {
                           const isOnline =
                             assessment.assessmentType === "online" ||
                             assessment.isOnline === true;
+                          const isPublished = !!assessment.isPublished;
+                          const isToggling = publishingAssessmentId === assessment.id;
                           return (
                             <th
                               key={assessment.id}
-                              className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[90px] sm:min-w-[100px]"
+                              className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[100px] sm:min-w-[120px]"
                             >
-                              <div className="flex flex-col items-center">
+                              <div className="flex flex-col items-center gap-1">
                                 <span className="truncate max-w-[80px] sm:max-w-none flex items-center justify-center gap-1">
                                   {assessment.title}
                                   {isOnline && (
@@ -956,6 +1008,18 @@ export function TeacherScoresPage() {
                                 <span className="text-[10px] opacity-70">
                                   ({assessment.totalMarks || 100})
                                 </span>
+                                <button
+                                  onClick={() => handlePublishToggle(assessment.id, isPublished)}
+                                  disabled={isToggling}
+                                  title={isPublished ? "Click to unpublish (hide from students)" : "Click to publish (show scores to students)"}
+                                  className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 ${
+                                    isPublished
+                                      ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                      : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                  }`}
+                                >
+                                  {isToggling ? "…" : isPublished ? "Published" : "Unpublished"}
+                                </button>
                               </div>
                             </th>
                           );

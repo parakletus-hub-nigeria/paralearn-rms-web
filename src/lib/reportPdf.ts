@@ -16,35 +16,24 @@ const tryGetFilenameFromHeaders = (headers: any): string | null => {
 
 export async function downloadStudentReportCardPdf(params: {
   studentId: string;
-  classId: string;
   session: string;
   term: string;
 }) {
-  const url = `/api/proxy/reports/student/${encodeURIComponent(
+  const url = `/api/proxy/grades/report-cards/${encodeURIComponent(
     params.studentId
-  )}/${encodeURIComponent(params.classId)}/report-card/pdf?session=${encodeURIComponent(params.session)}&term=${encodeURIComponent(
-    params.term
-  )}`;
+  )}/pdf?session=${encodeURIComponent(params.session)}&term=${encodeURIComponent(params.term)}`;
 
-  // Expect JSON response with documentUrl
-  const res = await apiClient.get(url);
-  const data = res.data;
+  // Backend returns a binary PDF stream directly
+  const res = await apiClient.get(url, { responseType: "blob" });
+  const blob = res.data as Blob;
 
-  if (data.success && data.data?.documentUrl) {
-    const pdfUrl = data.data.documentUrl;
-    
-    // Fetch the PDF blob from the URL
-    const pdfRes = await fetch(pdfUrl);
-    const blob = await pdfRes.blob();
-    
-    const filename = safeFilename(
+  const headerName = tryGetFilenameFromHeaders(res.headers);
+  const filename =
+    headerName ||
+    safeFilename(
       `report-card-${params.studentId}-${params.session}-${params.term}.pdf`
     );
-    downloadBlob(blob, filename);
-  } else {
-    console.error("Failed to generate report card", data);
-    throw new Error(data.message || "Failed to generate report card");
-  }
+  downloadBlob(blob, filename);
 }
 
 export async function bulkGenerateClassReportCards(params: {

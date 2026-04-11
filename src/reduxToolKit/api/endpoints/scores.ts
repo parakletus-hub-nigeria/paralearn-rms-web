@@ -53,6 +53,60 @@ const scoresApi = paraApi.injectEndpoints({
         { type: "ScoreList", id: assessmentId },
       ],
     }),
+
+    // ── Student-facing endpoints (isPublished: true filter applied server-side) ──
+
+    // GET /api/proxy/scores/my?session=&term=&subjectId=
+    getMyScores: builder.query<
+      any[],
+      { session?: string; term?: string; subjectId?: string }
+    >({
+      query: ({ session, term, subjectId } = {}) => {
+        const q = new URLSearchParams();
+        if (session) q.set("session", session);
+        if (term) q.set("term", term);
+        if (subjectId) q.set("subjectId", subjectId);
+        return { url: `/api/proxy/scores/my?${q.toString()}` };
+      },
+      transformResponse: (res: any) => (Array.isArray(res) ? res : []),
+      providesTags: [{ type: "ScoreList", id: "MY" }],
+    }),
+
+    // GET /api/proxy/scores/my/assessment/:id
+    getMyScoreForAssessment: builder.query<any, string>({
+      query: (assessmentId) => ({
+        url: `/api/proxy/scores/my/assessment/${assessmentId}`,
+      }),
+      providesTags: (_r, _e, id) => [{ type: "ScoreList", id: `MY_${id}` }],
+    }),
+
+    // GET /api/proxy/scores/my/result?session=&term=
+    // Full term result for the logged-in student — all subjects, percentages, breakdown by assessment type
+    getMyTermResult: builder.query<
+      any,
+      { session: string; term: string }
+    >({
+      query: ({ session, term }) => ({
+        url: `/api/proxy/scores/my/result?session=${encodeURIComponent(session)}&term=${encodeURIComponent(term)}`,
+      }),
+      providesTags: (_r, _e, { session, term }) => [
+        { type: "ScoreList", id: `MY_RESULT_${session}_${term}` },
+      ],
+    }),
+
+    // GET /api/proxy/scores/student/:id/result?session=&term=
+    // Teacher/admin view of a student's full term result
+    getStudentTermResult: builder.query<
+      any,
+      { studentId: string; session: string; term: string }
+    >({
+      query: ({ studentId, session, term }) => ({
+        url: `/api/proxy/scores/student/${studentId}/result?session=${encodeURIComponent(session)}&term=${encodeURIComponent(term)}`,
+      }),
+      providesTags: (_r, _e, { studentId }) => [
+        { type: "ScoreList", id: `RESULT_${studentId}` },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -61,4 +115,8 @@ export const {
   useGetScoresByAssessmentQuery,
   useSubmitScoresMutation,
   useBulkUploadScoresMutation,
+  useGetMyScoresQuery,
+  useGetMyScoreForAssessmentQuery,
+  useGetMyTermResultQuery,
+  useGetStudentTermResultQuery,
 } = scoresApi;
