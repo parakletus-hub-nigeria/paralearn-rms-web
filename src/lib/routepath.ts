@@ -39,7 +39,7 @@ export const routespath = {
   TEACHER_ATTENDANCE: "/teacher/attendance",
   SIGNIN: "/auth/signin",
   SIGNUP: "/auth/signup",
-  RESET_PASSWORD: "/auth/reset-password",
+  RESET_PASSWORD: "/reset-password",
   // Endpoints for our backend calls
   API_LOGIN: "/auth/login",
   API_LOGOUT: "/auth/logout",
