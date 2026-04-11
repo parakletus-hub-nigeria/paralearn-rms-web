@@ -31,7 +31,16 @@ export const extractSubdomainFromURL = (): string | null => {
     // 2. Split by '.'
     const parts = hostname.split(".");
     
-    // 3. Identification logic
+    // 3. Special Case: SabiNote Primary Domain (e.g. sabinote.com, www.sabinote.app)
+    // If the domain itself is sabinote, we treat it as the 'sabinote' product subdomain
+    if (lower.includes("sabinote")) {
+      // sabinote.tld (2 parts)
+      if (parts.length === 2 && parts[0] === "sabinote") return "sabinote";
+      // www.sabinote.tld (3 parts)
+      if (parts.length === 3 && parts[0] === "www" && parts[1] === "sabinote") return "sabinote";
+    }
+
+    // 4. Identification logic
     // We treat the first part as a subdomain ONLY if:
     // a) It's a .localhost dev domain (e.g. school.localhost)
     // b) It's a standard domain with 3+ parts (e.g. school.pln.ng) AND the first part isn't 'www' 
@@ -43,7 +52,8 @@ export const extractSubdomainFromURL = (): string | null => {
     }
 
     // Platforms common domains to ignore as subdomains
-    const platformDomains = ["pln", "paralearn", "sabinote"];
+    // We remove 'sabinote' from here so it can be picked up as a valid product subdomain
+    const platformDomains = ["pln", "paralearn"];
 
     if (parts.length >= 3) {
       const first = parts[0];
@@ -55,7 +65,6 @@ export const extractSubdomainFromURL = (): string | null => {
         if (parts.length === 3) return null;
         
         // If it's www.subdomain.domain.tld (4+ parts), return the subdomain
-        // But double check that the 'subdomain' isn't just the platform name
         if (platformDomains.includes(second)) return null;
         
         return second;
