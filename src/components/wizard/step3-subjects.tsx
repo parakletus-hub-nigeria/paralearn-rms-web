@@ -8,7 +8,7 @@ interface Subject {
   id: string;
   name: string;
   code: string;
-  classId: string;
+  classIds: string[];
   description?: string;
 }
 
@@ -61,7 +61,17 @@ export function Step3Subjects({ onAddSubject, subjects, classes, onRemoveSubject
                 <div className="flex-1">
                   <div className="font-medium">{subject.name}</div>
                   <div className="text-sm text-muted-foreground">
-                    Code: {subject.code} | Class: {getClassName(subject.classId)}
+                    Code: {subject.code}
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {subject.classIds.map((classId) => (
+                      <span
+                        key={classId}
+                        className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800"
+                      >
+                        {getClassName(classId)}
+                      </span>
+                    ))}
                   </div>
                 </div>
                 {onRemoveSubject && (

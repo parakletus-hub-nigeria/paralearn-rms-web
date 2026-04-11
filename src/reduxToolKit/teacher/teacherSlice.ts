@@ -9,6 +9,7 @@ import {
   fetchAssessmentDetail,
   fetchAssessmentSubmissions,
   fetchAssessmentsByStatus,
+  fetchAssessmentsByClassSubject,
   fetchBookletPreview,
   fetchMyAssessments,
   fetchMyComments,
@@ -30,6 +31,7 @@ type TeacherState = {
   academicCurrent: AcademicCurrent | null;
   assessments: Assessment[];
   assessmentsByStatus: Record<string, Assessment[]>;
+  assessmentsByClassSubject: Assessment[];
   selectedAssessment: Assessment | null;
   submissions: any[];
   teacherClasses: any[];
@@ -51,6 +53,7 @@ const initialState: TeacherState = {
   academicCurrent: null,
   assessments: [],
   assessmentsByStatus: {},
+  assessmentsByClassSubject: [],
   selectedAssessment: null,
   submissions: [],
   teacherClasses: [],
@@ -131,13 +134,68 @@ const teacherSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createTeacherAssessment.fulfilled, (state) => {
+      .addCase(createTeacherAssessment.fulfilled, (state, action) => {
         state.loading = false;
         state.success = "Assessment created";
+        // Add the newly created assessment to the list
+        if (action.payload?.id) {
+          const payload = action.payload;
+          // Log response to verify classId/subjectId are properly returned
+          console.log("[teacherSlice] Assessment created, response has:", {
+            id: payload.id,
+            classId: payload.classId,
+            subjectId: payload.subjectId,
+            classSubjectIds: payload.classSubjectIds,
+            hasNestedClass: !!payload.class?.id,
+            hasNestedSubject: !!payload.subject?.id,
+          });
+          
+          const newAssessment = {
+            id: payload.id,
+            title: payload.title || "Untitled Assessment",
+            classId: payload.classId || payload.class?.id, // Fallback to nested class
+            subjectId: payload.subjectId || payload.subject?.id, // Fallback to nested subject
+            totalMarks: payload.totalMarks ?? 100,
+            duration: payload.durationMins ?? payload.duration ?? 60,
+            status: "not_started",
+            isOnline: payload.assessmentType === "online",
+            ...payload,
+          };
+          
+          // Warn if classId is missing - helps debug response structure issues
+          if (!newAssessment.classId) {
+            console.warn(
+              "[teacherSlice] WARNING: Assessment created but classId not found in response",
+              { assessmentId: newAssessment.id, response: payload }
+            );
+          }
+          
+          // Check if assessment already exists to avoid duplicates
+          if (!state.assessments.find((a) => a.id === newAssessment.id)) {
+            state.assessments.unshift(newAssessment);
+          }
+        }
       })
       .addCase(createTeacherAssessment.rejected, (state, action) => {
         state.loading = false;
         state.error = (action.payload as string) || "Failed to create assessment";
+      });
+
+    // Fetch Assessments by Class/Subject
+    builder
+      .addCase(fetchAssessmentsByClassSubject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.assessmentsByClassSubject = [];
+      })
+      .addCase(fetchAssessmentsByClassSubject.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assessmentsByClassSubject = action.payload;
+      })
+      .addCase(fetchAssessmentsByClassSubject.rejected, (state, action) => {
+        state.loading = false;
+        state.assessmentsByClassSubject = [];
+        state.error = (action.payload as string) || "Failed to load assessments for class/subject";
       });
 
     builder

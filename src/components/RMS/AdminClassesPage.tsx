@@ -14,6 +14,9 @@ import {
   removeTeacherFromClass,
   deleteClass,
   updateClass,
+  assignTeacherToClassSubject,
+  removeTeacherFromClassSubject,
+  fetchClassSubjects,
 } from "@/reduxToolKit/admin/adminThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
@@ -46,10 +49,14 @@ import {
   List,
   UserMinus,
   Eye,
+  Pencil,
+  BookOpen,
+  UserPlus,
+  ShieldCheck,
+  Check,
   Trash,
   AlertTriangle,
   GraduationCap,
-  Pencil,
 } from "lucide-react";
 import { ProductTour } from "@/components/common/ProductTour";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
@@ -84,8 +91,11 @@ const classColors = [
 
 export function AdminClassesPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { classes, loading, error, success, selectedClassDetails } = useSelector((s: RootState) => s.admin);
+  const { classes, selectedClassDetails, selectedClassSubjects, loading, error, success } = useSelector((s: RootState) => s.admin);
   const { students, teachers, tenantInfo } = useSelector((s: RootState) => s.user);
+  
+  const [assigningSubjectId, setAssigningSubjectId] = useState<string | null>(null);
+  const [subjectTeacherId, setSubjectTeacherId] = useState("");
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
@@ -125,7 +135,7 @@ export function AdminClassesPage() {
     dispatch(fetchClasses(undefined));
     dispatch(fetchAllUsers());
     dispatch(getTenantInfo());
-  }, [dispatch]);
+  }, []);
 
   // Background pre-fetching of all class rosters
   useEffect(() => {
@@ -142,7 +152,7 @@ export function AdminClassesPage() {
       return () => clearTimeout(timer);
     }
     // We only want to trigger this once or when counts are cleared
-  }, [classes?.length, students?.length, dispatch]);
+  }, [classes?.length, students?.length]);
 
   useEffect(() => {
     if (currentSession && !sessionFilter) {
@@ -159,7 +169,7 @@ export function AdminClassesPage() {
       toast.success(success);
       dispatch(clearAdminSuccess());
     }
-  }, [error, success, dispatch]);
+  }, [error, success]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -256,6 +266,9 @@ export function AdminClassesPage() {
     
     setShowDetailsModal(true);
     
+    // Always fetch subjects in background or foreground
+    dispatch(fetchClassSubjects(cls.id));
+
     if (hasCache) {
       // Instant load from cache
       setLoadingDetails(false);
@@ -294,6 +307,33 @@ export function AdminClassesPage() {
     }
   };
 
+  const handleAssignSubjectTeacher = async (classSubjectId: string, teacherId: string) => {
+    try {
+      if (!teacherId) return toast.error("Please select a teacher");
+      await dispatch(assignTeacherToClassSubject({ classSubjectId, teacherId })).unwrap();
+      setAssigningSubjectId(null);
+      setSubjectTeacherId("");
+      if (selectedClass) {
+        dispatch(fetchClassSubjects(selectedClass.id));
+        dispatch(fetchClassDetails(selectedClass.id));
+      }
+    } catch (e: any) {
+      toast.error(e || "Failed to assign subject teacher");
+    }
+  };
+
+  const handleRemoveSubjectTeacher = async (classSubjectId: string, teacherId: string) => {
+    try {
+      await dispatch(removeTeacherFromClassSubject({ classSubjectId, teacherId })).unwrap();
+      if (selectedClass) {
+        dispatch(fetchClassSubjects(selectedClass.id));
+        dispatch(fetchClassDetails(selectedClass.id));
+      }
+    } catch (e: any) {
+      toast.error(e || "Failed to remove subject teacher");
+    }
+  };
+
   const getColorByIndex = (idx: number) => classColors[idx % classColors.length];
 
   // Helper to get actual student count
@@ -301,12 +341,19 @@ export function AdminClassesPage() {
     if (!students) return backendCount || 0;
     
     const localCount = students.filter((s: any) => {
-      // 1. First ensure they are NOT a teacher by checking roles
-      const roles = s.roles || (s.studentProfile?.roles) || (s.profile?.roles) || [];
-      const isTeacher = Array.isArray(roles) && roles.some((r: any) => 
-        (r.role?.name === 'teacher') || (r.name === 'teacher') || (r === 'teacher')
-      );
-      if (isTeacher) return false;
+      // 1. First ensure they are NOT a teacher or admin by checking roles
+      const studentObj = s.studentProfile || s.profile || s.user || s;
+      const roles = studentObj.roles || s.roles || (studentObj.user?.roles) || [];
+      const roleStr = String(studentObj.role || s.role || "").toLowerCase();
+      
+      const isTeacherOrAdmin = 
+        (Array.isArray(roles) && roles.some((r: any) => {
+          const name = String(r.role?.name || r.name || r || "").toLowerCase();
+          return name === "teacher" || name === "admin" || name === "staff";
+        })) ||
+        (roleStr === "teacher" || roleStr === "admin" || roleStr === "staff");
+
+      if (isTeacherOrAdmin) return false;
 
       // 2. Check ALL possible class associations recursively
       const enrollments = Array.isArray(s.enrollments) ? s.enrollments : (s.enrollment ? [s.enrollment] : []);
@@ -409,14 +456,36 @@ export function AdminClassesPage() {
                         [];
     const list = Array.isArray(enrollments) ? enrollments : [];
     
-    // Filter out ONLY users with an explicit 'teacher' role
+    // Filter out users who are teachers or admins
     return list.filter((e: any) => {
-      const studentObj = e.student || e;
-      const roles = studentObj.roles || (studentObj.user?.roles) || [];
-      const hasTeacherRole = Array.isArray(roles) && roles.some((r: any) => 
-        (r.role?.name === 'teacher') || (r.name === 'teacher') || (r === 'teacher')
-      );
-      return !hasTeacherRole;
+      const studentObj = e.student || e.user || e;
+      const studentId = studentObj?.id || e.studentId || e.id;
+      const email = (studentObj?.email || e.email || "").toLowerCase();
+      
+      // 1. Check explicit roles
+      const roles = studentObj.roles || studentObj.user?.roles || [];
+      const roleStr = String(studentObj.role || "").toLowerCase();
+
+      const hasRestrictedRole = 
+        (Array.isArray(roles) && roles.some((r: any) => {
+          const name = String(r.role?.name || r.name || r || "").toLowerCase();
+          return name === "teacher" || name === "admin" || name === "staff";
+        })) ||
+        (roleStr === "teacher" || roleStr === "admin" || roleStr === "staff");
+
+      if (hasRestrictedRole) return false;
+
+      // 2. Cross-reference with global teachers list for extra safety
+      if (teachers && teachers.length > 0) {
+        const isActuallyTeacher = teachers.some((t: any) => 
+          (t.id === studentId && studentId) || 
+          (t.email?.toLowerCase() === email && email) ||
+          (t.teacherId === studentId && studentId)
+        );
+        if (isActuallyTeacher) return false;
+      }
+
+      return true;
     });
   }, [selectedClassDetails, selectedClass]);
 
@@ -1132,6 +1201,137 @@ export function AdminClassesPage() {
                                   <UserMinus className="w-4 h-4" />
                                 </button>
                               )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Subjects & Teachers Section */}
+                  <div className="border-t border-slate-100 pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-purple-600" />
+                        Subjects & Specialists ({selectedClassSubjects.length})
+                      </h3>
+                    </div>
+                    {selectedClassSubjects.length === 0 ? (
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
+                        <p className="text-sm text-slate-500 italic">No subjects assigned to this class yet.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 mb-6">
+                        {selectedClassSubjects.map((subject: any) => {
+                          const assignedTeachers = subject.teachers || [];
+                          const isAssigning = assigningSubjectId === subject.classSubjectId;
+                          
+                          return (
+                            <div key={subject.classSubjectId} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-purple-200 transition-all">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                                    <BookOpen className="w-5 h-5 text-purple-600" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-slate-900">{subject.name}</h4>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <Badge variant="outline" className="text-[10px] uppercase border-slate-200 text-slate-500">
+                                        {subject.subjectType || "Core"}
+                                      </Badge>
+                                      {subject.difficulty && (
+                                        <Badge variant="outline" className="text-[10px] uppercase border-slate-200 text-slate-500">
+                                          {subject.difficulty}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  {!isAssigning && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => setAssigningSubjectId(subject.classSubjectId)}
+                                      className="h-9 px-3 rounded-lg text-purple-600 hover:text-purple-700 hover:bg-purple-50 gap-2"
+                                    >
+                                      <UserPlus className="w-4 h-4" />
+                                      {assignedTeachers.length > 0 ? "Add Support" : "Assign Teacher"}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Teachers List for this Subject */}
+                              <div className="mt-4 pl-0 sm:pl-12 space-y-2">
+                                {assignedTeachers.length === 0 && !isAssigning && (
+                                  <p className="text-[11px] text-slate-400 flex items-center gap-1.5 ml-1">
+                                    <AlertTriangle className="w-3 h-3 text-amber-500" />
+                                    No specialist assigned.
+                                  </p>
+                                )}
+
+                                {assignedTeachers.map((t: any) => (
+                                  <div key={t.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-slate-50 group">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-700">
+                                        {(t.teacher?.firstName?.[0] || t.teacher?.lastName?.[0] || "T").toUpperCase()}
+                                      </div>
+                                      <span className="text-xs font-semibold text-slate-700">
+                                        {t.teacher?.firstName} {t.teacher?.lastName}
+                                      </span>
+                                      {t.type === "primary" && <Badge className="text-[9px] bg-purple-100 text-purple-700 border-none px-1.5 h-4">Primary</Badge>}
+                                    </div>
+                                    <button 
+                                      onClick={() => handleRemoveSubjectTeacher(subject.classSubjectId, t.teacherId)}
+                                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                ))}
+
+                                {/* Assignment UI */}
+                                {isAssigning && (
+                                  <div className="flex flex-col gap-2 mt-2 p-3 rounded-xl bg-purple-50/50 border border-purple-100 animate-in slide-in-from-left-2 fade-in duration-200">
+                                    <p className="text-[10px] font-bold text-purple-700 uppercase px-1">Choose Specialist</p>
+                                    <div className="flex items-center gap-2">
+                                      <Select value={subjectTeacherId} onValueChange={setSubjectTeacherId}>
+                                        <SelectTrigger className="h-9 min-w-[200px] text-xs rounded-lg border-purple-200 bg-white">
+                                          <SelectValue placeholder="Select from directory..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl">
+                                          {(teachers || []).map((t: any) => (
+                                            <SelectItem key={t.id} value={t.id}>
+                                              {t.firstName} {t.lastName} ({t.email})
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      <Button 
+                                        size="sm" 
+                                        onClick={() => handleAssignSubjectTeacher(subject.classSubjectId, subjectTeacherId)}
+                                        className="h-9 px-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white"
+                                      >
+                                        <Check className="w-4 h-4 mr-1" />
+                                        Assign
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        onClick={() => {
+                                          setAssigningSubjectId(null);
+                                          setSubjectTeacherId("");
+                                        }}
+                                        className="h-9 px-3 rounded-lg text-slate-500 hover:bg-slate-100"
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           );
                         })}

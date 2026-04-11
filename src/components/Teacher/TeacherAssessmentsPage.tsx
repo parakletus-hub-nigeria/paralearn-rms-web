@@ -17,8 +17,6 @@ import {
   publishAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
-import { useLinkAssessmentToClassSubjectMutation } from "@/reduxToolKit/api/endpoints/assessments";
-
 import { TeacherHeader } from "./TeacherHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -100,7 +98,7 @@ export function TeacherAssessmentsPage() {
   const { user } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
-  const [linkToClassSubject] = useLinkAssessmentToClassSubjectMutation();
+
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -156,14 +154,25 @@ export function TeacherAssessmentsPage() {
     instructions: "",
   });
 
-  const refreshData = (force = false) => {
+  const refreshData = async (force = false) => {
+    const teacherId = (user as any)?.id || (user as any)?.teacherId;
+    
+    // Load academic info and categories in parallel
     if (force || !academicCurrent) dispatch(fetchAcademicCurrent());
-    if (force || assessments.length === 0) dispatch(fetchMyAssessments());
     if (force || assessmentCategories.length === 0) dispatch(fetchAssessmentCategories());
     
-    const teacherId = (user as any)?.id || (user as any)?.teacherId;
+    // IMPORTANT: Fetch teacher classes FIRST so assessments can be filtered by teacher's assignments
     if (teacherId && (force || teacherClasses.length === 0)) {
-      dispatch(fetchTeacherClasses({ teacherId }));
+      try {
+        await dispatch(fetchTeacherClasses({ teacherId })).unwrap();
+      } catch (err) {
+        console.error("[TeacherAssessmentsPage] Failed to fetch teacher classes:", err);
+      }
+    }
+    
+    // Then fetch assessments (uses teacher classes from redux state to filter)
+    if (force || assessments.length === 0) {
+      dispatch(fetchMyAssessments());
     }
   };
 
@@ -206,13 +215,36 @@ export function TeacherAssessmentsPage() {
       setClassSubjects([]);
       return;
     }
+    
     setLoadingSubjects(true);
     dispatch(fetchClassSubjects(createForm.classId))
       .unwrap()
-      .then((data) => setClassSubjects(data || []))
-      .catch(() => setClassSubjects([]))
+      .then((data) => {
+        // Validate teacher is actually assigned to this class
+        const isTeacherAssignedToClass = teacherClasses?.some((item: any) => {
+          const itemClassId = item.class?.id || item.classId || item.id;
+          return itemClassId === createForm.classId;
+        });
+        
+        if (!isTeacherAssignedToClass) {
+          console.warn("[TeacherAssessmentsPage] Teacher not assigned to selected class", {
+            selectedClassId: createForm.classId,
+            teacherClasses: teacherClasses?.map((c: any) => c.classId || c.class?.id),
+          });
+          toast.error("You are not assigned to this class");
+          setClassSubjects([]);
+          return;
+        }
+        
+        setClassSubjects(data || []);
+      })
+      .catch((err) => {
+        console.error("[TeacherAssessmentsPage] Failed to fetch subjects:", err);
+        toast.error("Failed to load subjects for this class");
+        setClassSubjects([]);
+      })
       .finally(() => setLoadingSubjects(false));
-  }, [dispatch, createForm.classId]);
+  }, [dispatch, createForm.classId, teacherClasses]);
 
   // Filter assessments
   const filteredAssessments = useMemo(() => {
@@ -258,19 +290,25 @@ export function TeacherAssessmentsPage() {
       if (!createForm.title.trim()) return toast.error("Title is required");
       if (!createForm.classId) return toast.error("Please select a class");
       if (!createForm.subjectId) return toast.error("Please select a subject");
+      if (!selectedClassSubjectId) return toast.error("Invalid class-subject combination. Please select both class and subject correctly.");
       if (!createForm.categoryId) return toast.error("Please select a category");
       if (!createForm.startsAt) return toast.error("Start date is required");
       if (!createForm.endsAt) return toast.error("End date is required");
 
-      // if (createForm.isOnline === "true" && createForm.questions.length === 0) {
-      //   return toast.error("Online assessments must have at least one question");
-      // }
+      console.log("[TeacherAssessmentsPage] Creating assessment with classSubjectIds", {
+        title: createForm.title,
+        classSubjectIds: [selectedClassSubjectId],
+        categoryId: createForm.categoryId,
+      });
 
+      // NEW FLOW: Backend handles class-subject linking atomically
+      // Pass classSubjectIds + classId/subjectId for redundancy and proper response normalization
       const created = await dispatch(
         createTeacherAssessment({
           title: createForm.title.trim(),
-          classId: createForm.classId,
-          subjectId: createForm.subjectId,
+          classSubjectIds: [selectedClassSubjectId], // REFACTORED: Atomic linkage
+          classId: createForm.classId, // Include for response normalization & error recovery
+          subjectId: createForm.subjectId, // Include for response normalization & error recovery
           categoryId: createForm.categoryId,
           totalMarks: createForm.totalMarks ? Number(createForm.totalMarks) : 100,
           durationMins: createForm.duration ? Number(createForm.duration) : 60,
@@ -284,14 +322,10 @@ export function TeacherAssessmentsPage() {
         })
       ).unwrap();
 
-      // Link to ClassSubject so report card engine can resolve class+subject combination
-      if (created?.id && selectedClassSubjectId) {
-        try {
-          await linkToClassSubject({ assessmentId: created.id, classSubjectId: selectedClassSubjectId }).unwrap();
-        } catch {
-          // Non-fatal — assessment is created, linking is best-effort
-        }
-      }
+      console.log("[TeacherAssessmentsPage] Assessment created successfully", {
+        assessmentId: created?.id,
+        classSubjectId: selectedClassSubjectId,
+      });
 
       toast.success("Assessment created successfully");
       setShowCreateModal(false);
@@ -313,6 +347,9 @@ export function TeacherAssessmentsPage() {
       });
       refreshData(true);
     } catch (e: any) {
+      console.error("[TeacherAssessmentsPage] Failed to create assessment", {
+        error: e?.data || e?.message || e,
+      });
       toast.error(e || "Failed to create assessment");
     }
   };

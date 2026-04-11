@@ -16,7 +16,6 @@ import {
 } from "@/reduxToolKit/admin/adminThunks";
 import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { clearAdminError, clearAdminSuccess } from "@/reduxToolKit/admin/adminSlice";
-import { useLinkAssessmentToClassSubjectMutation } from "@/reduxToolKit/api/endpoints/assessments";
 import { Header } from "@/components/RMS/header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -117,7 +116,6 @@ export function AdminAssessmentsPage() {
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   const { assessmentCategories } = useSelector((s: RootState) => s.admin);
-  const [linkToClassSubject] = useLinkAssessmentToClassSubjectMutation();
 
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -139,6 +137,7 @@ export function AdminAssessmentsPage() {
     term: "",
     instructions: "",
     startsAt: "",
+    endsAt: "", // explicit end date
   });
 
   useEffect(() => {
@@ -147,7 +146,7 @@ export function AdminAssessmentsPage() {
     dispatch(fetchSubjects());
     dispatch(getTenantInfo());
     dispatch(fetchAssessmentCategoriesMap());
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -158,7 +157,7 @@ export function AdminAssessmentsPage() {
       toast.success(success);
       dispatch(clearAdminSuccess());
     }
-  }, [error, success, dispatch]);
+  }, [error, success]);
 
   const classNameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -241,7 +240,7 @@ export function AdminAssessmentsPage() {
   }, [uniqueSubjectNames, subjectsInSelectedClasses]);
 
   const resetForm = () => {
-    setForm({ title: "", classIds: [], subjectNames: [], categoryId: "", totalMarks: "", passingMarks: "", isOnline: false, durationMins: "", term: "", instructions: "", startsAt: "" });
+    setForm({ title: "", classIds: [], subjectNames: [], categoryId: "", totalMarks: "", passingMarks: "", isOnline: false, durationMins: "", term: "", instructions: "", startsAt: "", endsAt: "" });
   };
 
   const handleCreateAssessment = async () => {
@@ -257,31 +256,28 @@ export function AdminAssessmentsPage() {
     setCreating(true);
     try {
       const created = await Promise.all(
-        pairs.map(({ classId, subjectId }) =>
-          dispatch(createAssessment({
+        pairs.map(({ classId, subjectId, classSubjectId }) => {
+          const start = new Date(form.startsAt);
+          const duration = form.durationMins ? Number(form.durationMins) : 60;
+          
+          // Use explicit end date if provided, otherwise calculate it
+          const end = form.endsAt ? new Date(form.endsAt) : new Date(start.getTime() + duration * 60000);
+
+          return dispatch(createAssessment({
             title: form.title.trim(),
-            subjectId,
-            classId,
+            classSubjectIds: classSubjectId ? [classSubjectId] : [],
             categoryId: form.categoryId || undefined,
             totalMarks: form.totalMarks ? Number(form.totalMarks) : undefined,
             passingMarks: form.passingMarks ? Number(form.passingMarks) : undefined,
             isOnline: form.isOnline,
-            durationMins: form.durationMins ? Number(form.durationMins) : undefined,
+            duration,
+            durationMins: duration,
             term: form.term || undefined,
             instructions: form.instructions || undefined,
-            startsAt: new Date(form.startsAt).toISOString(),
+            startsAt: start.toISOString(),
+            endsAt: end.toISOString(),
             questions: [],
-          })).unwrap()
-        )
-      );
-
-      // Link each created assessment to its ClassSubject (best-effort, non-fatal)
-      await Promise.allSettled(
-        created.map((assessment: any, i) => {
-          const csId = pairs[i]?.classSubjectId;
-          if (assessment?.id && csId) {
-            return linkToClassSubject({ assessmentId: assessment.id, classSubjectId: csId }).unwrap();
-          }
+          })).unwrap();
         })
       );
 
@@ -611,9 +607,15 @@ export function AdminAssessmentsPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-semibold text-slate-700">Start Date <span className="text-red-500">*</span></label>
-                  <Input type="datetime-local" value={form.startsAt} onChange={(e) => setForm((p) => ({ ...p, startsAt: e.target.value }))} className="mt-2 h-10 rounded-xl text-sm" />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Start Date <span className="text-red-500">*</span></label>
+                    <Input type="datetime-local" value={form.startsAt} onChange={(e) => setForm((p) => ({ ...p, startsAt: e.target.value }))} className="mt-2 h-10 rounded-xl text-sm" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">End Date</label>
+                    <Input type="datetime-local" value={form.endsAt} onChange={(e) => setForm((p) => ({ ...p, endsAt: e.target.value }))} className="mt-2 h-10 rounded-xl text-sm" />
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 pt-1">
@@ -729,7 +731,11 @@ export function AdminAssessmentsPage() {
                   ? (() => {
                       let count = 0;
                       for (const classId of form.classIds) {
-                        count += subjects.filter((s: any) => s.classId === classId && form.subjectNames.includes(s.name)).length;
+                        count += subjects.filter((s: any) => {
+                          const cs: any[] = s.classSubjects || [];
+                          const matchesClass = cs.some(c => c.classId === classId) || s.classId === classId;
+                          return matchesClass && form.subjectNames.includes(s.name);
+                        }).length;
                       }
                       return `${count} assessment${count !== 1 ? "s" : ""} will be created`;
                     })()

@@ -17,6 +17,7 @@ import {
   activateTerm,
   createClass,
   createSubject,
+  assignSubjectToClass,
   updateGradingScale,
   clearError,
   clearSuccess,
@@ -58,7 +59,7 @@ interface Subject {
   id: string;
   name: string;
   code: string;
-  classId: string;
+  classIds: string[];
   description?: string;
 }
 
@@ -123,14 +124,14 @@ const defaultSubjects: Subject[] = [
     id: "1",
     name: "Mathematics",
     code: "MATH",
-    classId: "1", // Will be transformed to "class_id_1" on submit
+    classIds: ["1"], 
     description: "Core mathematics curriculum",
   },
   {
     id: "2",
     name: "English Language",
     code: "ENG",
-    classId: "1", // Will be transformed to "class_id_1" on submit
+    classIds: ["1"],
     description: "Core English language curriculum",
   },
 ];
@@ -329,11 +330,10 @@ export function SchoolSetupWizard() {
       setClassIdMap(newClassIdMap);
 
       // Update both classes and subjects state with real API IDs
-      // This ensures that any subjects defined in state point to the real class IDs
       setClasses(prev => prev.map((cls, idx) => ({ ...cls, id: createdClasses[idx].id })));
       setSubjects(prev => prev.map(subject => ({
         ...subject,
-        classId: newClassIdMap.get(subject.classId) || subject.classId
+        classIds: subject.classIds.map(id => newClassIdMap.get(id) || id)
       })));
 
       toast.success(`${createdClasses.length} class(es) created successfully!`);
@@ -357,18 +357,20 @@ export function SchoolSetupWizard() {
     }
 
     try {
-      // We process subjects sequentially to ensure the backend can handle each creation
-      // correctly and to avoid potential race conditions/database deadlocks.
-      const createdSubjectsList = [];
       for (const subject of subjects) {
+        // 1. Create the school-level subject
         const subjectData = {
           name: subject.name,
           code: subject.code,
-          classId: subject.classId,
           description: subject.description || undefined,
         };
-        const result = await dispatch(createSubject(subjectData)).unwrap();
-        createdSubjectsList.push(result);
+        const createResult = await dispatch(createSubject(subjectData)).unwrap();
+        const subjectId = createResult.id;
+
+        // 2. Assign to each class
+        for (const classId of subject.classIds) {
+          await dispatch(assignSubjectToClass({ subjectId, classId })).unwrap();
+        }
       }
 
       toast.success(`${subjects.length} subject(s) created successfully!`);

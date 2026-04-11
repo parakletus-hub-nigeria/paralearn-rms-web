@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import {
   fetchTeacherClasses,
-  fetchMyAssessments,
+  fetchAssessmentsByClassSubject,
   fetchScoresByAssessmentTeacher,
   uploadOfflineScores,
   bulkUploadScoresExcel,
@@ -71,7 +71,7 @@ const teacherScoresTourSteps = [
 
 export function TeacherScoresPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { teacherClasses, assessments, loading } = useSelector((s: RootState) => s.teacher);
+  const { teacherClasses, assessmentsByClassSubject, loading } = useSelector((s: RootState) => s.teacher);
   const { user } = useSelector((s: RootState) => s.user);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
@@ -131,7 +131,6 @@ export function TeacherScoresPage() {
     if (teacherId) {
       dispatch(fetchTeacherClasses({ teacherId }));
     }
-    dispatch(fetchMyAssessments());
   }, [dispatch, user]);
 
   // Load subjects when class is selected
@@ -148,6 +147,20 @@ export function TeacherScoresPage() {
       .catch(() => setSubjects([]))
       .finally(() => setLoadingSubjects(false));
   }, [dispatch, selectedClassId]);
+
+  // Fetch assessments when both class and subject are selected
+  useEffect(() => {
+    if (!selectedClassId || !selectedSubjectId) {
+      return;
+    }
+    setLoadingScores(true);
+    dispatch(fetchAssessmentsByClassSubject({ classId: selectedClassId, subjectId: selectedSubjectId }))
+      .unwrap()
+      .catch(() => {
+        console.error("[TeacherScoresPage] Failed to fetch assessments");
+      })
+      .finally(() => setLoadingScores(false));
+  }, [dispatch, selectedClassId, selectedSubjectId]);
 
   // Load students when class is selected
   useEffect(() => {
@@ -184,36 +197,10 @@ export function TeacherScoresPage() {
   }, [dispatch, selectedClassId]);
 
   // Filter assessments by class and subject
+  // Use assessments for the selected class/subject - no need to filter further
   const relevantAssessments = useMemo(() => {
-    if (!selectedSubjectId) return [];
-    
-    const selectedSubject = subjects.find((s: any) => s.id === selectedSubjectId);
-    
-    // Normalization helper for names
-    const normalize = (str: string) => str ? str.toLowerCase().replace(/\s+/g, '').trim() : '';
-    
-    return assessments.filter((a: any) => {
-      // Class Match (Robust)
-      const matchesClass = !selectedClassId || String(a.classId) === String(selectedClassId) || String(a.class?.id) === String(selectedClassId);
-      if (!matchesClass) return false;
-
-      // Subject Match Strategy (Cascade)
-      // 1. ID Match (Loose)
-      if (String(a.subjectId) === String(selectedSubjectId) || String(a.subject?.id) === String(selectedSubjectId)) return true;
-      
-      // 2. Code Match (if available)
-      if (selectedSubject?.code && (a.subject?.code === selectedSubject.code || a.subjectCode === selectedSubject.code)) return true;
-      
-      // 3. Name Match (Normalized for case/spaces)
-      if (selectedSubject?.name) {
-        const selectedName = normalize(selectedSubject.name);
-        if (a.subject?.name && normalize(a.subject.name) === selectedName) return true;
-        if (a.subjectName && normalize(a.subjectName) === selectedName) return true;
-      }
-      
-      return false;
-    });
-  }, [assessments, selectedClassId, selectedSubjectId, subjects]);
+    return assessmentsByClassSubject || [];
+  }, [assessmentsByClassSubject]);
 
   // Load existing scores for ALL relevant assessments in parallel
   useEffect(() => {

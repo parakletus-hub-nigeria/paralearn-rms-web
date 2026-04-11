@@ -264,7 +264,7 @@ export const createClass = createAsyncThunk(
 export interface CreateSubjectInput {
   name: string;
   code: string;
-  classId: string;
+  classId?: string;
   description?: string;
 }
 
@@ -272,7 +272,7 @@ export interface CreateSubjectResponse {
   id: string;
   name: string;
   code: string;
-  classId: string;
+  classId?: string | null;
   description?: string;
 }
 
@@ -300,6 +300,45 @@ export const createSubject = createAsyncThunk(
         "Failed to create subject";
 
       console.error("[Create Subject Error]", errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Assign Subject to Class
+export interface AssignSubjectToClassInput {
+  subjectId: string;
+  classId: string;
+  subjectType?: string;
+  difficulty?: string;
+  description?: string;
+}
+
+export const assignSubjectToClass = createAsyncThunk(
+  "setUp/assignSubjectToClass",
+  async (data: AssignSubjectToClassInput, { rejectWithValue }) => {
+    try {
+      const { subjectId, ...body } = data;
+      const response = await apiClient.post(
+        `/api/proxy/subjects/${subjectId}/classes`,
+        body
+      );
+
+      if (response.data?.success === false) {
+        const errorMessage = response.data?.message || "Failed to assign subject to class";
+        console.error("[Assign Subject Error]", errorMessage);
+        return rejectWithValue(errorMessage);
+      }
+
+      return response.data.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to assign subject to class";
+
+      console.error("[Assign Subject Error]", errorMessage);
       return rejectWithValue(errorMessage);
     }
   }

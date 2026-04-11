@@ -29,7 +29,7 @@ interface SubjectsManagementModalProps {
   subjectDescription: string
   setSubjectDescription: (value: string) => void
   classes: Class[]
-  onAddSubject: (subject: { id: string; name: string; code: string; classId: string; description?: string }) => void
+  onAddSubject: (subject: { id: string; name: string; code: string; classIds: string[]; description?: string }) => void
 }
 
 export function SubjectsManagementModal({
@@ -52,19 +52,12 @@ export function SubjectsManagementModal({
       return;
     }
 
-    // Create a subject for each selected class
-    selectedClasses.forEach((classId) => {
-      const cls = classes.find((c) => c.id === classId);
-      const suffix = cls ? `-${cls.name.replace(/\s+/g, "")}` : "";
-      const uniqueCode = selectedClasses.length > 1 ? `${subjectCode}${suffix}` : subjectCode;
-
-      onAddSubject({
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        name: subjectName,
-        code: uniqueCode,
-        classId: classId,
-        description: subjectDescription || undefined,
-      });
+    onAddSubject({
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      name: subjectName,
+      code: subjectCode,
+      classIds: [...selectedClasses],
+      description: subjectDescription || undefined,
     });
 
     // Reset form

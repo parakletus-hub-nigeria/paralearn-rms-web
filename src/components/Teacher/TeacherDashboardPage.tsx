@@ -49,12 +49,24 @@ export function TeacherDashboardPage() {
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   useEffect(() => {
-    dispatch(fetchAcademicCurrent());
-    dispatch(fetchMyAssessments());
-    const teacherId = (user as any)?.id || (user as any)?.teacherId;
-    if (teacherId) {
-      dispatch(fetchTeacherClasses({ teacherId }));
-    }
+    const loadData = async () => {
+      dispatch(fetchAcademicCurrent());
+      
+      const teacherId = (user as any)?.id || (user as any)?.teacherId;
+      if (teacherId) {
+        // IMPORTANT: Fetch teacher classes FIRST so assessments can be filtered by teacher's assignments
+        try {
+          await dispatch(fetchTeacherClasses({ teacherId })).unwrap();
+        } catch (err) {
+          console.error("[TeacherDashboardPage] Failed to fetch teacher classes:", err);
+        }
+      }
+      
+      // Then fetch assessments (uses teacher classes from redux state to filter)
+      dispatch(fetchMyAssessments());
+    };
+    
+    loadData();
   }, [dispatch, user]);
 
   // Calculate dashboard statistics

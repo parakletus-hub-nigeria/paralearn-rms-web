@@ -191,6 +191,18 @@ const assessmentsApi = paraApi.injectEndpoints({
       transformResponse: (res: any) => (Array.isArray(res) ? res : []),
       providesTags: (_r, _e, id) => [{ type: "Assessment" as const, id: `cs-${id}` }],
     }),
+
+    // DELETE /api/proxy/assessments/:id
+    deleteAssessment: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/api/proxy/assessments/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Assessment", id },
+        { type: "AssessmentList" },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -210,4 +222,5 @@ export const {
   useLinkAssessmentToClassSubjectMutation,
   useUnlinkAssessmentFromClassSubjectMutation,
   useGetAssessmentClassSubjectsQuery,
+  useDeleteAssessmentMutation,
 } = assessmentsApi;

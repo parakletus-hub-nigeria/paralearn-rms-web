@@ -69,6 +69,17 @@ export type AssessmentItem = {
     submissions: number;
     questions?: number;
   };
+  subject?: { id: string; name: string; code?: string };
+  class?: { id: string; name: string; code?: string };
+  questions?: Array<{
+    id: string;
+    text?: string;
+    question?: string;
+    marks?: number;
+    type?: string;
+    options?: string[];
+    correctAnswer?: string;
+  }>;
 };
 
 export type SchoolStatistics = {
@@ -434,7 +445,7 @@ export const fetchSubjects = createAsyncThunk(
       let res;
       try {
         res = await apiClient.get(
-          "/api/proxy/subjects?include=teachers,teacherAssignments",
+          "/api/proxy/subjects?include=teachers,teacherAssignments,classSubjects",
         );
       } catch (e) {
         // Fallback to basic endpoint
@@ -569,6 +580,62 @@ export const assignTeacherToSubject = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to assign teacher",
+      );
+    }
+  },
+);
+
+export const assignTeacherToClassSubject = createAsyncThunk(
+  "admin/assignTeacherToClassSubject",
+  async (
+    payload: { teacherId: string; classSubjectId: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await apiClient.post(
+        `/api/proxy/subjects/class-subjects/${payload.classSubjectId}/teachers`,
+        {
+          teacherId: payload.teacherId,
+        },
+      );
+      return unwrap(res);
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to assign teacher",
+      );
+    }
+  },
+);
+
+export const removeTeacherFromClassSubject = createAsyncThunk(
+  "admin/removeTeacherFromClassSubject",
+  async (
+    payload: { teacherId: string; classSubjectId: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await apiClient.delete(
+        `/api/proxy/subjects/class-subjects/${payload.classSubjectId}/teachers/${payload.teacherId}`,
+      );
+      return unwrap(res);
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to remove teacher",
+      );
+    }
+  },
+);
+
+export const fetchClassSubjects = createAsyncThunk(
+  "admin/fetchClassSubjects",
+  async (classId: string, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.get(`/api/proxy/subjects/by-class/${classId}`);
+      const data = unwrap(res) || [];
+      return Array.isArray(data) ? data : [];
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to fetch class subjects",
       );
     }
   },

@@ -41,9 +41,12 @@ import {
   createAssessmentCategory,
   deleteAssessmentCategory,
   deleteAssessment,
+  fetchAssessmentSubmissions,
+  assignTeacherToClassSubject,
+  removeTeacherFromClassSubject,
+  fetchClassSubjects,
   deleteClass,
   fetchAssessmentDetail,
-  fetchAssessmentSubmissions,
 } from "./adminThunks";
 
 type AdminState = {
@@ -75,6 +78,7 @@ type AdminState = {
   assessmentCategories: any[];
   selectedAssessment: AssessmentItem | null;
   assessmentSubmissions: any[];
+  selectedClassSubjects: any[];
 };
 
 const ensureString = (val: any, fallback: string): string => {
@@ -104,6 +108,7 @@ const initialState: AdminState = {
   assessmentCategories: [],
   selectedAssessment: null,
   assessmentSubmissions: [],
+  selectedClassSubjects: [],
 };
 
 const adminSlice = createSlice({
@@ -137,7 +142,28 @@ const adminSlice = createSlice({
         state.loading = false;
         state.classes = action.payload;
       })
-      .addCase(fetchClasses.rejected, (state, action) => rejected(state, action, "Failed to load classes"));
+      .addCase(fetchClasses.rejected, (state, action) => rejected(state, action, "Failed to load classes"))
+
+      .addCase(fetchClassSubjects.pending, pending)
+      .addCase(fetchClassSubjects.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedClassSubjects = action.payload;
+      })
+      .addCase(fetchClassSubjects.rejected, (state, action) => rejected(state, action, "Failed to load class subjects"))
+
+      .addCase(assignTeacherToClassSubject.pending, pending)
+      .addCase(assignTeacherToClassSubject.fulfilled, (state) => {
+        state.loading = false;
+        state.success = "Teacher assigned successfully";
+      })
+      .addCase(assignTeacherToClassSubject.rejected, (state, action) => rejected(state, action, "Failed to assign teacher"))
+
+      .addCase(removeTeacherFromClassSubject.pending, pending)
+      .addCase(removeTeacherFromClassSubject.fulfilled, (state) => {
+        state.loading = false;
+        state.success = "Teacher removed successfully";
+      })
+      .addCase(removeTeacherFromClassSubject.rejected, (state, action) => rejected(state, action, "Failed to remove teacher"));
 
     builder
       .addCase(createClass.pending, pending)

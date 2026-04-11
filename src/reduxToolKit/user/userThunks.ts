@@ -8,7 +8,7 @@ import {
   extractSubdomainFromURL,
   getSubdomainFromStorage,
 } from "@/lib/subdomainManager";
-import { store } from "@/reduxToolKit/store";
+import { RESET_STORE } from "@/reduxToolKit/constants";
 import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
 import {
   normalizeRoles,
@@ -360,6 +360,10 @@ export const loginUser = createAsyncThunk(
           ...(response.data?.data || response.data || {}),
           ...(userFromResponse || {}),
           roles,
+          // Explicitly include subdomain so protectedRoute can hydrate Redux
+          // state.user.subdomain correctly on the new origin without relying
+          // solely on URL extraction (which may not fire before the first request).
+          subdomain,
         };
 
         if (typeof window !== "undefined") {
@@ -446,7 +450,7 @@ export const fetchUserData = createAsyncThunk(
 // Log out the user and clean up everything
 export const logoutUser = createAsyncThunk(
   "user/logout",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       try {
         // Attempt to notify backend of logout
@@ -466,6 +470,10 @@ export const logoutUser = createAsyncThunk(
         await import("@/lib/subdomainManager");
       removeSubdomainFromStorage();
 
+      // Reset ALL Redux slices and RTK Query caches so the next login
+      // starts completely clean — no previous tenant data leaks through.
+      dispatch({ type: RESET_STORE });
+
       return null;
     } catch (error: any) {
       const errorMessage =
@@ -476,9 +484,10 @@ export const logoutUser = createAsyncThunk(
 
       console.error("[Logout Error]", errorMessage);
 
-      // Still clear cookies even if error occurs
+      // Still clear cookies and reset store even if error occurs
       await removeAuthToken();
       tokenManager.clearAllAuthCookies();
+      dispatch({ type: RESET_STORE });
 
       return rejectWithValue(errorMessage);
     }
@@ -576,13 +585,16 @@ export const fetchAllUsers = createAsyncThunk(
 
       const users = response.data.data || response.data;
 
-      // Separate students and teachers
-      const students = users.filter(
-        (item: any) => item.roles?.[0]?.role?.name === "student",
-      );
-      const teachers = users.filter(
-        (item: any) => item.roles?.[0]?.role?.name === "teacher",
-      );
+      // Separate students and teachers by checking all assigned roles
+      const students = users.filter((item: any) => {
+        const roles = item.roles || [];
+        return Array.isArray(roles) && roles.some((r: any) => (r.role?.name === "student" || r.name === "student" || r === "student"));
+      });
+
+      const teachers = users.filter((item: any) => {
+        const roles = item.roles || [];
+        return Array.isArray(roles) && roles.some((r: any) => (r.role?.name === "teacher" || r.name === "teacher" || r === "teacher"));
+      });
 
       return {
         users,

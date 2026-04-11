@@ -8,6 +8,7 @@ import {
   onboardingSetup,
   createClass,
   createSubject,
+  assignSubjectToClass,
 
   updateGradingScale,
   updateCurrentSession,
@@ -229,6 +230,21 @@ const setUpSlice = createSlice({
         state.error = (action.payload as string) || "Failed to create subject";
       });
 
+    // Assign Subject to Class
+    builder
+      .addCase(assignSubjectToClass.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(assignSubjectToClass.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(assignSubjectToClass.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to assign subject to class";
+      });
+
     // Update Grading Scale
     builder
       .addCase(updateGradingScale.pending, (state) => {
@@ -296,6 +312,7 @@ export {
   onboardingSetup,
   createClass,
   createSubject,
+  assignSubjectToClass,
   updateGradingScale,
   updateCurrentSession,
 };

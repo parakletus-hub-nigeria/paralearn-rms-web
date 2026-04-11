@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
-import { fetchAssessmentDetail, fetchAssessmentSubmissions } from "@/reduxToolKit/admin/adminThunks";
+import { fetchAssessmentDetail, fetchAssessmentSubmissions, deleteAssessment } from "@/reduxToolKit/admin/adminThunks";
 import { Header } from "@/components/RMS/header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,8 @@ import {
   AlertCircle,
   HelpCircle,
   BarChart3,
-  Calendar
+  Calendar,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { getTenantInfo } from "@/reduxToolKit/user/userThunks";
@@ -39,6 +40,31 @@ export function AdminAssessmentDetailsPage() {
       dispatch(getTenantInfo());
     }
   }, [params.assessmentId, dispatch]);
+
+  const handleDelete = async () => {
+    if (!selectedAssessment) return;
+    
+    if (window.confirm(`Are you sure you want to delete "${selectedAssessment.title}"? This action cannot be undone.`)) {
+      try {
+        const res = await dispatch(deleteAssessment(selectedAssessment.id)).unwrap();
+        if (res) {
+          toast.success("Assessment deleted successfully");
+          router.push("/RMS/assessments");
+        }
+      } catch (err: any) {
+        toast.error(err || "Failed to delete assessment");
+      }
+    }
+  };
+
+  // Helper to normalize isOnline to boolean (handles both string and boolean values)
+  const isOnline = () => {
+    const value = selectedAssessment?.isOnline;
+    if (typeof value === "string") {
+      return value === "true" || value === "1" || value === "yes";
+    }
+    return !!value;
+  };
 
   if (loading && !selectedAssessment) {
     return (
@@ -98,7 +124,7 @@ export function AdminAssessmentDetailsPage() {
                   {statusLabel}
                 </Badge>
                 <Badge className="bg-slate-100 text-slate-600 border-0 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-                  {selectedAssessment.isOnline ? "Online" : "Offline"}
+                  {isOnline() ? "Online" : "Offline"}
                 </Badge>
               </div>
               <div>
@@ -109,6 +135,23 @@ export function AdminAssessmentDetailsPage() {
                   <span>{selectedAssessment.class?.name || "Class"}</span>
                 </p>
               </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/RMS/assessments/edit/${selectedAssessment.id}`)}
+                className="rounded-xl border-slate-200"
+              >
+                Edit
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                className="rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border-0 flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete</span>
+              </Button>
             </div>
           </div>
 

@@ -77,10 +77,9 @@ export default function StudentDashboardPage() {
     }
   }, [dispatch]);
 
-  // Filter ONLY online and published assessments as per user request
-  const visibleAssessments = (assessments || []).filter((a) => {
-    return a.isPublished !== false && a.isOnline !== false;
-  });
+  // K-12 System: Backend already filters for published assessments only
+  // All assessments in this list are guaranteed to be published and available for students
+  const visibleAssessments = assessments || [];
 
   const activeList = visibleAssessments.filter(a => a.status !== 'ended');
   const endedList = visibleAssessments.filter(a => a.status === 'ended');

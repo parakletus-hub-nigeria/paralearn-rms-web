@@ -21,31 +21,53 @@ export const extractSubdomainFromURL = (): string | null => {
       return null;
     }
 
-    // If we're on bare localhost / IP, there is no subdomain.
     const lower = hostname.toLowerCase();
+    
+    // 1. Handle localhost and IP addresses
     if (lower === "localhost" || lower === "127.0.0.1" || lower === "0.0.0.0") {
       return null;
     }
 
-    // Split by '.' and get the first part
+    // 2. Split by '.'
     const parts = hostname.split(".");
-    if (parts.length > 0 && parts[0]) {
-      const first = parts[0].toLowerCase();
+    
+    // 3. Identification logic
+    // We treat the first part as a subdomain ONLY if:
+    // a) It's a .localhost dev domain (e.g. school.localhost)
+    // b) It's a standard domain with 3+ parts (e.g. school.pln.ng) AND the first part isn't 'www' 
+    //    OR it's a 4+ part domain starting with 'www' (e.g. www.school.pln.ng)
 
-      // Handle subdomain.localhost (dev)
-      if (lower.endsWith(".localhost")) {
-        // subdomain.localhost => return subdomain
-        return first === "www" ? null : first;
+    if (lower.endsWith(".localhost")) {
+      const first = parts[0];
+      return first === "www" ? null : first;
+    }
+
+    // Platforms common domains to ignore as subdomains
+    const platformDomains = ["pln", "paralearn", "sabinote"];
+
+    if (parts.length >= 3) {
+      const first = parts[0];
+      const second = parts[1];
+
+      // Handle www.subdomain.domain.tld or www.domain.tld
+      if (first === "www") {
+        // If it's www.domain.tld (3 parts), return null
+        if (parts.length === 3) return null;
+        
+        // If it's www.subdomain.domain.tld (4+ parts), return the subdomain
+        // But double check that the 'subdomain' isn't just the platform name
+        if (platformDomains.includes(second)) return null;
+        
+        return second;
       }
 
-      // For normal domains: only treat it as a subdomain if there are 3+ parts.
-      // e.g. brightfuture.pl.ng (3) => brightfuture
-      // e.g. paralearn.app (2) => no subdomain
-      if (parts.length >= 3) {
-        return first === "www" && parts.length > 1 ? parts[1]?.toLowerCase() || null : first;
+      // If it's subdomain.domain.tld (3 parts)
+      // Check if the first part is actually just the platform name (e.g. paralearn.app)
+      if (parts.length === 3 && platformDomains.includes(first)) {
+        return null;
       }
 
-      return null;
+      return first;
     }
 
     return null;
@@ -119,31 +141,35 @@ const sanitizeSubdomain = (subdomain: string | null | undefined): string | null 
 
 /**
  * Get subdomain with fallback priority:
- * 1. Redux state (passed as parameter)
- * 2. localStorage
- * 3. URL extraction
+ * 1. URL extraction — the current hostname is always the authoritative tenant.
+ *    Stale Redux/localStorage values from a previous session must never override
+ *    the subdomain the user is physically browsing on.
+ * 2. Redux state (passed as parameter) — correct on same-origin pages
+ * 3. localStorage — legacy fallback only
  */
 export const getSubdomain = (reduxSubdomain?: string | null): string | null => {
-  // First, check Redux state if provided
+  // First, extract from current URL — this is always ground truth.
+  // When a user is on dta.localhost, we must send dta regardless of what
+  // stale state exists in Redux or localStorage from a prior pls session.
+  const urlSubdomain = extractSubdomainFromURL();
+  const cleanUrl = sanitizeSubdomain(urlSubdomain);
+  if (cleanUrl) {
+    // Keep localStorage in sync so fallbacks stay accurate
+    saveSubdomainToStorage(cleanUrl);
+    return cleanUrl;
+  }
+
+  // Second, check Redux state (correct on root-domain pages where URL has no subdomain)
   const cleanRedux = sanitizeSubdomain(reduxSubdomain);
   if (cleanRedux) {
     return cleanRedux;
   }
 
-  // Second, check localStorage
+  // Third, localStorage fallback
   const storedSubdomain = getSubdomainFromStorage();
   const cleanStored = sanitizeSubdomain(storedSubdomain);
   if (cleanStored) {
     return cleanStored;
-  }
-
-  // Third, extract from URL
-  const urlSubdomain = extractSubdomainFromURL();
-  const cleanUrl = sanitizeSubdomain(urlSubdomain);
-  if (cleanUrl) {
-    // Save it for future use
-    saveSubdomainToStorage(cleanUrl);
-    return cleanUrl;
   }
 
   return null;
