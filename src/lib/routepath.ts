@@ -16,6 +16,11 @@ export const routespath = {
   SETTINGS: "/RMS/settings",
   BRANDING: "/RMS/branding",
   ENROLLMENTS: "/RMS/enrollments",
+  // CBT module
+  CBT: "/RMS/cbt",
+  CBT_EXAMS: "/RMS/cbt/exams",
+  CBT_QUESTION_BANK: "/RMS/cbt/question-bank",
+  CBT_RESULTS: "/RMS/cbt/results",
   LESSON_GENERATOR: "/RMS/lesson-generator",
   LESSON_GENERATOR_NEW: "/RMS/lesson-generator/new",
   LESSON_GENERATOR_DETAILS: "/RMS/lesson-generator/:id",

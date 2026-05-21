@@ -892,6 +892,98 @@ export const bulkUploadQuestions = createAsyncThunk(
   },
 );
 
+export const addQuestion = createAsyncThunk(
+  "admin/addQuestion",
+  async (
+    payload: {
+      assessmentId: string;
+      existingQuestions: Array<any>;
+      question: string;
+      options: Array<{ text: string; isCorrect: boolean }>;
+      points?: number;
+      type?: string;
+    },
+    { rejectWithValue },
+  ) => {
+    try {
+      const normalizeType = (t?: string) => {
+        if (!t) return "MCQ";
+        const up = t.toUpperCase().replace(/[-\s]/g, "_");
+        if (up === "TRUE_FALSE" || up === "TRUEFALSE" || up === "BOOLEAN") return "TRUE_FALSE";
+        return "MCQ";
+      };
+      const newQ: any = {
+        prompt: payload.question,
+        type: normalizeType(payload.type),
+        marks: payload.points ?? 1,
+        choices: payload.options.map((o) => ({ text: o.text, isCorrect: o.isCorrect })),
+        correctAnswer: payload.options.find((o) => o.isCorrect)?.text ?? "",
+      };
+      if ((payload as any).explanation) newQ.explanation = (payload as any).explanation;
+      const questions = [
+        ...payload.existingQuestions.map((q: any) => {
+          const mapped: any = {
+            prompt: q.prompt ?? q.question ?? q.questionText ?? "",
+            type: normalizeType(q.type),
+            marks: q.marks ?? q.points ?? 1,
+            choices: (q.choices ?? q.options ?? []).map((c: any) => ({ text: c.text, isCorrect: c.isCorrect })),
+            correctAnswer: q.correctAnswer ?? (q.choices ?? q.options ?? []).find((c: any) => c.isCorrect)?.text ?? "",
+          };
+          if (q.id) mapped.id = q.id;
+          if (q.explanation) mapped.explanation = q.explanation;
+          return mapped;
+        }),
+        newQ,
+      ];
+      const res = await apiClient.patch(
+        `/api/proxy/assessments/${payload.assessmentId}`,
+        { questions },
+      );
+      return unwrap(res) ?? res.data;
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to add question",
+      );
+    }
+  },
+);
+
+export const deleteQuestion = createAsyncThunk(
+  "admin/deleteQuestion",
+  async (
+    payload: { assessmentId: string; questionId: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      await apiClient.delete(
+        `/api/proxy/assessments/${payload.assessmentId}/questions/${payload.questionId}`,
+      );
+      return payload.questionId;
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to delete question",
+      );
+    }
+  },
+);
+
+export const fetchCBTExams = createAsyncThunk(
+  "admin/fetchCBTExams",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.get(
+        "/api/proxy/assessments?isOnline=true",
+      );
+      const data = unwrap(res) || [];
+      return Array.isArray(data) ? data : [];
+    } catch (e: any) {
+      return rejectWithValue(
+        e?.response?.data?.message || e?.message || "Failed to fetch CBT exams",
+      );
+    }
+  },
+);
+
 // ---------- Admin: Scores ----------
 export const fetchScoresByAssessment = createAsyncThunk(
   "admin/fetchScoresByAssessment",
@@ -1222,7 +1314,11 @@ export const fetchAssessmentCategoriesMap = createAsyncThunk(
     try {
       const res = await apiClient.get("/api/proxy/assessment-categories");
       const data = unwrap(res) || [];
-      return Array.isArray(data) ? data : [];
+      if (Array.isArray(data)) return data;
+      // Backend may return { items: [...] } or { data: [...] } wrapped shapes
+      if (data && Array.isArray(data.items)) return data.items;
+      if (data && Array.isArray(data.data)) return data.data;
+      return [];
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message ||

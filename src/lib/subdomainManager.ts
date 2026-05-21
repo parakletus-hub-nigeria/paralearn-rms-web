@@ -53,7 +53,8 @@ export const extractSubdomainFromURL = (): string | null => {
 
     // Platforms common domains to ignore as subdomains
     // We remove 'sabinote' from here so it can be picked up as a valid product subdomain
-    const platformDomains = ["pln", "paralearn"];
+    // "cbt" is a platform subdomain (cbt.pln.ng), not a school tenant
+    const platformDomains = ["pln", "paralearn", "cbt"];
 
     if (parts.length >= 3) {
       const first = parts[0];

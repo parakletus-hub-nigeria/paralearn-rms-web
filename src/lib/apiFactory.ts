@@ -8,6 +8,27 @@ import { routespath } from "./routepath";
 import { toast } from "sonner";
 import { getSubdomain } from "./subdomainManager";
 
+// Token refresh queue — ensures only one refresh runs at a time.
+// Any 401s that arrive during a refresh are queued and replayed once refresh completes.
+let isRefreshing = false;
+let refreshQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
+
+function enqueueRefreshWaiter(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    refreshQueue.push({ resolve, reject });
+  });
+}
+
+function drainRefreshQueue(token: string) {
+  refreshQueue.forEach((p) => p.resolve(token));
+  refreshQueue = [];
+}
+
+function rejectRefreshQueue(err: unknown) {
+  refreshQueue.forEach((p) => p.reject(err));
+  refreshQueue = [];
+}
+
 // Lazy import store to avoid circular dependency
 let storeInstance: any = null;
 
@@ -134,13 +155,11 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
           return Promise.reject(error);
         }
 
-        if (config._retry) {
-          console.warn("[API] Refresh token failed, redirecting to login");
+        const handleAuthFailure = (err: unknown) => {
           tokenManager.removeToken();
           import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
             getStore()?.dispatch(logoutUser());
           });
-
           if (typeof window !== "undefined") {
             const currentPath = window.location.pathname;
             if (!currentPath.includes("/auth/") && !currentPath.includes("/sabinote/auth/")) {
@@ -149,37 +168,44 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
               setTimeout(() => { window.location.href = redirectPath; }, 1500);
             }
           }
-          return Promise.reject(error);
+          return Promise.reject(err);
+        };
+
+        if (config._retry) {
+          console.warn("[API] Refresh token failed, redirecting to login");
+          return handleAuthFailure(error);
         }
+
+        // If a refresh is already in flight, queue this request to retry with the new token
+        if (isRefreshing) {
+          try {
+            const freshToken = await enqueueRefreshWaiter();
+            if (config.headers) config.headers.Authorization = `Bearer ${freshToken}`;
+            return apiClient(config);
+          } catch (queueErr) {
+            return Promise.reject(queueErr);
+          }
+        }
+
+        isRefreshing = true;
+        config._retry = true;
 
         try {
           const newToken = await getRefreshHelper()();
 
-          if (newToken) {
-            const freshToken = tokenManager.getToken();
-            if (config.headers) {
-              config.headers.Authorization = `Bearer ${freshToken}`;
-            }
-            return apiClient(config);
-          } else {
-            throw new Error("No token received from refresh");
-          }
-        } catch (refreshError) {
-          console.error("[API] Token refresh failed:", refreshError);
-          tokenManager.removeToken();
-          import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
-            getStore()?.dispatch(logoutUser());
-          });
+          if (!newToken) throw new Error("No token received from refresh");
 
-          if (typeof window !== "undefined") {
-            const currentPath = window.location.pathname;
-            if (!currentPath.includes("/auth/") && !currentPath.includes("/sabinote/auth/")) {
-              toast.error("Session expired, please log in again");
-              const redirectPath = isSabinoteRequest ? routespath.SABINOTE_LOGIN : routespath.SIGNIN;
-              setTimeout(() => { window.location.href = redirectPath; }, 1500);
-            }
-          }
-          return Promise.reject(refreshError);
+          const freshToken = tokenManager.getToken();
+          drainRefreshQueue(freshToken as string);
+          isRefreshing = false;
+
+          if (config.headers) config.headers.Authorization = `Bearer ${freshToken}`;
+          return apiClient(config);
+        } catch (refreshError) {
+          isRefreshing = false;
+          rejectRefreshQueue(refreshError);
+          console.error("[API] Token refresh failed:", refreshError);
+          return handleAuthFailure(refreshError);
         }
       }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
@@ -51,6 +52,7 @@ export function AdminEnrollmentsPage() {
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [enrolling, setEnrolling] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
   const [loadingClassDetails, setLoadingClassDetails] = useState(false);
@@ -102,7 +104,7 @@ export function AdminEnrollmentsPage() {
 
   // Get available students (only those not enrolled in ANY class)
   const availableStudents = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = debouncedSearch.trim().toLowerCase();
     
     let available = students.filter((s: any) => {
       // 1. Skip if already in the currently selected class
@@ -125,7 +127,7 @@ export function AdminEnrollmentsPage() {
     }
     
     return available;
-  }, [students, enrolledStudentIds, search]);
+  }, [students, enrolledStudentIds, debouncedSearch]);
 
   // Enroll a single student
   const enrollStudent = async (studentId: string) => {

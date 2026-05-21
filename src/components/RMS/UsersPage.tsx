@@ -606,7 +606,6 @@ export const UsersPage = () => {
         type={addModalType}
         onTypeChange={setAddModalType}
         primaryColor={primaryColor}
-        classes={classes}
         onSuccess={() => {
           dispatch(fetchAllUsers());
           setAddModalOpen(false);

@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { selectAdminClasses, selectAdminClassDetails, selectStudents, selectTeachers } from "@/reduxToolKit/selectors";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import {
@@ -127,29 +129,25 @@ const classColors = [
 
 export function AdminClassesPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const {
-    classes,
-    selectedClassDetails,
-    selectedClassSubjects,
-    loading,
-    error,
-    success,
-  } = useSelector((s: RootState) => s.admin);
-  const { students, teachers, tenantInfo } = useSelector(
-    (s: RootState) => s.user,
-  );
+  const { classes, loading, error, success, schoolSettings: adminSchoolSettings } = useSelector(selectAdminClasses);
+  const { selectedClassDetails, selectedClassSubjects } = useSelector(selectAdminClassDetails);
+  const students = useSelector(selectStudents);
+  const teachers = useSelector(selectTeachers);
+  const { tenantInfo } = useSelector((s: RootState) => s.user);
 
   const [assigningSubjectId, setAssigningSubjectId] = useState<string | null>(
     null,
   );
   const [subjectTeacherId, setSubjectTeacherId] = useState("");
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
+  const primaryColor = adminSchoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   const { sessionOptions, currentSession } = useSessionsAndTerms();
   const [q, setQ] = useState("");
+  const debouncedQ = useDebounce(q, 300);
   const [sessionFilter, setSessionFilter] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [page, setPage] = useState(1);
+  const CLASSES_PER_PAGE = 20;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -177,28 +175,17 @@ export function AdminClassesPage() {
   });
   const [assignTeacherId, setAssignTeacherId] = useState("");
 
+  const usersFetchedRef = useRef(false);
+
   useEffect(() => {
     dispatch(fetchClasses(undefined));
-    dispatch(fetchAllUsers());
     dispatch(getTenantInfo());
-  }, []);
-
-  // Background pre-fetching of all class rosters
-  useEffect(() => {
-    if (classes && classes.length > 0 && students && students.length > 0) {
-      // Small delay to prioritize initial page load rendering
-      const timer = setTimeout(() => {
-        classes.forEach((cls: any) => {
-          // Only fetch if not already cached
-          if (!cls.enrollments || !cls.teacherAssignments) {
-            dispatch(fetchClassDetails(cls.id));
-          }
-        });
-      }, 3000);
-      return () => clearTimeout(timer);
+    // Only fetch users if not already loaded
+    if (!usersFetchedRef.current && (!students || students.length === 0)) {
+      usersFetchedRef.current = true;
+      dispatch(fetchAllUsers());
     }
-    // We only want to trigger this once or when counts are cleared
-  }, [classes?.length, students?.length]);
+  }, []);
 
   useEffect(() => {
     if (currentSession && !sessionFilter) {
@@ -218,7 +205,7 @@ export function AdminClassesPage() {
   }, [error, success]);
 
   const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
+    const term = debouncedQ.trim().toLowerCase();
     if (!term) return classes;
     return classes.filter(
       (c) =>
@@ -227,7 +214,17 @@ export function AdminClassesPage() {
           .toLowerCase()
           .includes(term),
     );
-  }, [classes, q]);
+  }, [classes, debouncedQ]);
+
+  const totalClassPages = Math.ceil(filtered.length / CLASSES_PER_PAGE);
+  const paginatedClasses = useMemo(() => {
+    const start = (page - 1) * CLASSES_PER_PAGE;
+    return filtered.slice(start, start + CLASSES_PER_PAGE);
+  }, [filtered, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQ]);
 
   const submit = async () => {
     try {
@@ -754,7 +751,7 @@ export function AdminClassesPage() {
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((cls: any, idx) => {
+          {paginatedClasses.map((cls: any, idx) => {
             const color = getColorByIndex(idx);
             // Hybrid counting logic: use backend data as base but allow local list to override/enhance
             const bStudentCount =
@@ -955,7 +952,7 @@ export function AdminClassesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((cls: any, idx) => {
+                {paginatedClasses.map((cls: any, idx) => {
                   const bStudentCount =
                     cls.studentCount ??
                     cls._count?.enrollments ??
@@ -1059,6 +1056,37 @@ export function AdminClassesPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalClassPages > 1 && (
+        <div className="flex items-center justify-between mt-5">
+          <p className="text-sm text-slate-500">
+            Showing <span className="font-semibold text-slate-700">{(page - 1) * CLASSES_PER_PAGE + 1}</span> to{" "}
+            <span className="font-semibold text-slate-700">{Math.min(page * CLASSES_PER_PAGE, filtered.length)}</span>{" "}
+            of <span className="font-semibold text-slate-700">{filtered.length}</span> classes
+          </p>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="h-9 px-3 rounded-lg border-slate-200">
+              Previous
+            </Button>
+            {Array.from({ length: totalClassPages }, (_, i) => i + 1).map((p) => (
+              <Button
+                key={p}
+                variant={page === p ? "default" : "outline"}
+                size="sm"
+                onClick={() => setPage(p)}
+                className="h-9 w-9 rounded-lg"
+                style={page === p ? { backgroundColor: primaryColor } : {}}
+              >
+                {p}
+              </Button>
+            ))}
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalClassPages, p + 1))} disabled={page === totalClassPages} className="h-9 px-3 rounded-lg border-slate-200">
+              Next
+            </Button>
           </div>
         </div>
       )}

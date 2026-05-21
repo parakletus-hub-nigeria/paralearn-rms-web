@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { selectAdminSubjects, selectTeachers } from "@/reduxToolKit/selectors";
 import { toast } from "sonner";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import {
@@ -84,12 +86,13 @@ const getColorByIndex = (idx: number) => {
 
 export function AdminSubjectsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { subjects, classes, loading, error, success } = useSelector((s: RootState) => s.admin);
-  const { teachers, tenantInfo } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
+  const { subjects, classes, loading, error, success, schoolSettings } = useSelector(selectAdminSubjects);
+  const teachers = useSelector(selectTeachers);
+  const { tenantInfo } = useSelector((s: RootState) => s.user);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [classFilter, setClassFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
   const [page, setPage] = useState(1);
@@ -128,8 +131,11 @@ export function AdminSubjectsPage() {
   useEffect(() => {
     dispatch(fetchSubjects());
     dispatch(fetchClasses(undefined));
-    dispatch(fetchAllUsers());
     dispatch(getTenantInfo());
+    // Only fetch users if the teachers list is not already populated
+    if (!teachers || teachers.length === 0) {
+      dispatch(fetchAllUsers());
+    }
   }, [dispatch]);
 
   useEffect(() => {
@@ -180,7 +186,7 @@ export function AdminSubjectsPage() {
     }
 
     // Search
-    const term = search.trim().toLowerCase();
+    const term = debouncedSearch.trim().toLowerCase();
     if (term) {
       result = result.filter(
         (s) =>
@@ -190,7 +196,7 @@ export function AdminSubjectsPage() {
     }
 
     return result;
-  }, [subjects, classFilter, levelFilter, search, classById]);
+  }, [subjects, classFilter, levelFilter, debouncedSearch, classById]);
 
   // Pagination
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -202,7 +208,7 @@ export function AdminSubjectsPage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [search, classFilter, levelFilter]);
+  }, [debouncedSearch, classFilter, levelFilter]);
 
   const handleCreateSubject = async () => {
     if (!form.name.trim()) return toast.error("Subject name is required");

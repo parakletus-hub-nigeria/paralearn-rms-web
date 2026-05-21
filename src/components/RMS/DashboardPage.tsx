@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { selectDashboardUserData, selectCurrentSession } from "@/reduxToolKit/selectors";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,176 +45,106 @@ const adminTourSteps = [
 
 export const DashboardPage = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { studentCount, teacherCount, users, tenantInfo } = useSelector(
-    (state: RootState) => state.user
-  );
-  const { currentSession } = useSelector(
-    (state: RootState) => state.setUp
-  );
+  const { studentCount, teacherCount, tenantInfo } = useSelector(selectDashboardUserData);
+  const { users } = useSelector((state: RootState) => state.user);
+  const currentSession = useSelector(selectCurrentSession);
   const [SubjectCount, setSubjectCount] = useState(0);
   const [AssessmentCount, setAssessmentCount] = useState(0);
   const [recentAssessments, setRecentAssessments] = useState<any[]>([]);
   const [recentReportCards, setRecentReportCards] = useState<any[]>([]);
 
   useEffect(() => {
-    // Fetch users using Redux
-    dispatch(fetchAllUsers());
     dispatch(fetchCurrentSession());
     dispatch(getTenantInfo());
-    
+
     async function fetchDashboardData() {
-      // Fetch subjects count
-      try {
-        const subjectResp = await apiFetch("/api/proxy/subjects", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        const subjectResult = await subjectResp.json();
-        
-        // Try different possible response structures
-        const subjectsArray = subjectResult?.data || subjectResult?.subjects || subjectResult;
-        const count = Array.isArray(subjectsArray) ? subjectsArray.length : 0;
-        setSubjectCount(count);
-      } catch (error: any) {
-        console.error("[Dashboard] Failed to fetch subjects:", error);
-        setSubjectCount(0);
-      }
+      const fetchJson = async (url: string) => {
+        const res = await apiFetch(url, { method: "GET", headers: { "Content-Type": "application/json" } });
+        return res.ok ? res.json() : null;
+      };
 
-      // Fetch assessments count and recent assessments
-      try {
-        // Backend supports GET /assessments/:status - fetch all statuses and merge
-        const statuses = ["started", "ended", "not_started"];
-        
-        const results = await Promise.all(
-          statuses.map(async (status) => {
-            try {
-              const res = await apiFetch(`/api/proxy/assessments/${status}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-              });
-              const data = await res.json();
-              return Array.isArray(data) ? data : [];
-            } catch (e: any) {
-              // Fallback if backend expects query param
-              try {
-                const res = await apiFetch(`/api/proxy/assessments?status=${status}`, {
-                  method: "GET",
-                  headers: { "Content-Type": "application/json" },
-                });
-                const data = await res.json();
-                return Array.isArray(data) ? data : [];
-              } catch {
-                return [];
-              }
-            }
-          })
-        );
-        
-        const allAssessments = results.flat();
-        
-        setAssessmentCount(allAssessments.length);
-        
-        // Get recent 5 assessments sorted by creation date
-        const recent = [...allAssessments]
-          .sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.startsAt || 0).getTime();
-            const dateB = new Date(b.createdAt || b.startsAt || 0).getTime();
-            return dateB - dateA;
-          })
-          .slice(0, 5);
-        
-        setRecentAssessments(recent);
-      } catch (error: any) {
-        console.error("[Dashboard] Failed to fetch assessments:", error);
-        setAssessmentCount(0);
-        setRecentAssessments([]);
-      }
-
-      // Fetch users and report cards in parallel for faster loading
-      try {
-        // Fetch both users and report cards in parallel
-        const [usersResp, reportResp] = await Promise.all([
-          apiFetch("/api/proxy/users", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }),
-          apiFetch("/api/proxy/reports/report-cards", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          })
-        ]);
-        
-        // Process users data
-        let usersData: any[] = [];
-        if (usersResp.ok) {
-          const usersResult = await usersResp.json();
-          usersData = usersResult?.data || usersResult || [];
-        }
-        
-        // Process report cards
-        if (reportResp.ok) {
-          const reportResult = await reportResp.json();
-          
-          // The API returns students with nested reportCardsAsStudent array
-          // We need to flatten this structure and match with actual student data
-          const studentsArray = reportResult?.data || reportResult || [];
-          const allReports: any[] = [];
-          
-          if (Array.isArray(studentsArray)) {
-            studentsArray.forEach((student: any) => {
-              const reportCards = student.reportCardsAsStudent || [];
-              reportCards.forEach((reportCard: any) => {
-                allReports.push({
-                  ...reportCard,
-                  studentId: reportCard.studentId,
-                });
-              });
-            });
+      const fetchAssessmentStatus = async (status: string) => {
+        try {
+          const data = await fetchJson(`/api/proxy/assessments/${status}`);
+          return Array.isArray(data) ? data : [];
+        } catch {
+          try {
+            const data = await fetchJson(`/api/proxy/assessments?status=${status}`);
+            return Array.isArray(data) ? data : [];
+          } catch {
+            return [];
           }
-          
-          // Match report cards with students from directly fetched users data
-          const enrichedReports = allReports.map((report) => {
-            const matchingStudent = usersData.find((user: any) => user.id === report.studentId);
-            
-            // Extract class from enrollments
-            let studentClass = null;
-            if (matchingStudent?.enrollments && Array.isArray(matchingStudent.enrollments)) {
-              const activeEnrollment = matchingStudent.enrollments.find((e: any) => e.status === 'active');
-              const enrollment = activeEnrollment || matchingStudent.enrollments[0];
-              studentClass = enrollment?.class;
-            }
-            
-            return {
-              ...report,
-              student: matchingStudent ? {
-                id: matchingStudent.id,
-                code: matchingStudent.studentId || matchingStudent.id,
-                firstName: matchingStudent.firstName,
-                lastName: matchingStudent.lastName,
-                class: studentClass,
-              } : null,
-            };
-          });
-          
-          // Sort by creation date and get recent 10
-          const recent = enrichedReports
-            .sort((a, b) => {
-              const dateA = new Date(a.createdAt || 0).getTime();
-              const dateB = new Date(b.createdAt || 0).getTime();
-              return dateB - dateA;
-            })
-            .slice(0, 10);
-          
-          setRecentReportCards(recent);
-        } else {
-          setRecentReportCards([]);
         }
-      } catch (error: any) {
-        console.error("[Dashboard] Failed to fetch report cards:", error);
+      };
+
+      // All fetches run in parallel — users via Redux (populates state), rest via direct fetch
+      const [
+        usersResult,
+        subjectResult,
+        assessStarted,
+        assessEnded,
+        assessNotStarted,
+        reportResult,
+      ] = await Promise.all([
+        dispatch(fetchAllUsers()).unwrap().catch(() => ({ users: [] as any[] })),
+        fetchJson("/api/proxy/subjects").catch(() => null),
+        fetchAssessmentStatus("started"),
+        fetchAssessmentStatus("ended"),
+        fetchAssessmentStatus("not_started"),
+        fetchJson("/api/proxy/reports/report-cards?limit=10").catch(() => null),
+      ]);
+
+      // Subjects count
+      const subjectsArray = subjectResult?.data || subjectResult?.subjects || subjectResult;
+      setSubjectCount(Array.isArray(subjectsArray) ? subjectsArray.length : 0);
+
+      // Assessments
+      const allAssessments = [...assessStarted, ...assessEnded, ...assessNotStarted];
+      setAssessmentCount(allAssessments.length);
+      const recentAssess = [...allAssessments]
+        .sort((a, b) => new Date(b.createdAt || b.startsAt || 0).getTime() - new Date(a.createdAt || a.startsAt || 0).getTime())
+        .slice(0, 5);
+      setRecentAssessments(recentAssess);
+
+      // Report cards — enrich with user data from the Redux result
+      const usersData: any[] = usersResult?.users || [];
+      if (reportResult) {
+        const studentsArray = reportResult?.data || reportResult || [];
+        const allReports: any[] = [];
+
+        if (Array.isArray(studentsArray)) {
+          studentsArray.forEach((student: any) => {
+            (student.reportCardsAsStudent || []).forEach((reportCard: any) => {
+              allReports.push({ ...reportCard, studentId: reportCard.studentId });
+            });
+          });
+        }
+
+        const enrichedReports = allReports.map((report) => {
+          const matchingStudent = usersData.find((u: any) => u.id === report.studentId);
+          let studentClass = null;
+          if (matchingStudent?.enrollments && Array.isArray(matchingStudent.enrollments)) {
+            const activeEnrollment = matchingStudent.enrollments.find((e: any) => e.status === "active");
+            studentClass = (activeEnrollment || matchingStudent.enrollments[0])?.class;
+          }
+          return {
+            ...report,
+            student: matchingStudent
+              ? { id: matchingStudent.id, code: matchingStudent.studentId || matchingStudent.id, firstName: matchingStudent.firstName, lastName: matchingStudent.lastName, class: studentClass }
+              : null,
+          };
+        });
+
+        const recentCards = enrichedReports
+          .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+          .slice(0, 10);
+        setRecentReportCards(recentCards);
+      } else {
         setRecentReportCards([]);
       }
     }
-    fetchDashboardData();
+
+    fetchDashboardData().catch((err) => console.error("[Dashboard] fetchDashboardData error:", err));
   }, [dispatch]);
 
   const vv = [

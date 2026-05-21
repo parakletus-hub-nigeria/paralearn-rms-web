@@ -26,6 +26,7 @@ export function ManageCategoriesDialog({ children }: { children: React.ReactNode
   const dispatch = useDispatch<AppDispatch>();
   const { assessmentCategories, loading } = useSelector((state: RootState) => state.admin);
 
+  const [open, setOpen] = useState(false);
   const [newCategory, setNewCategory] = useState({
     name: "",
     code: "",
@@ -62,6 +63,7 @@ export function ManageCategoriesDialog({ children }: { children: React.ReactNode
       ).unwrap();
       toast.success("Category created successfully");
       setNewCategory({ name: "", code: "", weight: "", description: "" });
+      setOpen(false);
     } catch (error: any) {
       toast.error(error || "Failed to create category");
     } finally {
@@ -90,7 +92,7 @@ export function ManageCategoriesDialog({ children }: { children: React.ReactNode
   const totalWeight = assessmentCategories.reduce((sum: number, cat: any) => sum + (cat.weight || 0), 0);
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>

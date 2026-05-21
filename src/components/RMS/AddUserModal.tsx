@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { X, User, BookOpen, GraduationCap, Mail, Phone, Info, ChevronRight, Check } from "lucide-react";
+import { X, User, Mail, Phone, Info, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import apiClient from "@/lib/api";
 
-type Step = "profile" | "classes" | "subjects";
+type Step = "profile";
 
 type AddUserModalProps = {
   open: boolean;
@@ -16,7 +15,6 @@ type AddUserModalProps = {
   type: "student" | "teacher";
   onTypeChange: (type: "student" | "teacher") => void;
   primaryColor: string;
-  classes: any[];
   onSuccess: () => void;
 };
 
@@ -26,7 +24,6 @@ export function AddUserModal({
   type,
   onTypeChange,
   primaryColor,
-  classes,
   onSuccess,
 }: AddUserModalProps) {
   const [step, setStep] = useState<Step>("profile");
@@ -43,20 +40,10 @@ export function AddUserModal({
   const [guardianName, setGuardianName] = useState("");
   const [guardianPhone, setGuardianPhone] = useState("");
 
-  // Classes data (for teachers)
-  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
 
-  // Subjects data (for teachers)
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
-
-  const steps: { id: Step; label: string; icon: typeof User }[] =
-    type === "teacher"
-      ? [
-          { id: "profile", label: "Profile", icon: User },
-          { id: "classes", label: "Classes", icon: BookOpen },
-          { id: "subjects", label: "Subjects", icon: GraduationCap },
-        ]
-      : [{ id: "profile", label: "Profile", icon: User }];
+  const steps: { id: Step; label: string; icon: typeof User }[] = [
+    { id: "profile", label: "Profile", icon: User },
+  ];
 
   const currentStepIndex = steps.findIndex((s) => s.id === step);
 
@@ -70,8 +57,6 @@ export function AddUserModal({
     setAddress("");
     setGuardianName("");
     setGuardianPhone("");
-    setSelectedClasses([]);
-    setSelectedSubjects([]);
     setErrorMessage(null);
   };
 
@@ -81,25 +66,12 @@ export function AddUserModal({
   };
 
   const handleNext = () => {
-    if (step === "profile") {
-      if (!fullName.trim()) return toast.error("Please enter the full name");
-      if (!email.trim()) return toast.error("Please enter the email address");
-      if (type === "teacher") {
-        setStep("classes");
-      } else {
-        handleSubmit();
-      }
-    } else if (step === "classes") {
-      setStep("subjects");
-    } else if (step === "subjects") {
-      handleSubmit();
-    }
+    if (!fullName.trim()) return toast.error("Please enter the full name");
+    if (!email.trim()) return toast.error("Please enter the email address");
+    handleSubmit();
   };
 
-  const handleBack = () => {
-    if (step === "subjects") setStep("classes");
-    else if (step === "classes") setStep("profile");
-  };
+  const handleBack = () => {};
 
   const validateForm = () => {
     // Name validation: No numbers allowed
@@ -146,16 +118,12 @@ export function AddUserModal({
         firstName,
         lastName,
         email: email.trim(),
-        personalEmail: email.trim(),   // Backend uses personalEmail to send login credentials
+        personalEmail: email.trim(),
         phoneNumber: phone.trim() || undefined,
         dateOfBirth: dateTime,
         gender: gender || undefined,
         address: address.trim() || undefined,
         roles: type === "teacher" ? ["teacher"] : ["student"],
-        // Teacher specific
-        classIds: type === "teacher" && selectedClasses.length > 0 ? selectedClasses : undefined,
-        subjectIds: type === "teacher" && selectedSubjects.length > 0 ? selectedSubjects : undefined,
-        // Student specific
         guardianName: type === "student" ? guardianName.trim() || undefined : undefined,
         guardianPhone: type === "student" ? guardianPhone.trim() || undefined : undefined,
       };
@@ -180,11 +148,7 @@ export function AddUserModal({
     }
   };
 
-  const toggleClass = (classId: string) => {
-    setSelectedClasses((prev) =>
-      prev.includes(classId) ? prev.filter((c) => c !== classId) : [...prev, classId]
-    );
-  };
+
 
   if (!open) return null;
 
@@ -428,68 +392,6 @@ export function AddUserModal({
             </div>
           )}
 
-          {step === "classes" && (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-500">
-                Select the classes this teacher will be assigned to:
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {classes.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => toggleClass(c.id)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${
-                      selectedClasses.includes(c.id)
-                        ? "border-primary bg-primary/5"
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                    style={
-                      selectedClasses.includes(c.id)
-                        ? { borderColor: primaryColor, backgroundColor: `${primaryColor}10` }
-                        : {}
-                    }
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-slate-900">{c.name}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          {c.level || "Level N/A"} • {c.stream || "Stream N/A"}
-                        </p>
-                      </div>
-                      {selectedClasses.includes(c.id) && (
-                        <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-white"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          <Check className="w-3 h-3" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {classes.length === 0 && (
-                <p className="text-center text-slate-500 py-8">
-                  No classes available. Create classes first.
-                </p>
-              )}
-            </div>
-          )}
-
-          {step === "subjects" && (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-500">
-                Select the subjects this teacher will teach:
-              </p>
-              <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-sm text-slate-600 text-center">
-                  Subjects will be assigned after the teacher is created.
-                  <br />
-                  You can assign subjects from the Subjects page.
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Footer */}
@@ -507,17 +409,10 @@ export function AddUserModal({
             className="h-11 px-6 rounded-xl text-white gap-2"
             style={{ backgroundColor: primaryColor }}
           >
-            {loading ? (
-              "Creating..."
-            ) : step === steps[steps.length - 1].id ? (
+            {loading ? "Creating..." : (
               <>
                 Create {type === "teacher" ? "Teacher" : "Student"}
                 <Check className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                Next Step
-                <ChevronRight className="w-4 h-4" />
               </>
             )}
           </Button>

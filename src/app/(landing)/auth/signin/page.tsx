@@ -144,19 +144,25 @@ const Signin = () => {
         <div className="w-full space-y-4 px-4">
           <div className="flex flex-col w-full">
             <label htmlFor="email" className="mb-2 text-sm font-medium">
-              {loginMode === "admin" ? "Admin Email" : "Username"}
+              {loginMode === "admin"
+                ? "Admin Email"
+                : loginMode === "teacher"
+                  ? "Email or Teacher Code"
+                  : "Email or Student Code"}
             </label>
             <input
               id="email"
               name="email"
-              type={loginMode === "admin" ? "email" : "text"}
+              type="text"
               value={data.email}
               onChange={handleChange}
               className="border border-[#641BC4] focus:border-2 focus:outline-none h-11 w-full px-3 rounded-md text-base"
               placeholder={
                 loginMode === "admin"
                   ? "Enter your email"
-                  : "Enter your username"
+                  : loginMode === "teacher"
+                    ? "e.g. TCH-26-00001 or your email"
+                    : "e.g. STU-S-26-00001 or your email"
               }
             />
           </div>

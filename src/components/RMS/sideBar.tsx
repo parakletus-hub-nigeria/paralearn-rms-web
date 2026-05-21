@@ -29,6 +29,7 @@ import {
   Settings,
   Palette,
   LogOut,
+  MonitorCheck,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
@@ -110,6 +111,12 @@ const SideBar = ({ children }: { children: ReactNode }) => {
               path: routespath.ASSESSMENTS,
               icon: ClipboardList,
               roles: ["admin", "teacher"],
+            },
+            {
+              label: "CBT",
+              path: routespath.CBT,
+              icon: MonitorCheck,
+              roles: ["admin"],
             },
             {
               label: "Report Cards",

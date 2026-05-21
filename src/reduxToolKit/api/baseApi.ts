@@ -60,8 +60,8 @@ export const axiosBaseQuery: BaseQueryFn<
 export const paraApi = createApi({
   reducerPath: "api",
   baseQuery: axiosBaseQuery,
-  refetchOnFocus: true,
-  refetchOnReconnect: true,
+  refetchOnFocus: false,
+  refetchOnReconnect: false,
   keepUnusedDataFor: 30,
   tagTypes: [
     "User",

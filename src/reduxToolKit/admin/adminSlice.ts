@@ -1,6 +1,16 @@
 "use client";
 
 import { createSlice } from "@reduxjs/toolkit";
+
+const CBT_IDS_KEY = "cbt_exam_ids";
+const loadCBTIds = (): string[] => {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(CBT_IDS_KEY) || "[]"); } catch { return []; }
+};
+const saveCBTIds = (ids: string[]) => {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(CBT_IDS_KEY, JSON.stringify(ids)); } catch {}
+};
 import type { AssessmentItem, ClassItem, SchoolStatistics, SubjectItem } from "./adminThunks";
 import {
   addCommentAdmin,
@@ -47,6 +57,7 @@ import {
   fetchClassSubjects,
   deleteClass,
   fetchAssessmentDetail,
+  fetchCBTExams,
   previewSchoolPromotion,
   executeSchoolPromotion,
   type PromotionPreviewResponse,
@@ -86,6 +97,7 @@ type AdminState = {
   promotionPreview: PromotionPreviewResponse | null;
   promotionLoading: boolean;
   promotionError: string | null;
+  cbtExamIds: string[];
 };
 
 const ensureString = (val: any, fallback: string): string => {
@@ -120,6 +132,7 @@ const initialState: AdminState = {
   promotionPreview: null,
   promotionLoading: false,
   promotionError: null,
+  cbtExamIds: loadCBTIds(),
 };
 
 const adminSlice = createSlice({
@@ -254,8 +267,26 @@ const adminSlice = createSlice({
       .addCase(fetchAssessments.fulfilled, (state, action) => {
         state.loading = false;
         state.assessments = action.payload;
+        // Capture IDs of any online exams the backend returns
+        const ids = new Set(state.cbtExamIds);
+        for (const a of action.payload) {
+          if (a?.id && !!a.isOnline) ids.add(a.id);
+        }
+        state.cbtExamIds = Array.from(ids);
+        saveCBTIds(state.cbtExamIds);
       })
       .addCase(fetchAssessments.rejected, (state, action) => rejected(state, action, "Failed to load assessments"));
+
+    builder
+      .addCase(fetchCBTExams.pending, pending)
+      .addCase(fetchCBTExams.fulfilled, (state, action) => {
+        state.loading = false;
+        // Merge CBT exams into the assessments array without overwriting offline ones
+        const byId = new Map(state.assessments.map((a) => [a.id, a]));
+        for (const a of action.payload) if (a?.id) byId.set(a.id, a);
+        state.assessments = Array.from(byId.values());
+      })
+      .addCase(fetchCBTExams.rejected, (state, action) => rejected(state, action, "Failed to load CBT exams"));
 
     builder
       .addCase(createAssessment.pending, pending)
@@ -263,6 +294,14 @@ const adminSlice = createSlice({
         state.loading = false;
         state.assessments = [action.payload, ...state.assessments];
         state.success = "Assessment created";
+        // Check the request arg (not the response) — backend may not echo isOnline back
+        const sentOnline = (action.meta.arg as any)?.isOnline;
+        if (action.payload?.id && (sentOnline === true || sentOnline === "true")) {
+          if (!state.cbtExamIds.includes(action.payload.id)) {
+            state.cbtExamIds = [action.payload.id, ...state.cbtExamIds];
+            saveCBTIds(state.cbtExamIds);
+          }
+        }
       })
       .addCase(createAssessment.rejected, (state, action) => rejected(state, action, "Failed to create assessment"));
 
@@ -280,6 +319,8 @@ const adminSlice = createSlice({
       .addCase(deleteAssessment.fulfilled, (state, action) => {
         state.loading = false;
         state.assessments = state.assessments.filter((a) => a.id !== action.payload);
+        state.cbtExamIds = state.cbtExamIds.filter((id) => id !== action.payload);
+        saveCBTIds(state.cbtExamIds);
         state.success = "Assessment deleted";
       })
       .addCase(deleteAssessment.rejected, (state, action) => rejected(state, action, "Failed to delete assessment"));
