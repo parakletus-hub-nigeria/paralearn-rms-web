@@ -125,7 +125,7 @@ export const BulkUploadPage = () => {
 
         {/* Upload Type Toggle */}
         <div className="bulk-upload-type-toggle max-w-xl mx-auto">
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 sm:p-6">
+          <div className="p-4 sm:p-6" style={{ background: "var(--violet-tint)", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-lg)" }}>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <span className="text-sm sm:text-base font-semibold text-slate-700 whitespace-nowrap">
                 Upload Type:

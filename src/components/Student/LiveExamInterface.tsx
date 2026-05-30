@@ -16,12 +16,10 @@ import {
   autoFlagQuestion,
 } from "@/reduxToolKit/student/studentSlice";
 import { loadSessionFromStorage } from "@/reduxToolKit/student/studentSlice";
-import { Button } from "@/components/ui/button";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
   Timer,
-  Flag,
   Grid,
   CheckCircle,
   Check,
@@ -32,7 +30,6 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 // Question types that expect a plain text answer (not a choice ID)
 const OPEN_ENDED_TYPES = new Set(["ESSAY", "TEXT", "essay", "text"]);
@@ -298,8 +295,8 @@ export default function LiveExamInterface() {
   // -------------------------------------------------------------------------
   if (!currentAssessment || !currentAssessment.questions) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fcfcfc]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--surface-muted)" }}>
+        <div style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
       </div>
     );
   }
@@ -313,15 +310,15 @@ export default function LiveExamInterface() {
 
   if (isSubmitted || isEnded) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcfcfc] p-6 text-center">
-        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Assessment Locked</h2>
-        <p className="text-slate-500 mb-6 max-w-md">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{ background: "var(--surface-muted)" }}>
+        <AlertTriangle className="w-16 h-16 mb-4" style={{ color: "var(--crimson-signal)" }} />
+        <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>Assessment Locked</h2>
+        <p className="mb-6 max-w-md" style={{ color: "var(--foreground-muted)" }}>
           {isSubmitted
             ? "You have already submitted this assessment. You cannot modify your answers."
             : "This assessment has ended and is no longer active."}
         </p>
-        <Button onClick={() => router.push("/student/dashboard")}>Return to Dashboard</Button>
+        <button onClick={() => router.push("/student/dashboard")} className="px-6 py-2 font-bold text-white" style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-md)", border: "none" }}>Return to Dashboard</button>
       </div>
     );
   }
@@ -332,32 +329,32 @@ export default function LiveExamInterface() {
   const answeredCount = questions.filter((q) => activeSession.answers[q.id] !== undefined).length;
 
   return (
-    <div className="bg-[#fcfcfc] text-slate-900 font-sans min-h-screen flex flex-col overflow-hidden selection:bg-slate-200 selection:text-slate-900">
+    <div className="min-h-screen flex flex-col overflow-hidden" style={{ background: "var(--surface-muted)", color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
 
       {/* FIX #7: Custom submit confirmation modal (replaces window.confirm) */}
       {showSubmitModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 flex flex-col items-center text-center gap-4 animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(8px)" }}>
+          <div className="p-8 max-w-sm w-full mx-4 flex flex-col items-center text-center gap-4" style={{ background: "white", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)" }}>
             {isSubmitting ? (
               <>
                 <div className="w-16 h-16 relative flex items-center justify-center mb-2">
-                  <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+                  <div className="absolute inset-0 rounded-full" style={{ border: "4px solid var(--border-fine)" }} />
+                  <div className="absolute inset-0 rounded-full animate-spin" style={{ border: "4px solid var(--violet-ink)", borderTopColor: "transparent" }} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Submitting Exam</h3>
-                <p className="text-slate-500 text-sm">Please wait while your answers are being saved securely...</p>
+                <h3 className="text-xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>Submitting Exam</h3>
+                <p className="text-sm" style={{ color: "var(--foreground-muted)" }}>Please wait while your answers are being saved securely...</p>
               </>
             ) : (
               <>
-                <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
-                  <AlertCircle className="w-8 h-8 text-amber-600" />
+                <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "var(--amber-tint)" }}>
+                  <AlertCircle className="w-8 h-8" style={{ color: "var(--amber-signal)" }} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Submit Exam?</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">
-                  You have answered <span className="font-bold text-slate-800">{answeredCount}</span> of{" "}
-                  <span className="font-bold text-slate-800">{questions.length}</span> questions.
+                <h3 className="text-xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>Submit Exam?</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--foreground-muted)" }}>
+                  You have answered <span className="font-bold" style={{ color: "var(--foreground)" }}>{answeredCount}</span> of{" "}
+                  <span className="font-bold" style={{ color: "var(--foreground)" }}>{questions.length}</span> questions.
                   {answeredCount < questions.length && (
-                    <span className="block mt-1 text-amber-600 font-semibold">
+                    <span className="block mt-1 font-semibold" style={{ color: "var(--amber-signal)" }}>
                       {questions.length - answeredCount} question(s) still unanswered.
                     </span>
                   )}
@@ -366,13 +363,19 @@ export default function LiveExamInterface() {
                 <div className="flex gap-3 w-full pt-2">
                   <button
                     onClick={() => setShowSubmitModal(false)}
-                    className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+                    className="flex-1 py-3 font-semibold transition-colors"
+                    style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border-medium)", color: "var(--foreground)", background: "white" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-muted)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "white")}
                   >
                     Continue Exam
                   </button>
                   <button
                     onClick={() => onFinalSubmit("manual")}
-                    className="flex-1 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition-colors"
+                    className="flex-1 py-3 font-semibold text-white transition-colors"
+                    style={{ borderRadius: "var(--radius-lg)", background: "var(--foreground)", border: "none" }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
                   >
                     Submit Now
                   </button>
@@ -384,39 +387,38 @@ export default function LiveExamInterface() {
       )}
 
       {/* Header */}
-      <header className="bg-white sticky top-0 z-50 px-4 md:px-8 py-4 flex justify-between items-center border-b border-slate-200 h-20 shadow-sm">
+      <header className="sticky top-0 z-50 px-4 md:px-8 py-4 flex justify-between items-center h-20" style={{ background: "white", borderBottom: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
         <div className="flex items-center gap-4 md:gap-6 overflow-hidden">
-          <h1 className="text-lg font-semibold text-slate-900 tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] md:max-w-none">
+          <h1 className="text-lg font-semibold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] md:max-w-none" style={{ color: "var(--foreground)" }}>
             {currentAssessment.title}
           </h1>
-          <div className="h-4 w-px bg-slate-300 hidden md:block"></div>
-          <span className="text-sm text-slate-500 font-medium hidden md:block">{currentAssessment.category?.name || "General"}</span>
+          <div className="h-4 w-px hidden md:block" style={{ background: "var(--border-medium)" }}></div>
+          <span className="text-sm font-medium hidden md:block" style={{ color: "var(--foreground-muted)" }}>{currentAssessment.category?.name || "General"}</span>
         </div>
 
         <div className="flex items-center gap-3 md:gap-6">
-          <div className="hidden md:flex items-center space-x-2 bg-emerald-50 px-3 py-1 rounded border border-emerald-100">
-            <div className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse"></div>
-            <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wide">Safe Exam Active</span>
+          <div className="hidden md:flex items-center space-x-2 px-3 py-1" style={{ background: "var(--emerald-tint)", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-md)" }}>
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "var(--emerald-signal)" }} />
+            <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--emerald-signal)" }}>Safe Exam Active</span>
           </div>
 
           <div className="flex flex-col items-end">
-            <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-0.5">Time Remaining</span>
+            <span className="text-[10px] md:text-xs uppercase tracking-wider font-semibold mb-0.5" style={{ color: "var(--foreground-muted)" }}>Time Remaining</span>
             <div className="flex items-center space-x-2">
-              <Timer className="w-5 h-5 text-slate-400" />
-              <span className={`text-lg md:text-xl font-bold font-mono tracking-widest ${
-                timeLeft !== null && timeLeft < 300 ? "text-red-600 animate-pulse" : "text-slate-800"
-              }`}>
+              <Timer className="w-5 h-5" style={{ color: "var(--foreground-muted)" }} />
+              <span className="text-lg md:text-xl font-bold font-mono tracking-widest" style={{ color: timeLeft !== null && timeLeft < 300 ? "var(--crimson-signal)" : "var(--foreground)" }}>
                 {timeLeft !== null ? formatTime(timeLeft) : "--:--"}
               </span>
             </div>
           </div>
 
-          <div className="w-9 h-9 rounded bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-600 font-bold text-sm hidden sm:flex">
+          <div className="w-9 h-9 font-bold text-sm hidden sm:flex items-center justify-center" style={{ borderRadius: "var(--radius-md)", background: "var(--surface-muted)", border: "1px solid var(--border-fine)", color: "var(--foreground)" }}>
             {user?.firstName?.charAt(0) || "S"}
           </div>
 
           <button
-            className="xl:hidden p-2 text-slate-600"
+            className="xl:hidden p-2"
+            style={{ color: "var(--foreground)" }}
             onClick={() => setIsSidebarOpen(true)}
           >
             <Menu className="w-6 h-6" />
@@ -427,41 +429,41 @@ export default function LiveExamInterface() {
       <div className="flex flex-1 h-[calc(100vh-5rem)] overflow-hidden relative">
 
         {/* Main Question Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-12 flex justify-center bg-[#fcfcfc] relative">
+        <main className="flex-1 overflow-y-auto p-4 md:p-12 flex justify-center relative" style={{ background: "white" }}>
           <div className="w-full max-w-4xl flex relative">
 
             {/* Left Progress Line (Desktop) */}
-            <div className="absolute -left-6 top-0 bottom-0 w-1 bg-slate-100 rounded-full hidden lg:block">
+            <div className="absolute -left-6 top-0 bottom-0 w-1 rounded-full hidden lg:block" style={{ background: "var(--border-fine)" }}>
               <div
-                className="bg-slate-900 w-full rounded-full transition-all duration-300 ease-in-out"
-                style={{ height: `${progressPercent}%` }}
+                className="w-full rounded-full transition-all duration-300 ease-in-out"
+                style={{ height: `${progressPercent}%`, background: "var(--violet-ink)" }}
               ></div>
             </div>
 
             <div className="flex-1 flex flex-col min-h-[600px]">
-              <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+              <div className="flex justify-between items-center mb-8 pb-4" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--foreground-muted)" }}>
                   Question {currentQuestionIdx + 1} of {questions.length}
                 </span>
               </div>
 
               <div className="mb-6 md:mb-8">
                 {activeSession.autoFlaggedQuestions?.includes(currentQuestion.id) && (
-                  <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 p-4 rounded-xl animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center flex-none">
-                      <AlertTriangle className="w-6 h-6 text-amber-600 animate-pulse" />
+                  <div className="mb-6 flex items-center gap-3 p-4 rounded-xl animate-in fade-in slide-in-from-top-4 duration-500" style={{ background: "var(--amber-tint)", border: "1px solid var(--border-medium)" }}>
+                    <div className="h-10 w-10 rounded-full flex items-center justify-center flex-none" style={{ background: "var(--amber-tint)" }}>
+                      <AlertTriangle className="w-6 h-6 animate-pulse" style={{ color: "var(--amber-signal)" }} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-amber-900 uppercase tracking-wider">Malpractice Flagged</p>
-                      <p className="text-xs text-amber-700 font-medium">This question has been flagged for suspicious activity. Your response has been locked.</p>
+                      <p className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--foreground)" }}>Malpractice Flagged</p>
+                      <p className="text-xs font-medium" style={{ color: "var(--amber-signal)" }}>This question has been flagged for suspicious activity. Your response has been locked.</p>
                     </div>
                   </div>
                 )}
-                <h2 className="text-xl md:text-2xl lg:text-3xl font-serif font-medium text-slate-900 leading-relaxed">
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-serif font-medium leading-relaxed" style={{ color: "var(--foreground)" }}>
                   {currentQuestion.prompt || currentQuestion.questionText}
                 </h2>
                 {(currentQuestion.type === "MULTI_SELECT" || currentQuestion.questionType === "MULTI_SELECT") && (
-                  <p className="text-[13px] font-bold text-indigo-700 mt-3 flex items-center gap-2 bg-indigo-50 border border-indigo-100 w-fit px-3 py-1.5 rounded-lg shadow-sm">
+                  <p className="text-[13px] font-bold mt-3 flex items-center gap-2 w-fit px-3 py-1.5 shadow-sm" style={{ color: "var(--violet-ink)", background: "var(--violet-tint)", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-md)" }}>
                     <Check className="w-4 h-4" /> Please select ALL correct options
                   </p>
                 )}
@@ -475,8 +477,11 @@ export default function LiveExamInterface() {
                     onChange={(e) =>
                       dispatch(setAnswer({ questionId: currentQuestion.id, value: e.target.value }))
                     }
+                    onFocus={e => (e.currentTarget.style.borderColor = "var(--violet-ink)")}
+                    onBlur={e => (e.currentTarget.style.borderColor = "var(--border-medium)")}
                     placeholder="Type your essay answer here..."
-                    className="col-span-1 sm:col-span-2 w-full min-h-[300px] p-5 text-lg font-medium text-slate-800 resize-y bg-white border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm disabled:opacity-70 disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="col-span-1 sm:col-span-2 w-full min-h-[300px] p-5 text-lg font-medium resize-y outline-none disabled:opacity-70 disabled:cursor-not-allowed"
+                    style={{ color: "var(--foreground)", background: "white", border: "1px solid var(--border-medium)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", transition: "border-color 0.15s" }}
                   />
                 ) : currentQuestion.type === "TEXT" ? (
                   <input
@@ -486,8 +491,11 @@ export default function LiveExamInterface() {
                     onChange={(e) =>
                       dispatch(setAnswer({ questionId: currentQuestion.id, value: e.target.value }))
                     }
+                    onFocus={e => (e.currentTarget.style.borderColor = "var(--violet-ink)")}
+                    onBlur={e => (e.currentTarget.style.borderColor = "var(--border-medium)")}
                     placeholder="Type your short answer here..."
-                    className="col-span-1 sm:col-span-2 w-full p-5 text-lg font-medium text-slate-800 bg-white border border-slate-200 focus:border-slateigo-900 focus:ring-1 focus:ring-slate-900 rounded-lg shadow-sm disabled:opacity-70 disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="col-span-1 sm:col-span-2 w-full p-5 text-lg font-medium outline-none disabled:opacity-70 disabled:cursor-not-allowed"
+                    style={{ color: "var(--foreground)", background: "white", border: "1px solid var(--border-medium)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", transition: "border-color 0.15s" }}
                   />
                 ) : (
                   (currentQuestion.choices || currentQuestion.options || []).map((choice: any, idx: number) => {
@@ -515,13 +523,13 @@ export default function LiveExamInterface() {
                     return (
                       <label
                         key={choiceId}
-                        className={`group flex items-start h-fit p-4 md:p-5 border rounded-xl shadow-sm relative transition-all duration-200 ${
-                          isFlagged ? "cursor-not-allowed opacity-80" : "cursor-pointer"
-                        } ${
-                          isSelected
-                            ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600 shadow-md"
-                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                        }`}
+                        className={`group flex items-start h-fit p-4 md:p-5 shadow-sm relative transition-all duration-200 ${isFlagged ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
+                      style={{
+                        borderRadius: "var(--radius-lg)",
+                        border: isSelected ? "1px solid var(--violet-ink)" : "1px solid var(--border-fine)",
+                        background: isSelected ? "var(--violet-tint)" : "white",
+                        boxShadow: isSelected ? "var(--shadow-card)" : "var(--shadow-card)",
+                      }}
                       >
                         <input
                           type={isMultiSelect ? "checkbox" : "radio"}
@@ -547,21 +555,23 @@ export default function LiveExamInterface() {
                             }
                           }}
                         />
-                        <div className={`flex-shrink-0 w-8 h-8 ${isMultiSelect ? "rounded-md" : "rounded-full"} font-bold flex items-center justify-center mr-4 text-sm font-sans transition-all ${
-                          isSelected
-                            ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30"
-                            : "bg-slate-100 border border-slate-200 text-slate-500 group-hover:bg-slate-200"
-                        }`}>
+                        <div
+                          className="flex-shrink-0 w-8 h-8 font-bold flex items-center justify-center mr-4 text-sm transition-all"
+                          style={{
+                            borderRadius: isMultiSelect ? "var(--radius-sm)" : "50%",
+                            background: isSelected ? "var(--violet-ink)" : "var(--surface-muted)",
+                            color: isSelected ? "white" : "var(--foreground-muted)",
+                            border: isSelected ? "none" : "1px solid var(--border-fine)",
+                          }}
+                        >
                           {isMultiSelect ? (isSelected ? <Check className="w-5 h-5" /> : letter) : letter}
                         </div>
-                        <span className={`text-base md:text-lg pt-0.5 transition-colors pr-6 ${
-                          isSelected ? "text-slate-900 font-semibold" : "text-slate-700 group-hover:text-slate-900"
-                        }`}>
+                        <span className="text-base md:text-lg pt-0.5 pr-6" style={{ color: isSelected ? "var(--foreground)" : "var(--foreground-muted)", fontWeight: isSelected ? 600 : 400 }}>
                           {choice.text}
                         </span>
                         {isSelected && !isMultiSelect && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                            <CheckCircle className="w-6 h-6 text-indigo-600" />
+                            <CheckCircle className="w-6 h-6" style={{ color: "var(--violet-ink)" }} />
                           </div>
                         )}
                       </label>
@@ -571,11 +581,14 @@ export default function LiveExamInterface() {
               </div>
 
               {/* Navigation */}
-              <div className="flex justify-between items-center pt-6 border-t border-slate-100 mb-20 md:mb-0">
+              <div className="flex justify-between items-center pt-6 mb-20 md:mb-0" style={{ borderTop: "1px solid var(--border-fine)" }}>
                 <button
                   onClick={() => setCurrentQuestionIdx((prev) => Math.max(0, prev - 1))}
                   disabled={currentQuestionIdx === 0}
-                  className="flex items-center text-slate-500 hover:text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium px-6 py-2 transition-colors rounded-[4px] border border-transparent hover:border-slate-200"
+                  className="flex items-center font-medium px-6 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ color: "var(--foreground-muted)", borderRadius: "var(--radius-md)", border: "1px solid transparent" }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "var(--foreground)"; e.currentTarget.style.borderColor = "var(--border-fine)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = "var(--foreground-muted)"; e.currentTarget.style.borderColor = "transparent"; }}
                 >
                   <ChevronLeft className="mr-2 w-5 h-5" /> Previous
                 </button>
@@ -585,11 +598,13 @@ export default function LiveExamInterface() {
                     if (currentQuestionIdx < questions.length - 1) {
                       setCurrentQuestionIdx((prev) => prev + 1);
                     } else {
-                      // FIX #7: show custom modal instead of window.confirm
                       setShowSubmitModal(true);
                     }
                   }}
-                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium px-8 py-3 rounded-[4px] shadow-sm hover:shadow-md flex items-center transition-all transform active:scale-[0.99] text-base"
+                  className="font-medium px-8 py-3 text-white flex items-center transition-all active:scale-[0.99] text-base"
+                  style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-md)", border: "none", boxShadow: "var(--shadow-card)" }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = "0.9")}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
                 >
                   {currentQuestionIdx === questions.length - 1 ? "Finish Exam" : "Next Question"}
                   {currentQuestionIdx < questions.length - 1 && <ChevronRight className="ml-2 w-5 h-5" />}
@@ -599,36 +614,35 @@ export default function LiveExamInterface() {
           </div>
         </main>
 
-        {/* Sidebar Navigator */}
-        <aside className={`
-          fixed inset-y-0 right-0 w-[320px] bg-slate-900 border-l border-slate-800 text-slate-300 flex flex-col shadow-xl z-50 transition-transform duration-300 ease-in-out
-          xl:relative xl:transform-none xl:flex
-          ${isSidebarOpen ? "translate-x-0" : "translate-x-full xl:translate-x-0"}
-        `}>
-          <div className="p-8 pb-6 border-b border-slate-700/50 flex justify-between items-center">
-            <h3 className="font-serif font-medium text-xl text-white">Question Navigator</h3>
-            <button className="xl:hidden text-white" onClick={() => setIsSidebarOpen(false)}>
+        {/* Sidebar Navigator — intentionally dark for exam focus */}
+        <aside
+          className={`fixed inset-y-0 right-0 w-[320px] flex flex-col z-50 transition-transform duration-300 ease-in-out xl:relative xl:transform-none xl:flex ${isSidebarOpen ? "translate-x-0" : "translate-x-full xl:translate-x-0"}`}
+          style={{ background: "oklch(0.13 0.02 265)", borderLeft: "1px solid oklch(0.22 0.02 265)", boxShadow: "var(--shadow-dialog)" }}
+        >
+          <div className="p-8 pb-6 flex justify-between items-center" style={{ borderBottom: "1px solid oklch(0.25 0.02 265)" }}>
+            <h3 className="font-serif font-medium text-xl" style={{ color: "white" }}>Question Navigator</h3>
+            <button className="xl:hidden" style={{ color: "white" }} onClick={() => setIsSidebarOpen(false)}>
               <X className="w-6 h-6" />
             </button>
           </div>
 
           <div className="px-8 py-4">
-            <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs font-medium text-slate-400">
+            <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs font-medium" style={{ color: "oklch(0.6 0.02 265)" }}>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-slate-500"></div>
+                <div className="w-2 h-2 rounded-full" style={{ background: "oklch(0.45 0.02 265)" }}></div>
                 <span>Answered</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-white border border-slate-500"></div>
+                <div className="w-2 h-2 rounded-full" style={{ background: "white", border: "1px solid oklch(0.4 0.02 265)" }}></div>
                 <span>Current</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full border border-slate-600"></div>
+                <div className="w-2 h-2 rounded-full" style={{ border: "1px solid oklch(0.35 0.02 265)" }}></div>
                 <span>Unanswered</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)] animate-pulse"></div>
-                <span className="text-amber-500 font-bold">Flagged</span>
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "var(--amber-signal)" }}></div>
+                <span className="font-bold" style={{ color: "var(--amber-signal)" }}>Flagged</span>
               </div>
             </div>
           </div>
@@ -640,6 +654,14 @@ export default function LiveExamInterface() {
                 const isCurrent = idx === currentQuestionIdx;
                 const isFlagged = activeSession.autoFlaggedQuestions?.includes(q.id);
 
+                const buttonStyle = isCurrent
+                  ? { background: "white", color: "oklch(0.13 0.02 265)", fontWeight: 700, transform: "scale(1.1)", boxShadow: "0 0 0 4px oklch(0.25 0.02 265)" }
+                  : isFlagged
+                  ? { background: "var(--amber-tint)", color: "var(--amber-signal)", fontWeight: 700, border: "2px solid var(--amber-signal)" }
+                  : isAnswered
+                  ? { background: "oklch(0.35 0.02 265)", color: "oklch(0.85 0.01 265)" }
+                  : { background: "transparent", color: "oklch(0.5 0.02 265)", border: "1px solid oklch(0.3 0.02 265)" };
+
                 return (
                   <button
                     key={q.id}
@@ -647,15 +669,8 @@ export default function LiveExamInterface() {
                       setCurrentQuestionIdx(idx);
                       setIsSidebarOpen(false);
                     }}
-                    className={`w-10 h-10 rounded-full text-xs font-medium flex items-center justify-center transition-all ${
-                      isCurrent
-                        ? "bg-white text-slate-900 font-bold shadow-lg ring-4 ring-white/10 scale-110 z-10"
-                        : isFlagged
-                        ? "bg-amber-50 text-amber-600 font-bold ring-2 ring-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
-                        : isAnswered
-                        ? "bg-slate-600 text-slate-200 hover:bg-slate-500"
-                        : "border border-slate-600 text-slate-400 hover:border-slate-400 hover:text-slate-200"
-                    }`}
+                    className="w-10 h-10 text-xs font-medium flex items-center justify-center transition-all"
+                    style={{ borderRadius: "50%", ...buttonStyle }}
                   >
                     {idx + 1}
                   </button>
@@ -665,22 +680,25 @@ export default function LiveExamInterface() {
           </div>
 
           {/* Progress summary */}
-          <div className="px-8 py-4 border-t border-slate-700/50">
-            <p className="text-xs text-slate-400 mb-1">Progress</p>
-            <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+          <div className="px-8 py-4" style={{ borderTop: "1px solid oklch(0.25 0.02 265)" }}>
+            <p className="text-xs mb-1" style={{ color: "oklch(0.5 0.02 265)" }}>Progress</p>
+            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "oklch(0.25 0.02 265)" }}>
               <div
-                className="h-full bg-emerald-400 rounded-full transition-all duration-300"
-                style={{ width: `${(answeredCount / questions.length) * 100}%` }}
+                className="h-full rounded-full transition-all duration-300"
+                style={{ width: `${(answeredCount / questions.length) * 100}%`, background: "var(--emerald-signal)" }}
               />
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5">{answeredCount} / {questions.length} answered</p>
+            <p className="text-[11px] mt-1.5" style={{ color: "oklch(0.45 0.02 265)" }}>{answeredCount} / {questions.length} answered</p>
           </div>
 
-          <div className="p-8 border-t border-slate-700/50 bg-slate-900">
+          <div className="p-8" style={{ borderTop: "1px solid oklch(0.25 0.02 265)", background: "oklch(0.13 0.02 265)" }}>
             <button
               onClick={() => setShowSubmitModal(true)}
               disabled={isSubmitting}
-              className="w-full bg-transparent border border-white/20 text-white font-medium py-3 rounded-[4px] hover:bg-white hover:text-slate-900 transition-all shadow-sm text-sm uppercase tracking-wide disabled:opacity-60"
+              className="w-full font-medium py-3 text-sm uppercase tracking-wide transition-all disabled:opacity-60"
+              style={{ background: "transparent", border: "1px solid oklch(0.3 0.02 265)", color: "white", borderRadius: "var(--radius-md)" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.color = "oklch(0.13 0.02 265)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "white"; }}
             >
               {isSubmitting ? "Submitting..." : "Finish Exam"}
             </button>
@@ -689,10 +707,11 @@ export default function LiveExamInterface() {
       </div>
 
       {/* Mobile Bottom Bar */}
-      <div className="fixed bottom-0 left-0 w-full p-4 bg-white border-t border-slate-200 xl:hidden flex justify-between items-center z-40">
-        <span className="text-sm font-medium text-slate-500">{currentQuestionIdx + 1} / {questions.length}</span>
+      <div className="fixed bottom-0 left-0 w-full p-4 xl:hidden flex justify-between items-center z-40" style={{ background: "white", borderTop: "1px solid var(--border-fine)" }}>
+        <span className="text-sm font-medium" style={{ color: "var(--foreground-muted)" }}>{currentQuestionIdx + 1} / {questions.length}</span>
         <button
-          className="text-slate-900 font-bold flex items-center gap-2 text-sm"
+          className="font-bold flex items-center gap-2 text-sm"
+          style={{ color: "var(--foreground)" }}
           onClick={() => setIsSidebarOpen(true)}
         >
           <Grid className="w-5 h-5" />

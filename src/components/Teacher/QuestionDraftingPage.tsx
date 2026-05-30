@@ -10,7 +10,6 @@ import {
   publishAssessment,
 } from "@/reduxToolKit/teacher/teacherThunks";
 import { generateQuestions, GeneratedQuestion } from "@/lib/geminiService";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -26,7 +25,6 @@ import {
   CheckCircle,
   Loader2,
   History,
-  Lightbulb,
   Eye,
   Settings,
   Menu,
@@ -81,74 +79,55 @@ export function QuestionDraftingPage() {
   const { assessments, loading } = useSelector((s: RootState) => s.teacher);
   const user = useSelector((s: RootState) => s.user.user);
 
-  const [selectedAssessmentId, setSelectedAssessmentId] = useState<string>(
-    assessmentIdFromUrl || "",
-  );
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState<string>(assessmentIdFromUrl || "");
   const [isSaving, setIsSaving] = useState(false);
 
-  // AI State
   const [prompt, setPrompt] = useState("");
   const [questionCount, setQuestionCount] = useState<number>(5);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedHistory, setGeneratedHistory] = useState<
-    { prompt: string; questions: GeneratedQuestion[] }[]
-  >([]);
+  const [generatedHistory, setGeneratedHistory] = useState<{ prompt: string; questions: GeneratedQuestion[] }[]>([]);
 
-  // Draft State
   const [draftQuestions, setDraftQuestions] = useState<any[]>([]);
   const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
 
-  // Mobile Layout State
   const [isStackOpen, setIsStackOpen] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
 
-  // Load assessments
   useEffect(() => {
     dispatch(fetchMyAssessments());
   }, [dispatch]);
 
-  // Sync URL
   useEffect(() => {
     if (assessmentIdFromUrl) setSelectedAssessmentId(assessmentIdFromUrl);
   }, [assessmentIdFromUrl]);
 
-  // Load questions
   useEffect(() => {
     const loadQuestions = async () => {
       if (!selectedAssessmentId) return;
-
       try {
-        const result = await dispatch(
-          fetchAssessmentDetail(selectedAssessmentId),
-        ).unwrap();
+        const result = await dispatch(fetchAssessmentDetail(selectedAssessmentId)).unwrap();
         if (result?.questions && result.questions.length > 0) {
-          const transformedQuestions = result.questions.map(
-            (q: any, index: number) => ({
-              id: Date.now() + index,
-              questionText: q.prompt || q.questionText || "",
-              questionType: q.type || q.questionType || "MCQ",
-              marks: q.marks || 1,
-              options: (q.choices || q.options || []).map((opt: any) => ({
-                text: opt.text || "",
-                isCorrect: opt.isCorrect || false,
-              })),
-              correctAnswer: q.correctAnswer || "",
-              explanation: q.explanation || "",
-            }),
-          );
+          const transformedQuestions = result.questions.map((q: any, index: number) => ({
+            id: Date.now() + index,
+            questionText: q.prompt || q.questionText || "",
+            questionType: q.type || q.questionType || "MCQ",
+            marks: q.marks || 1,
+            options: (q.choices || q.options || []).map((opt: any) => ({
+              text: opt.text || "",
+              isCorrect: opt.isCorrect || false,
+            })),
+            correctAnswer: q.correctAnswer || "",
+            explanation: q.explanation || "",
+          }));
           setDraftQuestions(transformedQuestions);
-          if (transformedQuestions.length > 0)
-            setActiveQuestionId(transformedQuestions[0].id);
+          if (transformedQuestions.length > 0) setActiveQuestionId(transformedQuestions[0].id);
           return;
         }
       } catch (error) {
         // No questions in backend, fallback to localStorage
       }
-
       try {
-        const saved = localStorage.getItem(
-          `draft_questions_${selectedAssessmentId}`,
-        );
+        const saved = localStorage.getItem(`draft_questions_${selectedAssessmentId}`);
         if (saved) {
           const parsed = JSON.parse(saved);
           setDraftQuestions(parsed);
@@ -168,17 +147,13 @@ export function QuestionDraftingPage() {
   }, [selectedAssessmentId, dispatch]);
 
   useEffect(() => {
-    if (draftQuestions.length > 0 && !activeQuestionId)
-      setActiveQuestionId(draftQuestions[0].id);
+    if (draftQuestions.length > 0 && !activeQuestionId) setActiveQuestionId(draftQuestions[0].id);
   }, [draftQuestions, activeQuestionId]);
 
   useEffect(() => {
     if (selectedAssessmentId && draftQuestions.length > 0) {
       try {
-        localStorage.setItem(
-          `draft_questions_${selectedAssessmentId}`,
-          JSON.stringify(draftQuestions),
-        );
+        localStorage.setItem(`draft_questions_${selectedAssessmentId}`, JSON.stringify(draftQuestions));
       } catch (storageError) {
         console.warn("localStorage is not available to save:", storageError);
         toast.error("Local storage is unavailable. Cannot save draft locally.");
@@ -187,59 +162,36 @@ export function QuestionDraftingPage() {
   }, [draftQuestions, selectedAssessmentId]);
 
   const onlineAssessments = useMemo(
-    () =>
-      assessments.filter(
-        (a: any) => a.isOnline === true && a.status !== "ended",
-      ),
+    () => assessments.filter((a: any) => a.isOnline === true && a.status !== "ended"),
     [assessments],
   );
-  const selectedAssessment = assessments.find(
-    (a: any) => a.id === selectedAssessmentId,
-  );
+  const selectedAssessment = assessments.find((a: any) => a.id === selectedAssessmentId);
   const activeQ = draftQuestions.find((q) => q.id === activeQuestionId) || null;
 
   const handleSave = async (shouldPublish = false) => {
-    if (!selectedAssessmentId)
-      return toast.error("Select an assessment first.");
+    if (!selectedAssessmentId) return toast.error("Select an assessment first.");
     if (draftQuestions.length === 0) return toast.error("No questions to save");
-
     setIsSaving(true);
     try {
       const formattedQuestions = draftQuestions.map((q) => ({
         prompt: q.questionText,
         type: q.questionType,
         marks: q.marks || 1,
-        choices: (q.options || []).map((o: any) => ({
-          text: o.text,
-          isCorrect: o.isCorrect,
-        })),
+        choices: (q.options || []).map((o: any) => ({ text: o.text, isCorrect: o.isCorrect })),
         correctAnswer: q.correctAnswer,
         explanation: q.explanation,
       }));
-
-      await dispatch(
-        updateTeacherAssessment({
-          id: selectedAssessmentId,
-          data: { questions: formattedQuestions },
-        }),
-      ).unwrap();
-
+      await dispatch(updateTeacherAssessment({ id: selectedAssessmentId, data: { questions: formattedQuestions } })).unwrap();
       if (shouldPublish) {
-        await dispatch(
-          publishAssessment({
-            assessmentId: selectedAssessmentId,
-            publish: true,
-          }),
-        ).unwrap();
+        await dispatch(publishAssessment({ assessmentId: selectedAssessmentId, publish: true })).unwrap();
         toast.success("Questions saved and assessment published!");
       } else {
         toast.success("Questions saved successfully!");
       }
-
       try {
         localStorage.removeItem(`draft_questions_${selectedAssessmentId}`);
       } catch (e) {
-        // Ignore removal error
+        // ignore
       }
       if (shouldPublish) router.push("/teacher/assessments");
     } catch (error: any) {
@@ -250,19 +202,17 @@ export function QuestionDraftingPage() {
   };
 
   const handleGenerate = async () => {
-    if (!selectedAssessmentId)
-      return toast.error("Select an assessment first.");
+    if (!selectedAssessmentId) return toast.error("Select an assessment first.");
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
     if (!apiKey) return toast.error("API Key missing.");
     if (!prompt.trim()) return toast.error("Enter a prompt.");
-
     setIsGenerating(true);
     try {
       const questions = await generateQuestions(apiKey, prompt, questionCount);
       setGeneratedHistory((prev) => [{ prompt, questions }, ...prev]);
       setPrompt("");
       toast.success(`Generated ${questions.length} questions!`);
-      setIsAIOpen(true); // Ensure AI panel is open on mobile to see results
+      setIsAIOpen(true);
     } catch (error: any) {
       toast.error(error.message || "Failed to generate questions");
     } finally {
@@ -281,22 +231,15 @@ export function QuestionDraftingPage() {
   const addAllQuestionsFromGen = (idx: number) => {
     const gen = generatedHistory[idx];
     if (!gen) return;
-
-    const newQuestions = gen.questions.map((q) => ({
-      ...q,
-      id: Date.now() + Math.random(),
-    }));
+    const newQuestions = gen.questions.map((q) => ({ ...q, id: Date.now() + Math.random() }));
     setDraftQuestions((prev) => [...prev, ...newQuestions]);
     setActiveQuestionId(newQuestions[0].id);
     toast.success(`Added ${newQuestions.length} questions`);
-    window.alert(
-      `Added ${newQuestions.length} questions to draft successfully!`,
-    );
+    window.alert(`Added ${newQuestions.length} questions to draft successfully!`);
   };
 
   const addManualQuestion = () => {
-    if (!selectedAssessmentId)
-      return toast.error("Select an assessment first.");
+    if (!selectedAssessmentId) return toast.error("Select an assessment first.");
     const newId = Date.now();
     setDraftQuestions((prev) => [
       ...prev,
@@ -318,31 +261,17 @@ export function QuestionDraftingPage() {
   };
 
   const updateDraftQuestion = (id: number, field: string, value: any) => {
-    setDraftQuestions((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, [field]: value } : q)),
-    );
+    setDraftQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, [field]: value } : q)));
   };
 
-  const updateOption = (
-    qId: number,
-    oIdx: number,
-    field: string,
-    value: any,
-  ) => {
+  const updateOption = (qId: number, oIdx: number, field: string, value: any) => {
     setDraftQuestions((prev) =>
       prev.map((q) => {
         if (q.id !== qId) return q;
         const newOptions = [...q.options];
         newOptions[oIdx] = { ...newOptions[oIdx], [field]: value };
-
-        if (
-          field === "isCorrect" &&
-          value === true &&
-          q.questionType === "MCQ"
-        ) {
-          newOptions.forEach((o, i) => {
-            if (i !== oIdx) o.isCorrect = false;
-          });
+        if (field === "isCorrect" && value === true && q.questionType === "MCQ") {
+          newOptions.forEach((o, i) => { if (i !== oIdx) o.isCorrect = false; });
         }
         return { ...q, options: newOptions };
       }),
@@ -353,16 +282,7 @@ export function QuestionDraftingPage() {
     setDraftQuestions((prev) =>
       prev.map((q) => {
         if (q.id !== qId) return q;
-        return {
-          ...q,
-          options: [
-            ...(q.options || []),
-            {
-              text: `New Option ${(q.options?.length || 0) + 1}`,
-              isCorrect: false,
-            },
-          ],
-        };
+        return { ...q, options: [...(q.options || []), { text: `New Option ${(q.options?.length || 0) + 1}`, isCorrect: false }] };
       }),
     );
   };
@@ -382,9 +302,7 @@ export function QuestionDraftingPage() {
     if (e) e.stopPropagation();
     setDraftQuestions((prev) => {
       const filtered = prev.filter((q) => q.id !== id);
-      if (activeQuestionId === id) {
-        setActiveQuestionId(filtered.length > 0 ? filtered[0].id : null);
-      }
+      if (activeQuestionId === id) setActiveQuestionId(filtered.length > 0 ? filtered[0].id : null);
       return filtered;
     });
   };
@@ -401,53 +319,49 @@ export function QuestionDraftingPage() {
     }
   };
 
-  // The custom layout matching the provided HTML mockup
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-slate-50 font-sans text-slate-900 w-full fixed inset-0 z-50">
-      <ProductTour
-        tourKey="teacher_drafting"
-        steps={questionDraftingTourSteps}
-      />
+    <div className="flex h-screen flex-col overflow-hidden font-sans w-full fixed inset-0 z-50" style={{ background: "var(--surface-muted)", color: "var(--foreground)" }}>
+      <ProductTour tourKey="teacher_drafting" steps={questionDraftingTourSteps} />
 
       {/* Top Navigation */}
-      <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 shrink-0 z-10">
+      <header className="flex h-16 items-center justify-between px-4 md:px-6 shrink-0 z-10" style={{ background: "white", borderBottom: "1px solid var(--border-fine)" }}>
         <div className="flex items-center gap-2 md:gap-4 min-w-0">
           <button
             onClick={() => setIsStackOpen(true)}
-            className="lg:hidden p-1.5 -ml-1 text-slate-500 hover:text-[#7f0df2] shrink-0"
+            className="lg:hidden p-1.5 -ml-1 shrink-0 transition-colors"
+            style={{ color: "var(--foreground-muted)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--violet-ink)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--foreground-muted)")}
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-lg bg-[#7f0df2] text-white shrink-0">
+          <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center shrink-0 text-white" style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
             <BookOpen className="w-4 h-4 md:w-5 md:h-5" />
           </div>
           <div className="flex flex-col justify-center min-w-0">
-            <h1 className="text-[13px] md:text-lg font-bold tracking-tight hidden sm:block leading-tight">
+            <h1 className="text-[13px] md:text-lg font-bold tracking-tight hidden sm:block leading-tight" style={{ color: "var(--foreground)" }}>
               ParaLearn Editor
             </h1>
             <div className="flex items-center gap-1 relative drafting-assessment-selector">
               {selectedAssessment ? (
-                <span className="truncate max-w-[120px] md:max-w-[200px] text-[11px] md:text-xs font-semibold text-[#7f0df2]">
+                <span className="truncate max-w-[120px] md:max-w-[200px] text-[11px] md:text-xs font-semibold" style={{ color: "var(--violet-ink)" }}>
                   {selectedAssessment.title}
                 </span>
               ) : (
                 <select
                   value={selectedAssessmentId}
                   onChange={(e) => setSelectedAssessmentId(e.target.value)}
-                  className="bg-transparent border-none p-0 pr-4 text-[11px] md:text-xs font-semibold text-[#7f0df2] focus:ring-0 w-auto min-w-[100px] max-w-[130px] md:w-48 appearance-none cursor-pointer truncate rounded-none"
+                  className="bg-transparent border-none p-0 pr-4 text-[11px] md:text-xs font-semibold focus:ring-0 w-auto min-w-[100px] max-w-[130px] md:w-48 appearance-none cursor-pointer truncate rounded-none"
+                  style={{ color: "var(--violet-ink)" }}
                 >
-                  <option value="" disabled>
-                    Select...
-                  </option>
+                  <option value="" disabled>Select...</option>
                   {onlineAssessments.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.title}
-                    </option>
+                    <option key={a.id} value={a.id}>{a.title}</option>
                   ))}
                 </select>
               )}
               {!selectedAssessment && (
-                <ChevronDown className="w-3 h-3 text-[#7f0df2] pointer-events-none absolute right-0 top-1/2 -translate-y-1/2" />
+                <ChevronDown className="w-3 h-3 pointer-events-none absolute right-0 top-1/2 -translate-y-1/2" style={{ color: "var(--violet-ink)" }} />
               )}
             </div>
           </div>
@@ -455,49 +369,41 @@ export function QuestionDraftingPage() {
 
         <div className="flex items-center gap-4 md:gap-6">
           <nav className="hidden md:flex items-center gap-6 h-16">
-            <Link
-              href="/teacher/dashboard"
-              className="text-sm font-medium hover:text-[#7f0df2] text-slate-500 transition-colors"
+            <Link href="/teacher/dashboard" className="text-sm font-medium transition-colors" style={{ color: "var(--foreground-muted)" }}
+              onMouseEnter={(e: any) => (e.currentTarget.style.color = "var(--violet-ink)")}
+              onMouseLeave={(e: any) => (e.currentTarget.style.color = "var(--foreground-muted)")}
             >
               Dashboard
             </Link>
-            <span className="text-sm font-medium text-[#7f0df2] border-b-2 border-[#7f0df2] h-full flex items-center">
+            <span className="text-sm font-medium h-full flex items-center" style={{ color: "var(--violet-ink)", borderBottom: "2px solid var(--violet-ink)" }}>
               Editor
             </span>
-            <Link
-              href="/teacher/assessments"
-              className="text-sm font-medium hover:text-[#7f0df2] text-slate-500 transition-colors"
+            <Link href="/teacher/assessments" className="text-sm font-medium transition-colors" style={{ color: "var(--foreground-muted)" }}
+              onMouseEnter={(e: any) => (e.currentTarget.style.color = "var(--violet-ink)")}
+              onMouseLeave={(e: any) => (e.currentTarget.style.color = "var(--foreground-muted)")}
             >
               Bank
             </Link>
           </nav>
-          <div className="hidden md:block h-8 w-px bg-slate-200" />
+          <div className="hidden md:block h-8 w-px" style={{ background: "var(--border-fine)" }} />
           <div className="flex items-center gap-3">
-            <Button
+            <button
               onClick={() => handleSave(true)}
-              disabled={
-                !selectedAssessmentId || draftQuestions.length === 0 || isSaving
-              }
-              variant="outline"
-              className="drafting-publish-btn flex h-9 md:h-10 items-center gap-2 rounded-lg border-slate-200 px-3 md:px-4 text-xs md:text-sm font-semibold hover:bg-slate-50 hover:text-[#7f0df2] hover:border-[#7f0df2]/30"
+              disabled={!selectedAssessmentId || draftQuestions.length === 0 || isSaving}
+              className="drafting-publish-btn flex h-9 md:h-10 items-center gap-2 px-3 md:px-4 text-xs md:text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-medium)", background: "white", color: "var(--foreground)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--violet-ink)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--violet-ink)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--foreground)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-medium)"; }}
             >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CloudUpload className="w-4 h-4 md:w-5 md:h-5" />
-              )}
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4 md:w-5 md:h-5" />}
               <span className="hidden sm:inline">Publish</span>
-            </Button>
+            </button>
             {(user as any)?.school?.logoUrl ? (
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-slate-200 overflow-hidden border border-slate-200">
-                <img
-                  alt="Profile"
-                  className="h-full w-full object-cover"
-                  src={(user as any).school.logoUrl}
-                />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full overflow-hidden" style={{ border: "1px solid var(--border-fine)" }}>
+                <img alt="Profile" className="h-full w-full object-cover" src={(user as any).school.logoUrl} />
               </div>
             ) : (
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs md:text-sm border border-indigo-200">
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full flex items-center justify-center font-bold text-xs md:text-sm" style={{ background: "var(--cobalt-tint)", color: "var(--cobalt-signal)", border: "1px solid var(--border-fine)" }}>
                 {user?.firstName?.charAt(0) || "T"}
               </div>
             )}
@@ -506,39 +412,34 @@ export function QuestionDraftingPage() {
       </header>
 
       <main className="flex flex-1 overflow-hidden relative">
-        {/* Overlay for mobile menus */}
         {(isStackOpen || isAIOpen) && (
           <div
-            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[40] lg:hidden"
-            onClick={() => {
-              setIsStackOpen(false);
-              setIsAIOpen(false);
-            }}
+            className="fixed inset-0 z-[40] lg:hidden"
+            style={{ background: "rgba(15,23,42,0.3)" }}
+            onClick={() => { setIsStackOpen(false); setIsAIOpen(false); }}
           />
         )}
 
         {/* Left Sidebar: Question Stack */}
         <aside
-          className={`drafting-question-stack w-72 border-r border-slate-200 bg-white flex flex-col shrink-0 lg:relative absolute inset-y-0 left-0 transition-transform duration-300 z-[50] ${isStackOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"}`}
+          className={`drafting-question-stack w-72 flex flex-col shrink-0 lg:relative absolute inset-y-0 left-0 transition-transform duration-300 z-[50] ${isStackOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"}`}
+          style={{ background: "white", borderRight: "1px solid var(--border-fine)" }}
         >
-          <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
-            <h2 className="text-[11px] md:text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="p-4 flex justify-between items-center sticky top-0 z-10" style={{ background: "white", borderBottom: "1px solid var(--border-fine)" }}>
+            <h2 className="text-[11px] md:text-xs font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>
               Question Stack
             </h2>
-            <span className="text-[10px] font-semibold bg-[#7f0df2]/10 text-[#7f0df2] px-2 py-1 rounded">
+            <span className="text-[10px] font-semibold px-2 py-1" style={{ background: "var(--violet-tint)", color: "var(--violet-ink)", borderRadius: "var(--radius-sm)" }}>
               {draftQuestions.length} Total
             </span>
-            <button
-              className="lg:hidden text-slate-400 hover:text-slate-600 ml-2"
-              onClick={() => setIsStackOpen(false)}
-            >
+            <button className="lg:hidden ml-2" style={{ color: "var(--foreground-muted)" }} onClick={() => setIsStackOpen(false)}>
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
             {draftQuestions.length === 0 ? (
-              <div className="text-center p-6 text-slate-400 text-sm">
+              <div className="text-center p-6 text-sm" style={{ color: "var(--foreground-muted)" }}>
                 No questions yet.
               </div>
             ) : (
@@ -547,41 +448,39 @@ export function QuestionDraftingPage() {
                 return (
                   <div
                     key={q.id}
-                    onClick={() => {
-                      setActiveQuestionId(q.id);
-                      if (window.innerWidth < 1024) setIsStackOpen(false);
+                    onClick={() => { setActiveQuestionId(q.id); if (window.innerWidth < 1024) setIsStackOpen(false); }}
+                    className="group relative flex items-start gap-3 p-3 cursor-pointer transition-all"
+                    style={{
+                      borderRadius: "var(--radius-md)",
+                      background: isActive ? "var(--violet-tint)" : "transparent",
+                      border: isActive ? "1px solid var(--border-medium)" : "1px solid transparent",
                     }}
-                    className={`group relative flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-all border ${
-                      isActive
-                        ? "bg-[#7f0df2]/5 border-[#7f0df2]/20 shadow-sm"
-                        : "border-transparent hover:bg-slate-50 hover:border-slate-100"
-                    }`}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--surface-muted)"; }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
                   >
-                    <div
-                      className={`font-bold text-sm mt-0.5 ${isActive ? "text-[#7f0df2]" : "text-slate-400"}`}
-                    >
+                    <div className="font-bold text-sm mt-0.5" style={{ color: isActive ? "var(--violet-ink)" : "var(--foreground-muted)" }}>
                       Q{idx + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-sm truncate ${isActive ? "font-semibold text-slate-900" : "font-medium text-slate-600"}`}
-                      >
+                      <p className="text-sm truncate" style={{ fontWeight: isActive ? 600 : 500, color: isActive ? "var(--foreground)" : "var(--foreground-muted)" }}>
                         {q.questionText || "Empty Question"}
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span
-                          className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded tracking-wide ${isActive ? "bg-[#7f0df2]/10 text-[#7f0df2]" : "bg-slate-100 text-slate-500"}`}
-                        >
+                        <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: isActive ? "var(--violet-tint)" : "var(--surface-muted)", color: isActive ? "var(--violet-ink)" : "var(--foreground-muted)" }}>
                           {q.questionType}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium">
+                        <span className="text-[10px] font-medium" style={{ color: "var(--foreground-muted)" }}>
                           {q.marks} Mark{q.marks !== 1 ? "s" : ""}
                         </span>
                       </div>
                     </div>
                     <button
                       onClick={(e) => removeQuestion(q.id, e)}
-                      className={`absolute right-2 top-2 p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                      className="absolute right-2 top-2 p-1.5 transition-colors"
+                      style={{ borderRadius: "var(--radius-sm)", color: "var(--foreground-muted)", opacity: isActive ? 1 : 0, border: "none", background: "transparent" }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "var(--crimson-tint)"; e.currentTarget.style.color = "var(--crimson-signal)"; (e.currentTarget.closest(".group") as HTMLElement)?.querySelectorAll("button").forEach(b => b.style.opacity = "1"); }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--foreground-muted)"; }}
+                      onFocus={() => {}}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -591,11 +490,12 @@ export function QuestionDraftingPage() {
             )}
           </div>
 
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100">
+          <div className="p-4" style={{ background: "var(--surface-muted)", borderTop: "1px solid var(--border-fine)" }}>
             <button
               onClick={addManualQuestion}
               disabled={!selectedAssessmentId}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#7f0df2] text-white rounded-lg font-bold text-sm shadow-md shadow-[#7f0df2]/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 py-2.5 font-bold text-sm text-white transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-md)", border: "none", boxShadow: "var(--shadow-card)" }}
             >
               <Plus className="w-4 h-4" /> New Question
             </button>
@@ -604,75 +504,59 @@ export function QuestionDraftingPage() {
 
         {/* Center Editor */}
         <section
-          className="flex-1 bg-white overflow-y-auto relative custom-scrollbar scroll-smooth"
-          onClick={() => {
-            setIsStackOpen(false);
-            setIsAIOpen(false);
-          }}
+          className="flex-1 overflow-y-auto relative custom-scrollbar scroll-smooth"
+          style={{ background: "white" }}
+          onClick={() => { setIsStackOpen(false); setIsAIOpen(false); }}
         >
           {!selectedAssessmentId ? (
             <div className="max-w-3xl mx-auto py-20 px-6 flex flex-col items-center justify-center h-full opacity-70 text-center">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                <BookOpen className="w-10 h-10 text-slate-300" />
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: "var(--surface-muted)" }}>
+                <BookOpen className="w-10 h-10" style={{ color: "var(--border-medium)" }} />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">
-                No Assessment Selected
-              </h2>
-              <p className="text-sm text-slate-500 max-w-sm mb-6">
-                Please select an assessment from the top navigation dropdown to
-                start drafting questions.
+              <h2 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>No Assessment Selected</h2>
+              <p className="text-sm max-w-sm mb-6" style={{ color: "var(--foreground-muted)" }}>
+                Please select an assessment from the top navigation dropdown to start drafting questions.
               </p>
             </div>
           ) : !activeQ ? (
             <div className="max-w-3xl mx-auto py-20 px-6 flex flex-col items-center justify-center h-full opacity-70 text-center">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                <BookOpen className="w-10 h-10 text-slate-300" />
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: "var(--surface-muted)" }}>
+                <BookOpen className="w-10 h-10" style={{ color: "var(--border-medium)" }} />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">
-                No Question Selected
-              </h2>
-              <p className="text-sm text-slate-500 max-w-sm mb-6">
-                Select a question from the stack on the left, or create a new
-                one to start drafting.
+              <h2 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>No Question Selected</h2>
+              <p className="text-sm max-w-sm mb-6" style={{ color: "var(--foreground-muted)" }}>
+                Select a question from the stack on the left, or create a new one to start drafting.
               </p>
-              <Button
+              <button
                 onClick={addManualQuestion}
-                className="bg-[#7f0df2] hover:bg-[#6b09cc] text-white rounded-xl h-10 px-6 font-bold shadow-sm"
+                className="h-10 px-6 font-bold text-white"
+                style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-lg)", border: "none" }}
               >
-                <Plus className="w-4 h-4 mr-2" /> Blank Question
-              </Button>
+                <Plus className="w-4 h-4 mr-2 inline" /> Blank Question
+              </button>
             </div>
           ) : (
             <div className="max-w-3xl mx-auto py-10 lg:py-16 px-6 lg:px-10">
               <div className="mb-10 lg:mb-12">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-                  <div className="flex items-center gap-2 text-[#7f0df2] font-bold">
+                  <div className="flex items-center gap-2 font-bold" style={{ color: "var(--violet-ink)" }}>
                     <Edit3 className="w-4 h-4" />
                     <span className="uppercase tracking-widest text-[10px] md:text-xs">
-                      Editing Question{" "}
-                      {String(
-                        draftQuestions.findIndex(
-                          (q) => q.id === activeQuestionId,
-                        ) + 1,
-                      ).padStart(2, "0")}
+                      Editing Question {String(draftQuestions.findIndex((q) => q.id === activeQuestionId) + 1).padStart(2, "0")}
                     </span>
                   </div>
                   <div className="lg:hidden flex gap-2">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsStackOpen(true);
-                      }}
-                      className="px-3 py-1.5 text-xs font-bold bg-slate-100 text-slate-600 rounded-md"
+                      onClick={(e) => { e.stopPropagation(); setIsStackOpen(true); }}
+                      className="px-3 py-1.5 text-xs font-bold"
+                      style={{ background: "var(--surface-muted)", color: "var(--foreground-muted)", borderRadius: "var(--radius-sm)", border: "none" }}
                     >
                       Stack
                     </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsAIOpen(true);
-                      }}
-                      className="px-3 py-1.5 text-xs font-bold bg-indigo-50 text-[#7f0df2] rounded-md flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); setIsAIOpen(true); }}
+                      className="px-3 py-1.5 text-xs font-bold flex items-center gap-1"
+                      style={{ background: "var(--violet-tint)", color: "var(--violet-ink)", borderRadius: "var(--radius-sm)", border: "none" }}
                     >
                       <Sparkles className="w-3 h-3" /> AI
                     </button>
@@ -683,36 +567,31 @@ export function QuestionDraftingPage() {
                   <textarea
                     value={activeQ.questionText || ""}
                     onChange={(e) => {
-                      updateDraftQuestion(
-                        activeQ.id,
-                        "questionText",
-                        e.target.value,
-                      );
+                      updateDraftQuestion(activeQ.id, "questionText", e.target.value);
                       e.target.style.height = "auto";
                       e.target.style.height = `${e.target.scrollHeight}px`;
                     }}
-                    className="w-full text-2xl md:text-3xl font-bold leading-relaxed outline-none border-b-2 border-transparent focus:border-[#7f0df2]/30 pb-4 transition-colors resize-none bg-transparent text-slate-900 focus:ring-0 px-0 m-0 overflow-hidden"
+                    className="w-full text-2xl md:text-3xl font-bold leading-relaxed outline-none pb-4 transition-colors resize-none bg-transparent focus:ring-0 px-0 m-0 overflow-hidden"
+                    style={{ borderBottom: "2px solid transparent", color: "var(--foreground)", height: "auto", minHeight: "60px" }}
                     placeholder="Type your question prompt here..."
-                    style={{ height: "auto", minHeight: "60px" }}
+                    onFocus={e => (e.currentTarget.style.borderBottomColor = "var(--border-medium)")}
+                    onBlur={e => (e.currentTarget.style.borderBottomColor = "transparent")}
                     ref={(textarea) => {
-                      if (textarea) {
-                        textarea.style.height = "auto";
-                        textarea.style.height = `${textarea.scrollHeight}px`;
-                      }
+                      if (textarea) { textarea.style.height = "auto"; textarea.style.height = `${textarea.scrollHeight}px`; }
                     }}
                   />
-                  <div className="absolute -left-10 top-2 opacity-0 group-hover/title:opacity-100 transition-opacity text-slate-300 hidden md:flex items-center justify-center p-1 rounded hover:bg-slate-100">
+                  <div className="absolute -left-10 top-2 opacity-0 group-hover/title:opacity-100 transition-opacity hidden md:flex items-center justify-center p-1" style={{ color: "var(--border-medium)", borderRadius: "var(--radius-sm)" }}>
                     <GripVertical className="w-5 h-5 pointer-events-none" />
                   </div>
                 </div>
-                <p className="mt-4 text-slate-400 text-xs italic">
+                <p className="mt-4 text-xs italic" style={{ color: "var(--foreground-muted)" }}>
                   Click any text block to start editing directly.
                 </p>
               </div>
 
               {/* Options Area */}
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-5 lg:mb-6">
+                <h3 className="text-xs font-bold uppercase tracking-widest mb-5 lg:mb-6" style={{ color: "var(--foreground-muted)" }}>
                   Answer Options
                 </h3>
 
@@ -720,18 +599,25 @@ export function QuestionDraftingPage() {
                   {activeQ.options?.map((opt: any, oIdx: number) => (
                     <div
                       key={oIdx}
-                      className={`group flex items-start sm:items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border transition-all ${
-                        opt.isCorrect
-                          ? "border-emerald-500/30 bg-emerald-50/30 md:bg-emerald-50/20 shadow-[0_2px_10px_-4px_rgba(16,185,129,0.2)]"
-                          : "border-slate-100 bg-slate-50/50 hover:border-[#7f0df2]/30 hover:bg-white"
-                      }`}
+                      className="group flex items-start sm:items-center gap-3 md:gap-4 p-3 md:p-4 transition-all"
+                      style={{
+                        borderRadius: "var(--radius-lg)",
+                        border: opt.isCorrect ? "1px solid var(--emerald-signal)" : "1px solid var(--border-fine)",
+                        background: opt.isCorrect ? "var(--emerald-tint)" : "var(--surface-muted)",
+                        boxShadow: opt.isCorrect ? "var(--shadow-card)" : "none",
+                      }}
+                      onMouseEnter={e => { if (!opt.isCorrect) e.currentTarget.style.borderColor = "var(--violet-ink)"; }}
+                      onMouseLeave={e => { if (!opt.isCorrect) e.currentTarget.style.borderColor = "var(--border-fine)"; }}
                     >
                       <div
-                        className={`shrink-0 flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-lg shadow-sm font-bold text-xs md:text-sm transition-colors mt-0.5 sm:mt-0 ${
-                          opt.isCorrect
-                            ? "bg-emerald-500 text-white shadow-emerald-200"
-                            : "bg-white text-slate-400 group-hover:text-[#7f0df2] border border-slate-100"
-                        }`}
+                        className="shrink-0 flex h-7 w-7 md:h-8 md:w-8 items-center justify-center font-bold text-xs md:text-sm transition-colors mt-0.5 sm:mt-0"
+                        style={{
+                          borderRadius: "var(--radius-md)",
+                          background: opt.isCorrect ? "var(--emerald-signal)" : "white",
+                          color: opt.isCorrect ? "white" : "var(--foreground-muted)",
+                          border: opt.isCorrect ? "none" : "1px solid var(--border-fine)",
+                          boxShadow: "var(--shadow-card)",
+                        }}
                       >
                         {String.fromCharCode(65 + oIdx)}
                       </div>
@@ -739,52 +625,35 @@ export function QuestionDraftingPage() {
                       <textarea
                         value={opt.text}
                         onChange={(e) => {
-                          updateOption(
-                            activeQ.id,
-                            oIdx,
-                            "text",
-                            e.target.value,
-                          );
+                          updateOption(activeQ.id, oIdx, "text", e.target.value);
                           e.target.style.height = "auto";
                           e.target.style.height = `${e.target.scrollHeight}px`;
                         }}
-                        className={`flex-1 text-sm md:text-base outline-none bg-transparent resize-none overflow-hidden m-0 p-0 focus:ring-0 border-none ${opt.isCorrect ? "font-medium text-emerald-950" : "text-slate-700"}`}
+                        className="flex-1 text-sm md:text-base outline-none bg-transparent resize-none overflow-hidden m-0 p-0 focus:ring-0 border-none"
+                        style={{ color: opt.isCorrect ? "var(--foreground)" : "var(--foreground-muted)", fontWeight: opt.isCorrect ? 500 : 400, height: "auto", minHeight: "24px" }}
                         placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
-                        style={{ height: "auto", minHeight: "24px" }}
                         ref={(textarea) => {
-                          if (textarea) {
-                            textarea.style.height = "auto";
-                            textarea.style.height = `${textarea.scrollHeight}px`;
-                          }
+                          if (textarea) { textarea.style.height = "auto"; textarea.style.height = `${textarea.scrollHeight}px`; }
                         }}
                       />
 
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           onClick={() => removeOption(activeQ.id, oIdx)}
-                          className="sm:opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 sm:text-slate-300 hover:text-red-500 transition-all rounded-md hover:bg-red-50 flex items-center justify-center shrink-0"
+                          className="sm:opacity-0 group-hover:opacity-100 p-1.5 transition-all flex items-center justify-center shrink-0"
+                          style={{ color: "var(--foreground-muted)", borderRadius: "var(--radius-sm)", border: "none", background: "transparent" }}
                           title="Remove option"
+                          onMouseEnter={e => { e.currentTarget.style.color = "var(--crimson-signal)"; e.currentTarget.style.background = "var(--crimson-tint)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = "var(--foreground-muted)"; e.currentTarget.style.background = "transparent"; }}
                         >
-                          <X className="w-4 h-4 md:w-4 md:h-4" />
+                          <X className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() =>
-                            updateOption(
-                              activeQ.id,
-                              oIdx,
-                              "isCorrect",
-                              !opt.isCorrect,
-                            )
-                          }
-                          className={`flex h-7 w-12 md:h-8 md:w-14 items-center rounded-full p-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7f0df2] focus-visible:ring-offset-2 ${
-                            opt.isCorrect
-                              ? "bg-emerald-500 shadow-lg shadow-emerald-500/20 justify-end"
-                              : "bg-slate-200 justify-start"
-                          }`}
+                          onClick={() => updateOption(activeQ.id, oIdx, "isCorrect", !opt.isCorrect)}
+                          className="flex h-7 w-12 md:h-8 md:w-14 items-center rounded-full p-1 transition-all focus:outline-none"
+                          style={{ background: opt.isCorrect ? "var(--emerald-signal)" : "var(--border-medium)", justifyContent: opt.isCorrect ? "flex-end" : "flex-start" }}
                         >
-                          <div
-                            className={`h-5 w-5 md:h-6 md:w-6 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform ${opt.isCorrect ? "text-emerald-500" : "text-transparent"}`}
-                          >
+                          <div className="h-5 w-5 md:h-6 md:w-6 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform" style={{ color: opt.isCorrect ? "var(--emerald-signal)" : "transparent" }}>
                             {opt.isCorrect && <Check className="w-3.5 h-3.5" />}
                           </div>
                         </button>
@@ -795,7 +664,10 @@ export function QuestionDraftingPage() {
 
                 <button
                   onClick={() => addOption(activeQ.id)}
-                  className="w-full mt-4 py-4 md:py-5 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-2 text-slate-400 hover:text-[#7f0df2] hover:border-[#7f0df2]/40 hover:bg-[#7f0df2]/5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7f0df2]"
+                  className="w-full mt-4 py-4 md:py-5 flex items-center justify-center gap-2 transition-all outline-none"
+                  style={{ border: "2px dashed var(--border-medium)", borderRadius: "var(--radius-lg)", color: "var(--foreground-muted)", background: "transparent" }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "var(--violet-ink)"; e.currentTarget.style.borderColor = "var(--violet-ink)"; e.currentTarget.style.background = "var(--violet-tint)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = "var(--foreground-muted)"; e.currentTarget.style.borderColor = "var(--border-medium)"; e.currentTarget.style.background = "transparent"; }}
                 >
                   <Plus className="w-5 h-5 opacity-70" />
                   <span className="font-bold text-sm">Add Option</span>
@@ -807,41 +679,41 @@ export function QuestionDraftingPage() {
 
         {/* Right Panel: AI & Settings */}
         <aside
-          className={`w-80 border-l border-slate-200 bg-white flex flex-col shrink-0 overflow-y-auto custom-scrollbar z-[50] transition-transform lg:relative fixed inset-y-0 right-0 ${isAIOpen ? "translate-x-0 shadow-2xl" : "translate-x-full lg:translate-x-0"}`}
+          className={`w-80 flex flex-col shrink-0 overflow-y-auto custom-scrollbar z-[50] transition-transform lg:relative fixed inset-y-0 right-0 ${isAIOpen ? "translate-x-0 shadow-2xl" : "translate-x-full lg:translate-x-0"}`}
+          style={{ background: "white", borderLeft: "1px solid var(--border-fine)" }}
         >
-          <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10 lg:hidden">
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Settings & AI
-            </h2>
-            <button
-              className="text-slate-400 hover:text-slate-600"
-              onClick={() => setIsAIOpen(false)}
-            >
+          <div className="p-4 flex justify-between items-center sticky top-0 z-10 lg:hidden" style={{ background: "white", borderBottom: "1px solid var(--border-fine)" }}>
+            <h2 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>Settings & AI</h2>
+            <button style={{ color: "var(--foreground-muted)", background: "transparent", border: "none" }} onClick={() => setIsAIOpen(false)}>
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* AI Assistant Section */}
-          <div className="p-4 border-b border-slate-100 relative">
+          <div className="p-4 relative" style={{ borderBottom: "1px solid var(--border-fine)" }}>
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-[#7f0df2]" />
-              <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider text-slate-800">
-                AI Builder
-              </h3>
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5" style={{ color: "var(--violet-ink)" }} />
+              <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider" style={{ color: "var(--foreground)" }}>AI Builder</h3>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                <label className="text-[10px] md:text-xs font-bold uppercase tracking-widest block mb-2" style={{ color: "var(--foreground-muted)" }}>
                   Questions to Generate
                 </label>
-                <div className="grid grid-cols-4 gap-1.5 p-1 bg-slate-100/80 rounded-xl">
+                <div className="grid grid-cols-4 gap-1.5 p-1" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-lg)" }}>
                   {[1, 3, 5, 10].map((num) => (
                     <button
                       key={num}
                       onClick={() => setQuestionCount(num)}
-                      className={`py-2 md:py-1.5 text-sm md:text-xs font-bold rounded-lg transition-all ${questionCount === num ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)] text-[#7f0df2] ring-1 ring-slate-200/50" : "text-slate-500 hover:text-slate-800 hover:bg-slate-200/50"}`}
-                      title={`Highlight to generate ${num} questions`}
+                      className="py-2 md:py-1.5 text-sm md:text-xs font-bold transition-all"
+                      style={{
+                        borderRadius: "var(--radius-md)",
+                        background: questionCount === num ? "white" : "transparent",
+                        color: questionCount === num ? "var(--violet-ink)" : "var(--foreground-muted)",
+                        boxShadow: questionCount === num ? "var(--shadow-card)" : "none",
+                        border: "none",
+                      }}
                     >
                       {num}
                     </button>
@@ -849,196 +721,172 @@ export function QuestionDraftingPage() {
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-2.5 md:p-3 border border-slate-100 focus-within:ring-2 focus-within:ring-[#7f0df2]/20 focus-within:border-[#7f0df2]/40 transition-all shadow-inner relative">
-                <label className="block text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+              <div className="p-2.5 md:p-3 transition-all" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)" }}>
+                <label className="block text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "var(--foreground-muted)" }}>
                   AI Prompt
                 </label>
                 <Textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="eg. Create 5 hard MCQs on quantum physics..."
-                  className="w-full bg-transparent border-0 p-0 text-slate-700 placeholder:text-slate-400 focus:ring-0 resize-none text-xs md:text-sm leading-relaxed min-h-[60px]"
+                  className="w-full bg-transparent border-0 p-0 focus:ring-0 resize-none text-xs md:text-sm leading-relaxed min-h-[60px]"
+                  style={{ color: "var(--foreground)" }}
                 />
-                <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-200/80">
-                  <span className="text-[9px] md:text-[10px] text-slate-400 font-semibold">
+                <div className="flex justify-between items-center mt-2 pt-2" style={{ borderTop: "1px solid var(--border-fine)" }}>
+                  <span className="text-[9px] md:text-[10px] font-semibold" style={{ color: "var(--foreground-muted)" }}>
                     {prompt.length} chars
                   </span>
-                  <Button
-                    size="sm"
+                  <button
                     onClick={handleGenerate}
                     disabled={isGenerating || !prompt.trim()}
-                    className="h-7 md:h-8 px-3 rounded-lg bg-[#7f0df2] hover:bg-[#6b09cc] text-white text-[10px] md:text-xs font-bold shadow-md shadow-[#7f0df2]/20 transition-all active:scale-95"
+                    className="h-7 md:h-8 px-3 text-white text-[10px] md:text-xs font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ borderRadius: "var(--radius-md)", background: "var(--violet-ink)", boxShadow: "var(--shadow-card)", border: "none" }}
                   >
-                    {isGenerating ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <>
-                        <CloudUpload className="w-3.5 h-3.5 mr-1" /> Generate
-                      </>
-                    )}
-                  </Button>
+                    {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><CloudUpload className="w-3.5 h-3.5 mr-1 inline" /> Generate</>}
+                  </button>
                 </div>
               </div>
 
               {generatedHistory.length > 0 && (
-                <div className="p-4 bg-[#7f0df2]/5 object-cover rounded-xl border border-[#7f0df2]/10 relative group/ai">
-                  <h4 className="text-[10px] uppercase font-bold text-[#7f0df2] mb-1.5 tracking-wider">
-                    AI Generations
-                  </h4>
-                  <p className="text-xs text-slate-600 mb-4 leading-relaxed font-medium">
-                    <span className="font-bold text-[#7f0df2]">
-                      {generatedHistory.reduce(
-                        (acc, curr) => acc + curr.questions.length,
-                        0,
-                      )}
+                <div className="p-4 relative" style={{ background: "var(--violet-tint)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)" }}>
+                  <h4 className="text-[10px] uppercase font-bold mb-1.5 tracking-wider" style={{ color: "var(--violet-ink)" }}>AI Generations</h4>
+                  <p className="text-xs mb-4 leading-relaxed font-medium" style={{ color: "var(--foreground-muted)" }}>
+                    <span className="font-bold" style={{ color: "var(--violet-ink)" }}>
+                      {generatedHistory.reduce((acc, curr) => acc + curr.questions.length, 0)}
                     </span>{" "}
                     generated questions ready.
                   </p>
 
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full bg-white border-[#7f0df2]/30 text-[#7f0df2] hover:bg-[#7f0df2]/10 h-9 font-bold text-xs shadow-sm"
+                      <button
+                        className="w-full h-9 font-bold text-xs transition-all"
+                        style={{ background: "white", color: "var(--violet-ink)", border: "1px solid var(--border-medium)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-card)" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "var(--violet-ink)"; e.currentTarget.style.color = "white"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.color = "var(--violet-ink)"; }}
                       >
-                        <Eye className="w-3.5 h-3.5 mr-1.5" /> Review & Add
-                      </Button>
+                        <Eye className="w-3.5 h-3.5 mr-1.5 inline" /> Review & Add
+                      </button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-slate-50 border-0 shadow-2xl rounded-2xl">
-                      <DialogHeader className="p-6 md:p-8 bg-white border-b border-slate-100 shadow-sm shrink-0">
+                    <DialogContent className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden border-0 shadow-2xl" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-xl)" }}>
+                      <DialogHeader className="p-6 md:p-8 shadow-sm shrink-0" style={{ background: "white", borderBottom: "1px solid var(--border-fine)" }}>
                         <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-[#7f0df2] flex items-center justify-center text-white shadow-lg shadow-[#7f0df2]/30 shrink-0">
+                            <div className="w-12 h-12 flex items-center justify-center text-white shrink-0" style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)" }}>
                               <Sparkles className="w-6 h-6" />
                             </div>
                             <div>
-                              <DialogTitle className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                              <DialogTitle className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
                                 AI Generated Drafts
                               </DialogTitle>
-                              <DialogDescription className="text-slate-500 mt-1 text-sm md:text-base">
-                                Review the AI outputs below. Click 'Add' to move
-                                a question to your draft.
+                              <DialogDescription className="mt-1 text-sm md:text-base" style={{ color: "var(--foreground-muted)" }}>
+                                Review the AI outputs below. Click 'Add' to move a question to your draft.
                               </DialogDescription>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 self-end md:self-auto">
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                if (confirm("Clear generations?"))
-                                  setGeneratedHistory([]);
-                              }}
-                              className="bg-white border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-10 px-4 rounded-xl shadow-sm"
+                            <button
+                              onClick={() => { if (confirm("Clear generations?")) setGeneratedHistory([]); }}
+                              className="h-10 px-4 font-semibold text-sm transition-all"
+                              style={{ background: "white", color: "var(--crimson-signal)", border: "1px solid var(--border-medium)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)" }}
+                              onMouseEnter={e => { e.currentTarget.style.background = "var(--crimson-tint)"; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
                             >
-                              <Trash2 className="w-4 h-4 mr-2" /> Clear All
-                            </Button>
+                              <Trash2 className="w-4 h-4 mr-2 inline" /> Clear All
+                            </button>
                           </div>
                         </div>
                       </DialogHeader>
 
                       <div className="overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 flex-1 custom-scrollbar scroll-smooth">
                         {generatedHistory.map((gen, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-[#7f0df2]/30 transition-all overflow-hidden group/container"
-                          >
-                            <div className="bg-slate-50 md:p-5 p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                          <div key={idx} className="overflow-hidden transition-all" style={{ background: "white", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+                            <div className="p-4 md:p-5 flex flex-col md:flex-row md:items-start justify-between gap-4" style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
                               <div className="flex items-start gap-3 flex-1">
-                                <div className="p-2 bg-[#7f0df2]/10 rounded-lg shrink-0 mt-0.5">
-                                  <History className="w-5 h-5 text-[#7f0df2]" />
+                                <div className="p-2 shrink-0 mt-0.5" style={{ background: "var(--violet-tint)", borderRadius: "var(--radius-md)" }}>
+                                  <History className="w-5 h-5" style={{ color: "var(--violet-ink)" }} />
                                 </div>
                                 <div>
-                                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                                  <h4 className="text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-2" style={{ color: "var(--foreground-muted)" }}>
                                     Prompt{" "}
-                                    <span className="w-1 h-1 rounded-full bg-slate-300"></span>{" "}
-                                    <span className="text-[#7f0df2]">
-                                      {gen.questions.length} Results
-                                    </span>
+                                    <span className="w-1 h-1 rounded-full inline-block" style={{ background: "var(--border-medium)" }} />{" "}
+                                    <span style={{ color: "var(--violet-ink)" }}>{gen.questions.length} Results</span>
                                   </h4>
-                                  <p className="text-sm md:text-base font-medium text-slate-700 leading-relaxed border-l-2 border-[#7f0df2]/30 pl-3 py-0.5">
+                                  <p className="text-sm md:text-base font-medium leading-relaxed pl-3 py-0.5" style={{ color: "var(--foreground)", borderLeft: "2px solid var(--violet-ink)" }}>
                                     {gen.prompt}
                                   </p>
                                 </div>
                               </div>
-                              <Button
+                              <button
                                 onClick={() => addAllQuestionsFromGen(idx)}
-                                className="shrink-0 bg-[#7f0df2]/5 text-[#7f0df2] hover:bg-[#7f0df2] hover:text-white border border-[#7f0df2]/20 rounded-xl transition-all shadow-sm"
+                                className="shrink-0 px-4 py-2 font-semibold text-sm transition-all"
+                                style={{ background: "var(--violet-tint)", color: "var(--violet-ink)", border: "1px solid var(--border-medium)", borderRadius: "var(--radius-lg)" }}
+                                onMouseEnter={e => { e.currentTarget.style.background = "var(--violet-ink)"; e.currentTarget.style.color = "white"; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = "var(--violet-tint)"; e.currentTarget.style.color = "var(--violet-ink)"; }}
                               >
-                                <Plus className="w-4 h-4 mr-1.5" /> Add All{" "}
-                                {gen.questions.length}
-                              </Button>
+                                <Plus className="w-4 h-4 mr-1.5 inline" /> Add All {gen.questions.length}
+                              </button>
                             </div>
                             <div className="p-4 md:p-5 space-y-4">
                               {gen.questions.map((q, qIdx) => (
-                                <div
-                                  key={qIdx}
-                                  className="flex flex-col md:flex-row items-start gap-4 md:gap-6 bg-white rounded-xl p-4 md:p-5 border border-slate-200 relative transition-all hover:border-[#7f0df2]/40 hover:shadow-md"
-                                >
-                                  <div className="flex flex-col items-center gap-2 shrink-0 pt-1 hidden md:flex">
-                                    <span className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm border border-slate-200">
+                                <div key={qIdx} className="flex flex-col md:flex-row items-start gap-4 md:gap-6 p-4 md:p-5 relative transition-all" style={{ background: "white", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)" }}>
+                                  <div className="hidden md:flex flex-col items-center gap-2 shrink-0 pt-1">
+                                    <span className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: "var(--surface-muted)", color: "var(--foreground-muted)", border: "1px solid var(--border-fine)" }}>
                                       {qIdx + 1}
                                     </span>
                                   </div>
                                   <div className="flex-1 min-w-0 w-full md:pr-24">
                                     <div className="flex flex-wrap items-center justify-between md:justify-start gap-2 mb-3">
                                       <div className="flex gap-2">
-                                        <span className="text-[10px] font-bold text-[#7f0df2] uppercase tracking-wider bg-[#7f0df2]/10 px-2.5 py-1 rounded-md border border-[#7f0df2]/20">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1" style={{ color: "var(--violet-ink)", background: "var(--violet-tint)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)" }}>
                                           {q.questionType}
                                         </span>
                                         {q.marks && (
-                                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
-                                            {q.marks} Mark
-                                            {q.marks > 1 ? "s" : ""}
+                                          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1" style={{ color: "var(--foreground-muted)", background: "var(--surface-muted)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)" }}>
+                                            {q.marks} Mark{q.marks > 1 ? "s" : ""}
                                           </span>
                                         )}
                                       </div>
-                                      <Button
-                                        size="sm"
+                                      <button
                                         onClick={() => addQuestionToDraft(q)}
-                                        className="md:hidden bg-white text-[#7f0df2] border border-[#7f0df2]/20 rounded-lg h-9"
+                                        className="md:hidden px-3 py-2 font-semibold text-sm"
+                                        style={{ background: "white", color: "var(--violet-ink)", border: "1px solid var(--border-medium)", borderRadius: "var(--radius-md)" }}
                                       >
-                                        <Plus className="w-4 h-4 mr-1" /> Add
-                                      </Button>
+                                        <Plus className="w-4 h-4 mr-1 inline" /> Add
+                                      </button>
                                     </div>
-                                    <h3 className="text-sm md:text-base text-slate-900 font-bold leading-relaxed mb-4">
+                                    <h3 className="text-sm md:text-base font-bold leading-relaxed mb-4" style={{ color: "var(--foreground)" }}>
                                       {q.questionText}
                                     </h3>
                                     {q.options && q.options.length > 0 && (
                                       <div className="grid grid-cols-1 gap-2 mt-4">
-                                        {q.options.map(
-                                          (opt: any, optIdx: number) => (
-                                            <div
-                                              key={optIdx}
-                                              className={`flex items-start gap-3 p-2.5 md:p-3 rounded-lg border transition-all ${opt.isCorrect ? "bg-emerald-50/50 border-emerald-200 shadow-sm" : "bg-slate-50 border-slate-100"}`}
-                                            >
-                                              <div
-                                                className={`shrink-0 w-4 h-4 md:w-5 md:h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${opt.isCorrect ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300 bg-white"}`}
-                                              >
-                                                {opt.isCorrect && (
-                                                  <CheckCircle className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                                                )}
-                                              </div>
-                                              <span
-                                                className={`text-xs md:text-sm leading-relaxed ${opt.isCorrect ? "font-semibold text-emerald-900" : "text-slate-600"}`}
-                                              >
-                                                {opt.text}
-                                              </span>
+                                        {q.options.map((opt: any, optIdx: number) => (
+                                          <div
+                                            key={optIdx}
+                                            className="flex items-start gap-3 p-2.5 md:p-3 transition-all"
+                                            style={{ borderRadius: "var(--radius-md)", background: opt.isCorrect ? "var(--emerald-tint)" : "var(--surface-muted)", border: `1px solid ${opt.isCorrect ? "var(--emerald-signal)" : "var(--border-fine)"}` }}
+                                          >
+                                            <div className="shrink-0 w-4 h-4 md:w-5 md:h-5 rounded-full border-2 flex items-center justify-center mt-0.5" style={{ background: opt.isCorrect ? "var(--emerald-signal)" : "white", borderColor: opt.isCorrect ? "var(--emerald-signal)" : "var(--border-medium)", color: "white" }}>
+                                              {opt.isCorrect && <CheckCircle className="w-2.5 h-2.5 md:w-3 md:h-3" />}
                                             </div>
-                                          ),
-                                        )}
+                                            <span className="text-xs md:text-sm leading-relaxed" style={{ color: opt.isCorrect ? "var(--foreground)" : "var(--foreground-muted)", fontWeight: opt.isCorrect ? 600 : 400 }}>
+                                              {opt.text}
+                                            </span>
+                                          </div>
+                                        ))}
                                       </div>
                                     )}
                                   </div>
-                                  <Button
+                                  <button
                                     onClick={() => addQuestionToDraft(q)}
-                                    className="hidden md:flex absolute right-5 top-1/2 -translate-y-1/2 shrink-0 bg-white hover:bg-[#7f0df2] text-[#7f0df2] hover:text-white border-2 border-[#7f0df2]/20 hover:border-[#7f0df2] shadow-sm transition-all shadow-[#7f0df2]/10 rounded-xl h-12 px-6 items-center justify-center"
+                                    className="hidden md:flex absolute right-5 top-1/2 -translate-y-1/2 shrink-0 items-center justify-center h-12 px-6 font-bold text-sm transition-all"
+                                    style={{ background: "white", color: "var(--violet-ink)", border: "2px solid var(--border-medium)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)" }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = "var(--violet-ink)"; e.currentTarget.style.color = "white"; e.currentTarget.style.borderColor = "var(--violet-ink)"; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.color = "var(--violet-ink)"; e.currentTarget.style.borderColor = "var(--border-medium)"; }}
                                   >
                                     <Plus className="w-5 h-5 mr-2" />
-                                    <span className="font-bold text-sm">
-                                      Add
-                                    </span>
-                                  </Button>
+                                    Add
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -1055,65 +903,45 @@ export function QuestionDraftingPage() {
           {/* Settings Section */}
           <div className="p-4 relative">
             <div className="flex items-center gap-2 mb-4">
-              <Settings className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
-              <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider text-slate-800">
-                Question Settings
-              </h3>
+              <Settings className="w-4 h-4 md:w-5 md:h-5" style={{ color: "var(--foreground-muted)" }} />
+              <h3 className="font-bold text-xs md:text-sm uppercase tracking-wider" style={{ color: "var(--foreground)" }}>Question Settings</h3>
             </div>
 
             {!activeQ ? (
               <div className="text-center py-4">
-                <p className="text-[10px] md:text-xs text-slate-400">
-                  Select a question to edit settings.
-                </p>
+                <p className="text-[10px] md:text-xs" style={{ color: "var(--foreground-muted)" }}>Select a question to edit settings.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[9px] md:text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                  <label className="block text-[9px] md:text-[10px] font-bold mb-1.5 uppercase tracking-widest" style={{ color: "var(--foreground-muted)" }}>
                     Question Type
                   </label>
-                  <Select
-                    value={activeQ?.questionType}
-                    onValueChange={(val) =>
-                      updateDraftQuestion(activeQ.id, "questionType", val)
-                    }
-                  >
-                    <SelectTrigger className="h-9 text-xs font-semibold rounded-lg bg-slate-50 border-slate-200">
+                  <Select value={activeQ?.questionType} onValueChange={(val) => updateDraftQuestion(activeQ.id, "questionType", val)}>
+                    <SelectTrigger className="h-9 text-xs font-semibold" style={{ borderRadius: "var(--radius-md)", background: "var(--surface-muted)", border: "1px solid var(--border-fine)" }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="MCQ" className="text-xs">
-                        Multiple Choice (Single Answer)
-                      </SelectItem>
-                      <SelectItem value="MULTI_SELECT" className="text-xs">
-                        Multiple Choice (Multiple Answers)
-                      </SelectItem>
-                      <SelectItem value="TEXT" className="text-xs">
-                        Short Answer / Text
-                      </SelectItem>
-                      <SelectItem value="ESSAY" className="text-xs">
-                        Essay
-                      </SelectItem>
+                      <SelectItem value="MCQ" className="text-xs">Multiple Choice (Single Answer)</SelectItem>
+                      <SelectItem value="MULTI_SELECT" className="text-xs">Multiple Choice (Multiple Answers)</SelectItem>
+                      <SelectItem value="TEXT" className="text-xs">Short Answer / Text</SelectItem>
+                      <SelectItem value="ESSAY" className="text-xs">Essay</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] md:text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                  <label className="block text-[10px] md:text-xs font-bold mb-2 uppercase tracking-widest" style={{ color: "var(--foreground-muted)" }}>
                     Marks Allocation
                   </label>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm w-full sm:w-auto">
+                    <div className="flex items-center p-1 shadow-sm w-full sm:w-auto" style={{ background: "white", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-lg)" }}>
                       <button
-                        onClick={() =>
-                          updateDraftQuestion(
-                            activeQ.id,
-                            "marks",
-                            Math.max(1, (activeQ?.marks || 1) - 1),
-                          )
-                        }
-                        className="w-12 h-12 md:w-8 md:h-8 flex shrink-0 items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors active:bg-slate-200 active:scale-95"
+                        onClick={() => updateDraftQuestion(activeQ.id, "marks", Math.max(1, (activeQ?.marks || 1) - 1))}
+                        className="w-12 h-12 md:w-8 md:h-8 flex shrink-0 items-center justify-center transition-colors active:scale-95"
+                        style={{ color: "var(--foreground-muted)", borderRadius: "var(--radius-md)", border: "none", background: "transparent" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "var(--surface-muted)"; e.currentTarget.style.color = "var(--foreground)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--foreground-muted)"; }}
                       >
                         <Minus className="w-6 h-6 md:w-4 md:h-4" />
                       </button>
@@ -1121,45 +949,33 @@ export function QuestionDraftingPage() {
                         type="number"
                         min="1"
                         value={activeQ?.marks || 1}
-                        onChange={(e) =>
-                          updateDraftQuestion(
-                            activeQ.id,
-                            "marks",
-                            parseInt(e.target.value) || 1,
-                          )
-                        }
-                        className="flex-1 sm:w-16 w-full h-12 md:h-8 border-none bg-transparent text-center font-black text-xl md:text-sm text-[#7f0df2] focus:ring-0 p-0"
+                        onChange={(e) => updateDraftQuestion(activeQ.id, "marks", parseInt(e.target.value) || 1)}
+                        className="flex-1 sm:w-16 w-full h-12 md:h-8 border-none bg-transparent text-center font-black text-xl md:text-sm focus:ring-0 p-0 outline-none"
+                        style={{ color: "var(--violet-ink)" }}
                       />
                       <button
-                        onClick={() =>
-                          updateDraftQuestion(
-                            activeQ.id,
-                            "marks",
-                            (activeQ?.marks || 1) + 1,
-                          )
-                        }
-                        className="w-12 h-12 md:w-8 md:h-8 flex shrink-0 items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors active:bg-slate-200 active:scale-95"
+                        onClick={() => updateDraftQuestion(activeQ.id, "marks", (activeQ?.marks || 1) + 1)}
+                        className="w-12 h-12 md:w-8 md:h-8 flex shrink-0 items-center justify-center transition-colors active:scale-95"
+                        style={{ color: "var(--foreground-muted)", borderRadius: "var(--radius-md)", border: "none", background: "transparent" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "var(--surface-muted)"; e.currentTarget.style.color = "var(--foreground)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--foreground-muted)"; }}
                       >
                         <Plus className="w-6 h-6 md:w-4 md:h-4" />
                       </button>
                     </div>
-                    <span className="text-xs font-semibold text-slate-400">
+                    <span className="text-xs font-semibold" style={{ color: "var(--foreground-muted)" }}>
                       Points awarded per correct answer
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-3 mt-4 border-t border-slate-100 flex justify-end">
+                <div className="pt-3 mt-4 flex justify-end" style={{ borderTop: "1px solid var(--border-fine)" }}>
                   <button
-                    onClick={() => {
-                      if (
-                        confirm(
-                          "Are you sure you want to delete this specific question?",
-                        )
-                      )
-                        removeQuestion(activeQ.id);
-                    }}
-                    className="text-[10px] md:text-[11px] font-bold text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+                    onClick={() => { if (confirm("Are you sure you want to delete this specific question?")) removeQuestion(activeQ.id); }}
+                    className="text-[10px] md:text-[11px] font-bold px-3 py-1.5 flex items-center gap-1.5 transition-colors"
+                    style={{ color: "var(--crimson-signal)", borderRadius: "var(--radius-md)", border: "none", background: "transparent" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "var(--crimson-tint)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Delete Question
                   </button>
@@ -1172,48 +988,50 @@ export function QuestionDraftingPage() {
         {/* Mobile AI Trigger FAB */}
         <button
           onClick={() => setIsAIOpen(true)}
-          className="lg:hidden fixed left-4 bottom-24 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-[#7f0df2] to-[#6b09cc] text-white shadow-xl shadow-[#7f0df2]/40 hover:scale-105 active:scale-95 transition-all"
+          className="lg:hidden fixed left-4 bottom-24 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white hover:scale-105 active:scale-95 transition-all"
+          style={{ background: "var(--violet-ink)", boxShadow: "var(--shadow-dialog)" }}
           title="Open AI Builder"
         >
           <Sparkles className="w-6 h-6" />
         </button>
       </main>
 
-      {/* Footer Bar: Minimalist Sticky */}
-      <footer className="h-16 md:h-[72px] border-t border-slate-200 bg-white flex items-center justify-between px-4 md:px-6 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-40 relative">
+      {/* Footer Bar */}
+      <footer className="h-16 md:h-[72px] flex items-center justify-between px-4 md:px-6 shrink-0 z-40 relative" style={{ background: "white", borderTop: "1px solid var(--border-fine)" }}>
         <div className="flex items-center gap-4 md:gap-6">
-          <Button
-            variant="ghost"
-            className="flex items-center gap-2 text-slate-500 hover:text-[#7f0df2] font-semibold text-xs md:text-sm px-2 md:px-4"
+          <button
+            className="flex items-center gap-2 font-semibold text-xs md:text-sm px-2 md:px-4 py-2 transition-colors disabled:opacity-50"
             onClick={() => handleSave(false)}
             disabled={isSaving || draftQuestions.length === 0}
+            style={{ color: "var(--foreground-muted)", border: "none", background: "transparent", borderRadius: "var(--radius-md)" }}
+            onMouseEnter={e => { e.currentTarget.style.color = "var(--violet-ink)"; e.currentTarget.style.background = "var(--violet-tint)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "var(--foreground-muted)"; e.currentTarget.style.background = "transparent"; }}
           >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 md:w-5 md:h-5" />
-            )}
+            {isSaving ? <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" /> : <Save className="w-4 h-4 md:w-5 md:h-5" />}
             <span className="hidden sm:inline">Save Draft</span>
-          </Button>
-          <div className="hidden sm:block h-4 w-px bg-slate-200" />
-          <Button
-            variant="ghost"
-            className="hidden sm:flex items-center gap-2 text-slate-500 hover:text-[#7f0df2] font-semibold text-xs md:text-sm px-4"
+          </button>
+          <div className="hidden sm:block h-4 w-px" style={{ background: "var(--border-fine)" }} />
+          <button
+            className="hidden sm:flex items-center gap-2 font-semibold text-xs md:text-sm px-4 py-2 transition-colors disabled:opacity-50"
             onClick={clearDraft}
             disabled={draftQuestions.length === 0}
+            style={{ color: "var(--foreground-muted)", border: "none", background: "transparent", borderRadius: "var(--radius-md)" }}
+            onMouseEnter={e => { e.currentTarget.style.color = "var(--crimson-signal)"; e.currentTarget.style.background = "var(--crimson-tint)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "var(--foreground-muted)"; e.currentTarget.style.background = "transparent"; }}
           >
             <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
             Reset All
-          </Button>
+          </button>
         </div>
         <div className="flex items-center gap-4">
-          <span className="hidden md:inline text-xs text-slate-400 font-medium italic mr-2 text-right">
+          <span className="hidden md:inline text-xs font-medium italic mr-2 text-right" style={{ color: "var(--foreground-muted)" }}>
             {draftQuestions.length} Questions <br /> in Draft
           </span>
           <button
             onClick={addManualQuestion}
             disabled={!selectedAssessmentId}
-            className="flex h-10 md:h-11 items-center justify-center gap-2 rounded-xl bg-[#7f0df2] px-4 md:px-6 font-bold text-white shadow-lg shadow-[#7f0df2]/30 hover:bg-[#6b09cc] active:scale-95 transition-all text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-10 md:h-11 items-center justify-center gap-2 px-4 md:px-6 font-bold text-white active:scale-95 transition-all text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-lg)", border: "none", boxShadow: "var(--shadow-card)" }}
           >
             <Plus className="w-4 h-4 md:w-5 md:h-5" />
             <span className="hidden sm:inline">New Question</span>

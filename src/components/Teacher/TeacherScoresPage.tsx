@@ -17,7 +17,6 @@ import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 import { TeacherHeader } from "./TeacherHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -29,18 +28,14 @@ import {
   Search,
   Upload,
   Save,
-  FileSpreadsheet,
-  MoreVertical,
   TrendingUp,
   GraduationCap,
   BookOpen,
   ClipboardList,
   CheckCircle,
-  AlertCircle,
   Download,
 } from "lucide-react";
 import { toast } from "sonner";
-import { generateTemplate } from "@/lib/templates";
 import apiClient from "@/lib/api";
 import {
   Dialog,
@@ -51,7 +46,6 @@ import {
 } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
 
-const DEFAULT_PRIMARY = "#641BC4";
 import { ProductTour } from "@/components/common/ProductTour";
 
 const teacherScoresTourSteps = [
@@ -79,8 +73,6 @@ export function TeacherScoresPage() {
     (s: RootState) => s.teacher,
   );
   const { user } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
@@ -426,23 +418,11 @@ export function TeacherScoresPage() {
   };
 
   const getGrade = (total: number) => {
-    if (total >= 70)
-      return {
-        grade: "A",
-        color: "bg-emerald-500",
-        textColor: "text-emerald-600",
-      };
-    if (total >= 60)
-      return { grade: "B", color: "bg-blue-500", textColor: "text-blue-600" };
-    if (total >= 50)
-      return { grade: "C", color: "bg-amber-500", textColor: "text-amber-600" };
-    if (total >= 40)
-      return {
-        grade: "D",
-        color: "bg-orange-500",
-        textColor: "text-orange-600",
-      };
-    return { grade: "F", color: "bg-red-500", textColor: "text-red-600" };
+    if (total >= 70) return { grade: "A", badgeBg: "var(--emerald-signal)", scoreColor: "var(--emerald-signal)" };
+    if (total >= 60) return { grade: "B", badgeBg: "var(--cobalt-signal)", scoreColor: "var(--cobalt-signal)" };
+    if (total >= 50) return { grade: "C", badgeBg: "var(--amber-signal)", scoreColor: "var(--amber-signal)" };
+    if (total >= 40) return { grade: "D", badgeBg: "oklch(0.62 0.19 45)", scoreColor: "oklch(0.62 0.19 45)" };
+    return { grade: "F", badgeBg: "var(--crimson-signal)", scoreColor: "var(--crimson-signal)" };
   };
 
   const handleSaveScores = async () => {
@@ -666,39 +646,40 @@ export function TeacherScoresPage() {
       <TeacherHeader />
       <ProductTour tourKey="teacher_scores" steps={teacherScoresTourSteps} />
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="overflow-hidden" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
         {/* Header */}
-        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-          <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="px-4 sm:px-6 py-4 sm:py-5" style={{ borderBottom: "1px solid var(--border-fine)", background: "var(--surface-muted)" }}>
+          <div className="flex flex-col gap-3 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold font-coolvetica">
+              <h1 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
                 Score Sheet
               </h1>
-              <p className="text-emerald-100 text-xs sm:text-sm mt-1 font-coolvetica">
+              <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>
                 {selectedSubject?.name || "Select a subject"} • {selectedTerm} •{" "}
                 {new Date().getFullYear()}/{new Date().getFullYear() + 1}
               </p>
             </div>
 
-            {/* Search - Full width on mobile */}
+            {/* Search */}
             <div className="relative w-full sm:w-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-200" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
               <Input
                 placeholder="Search students..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-10 sm:h-11 w-full sm:w-[220px] rounded-xl border-emerald-400/50 bg-white/20 text-white placeholder:text-emerald-200 focus:bg-white focus:text-slate-900"
+                className="pl-10 h-10 sm:h-11 w-full sm:w-[220px]"
+                style={{ borderRadius: "var(--radius-lg)", borderColor: "var(--border-fine)" }}
               />
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="teacher-scores-filter-bar px-4 sm:px-6 py-4 bg-slate-50/50 border-b border-slate-100">
+        <div className="teacher-scores-filter-bar px-4 sm:px-6 py-4" style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Class */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <span className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1" style={{ color: "var(--foreground-muted)" }}>
                 <GraduationCap className="w-3.5 h-3.5" /> Class
               </span>
               <Select
@@ -723,7 +704,7 @@ export function TeacherScoresPage() {
 
             {/* Subject */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <span className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1" style={{ color: "var(--foreground-muted)" }}>
                 <BookOpen className="w-3.5 h-3.5" /> Subject
               </span>
               <Select
@@ -750,7 +731,7 @@ export function TeacherScoresPage() {
 
             {/* Term */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>
                 Term
               </span>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
@@ -769,14 +750,14 @@ export function TeacherScoresPage() {
 
             {/* Class Average */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>
                 Class Average
               </span>
-              <div className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 rounded-xl border border-emerald-200 bg-emerald-50">
-                <span className="text-xl sm:text-2xl font-bold text-emerald-600">
+              <div className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4" style={{ borderRadius: "var(--radius-lg)", border: "1px solid color-mix(in oklch, var(--emerald-signal) 25%, transparent)", background: "var(--emerald-tint)" }}>
+                <span className="text-xl sm:text-2xl font-bold" style={{ color: "var(--emerald-signal)" }}>
                   {classAverage}%
                 </span>
-                <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-500" />
+                <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: "var(--emerald-signal)" }} />
               </div>
             </div>
           </div>
@@ -786,40 +767,27 @@ export function TeacherScoresPage() {
         <div className="teacher-scores-table overflow-x-auto">
           {loadingStudents || loadingScores ? (
             <div className="flex items-center justify-center py-20">
-              <div
-                className="animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200"
-                style={{ borderTopColor: primaryColor }}
-              />
+              <div className="h-10 w-10 rounded-full" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
             </div>
           ) : !selectedClassId ? (
-            <div className="text-center py-20">
-              <GraduationCap className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">
-                Select a class to view students
-              </p>
+            <div className="text-center py-20" style={{ color: "var(--foreground-muted)" }}>
+              <GraduationCap className="w-12 h-12 mx-auto mb-3 opacity-40" />
+              <p className="font-medium">Select a class to view students</p>
             </div>
           ) : !selectedSubjectId ? (
-            <div className="text-center py-20">
-              <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">
-                Select a subject to view assessments
-              </p>
+            <div className="text-center py-20" style={{ color: "var(--foreground-muted)" }}>
+              <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-40" />
+              <p className="font-medium">Select a subject to view assessments</p>
             </div>
           ) : relevantAssessments.length === 0 ? (
-            <div className="text-center py-20">
-              <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">
-                No assessments found for this subject
-              </p>
-              <p className="text-sm text-slate-400 mt-1">
-                Create an assessment to start grading
-              </p>
+            <div className="text-center py-20" style={{ color: "var(--foreground-muted)" }}>
+              <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-40" />
+              <p className="font-medium">No assessments found for this subject</p>
+              <p className="text-sm mt-1 opacity-75">Create an assessment to start grading</p>
             </div>
           ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-slate-500 font-medium">
-                No students found in this class
-              </p>
+            <div className="text-center py-20" style={{ color: "var(--foreground-muted)" }}>
+              <p className="font-medium">No students found in this class</p>
             </div>
           ) : (
             <>
@@ -833,31 +801,32 @@ export function TeacherScoresPage() {
                     student.admissionNo ||
                     "—";
                   const studentTotal = getStudentTotal(studentId);
-                  const { grade, color, textColor } = getGrade(studentTotal);
+                  const { grade, badgeBg, scoreColor } = getGrade(studentTotal);
 
                   return (
                     <div
                       key={studentId || idx}
-                      className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-3"
+                      className="p-4 mb-3 bg-white"
+                      style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}
                     >
                       {/* Student Header */}
-                      <div className="flex items-start justify-between mb-3 pb-3 border-b border-slate-100">
+                      <div className="flex items-start justify-between mb-3 pb-3" style={{ borderBottom: "1px solid var(--border-fine)" }}>
                         <div className="flex-1">
-                          <div className="text-xs text-slate-400 uppercase tracking-wide mb-1">
+                          <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--foreground-muted)" }}>
                             Student ID
                           </div>
-                          <div className="font-mono font-semibold text-slate-700">
+                          <div className="font-mono font-semibold" style={{ color: "var(--foreground)" }}>
                             {displayId}
                           </div>
                         </div>
-                        <div className="text-right text-xs text-slate-500">
+                        <div className="text-right text-xs" style={{ color: "var(--foreground-muted)" }}>
                           {idx + 1}
                         </div>
                       </div>
 
                       {/* Student Name */}
                       <div className="mb-4">
-                        <h3 className="font-bold text-lg text-slate-900">
+                        <h3 className="font-bold text-lg" style={{ color: "var(--foreground)" }}>
                           {student.firstName} {student.lastName}
                         </h3>
                       </div>
@@ -878,10 +847,10 @@ export function TeacherScoresPage() {
                           return (
                             <div key={assessment.id} className="space-y-1">
                               <div className="flex items-center justify-between">
-                                <label className="text-xs text-slate-500 flex items-center gap-1.5">
+                                <label className="text-xs flex items-center gap-1.5" style={{ color: "var(--foreground-muted)" }}>
                                   {assessment.title} ({max})
                                   {isOnline && (
-                                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 text-[9px] uppercase tracking-wider font-bold leading-none">
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold leading-none" style={{ background: "var(--cobalt-tint)", color: "var(--cobalt-signal)" }}>
                                       CBT
                                     </span>
                                   )}
@@ -890,11 +859,10 @@ export function TeacherScoresPage() {
                                   <button
                                     onClick={() => handlePublishToggle(assessment.id, isPublished)}
                                     disabled={isToggling}
-                                    className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 ${
-                                      isPublished
-                                        ? "bg-emerald-100 text-emerald-700"
-                                        : "bg-amber-100 text-amber-700"
-                                    }`}
+                                    className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+                                    style={isPublished
+                                      ? { background: "var(--emerald-tint)", color: "var(--emerald-signal)" }
+                                      : { background: "var(--amber-tint)", color: "var(--amber-signal)" }}
                                   >
                                     {isToggling ? "…" : isPublished ? "Published" : "Unpublished"}
                                   </button>
@@ -923,11 +891,10 @@ export function TeacherScoresPage() {
                                   }}
                                   readOnly={isOnline}
                                   placeholder="—"
-                                  className={`h-11 rounded-lg text-base ${
-                                    isOnline
-                                      ? "bg-slate-100/70 border-slate-200/60 text-slate-400 cursor-not-allowed"
-                                      : "border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
-                                  }`}
+                                  className="h-11 text-base"
+                                  style={isOnline
+                                    ? { borderRadius: "var(--radius-md)", background: "var(--surface-muted)", borderColor: "var(--border-fine)", color: "var(--foreground-muted)", cursor: "not-allowed" }
+                                    : { borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)" }}
                                 />
                               </div>
                             </div>
@@ -936,30 +903,29 @@ export function TeacherScoresPage() {
                       </div>
 
                       {/* Total and Grade */}
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                      <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid var(--border-fine)" }}>
                         <div>
-                          <div className="text-xs text-slate-400 uppercase tracking-wide mb-1">
+                          <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--foreground-muted)" }}>
                             Total Score
                           </div>
-                          <span
-                            className={`font-bold text-2xl ${studentTotal > 0 ? textColor : "text-slate-400"}`}
-                          >
+                          <span className="font-bold text-2xl" style={{ color: studentTotal > 0 ? scoreColor : "var(--foreground-muted)" }}>
                             {studentTotal > 0 ? studentTotal : "—"}
                           </span>
                         </div>
                         <div>
-                          <div className="text-xs text-slate-400 uppercase tracking-wide mb-1 text-right">
+                          <div className="text-xs uppercase tracking-wide mb-1 text-right" style={{ color: "var(--foreground-muted)" }}>
                             Grade
                           </div>
                           {studentTotal > 0 ? (
                             <span
-                              className={`inline-flex items-center justify-center w-12 h-12 rounded-xl text-white font-bold text-lg ${color}`}
+                              className="inline-flex items-center justify-center w-12 h-12 text-white font-bold text-lg"
+                              style={{ borderRadius: "var(--radius-lg)", background: badgeBg }}
                             >
                               {grade}
                             </span>
                           ) : (
-                            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-                              <span className="text-slate-400 text-lg">—</span>
+                            <div className="w-12 h-12 flex items-center justify-center" style={{ borderRadius: "var(--radius-lg)", background: "var(--surface-muted)" }}>
+                              <span className="text-lg" style={{ color: "var(--foreground-muted)" }}>—</span>
                             </div>
                           )}
                         </div>
@@ -971,17 +937,17 @@ export function TeacherScoresPage() {
 
               {/* Desktop Table View */}
               <div className="hidden lg:block relative">
-                <div className="overflow-x-auto rounded-2xl border border-slate-100 shadow-sm">
+                <div className="overflow-x-auto" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)" }}>
                   <table className="w-full min-w-[800px]">
                     <thead>
-                      <tr className="bg-slate-800 text-white">
-                        <th className="sticky left-0 z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm w-[50px] sm:w-[60px]">
+                      <tr style={{ background: "var(--foreground)", color: "white" }}>
+                        <th className="sticky left-0 z-10 text-left font-semibold py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm w-[50px] sm:w-[60px]" style={{ background: "var(--foreground)" }}>
                           S/N
                         </th>
-                        <th className="sticky left-[50px] sm:left-[60px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[100px] sm:min-w-[120px]">
+                        <th className="sticky left-[50px] sm:left-[60px] z-10 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[100px] sm:min-w-[120px]" style={{ background: "var(--foreground)" }}>
                           ID
                         </th>
-                        <th className="sticky left-[150px] sm:left-[180px] z-10 bg-slate-800 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[150px] sm:min-w-[200px]">
+                        <th className="sticky left-[150px] sm:left-[180px] z-10 text-left font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm min-w-[150px] sm:min-w-[200px]" style={{ background: "var(--foreground)" }}>
                           NAME
                         </th>
                         {/* Dynamic Assessment Columns */}
@@ -1000,7 +966,7 @@ export function TeacherScoresPage() {
                                 <span className="truncate max-w-[80px] sm:max-w-none flex items-center justify-center gap-1">
                                   {assessment.title}
                                   {isOnline && (
-                                    <span className="px-1 py-0.5 rounded bg-blue-100 text-blue-600 text-[9px] uppercase tracking-wider font-bold leading-none translate-y-[0.5px]">
+                                    <span className="px-1 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold leading-none translate-y-[0.5px]" style={{ background: "rgba(255,255,255,0.2)", color: "white" }}>
                                       CBT
                                     </span>
                                   )}
@@ -1012,11 +978,10 @@ export function TeacherScoresPage() {
                                   onClick={() => handlePublishToggle(assessment.id, isPublished)}
                                   disabled={isToggling}
                                   title={isPublished ? "Click to unpublish (hide from students)" : "Click to publish (show scores to students)"}
-                                  className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 ${
-                                    isPublished
-                                      ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                                      : "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                                  }`}
+                                  className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+                                  style={isPublished
+                                    ? { background: "var(--emerald-tint)", color: "var(--emerald-signal)" }
+                                    : { background: "var(--amber-tint)", color: "var(--amber-signal)" }}
                                 >
                                   {isToggling ? "…" : isPublished ? "Published" : "Unpublished"}
                                 </button>
@@ -1024,7 +989,7 @@ export function TeacherScoresPage() {
                             </th>
                           );
                         })}
-                        <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[80px] sm:w-[100px] border-l border-slate-700">
+                        <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[80px] sm:w-[100px]" style={{ borderLeft: "1px solid rgba(255,255,255,0.15)" }}>
                           TOTAL
                         </th>
                         <th className="text-center font-semibold py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm w-[70px] sm:w-[80px]">
@@ -1047,16 +1012,19 @@ export function TeacherScoresPage() {
                         return (
                           <tr
                             key={studentId || idx}
-                            className={`border-b border-slate-100 ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"} hover:bg-slate-100/50 transition-colors`}
+                            className="transition-colors"
+                            style={{ borderBottom: "1px solid var(--border-fine)", background: idx % 2 === 0 ? "white" : "var(--surface-muted)" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--violet-tint)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 0 ? "white" : "var(--surface-muted)")}
                           >
-                            <td className="sticky left-0 z-10 bg-inherit py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm text-slate-500 font-medium">
+                            <td className="sticky left-0 z-10 bg-inherit py-3 sm:py-4 px-3 sm:px-5 text-xs sm:text-sm font-medium" style={{ color: "var(--foreground-muted)" }}>
                               {idx + 1}
                             </td>
-                            <td className="sticky left-[50px] sm:left-[60px] z-10 bg-inherit py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm text-slate-700 font-mono font-semibold">
+                            <td className="sticky left-[50px] sm:left-[60px] z-10 bg-inherit py-3 sm:py-4 px-2 sm:px-3 text-xs sm:text-sm font-mono font-semibold" style={{ color: "var(--foreground)" }}>
                               {displayId}
                             </td>
                             <td className="sticky left-[150px] sm:left-[180px] z-10 bg-inherit py-3 sm:py-4 px-2 sm:px-3">
-                              <span className="font-semibold text-slate-900 text-xs sm:text-sm">
+                              <span className="font-semibold text-xs sm:text-sm" style={{ color: "var(--foreground)" }}>
                                 {student.firstName} {student.lastName}
                               </span>
                             </td>
@@ -1100,33 +1068,31 @@ export function TeacherScoresPage() {
                                       }}
                                       readOnly={isOnline}
                                       placeholder="—"
-                                      className={`h-8 sm:h-10 w-[60px] sm:w-[70px] rounded-lg text-xs sm:text-sm text-center mx-auto ${
-                                        isOnline
-                                          ? "bg-slate-100/70 border-slate-200/60 text-slate-400 cursor-not-allowed"
-                                          : "border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
-                                      }`}
+                                      className="h-8 sm:h-10 w-[60px] sm:w-[70px] text-xs sm:text-sm text-center mx-auto"
+                                      style={isOnline
+                                        ? { borderRadius: "var(--radius-md)", background: "var(--surface-muted)", borderColor: "var(--border-fine)", color: "var(--foreground-muted)", cursor: "not-allowed" }
+                                        : { borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)" }}
                                     />
                                   </div>
                                 </td>
                               );
                             })}
 
-                            <td className="py-3 sm:py-4 px-2 sm:px-3 text-center border-l border-slate-100 bg-slate-50/50">
-                              <span
-                                className={`font-bold text-base sm:text-lg ${studentTotal > 0 ? textColor : "text-slate-400"}`}
-                              >
+                            <td className="py-3 sm:py-4 px-2 sm:px-3 text-center" style={{ borderLeft: "1px solid var(--border-fine)" }}>
+                              <span className="font-bold text-base sm:text-lg" style={{ color: studentTotal > 0 ? scoreColor : "var(--foreground-muted)" }}>
                                 {studentTotal > 0 ? studentTotal : "—"}
                               </span>
                             </td>
-                            <td className="py-3 sm:py-4 px-2 sm:px-3 text-center bg-slate-50/50">
+                            <td className="py-3 sm:py-4 px-2 sm:px-3 text-center">
                               {studentTotal > 0 ? (
                                 <span
-                                  className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-white font-bold text-xs sm:text-sm ${color}`}
+                                  className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-white font-bold text-xs sm:text-sm"
+                                  style={{ borderRadius: "var(--radius-md)", background: badgeBg }}
                                 >
                                   {grade}
                                 </span>
                               ) : (
-                                <span className="text-slate-400">—</span>
+                                <span style={{ color: "var(--foreground-muted)" }}>—</span>
                               )}
                             </td>
                           </tr>
@@ -1144,51 +1110,55 @@ export function TeacherScoresPage() {
         {selectedClassId &&
           selectedSubjectId &&
           filteredStudents.length > 0 && (
-            <div className="px-4 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+            <div className="px-4 sm:px-6 py-4" style={{ borderTop: "1px solid var(--border-fine)", background: "var(--surface-muted)" }}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="flex items-center gap-3">
                   {totalEntries > 0 ? (
                     <>
-                      <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
-                      <span className="text-xs sm:text-sm text-slate-600">
+                      <span className="w-3 h-3 rounded-full animate-pulse" style={{ background: "var(--amber-signal)" }} />
+                      <span className="text-xs sm:text-sm" style={{ color: "var(--foreground)" }}>
                         Ready to save scores
                       </span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="w-4 h-4 text-slate-400" />
-                      <span className="text-xs sm:text-sm text-slate-500">
+                      <CheckCircle className="w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
+                      <span className="text-xs sm:text-sm" style={{ color: "var(--foreground-muted)" }}>
                         No scores entered yet
                       </span>
                     </>
                   )}
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                  <Button
-                    variant="outline"
-                    className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+                  <button
+                    className="flex items-center gap-2 h-10 sm:h-11 px-4 sm:px-5 text-sm flex-1 sm:flex-none font-medium"
+                    style={{ borderRadius: "var(--radius-lg)", border: "1px solid color-mix(in oklch, var(--emerald-signal) 30%, transparent)", color: "var(--emerald-signal)" }}
                     onClick={handleImport}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--emerald-tint)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                   >
-                    <Upload className="w-4 h-4 mr-2" />
+                    <Upload className="w-4 h-4" />
                     Bulk Upload
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm flex-1 sm:flex-none"
+                  </button>
+                  <button
+                    className="flex items-center gap-2 h-10 sm:h-11 px-4 sm:px-5 text-sm flex-1 sm:flex-none font-medium disabled:opacity-50"
+                    style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)", color: "var(--foreground-muted)" }}
                     disabled={totalEntries === 0}
                     onClick={() => setEditedScores(new Map())}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                   >
                     Clear All
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     onClick={handleSaveScores}
                     disabled={saving || totalEntries === 0}
-                    className="teacher-scores-save-btn h-10 sm:h-11 px-5 sm:px-6 rounded-xl text-white font-semibold gap-2 text-sm flex-1 sm:flex-none"
-                    style={{ backgroundColor: primaryColor }}
+                    className="teacher-scores-save-btn flex items-center gap-2 h-10 sm:h-11 px-5 sm:px-6 text-white font-semibold text-sm flex-1 sm:flex-none disabled:opacity-50"
+                    style={{ borderRadius: "var(--radius-lg)", background: "var(--violet-ink)" }}
                   >
                     <Save className="w-4 h-4" />
                     {saving ? "Saving..." : "Save Scores"}
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1206,7 +1176,7 @@ export function TeacherScoresPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
                 Assessment
               </label>
               <Select
@@ -1232,7 +1202,8 @@ export function TeacherScoresPage() {
               <Button
                 onClick={handleDownloadTemplate}
                 variant="outline"
-                className="w-full flex justify-between items-center bg-slate-50"
+                className="w-full flex justify-between items-center"
+                style={{ background: "var(--surface-muted)" }}
               >
                 <span>1. Download Pre-filled Template</span>
                 <Download className="w-4 h-4" />
@@ -1249,7 +1220,8 @@ export function TeacherScoresPage() {
                 />
                 <Button
                   variant="outline"
-                  className="w-full flex justify-between items-center bg-emerald-600 text-white hover:bg-emerald-700 pointer-events-none border-none"
+                  className="w-full flex justify-between items-center text-white pointer-events-none border-none"
+                  style={{ background: "var(--violet-ink)" }}
                 >
                   <span>2. Upload Filled Template</span>
                   <Upload className="w-4 h-4" />

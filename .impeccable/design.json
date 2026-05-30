@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-23T00:00:00Z",
+  "title": "Design System: ParaLearn",
+  "extensions": {
+    "colorMeta": {
+      "violet-ink":      { "role": "primary",   "displayName": "Violet Ink",      "canonical": "oklch(38% 0.21 297)",   "tonalRamp": ["#1a0052","#2d0087","#3f0ab5","#641bc4","#8a3dd4","#b06be0","#cca0eb","#e8d5f8","#f8f0ff"] },
+      "violet-vivid":    { "role": "primary",   "displayName": "Violet Vivid",    "canonical": "oklch(55% 0.25 296)",   "tonalRamp": ["#2d0087","#4a10c0","#6b20e8","#9747ff","#af73ff","#c89eff","#dfc4ff","#f0e5ff","#faf5ff"] },
+      "violet-tint":     { "role": "primary",   "displayName": "Violet Tint",     "canonical": "oklch(93% 0.04 297)",   "tonalRamp": ["#641bc4","#8a3dd4","#b06be0","#cca0eb","#dfc4ff","#eddeff","#f0e5ff","#f7f0ff","#fdf8ff"] },
+      "chalk-white":     { "role": "neutral",   "displayName": "Chalk White",     "canonical": "oklch(99.4% 0.003 297)","tonalRamp": ["#0f172a","#1e293b","#334155","#64748b","#94a3b8","#cbd5e1","#e2e8f0","#f1f5f9","#fdfdff"] },
+      "midnight-slate":  { "role": "neutral",   "displayName": "Midnight Slate",  "canonical": "oklch(14% 0.025 260)",  "tonalRamp": ["#0f172a","#1e293b","#334155","#475569","#64748b","#94a3b8","#cbd5e1","#e2e8f0","#f8fafc"] },
+      "border-fine":     { "role": "neutral",   "displayName": "Border Fine",     "canonical": "oklch(90% 0.01 255)",   "tonalRamp": ["#94a3b8","#cbd5e1","#d8e2ed","#e2e8f0","#eaf0f7","#f1f5f9","#f5f8fb","#f8fafc","#fdfdff"] },
+      "emerald-signal":  { "role": "tertiary",  "displayName": "Emerald Signal",  "canonical": "oklch(64% 0.17 162)",   "tonalRamp": ["#014737","#065f46","#047857","#059669","#10b981","#34d399","#6ee7b7","#a7f3d0","#dff9d8"] },
+      "amber-signal":    { "role": "secondary", "displayName": "Amber Signal",    "canonical": "oklch(70% 0.17 60)",    "tonalRamp": ["#78350f","#92400e","#b45309","#d97706","#f28c1f","#f59e0b","#fbbf24","#fde68a","#ffe9cc"] },
+      "crimson-signal":  { "role": "secondary", "displayName": "Crimson Signal",  "canonical": "oklch(47% 0.24 28)",    "tonalRamp": ["#7f1d1d","#991b1b","#b91c1c","#dc2626","#e60023","#ef4444","#f87171","#fca5a5","#fddada"] }
+    },
+    "shadows": [
+      { "name": "card-rest",        "value": "0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04)", "purpose": "Resting card elevation. Barely visible — just enough to lift off the page." },
+      { "name": "card-hover",       "value": "0 4px 16px rgba(15,23,42,0.08)",                               "purpose": "Interactive card on hover. Combined with translateY(-1px)." },
+      { "name": "dialog",           "value": "0 8px 32px rgba(15,23,42,0.12)",                               "purpose": "Dialogs, dropdowns, popovers. Detaches surface without theatrics." },
+      { "name": "focus-ring",       "value": "0 0 0 2px #641bc4",                                            "purpose": "Keyboard focus ring. Violet Ink, 2px, 2px offset." }
+    ],
+    "motion": [
+      { "name": "ease-out-expo",    "value": "cubic-bezier(0.16, 1, 0.3, 1)",  "purpose": "Default easing for all enter/hover transitions. Fast start, smooth deceleration." },
+      { "name": "ease-standard",    "value": "cubic-bezier(0.4, 0, 0.2, 1)",   "purpose": "State changes within a surface (color, opacity). Not for positional moves." },
+      { "name": "duration-fast",    "value": "80ms",                            "purpose": "Button press (active scale). Immediate feedback." },
+      { "name": "duration-quick",   "value": "120ms",                           "purpose": "Button hover color shift, badge state changes." },
+      { "name": "duration-smooth",  "value": "150ms",                           "purpose": "Card hover lift, nav item transitions." },
+      { "name": "duration-enter",   "value": "220ms",                           "purpose": "Dialog/dropdown entry animations." }
+    ],
+    "breakpoints": [
+      { "name": "sm",  "value": "640px"  },
+      { "name": "md",  "value": "768px"  },
+      { "name": "lg",  "value": "1024px" },
+      { "name": "xl",  "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default action button. Violet Ink background, white text, 8px radius. The most visible interactive element on any page.",
+      "html": "<button class=\"ds-btn-primary\">Approve Reports</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #641bc4; color: #ffffff; font-family: Manrope, system-ui, sans-serif; font-size: 14px; font-weight: 600; line-height: 1; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; transition: background 120ms cubic-bezier(0.16,1,0.3,1), transform 80ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-primary:hover { background: #7b22e8; transform: translateY(-1px); } .ds-btn-primary:active { transform: scale(0.97); background: #641bc4; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #641bc4; } .ds-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action. Transparent with Border Fine stroke. Used alongside Primary for cancel/secondary actions.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: #0f172a; font-family: Manrope, system-ui, sans-serif; font-size: 14px; font-weight: 500; line-height: 1; padding: 10px 20px; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; transition: background 120ms cubic-bezier(0.16,1,0.3,1), border-color 120ms, transform 80ms; } .ds-btn-ghost:hover { background: #f1f5f9; border-color: #cbd5e1; } .ds-btn-ghost:active { transform: scale(0.97); } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 2px #641bc4; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-published",
+      "description": "Semantic status indicators. Four variants: published/active (emerald), pending/draft (amber or muted), error/failed (crimson). Always paired with an icon.",
+      "html": "<span class=\"ds-badge ds-badge-published\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"none\"><path d=\"M13.5 4.5l-7 7L3 8\" stroke=\"#065f46\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>Published</span><span class=\"ds-badge ds-badge-pending\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"none\"><circle cx=\"8\" cy=\"8\" r=\"5.5\" stroke=\"#92400e\" stroke-width=\"1.5\"/><path d=\"M8 5.5V8l1.5 1.5\" stroke=\"#92400e\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg>Pending</span><span class=\"ds-badge ds-badge-error\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"none\"><circle cx=\"8\" cy=\"8\" r=\"5.5\" stroke=\"#991b1b\" stroke-width=\"1.5\"/><path d=\"M8 5v4M8 11v.5\" stroke=\"#991b1b\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg>Failed</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 9999px; font-family: Manrope, system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 1.6; white-space: nowrap; } .ds-badge-published { background: #dff9d8; color: #065f46; } .ds-badge-pending { background: #ffe9cc; color: #92400e; } .ds-badge-error { background: #fddada; color: #991b1b; } .ds-badge-draft { background: #f1f5f9; color: #64748b; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Standard form input. Label always above, never placeholder-only. Violet Ink focus ring.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"demo-input\">Class Name</label><input class=\"ds-input\" id=\"demo-input\" type=\"text\" placeholder=\"e.g. JSS 1A\"></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-field-label { font-family: Manrope, system-ui, sans-serif; font-size: 12px; font-weight: 500; color: #0f172a; line-height: 1.4; } .ds-input { font-family: Manrope, system-ui, sans-serif; font-size: 14px; font-weight: 400; color: #0f172a; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; width: 100%; transition: border-color 120ms cubic-bezier(0.16,1,0.3,1), box-shadow 120ms; outline: none; } .ds-input::placeholder { color: #64748b; } .ds-input:focus { border-color: #641bc4; box-shadow: 0 0 0 2px rgba(100,27,196,0.15); } .ds-input:disabled { background: #f1f5f9; color: #64748b; cursor: not-allowed; }"
+    },
+    {
+      "name": "Data Table Row",
+      "kind": "custom",
+      "description": "The primary data surface. Chalk White rows with fine bottom border. Numeric columns use Geist Mono. Row hover to Violet Tint at low opacity.",
+      "html": "<table class=\"ds-table\"><thead><tr><th class=\"ds-th\">Student</th><th class=\"ds-th ds-th-num\">Score</th><th class=\"ds-th ds-th-num\">Grade</th><th class=\"ds-th\">Status</th></tr></thead><tbody><tr class=\"ds-tr\"><td class=\"ds-td\">Adaeze Okonkwo</td><td class=\"ds-td ds-td-num\">87</td><td class=\"ds-td ds-td-num\">A</td><td class=\"ds-td\"><span class=\"ds-badge ds-badge-published\">Passed</span></td></tr><tr class=\"ds-tr\"><td class=\"ds-td\">Chukwuemeka Eze</td><td class=\"ds-td ds-td-num\">54</td><td class=\"ds-td ds-td-num\">C</td><td class=\"ds-td\"><span class=\"ds-badge ds-badge-pending\">Pending</span></td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; font-family: Manrope, system-ui, sans-serif; } .ds-th { background: #f1f5f9; font-size: 12px; font-weight: 600; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; } .ds-th-num { text-align: right; } .ds-tr { transition: background 100ms; } .ds-tr:hover { background: rgba(240,229,255,0.5); } .ds-td { font-size: 14px; font-weight: 400; color: #0f172a; padding: 14px 16px; border-bottom: 1px solid #e2e8f0; } .ds-td-num { text-align: right; font-family: 'Geist Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "description": "Navigation item in the admin sidebar. Active state uses Violet Tint background with Violet Ink left inset bar.",
+      "html": "<nav class=\"ds-sidebar\"><a class=\"ds-nav-item ds-nav-item-active\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><rect x=\"2\" y=\"2\" width=\"5\" height=\"5\" rx=\"1\" fill=\"#641bc4\"/><rect x=\"9\" y=\"2\" width=\"5\" height=\"5\" rx=\"1\" fill=\"#641bc4\"/><rect x=\"2\" y=\"9\" width=\"5\" height=\"5\" rx=\"1\" fill=\"#641bc4\"/><rect x=\"9\" y=\"9\" width=\"5\" height=\"5\" rx=\"1\" fill=\"#641bc4\"/></svg>Dashboard</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><rect x=\"2\" y=\"3\" width=\"12\" height=\"2\" rx=\"1\" fill=\"#64748b\"/><rect x=\"2\" y=\"7\" width=\"12\" height=\"2\" rx=\"1\" fill=\"#64748b\"/><rect x=\"2\" y=\"11\" width=\"8\" height=\"2\" rx=\"1\" fill=\"#64748b\"/></svg>Classes</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><circle cx=\"8\" cy=\"5\" r=\"3\" stroke=\"#64748b\" stroke-width=\"1.5\"/><path d=\"M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6\" stroke=\"#64748b\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg>Users</a></nav>",
+      "css": ".ds-sidebar { display: flex; flex-direction: column; gap: 2px; padding: 8px; } .ds-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; font-family: Manrope, system-ui, sans-serif; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; transition: background 120ms, color 120ms; position: relative; } .ds-nav-item:hover { background: #f1f5f9; color: #0f172a; } .ds-nav-item-active { background: #f0e5ff; color: #641bc4; font-weight: 600; } .ds-nav-item-active::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: #641bc4; border-radius: 0 3px 3px 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Clear Register",
+    "overview": "A school register in Nigeria is a sacred object: attendance, scores, and official standing recorded with ink and precision. Every teacher knows it. Every student fears and respects it. ParaLearn is that register made digital. The design language inherits the register's qualities: structured, legible at a glance, authoritative without being cold.\n\nThe reference point is Linear applied to daylight. Linear's precision, weight contrast, and respect for the user's time, but running in a bright room where admins process 300 report cards before lunch. The product must function as a trusted instrument, not a showcase.\n\nThis system rejects the generic SaaS purple-gradient reflex: no glowing button shadows, no blurred glassmorphism panels, no gradient text headings. It equally rejects the bloated admin template: no 40-link sidebars, no card overuse, no inconsistent grey toolbars.",
+    "keyCharacteristics": [
+      "Light background (bright daylight context); dark accents carry authority",
+      "Manrope throughout: tight tracking at large sizes, readable at small sizes",
+      "Violet Ink used at ≤10% of any screen surface; rarity is its power",
+      "Semantic color only for status; never decoration",
+      "Flat-by-default surfaces; subtle shadow only for interactive lift states",
+      "8px radius for interactive elements; 12px for containers",
+      "8px base spacing unit with deliberate variation, not uniform repetition"
+    ],
+    "rules": [
+      { "name": "The One Voice Rule",       "body": "Violet Ink appears on ≤10% of any given screen. Its rarity is the point.", "section": "colors" },
+      { "name": "The Signal Purity Rule",   "body": "Semantic colors (Emerald, Amber, Crimson, Cobalt) are never used for decoration.", "section": "colors" },
+      { "name": "The No Gradient Rule",     "body": "No linear-gradient or radial-gradient involving brand colors on interactive elements, text, or content surfaces.", "section": "colors" },
+      { "name": "The Single Family Rule",   "body": "Manrope is used everywhere in the product. Inter is prohibited.", "section": "typography" },
+      { "name": "The Weight Contrast Rule", "body": "Hierarchy is expressed through weight jumps of at least 200. Two consecutive levels must not share the same weight.", "section": "typography" },
+      { "name": "The Tabular Numbers Rule", "body": "Any column of numbers uses font-variant-numeric: tabular-nums. Proportional numerals in data tables are prohibited.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Shadows appear only as a response to state (hover, dialog, dropdown). A shadow on a resting data table row is decoration.", "section": "elevation" },
+      { "name": "The Tinted Shadow Rule",   "body": "Shadow color is tinted toward Midnight Slate, never pure black. rgba(15,23,42,...) not rgba(0,0,0,...).", "section": "elevation" },
+      { "name": "The No Glassmorphism Rule","body": "backdrop-filter: blur and bg-white/70 are prohibited on resting content surfaces.", "section": "elevation" }
+    ],
+    "dos": [
+      "Use Manrope exclusively inside the product shell",
+      "Keep Violet Ink to ≤10% of any screen surface",
+      "Use font-variant-numeric: tabular-nums on every numeric data column",
+      "Pair every status color with an icon",
+      "Use 8px radius for interactive elements, 12px for containers",
+      "Use translateY(-1px) + shadow on interactive card hover at 150ms",
+      "Use scale(0.97) on button :active",
+      "Place input labels above inputs, always visible",
+      "Design empty states for every list and table",
+      "Use Border Fine (#e2e8f0) as the universal divider"
+    ],
+    "donts": [
+      "Don't use Inter inside the product shell",
+      "Don't use gradient text (background-clip: text + gradient) anywhere in the product",
+      "Don't use glassmorphism on resting content surfaces",
+      "Don't use rounded-2xl or rounded-3xl on buttons",
+      "Don't add box-shadow glow to primary buttons",
+      "Don't use --grad-primary inside the product",
+      "Don't use pure #000000 or #ffffff for text or backgrounds",
+      "Don't nest cards",
+      "Don't animate layout properties — only transform and opacity",
+      "Don't use border-left accent stripes on cards"
+    ]
+  }
+}

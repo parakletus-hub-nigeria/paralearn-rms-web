@@ -215,51 +215,34 @@ export function AdminAttendancePage() {
     `${(f || "")[0] || ""}${(l || "")[0] || ""}`.toUpperCase() || "?";
 
   const renderStatusButtons = (enrollmentId: string, status: string, isMobile = false) => (
-    <div className={`inline-flex ${isMobile ? 'bg-[#F3F4F6]' : 'bg-slate-100'} p-1 rounded-lg gap-1`}>
-      <button
-        onClick={() => handleStatusChange(enrollmentId, "PRESENT")}
-        className={`rounded-md flex items-center justify-center font-bold text-xs transition-all ${
-          isMobile ? 'w-8 h-8' : 'w-9 h-8'
-        } ${
-          status === "PRESENT"
-            ? "bg-[#00C853] text-white shadow-sm"
-            : "text-slate-400 hover:text-slate-600 hover:bg-slate-200"
-        }`}
-        title="Present"
-      >
-        P
-      </button>
-      <button
-        onClick={() => handleStatusChange(enrollmentId, "LATE")}
-        className={`rounded-md flex items-center justify-center font-bold text-xs transition-all ${
-          isMobile ? 'w-8 h-8' : 'w-9 h-8'
-        } ${
-          status === "LATE"
-            ? "bg-[#FF9800] text-white shadow-sm"
-            : "text-slate-400 hover:text-slate-600 hover:bg-slate-200"
-        }`}
-        title="Late"
-      >
-        L
-      </button>
-      <button
-        onClick={() => handleStatusChange(enrollmentId, "ABSENT")}
-        className={`rounded-md flex items-center justify-center font-bold text-xs transition-all ${
-          isMobile ? 'w-8 h-8' : 'w-9 h-8'
-        } ${
-          status === "ABSENT"
-            ? "bg-[#F44336] text-white shadow-sm"
-            : "text-slate-400 hover:text-slate-600 hover:bg-slate-200"
-        }`}
-        title="Absent"
-      >
-        A
-      </button>
+    <div className="inline-flex p-1 gap-1" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-md)" }}>
+      {(["PRESENT", "LATE", "ABSENT"] as const).map((s) => {
+        const active = status === s;
+        const activeBg = s === "PRESENT" ? "var(--emerald-signal)" : s === "LATE" ? "var(--amber-signal)" : "var(--crimson-signal)";
+        return (
+          <button
+            key={s}
+            onClick={() => handleStatusChange(enrollmentId, s)}
+            title={s.charAt(0) + s.slice(1).toLowerCase()}
+            className="flex items-center justify-center font-bold text-xs transition-all"
+            style={{
+              width: isMobile ? 32 : 36,
+              height: 32,
+              borderRadius: "var(--radius-sm)",
+              background: active ? activeBg : "transparent",
+              color: active ? "#fff" : "var(--foreground-muted)",
+              boxShadow: active ? "0 1px 2px rgba(0,0,0,.15)" : "none",
+            }}
+          >
+            {s[0]}
+          </button>
+        );
+      })}
     </div>
   );
 
   return (
-    <div className="w-full min-h-screen pb-32 md:pb-20 bg-slate-50/30">
+    <div className="w-full min-h-screen pb-32 md:pb-20">
       <Header
         schoolLogo={tenantInfo?.logoUrl}
         schoolName={tenantInfo?.name || "ParaLearn School"}
@@ -270,15 +253,15 @@ export function AdminAttendancePage() {
         {/* Page Title */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 font-coolvetica">Admin Attendance</h1>
-            <p className="text-slate-500 mt-1 font-coolvetica">
+            <h1 className="text-3xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>Admin Attendance</h1>
+            <p className="mt-1" style={{ color: "var(--foreground-muted)" }}>
               Manage daily attendance for any class.
             </p>
           </div>
         </div>
 
         {/* Controls */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="bg-white p-4 flex flex-col lg:flex-row gap-4 items-center justify-between" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
           <div className="flex flex-col md:flex-row gap-3 w-full lg:w-auto items-center">
             
             {/* Class Selector */}
@@ -350,7 +333,10 @@ export function AdminAttendancePage() {
                 </Popover>
             </div>
             
-            <div className="hidden md:flex items-center gap-2 px-4 h-11 bg-purple-50 text-purple-700 rounded-xl font-bold border border-purple-100 min-w-[150px] justify-center">
+            <div
+              className="hidden md:flex items-center gap-2 px-4 h-11 font-bold min-w-[150px] justify-center"
+              style={{ background: "var(--violet-tint)", color: "var(--violet-ink)", borderRadius: "var(--radius-md)", border: "1px solid color-mix(in oklch, var(--violet-ink) 15%, transparent)" }}
+            >
                <Sun className="w-4 h-4" />
                <span>{format(currentDate, "eeee")}</span>
             </div>
@@ -360,7 +346,8 @@ export function AdminAttendancePage() {
           <div className="flex items-center gap-4 w-full lg:w-auto justify-end">
              <Button
                 onClick={handleMarkAllPresent}
-                className="h-11 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold rounded-xl px-6"
+                className="h-11 font-bold px-6"
+                style={{ background: "var(--emerald-tint)", color: "var(--emerald-signal)", border: "1px solid color-mix(in oklch, var(--emerald-signal) 20%, transparent)", borderRadius: "var(--radius-md)" }}
                 disabled={!selectedClassId || isLoading}
               >
                 <CheckCheck className="w-4 h-4 mr-2" />
@@ -370,21 +357,21 @@ export function AdminAttendancePage() {
         </div>
 
         {/* Content Area */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-x-auto">
+        <div className="bg-white overflow-x-auto" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
           <Table className="min-w-[800px]">
-            <TableHeader className="bg-slate-50/50">
-              <TableRow>
-                <TableHead className="w-[80px] font-bold text-xs uppercase text-slate-400 pl-8 py-5">S/N</TableHead>
-                <TableHead className="font-bold text-xs uppercase text-slate-400 py-5">Student Details</TableHead>
-                <TableHead className="font-bold text-xs uppercase text-slate-400 py-5 text-center">Attendance Status</TableHead>
-                <TableHead className="font-bold text-xs uppercase text-slate-400 py-5">Last Remark</TableHead>
-                <TableHead className="w-[100px] font-bold text-xs uppercase text-slate-400 py-5 text-right pr-8">Action</TableHead>
+            <TableHeader>
+              <TableRow style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+                <TableHead className="w-[80px] font-semibold text-xs uppercase pl-8 py-5" style={{ color: "var(--foreground-muted)" }}>S/N</TableHead>
+                <TableHead className="font-semibold text-xs uppercase py-5" style={{ color: "var(--foreground-muted)" }}>Student Details</TableHead>
+                <TableHead className="font-semibold text-xs uppercase py-5 text-center" style={{ color: "var(--foreground-muted)" }}>Attendance Status</TableHead>
+                <TableHead className="font-semibold text-xs uppercase py-5" style={{ color: "var(--foreground-muted)" }}>Last Remark</TableHead>
+                <TableHead className="w-[100px] font-semibold text-xs uppercase py-5 text-right pr-8" style={{ color: "var(--foreground-muted)" }}>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-40 text-center"><div className="flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div></div></TableCell>
+                  <TableCell colSpan={5} className="h-40 text-center"><div className="flex justify-center"><div className="h-8 w-8 rounded-full" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }}></div></div></TableCell>
                 </TableRow>
               ) : isError ? (
                 <TableRow>
@@ -406,20 +393,26 @@ export function AdminAttendancePage() {
                 filteredData.map((record: any, index: number) => {
                   const { status, remarks } = getEffectiveRecord(record);
                   return (
-                    <TableRow key={record.enrollmentId} className="hover:bg-slate-50/50 group">
-                      <TableCell className="font-bold text-slate-400 pl-8">{String(index + 1).padStart(2, "0")}</TableCell>
+                    <TableRow
+                    key={record.enrollmentId}
+                    className="group transition-colors"
+                    style={{ borderTop: "1px solid var(--border-fine)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--violet-tint)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                  >
+                      <TableCell className="font-bold pl-8" style={{ color: "var(--foreground-muted)", fontVariantNumeric: "tabular-nums" }}>{String(index + 1).padStart(2, "0")}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                          <Avatar className="h-10 w-10">
                             <AvatarImage src={record?.student?.profilePicture} />
-                            <AvatarFallback className="bg-purple-100 text-purple-700 font-bold">
+                            <AvatarFallback className="font-bold" style={{ background: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                               {getInitials(record.student.firstName, record.student.lastName)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-bold text-slate-900">{record.student.firstName} {record.student.lastName}</p>
-                            <p className="text-xs text-slate-400 font-medium">{record.student.studentId || "#PL-000"}</p>
-                            {record.student.gender && <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">{record.student.gender}</span>}
+                            <p className="font-bold" style={{ color: "var(--foreground)" }}>{record.student.firstName} {record.student.lastName}</p>
+                            <p className="text-xs font-medium" style={{ color: "var(--foreground-muted)", fontFamily: "var(--font-geist-mono)" }}>{record.student.studentId || "#PL-000"}</p>
+                            {record.student.gender && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--surface-muted)", color: "var(--foreground-muted)" }}>{record.student.gender}</span>}
                           </div>
                         </div>
                       </TableCell>
@@ -443,7 +436,7 @@ export function AdminAttendancePage() {
       </div>
 
        {/* Persistent Footer */}
-       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 z-40 md:pl-[280px]">
+       <div className="fixed bottom-0 left-0 right-0 bg-white p-4 z-40 md:pl-[280px]" style={{ borderTop: "1px solid var(--border-fine)" }}>
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
             
             {/* Desktop Progress */}
@@ -451,12 +444,12 @@ export function AdminAttendancePage() {
                 <div className="flex flex-col gap-1 w-full max-w-md">
                     <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                         <span>Marked Progress</span>
-                        <span className="text-purple-600">{stats.present + stats.late + stats.absent} / {stats.total} Students</span>
+                        <span style={{ color: "var(--violet-ink)" }}>{stats.present + stats.late + stats.absent} / {stats.total} Students</span>
                     </div>
-                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                            className="h-full bg-[#641BC4] transition-all duration-500"
-                            style={{ width: `${stats.total ? ((stats.present + stats.late + stats.absent) / stats.total) * 100 : 0}%` }}
+                    <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: "var(--surface-muted)" }}>
+                        <div
+                            className="h-full transition-all duration-500"
+                            style={{ width: `${stats.total ? ((stats.present + stats.late + stats.absent) / stats.total) * 100 : 0}%`, background: "var(--violet-ink)" }}
                         />
                     </div>
                 </div>
@@ -464,15 +457,16 @@ export function AdminAttendancePage() {
 
             <div className="flex items-center gap-4 w-full md:w-auto">
                 <div className="hidden md:flex items-center gap-2 mr-4">
-                     <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700" title="Present">{stats.present}</div>
-                     <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-700" title="Late">{stats.late}</div>
-                     <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-red-700" title="Absent">{stats.absent}</div>
+                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--emerald-tint)", color: "var(--emerald-signal)" }} title="Present">{stats.present}</div>
+                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--amber-tint)", color: "var(--amber-signal)" }} title="Late">{stats.late}</div>
+                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--crimson-tint)", color: "var(--crimson-signal)" }} title="Absent">{stats.absent}</div>
                 </div>
 
-                <Button 
-                    onClick={handleSave} 
+                <Button
+                    onClick={handleSave}
                     disabled={isSaving || isLoading}
-                    className="h-12 w-full md:w-auto px-8 bg-[#651BC6] hover:bg-[#5215a3] text-white font-bold rounded-xl shadow-lg shadow-purple-200 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+                    className="h-12 w-full md:w-auto px-8 text-white font-bold disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+                    style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-card)" }}
                 >
                     {isSaving ? (
                         <>Saving...</>

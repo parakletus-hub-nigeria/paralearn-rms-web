@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, useState } from "react";
+import React, { ReactNode, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -80,10 +80,10 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar className="border-r border-purple-100/50">
+      <Sidebar style={{ borderRight: "1px solid var(--border-fine)" }}>
         <SidebarHeader className="p-5 pb-2 relative">
           <div className="absolute top-2 right-2 hidden md:block">
-            <SidebarTrigger className="hover:bg-purple-50 h-8 w-8 text-slate-500" />
+            <SidebarTrigger className="h-8 w-8" style={{ color: "var(--foreground-muted)" } as React.CSSProperties} />
           </div>
           <div className="flex flex-col items-center text-center gap-1 mt-1">
             <Link href={routespath.TEACHER_DASHBOARD} className="block shrink-0">
@@ -96,10 +96,10 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
               />
             </Link>
             <div className="flex flex-col leading-tight w-full px-1">
-              <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
+              <p className="font-bold text-lg sm:text-lg tracking-tight line-clamp-2" style={{ color: "var(--violet-ink)" }}>
                 {tenantInfo?.name || "ParaLearn"}
               </p>
-              <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
+              <p className="text-xs font-medium mt-0.5 flex justify-center items-center gap-1.5" style={{ color: "var(--foreground-muted)" }}>
                 <span className="truncate">Teacher{user?.firstName ? ` • ${user.firstName}` : ""}</span>
               </p>
             </div>
@@ -114,16 +114,17 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
                 <Link
                   key={item.path}
                   href={item.path}
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${
-                    isSelected
-                      ? "bg-[var(--purple-light)] text-[var(--brand-primary)] shadow-sm"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                  }`}
+                  className="flex items-center gap-3.5 px-4 py-3 transition-all duration-300"
+                  style={{
+                    borderRadius: "var(--radius-md)",
+                    background: isSelected ? "var(--violet-tint)" : "transparent",
+                    color: isSelected ? "var(--violet-ink)" : "var(--foreground-muted)",
+                  }}
+                  onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.background = "var(--surface-muted)"; e.currentTarget.style.color = "var(--foreground)"; } }}
+                  onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--foreground-muted)"; } }}
                 >
                   <item.icon
-                    className={`w-[18px] h-[18px] transition-transform duration-300 ${
-                      isSelected ? "scale-110" : "group-hover:translate-x-0.5"
-                    }`}
+                    className={`w-[18px] h-[18px] transition-transform duration-300 ${isSelected ? "scale-110" : ""}`}
                   />
                   <span className={`text-[15px] ${isSelected ? "font-semibold" : "font-medium"}`}>
                     {item.label}
@@ -137,7 +138,10 @@ export default function TeacherSideBar({ children }: { children: ReactNode }) {
         <SidebarFooter className="p-4">
           <button
             onClick={() => setIsLogoutModalOpen(true)}
-            className="w-full flex items-center justify-center py-3 px-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 cursor-pointer"
+            className="w-full flex items-center justify-center py-3 px-4 font-semibold transition-colors duration-200 cursor-pointer"
+            style={{ background: "var(--crimson-signal)", color: "white", borderRadius: "var(--radius-md)", border: "none" }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
           >
             Logout
           </button>
@@ -173,13 +177,14 @@ function SidebarMainContent({
   const { open: isExpanded, isMobile } = useSidebar();
 
   return (
-    <main className="flex-1 bg-[#fbfaff] min-h-screen relative overflow-x-hidden">
+    <main className="flex-1 min-h-screen relative overflow-x-hidden" style={{ background: "var(--surface-muted)" }}>
       {(!isExpanded || isMobile) && (
         <div className="absolute top-4 left-0 right-0 px-4 flex justify-between items-center z-50 md:hidden">
-          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10 border border-purple-100 bg-white shadow-sm" />
+          <SidebarTrigger className="h-9 w-9 sm:h-10 sm:w-10 shadow-sm" style={{ border: "1px solid var(--border-fine)", background: "white" } as React.CSSProperties} />
           <button
             onClick={() => setIsLogoutModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg font-bold text-xs border border-red-100 shadow-sm active:scale-95 transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 font-bold text-xs shadow-sm active:scale-95 transition-all"
+            style={{ background: "var(--crimson-tint)", color: "var(--crimson-signal)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)" }}
           >
             <LogOut className="w-3.5 h-3.5" />
             Logout
@@ -188,7 +193,7 @@ function SidebarMainContent({
       )}
       {(!isExpanded && !isMobile) && (
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50 hidden md:block">
-          <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
+          <SidebarTrigger className="h-9 w-9 sm:h-10 sm:w-10" />
         </div>
       )}
       <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">

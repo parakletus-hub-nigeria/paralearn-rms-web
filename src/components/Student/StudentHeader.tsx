@@ -4,8 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { RootState, AppDispatch } from "@/reduxToolKit/store";
 import { logoutUser } from "@/reduxToolKit/user/userThunks";
-import { Button } from "@/components/ui/button";
-import { LogOut, User, Bell, LayoutDashboard } from "lucide-react";
+import { LogOut, LayoutDashboard, Bell } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogoutConfirmModal } from "@/components/auth/LogoutConfirmModal";
@@ -32,69 +31,106 @@ export function StudentHeader({ transparent = false }: StudentHeaderProps) {
     }
   };
 
-  const textColorClass = transparent ? "text-white" : "text-slate-900";
-  const subTextColorClass = transparent ? "text-indigo-200" : "text-slate-400";
-  const iconColorClass = transparent ? "text-indigo-200 hover:text-white hover:bg-white/10" : "text-slate-400 hover:text-indigo-600 hover:bg-slate-50";
-  const navLinkColorClass = transparent ? "text-indigo-100 hover:text-white" : "text-slate-600 hover:text-indigo-600";
-
   return (
-    <div className={`${transparent ? "bg-transparent border-white/10" : "bg-white border-slate-100"} border-b h-20 px-6 md:px-10 flex items-center justify-between sticky top-0 z-50 transition-all duration-300`}>
+    <div
+      className="h-20 px-6 md:px-10 flex items-center justify-between sticky top-0 z-50 transition-all duration-300"
+      style={{
+        background: transparent ? "transparent" : "white",
+        borderBottom: transparent ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--border-fine)",
+      }}
+    >
       <div className="flex items-center gap-8">
         <Link href="/student/dashboard" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold transition-transform group-hover:scale-110 shadow-lg shadow-indigo-500/30">PL</div>
+          <div
+            className="w-10 h-10 flex items-center justify-center text-white font-bold transition-transform group-hover:scale-110"
+            style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)" }}
+          >
+            PL
+          </div>
           <div className="flex flex-col leading-none">
-            <span className={`font-bold text-lg tracking-tight ${textColorClass}`}>ParaLearn</span>
-            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Premium CBT</span>
+            <span className="font-bold text-lg tracking-tight" style={{ color: transparent ? "white" : "var(--foreground)" }}>
+              ParaLearn
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: transparent ? "rgba(255,255,255,0.6)" : "var(--violet-ink)" }}>
+              Premium CBT
+            </span>
           </div>
         </Link>
-        
+
         <nav className="hidden md:flex items-center gap-2">
-          <Link href="/student/dashboard" className={`px-5 py-2.5 rounded-full font-medium text-sm flex items-center gap-2 transition-all ${transparent ? "bg-white/10 text-white shadow-inner border border-white/5" : "bg-indigo-50 text-indigo-700"}`}>
+          <Link
+            href="/student/dashboard"
+            className="px-5 py-2.5 font-medium text-sm flex items-center gap-2 transition-all"
+            style={{
+              borderRadius: "var(--radius-lg)",
+              background: transparent ? "rgba(255,255,255,0.1)" : "var(--violet-tint)",
+              color: transparent ? "white" : "var(--violet-ink)",
+              border: transparent ? "1px solid rgba(255,255,255,0.05)" : "none",
+            }}
+          >
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
           </Link>
-          <Link href="/student/results" className={`px-5 py-2.5 rounded-full font-medium text-sm flex items-center gap-2 transition-all relative group cursor-not-allowed ${transparent ? "text-gray-400 hover:bg-white/5 hover:text-white" : "text-slate-500 hover:bg-slate-50"}`}>
-            <Bell className="w-4 h-4 group-hover:text-indigo-300 transition-colors" />
+          <Link
+            href="/student/results"
+            className="px-5 py-2.5 font-medium text-sm flex items-center gap-2 transition-all cursor-not-allowed"
+            style={{ borderRadius: "var(--radius-lg)", color: transparent ? "rgba(255,255,255,0.4)" : "var(--foreground-muted)" }}
+            onMouseEnter={e => { if (transparent) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; else e.currentTarget.style.background = "var(--surface-muted)"; }}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+          >
+            <Bell className="w-4 h-4" />
             Results
           </Link>
         </nav>
       </div>
 
-       <div className="flex items-center gap-5">
+      <div className="flex items-center gap-5">
         <div className="text-right hidden sm:block">
-          <p className={`text-sm font-semibold ${textColorClass}`}>{user?.firstName ? `${user.firstName} ${user.lastName || ""}` : "Student"}</p>
-          <p className={`text-[10px] uppercase tracking-wider font-medium ${subTextColorClass}`}>Student Portal</p>
+          <p className="text-sm font-semibold" style={{ color: transparent ? "white" : "var(--foreground)" }}>
+            {user?.firstName ? `${user.firstName} ${user.lastName || ""}` : "Student"}
+          </p>
+          <p className="text-[10px] uppercase tracking-wider font-medium" style={{ color: transparent ? "rgba(255,255,255,0.6)" : "var(--foreground-muted)" }}>
+            Student Portal
+          </p>
         </div>
-        
-         <div className="relative group">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-green-400 to-emerald-600 opacity-75 blur-sm group-hover:opacity-100 transition-opacity"></div>
-            <button className="relative w-11 h-11 rounded-full border-2 border-slate-900 p-[2px] bg-slate-900 overflow-hidden">
-              <img 
-                alt="Avatar" 
-                className="rounded-full w-full h-full object-cover bg-slate-200" 
-                src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'guest'}`} 
-              />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
+
+        <div className="relative group">
+          <div className="absolute -inset-1 rounded-full opacity-75 blur-sm group-hover:opacity-100 transition-opacity" style={{ background: "var(--emerald-signal)" }} />
+          <button className="relative w-11 h-11 rounded-full p-[2px] overflow-hidden" style={{ border: "2px solid var(--foreground)", background: "var(--foreground)" }}>
+            <img
+              alt="Avatar"
+              className="rounded-full w-full h-full object-cover"
+              style={{ background: "var(--surface-muted)" }}
+              src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'guest'}`}
+            />
+            <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full" style={{ background: "var(--emerald-signal)", border: "2px solid var(--foreground)" }} />
+          </button>
+
+          {/* Dropdown */}
+          <div className="absolute right-0 top-12 w-48 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50" style={{ background: "white", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-dialog)", border: "1px solid var(--border-fine)" }}>
+            <button
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 font-medium transition-colors"
+              style={{ color: "var(--crimson-signal)", background: "transparent", border: "none" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "var(--crimson-tint)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            >
+              <LogOut className="w-4 h-4" /> Sign Out
             </button>
-            
-            {/* Dropdown Menu (Simplified) */}
-            <div className="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-50">
-               <button onClick={() => setIsLogoutModalOpen(true)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium">
-                 <LogOut className="w-4 h-4" /> Sign Out
-               </button>
-            </div>
-         </div>
-         
-         {/* Mobile Logout Button */}
-         <button
-           onClick={() => setIsLogoutModalOpen(true)}
-           className="md:hidden flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg font-bold text-xs border border-red-100 shadow-sm active:scale-95 transition-all"
-         >
-           <LogOut className="w-3.5 h-3.5" />
-           Logout
-         </button>
+          </div>
+        </div>
+
+        {/* Mobile Logout */}
+        <button
+          onClick={() => setIsLogoutModalOpen(true)}
+          className="md:hidden flex items-center gap-2 px-3 py-1.5 font-bold text-xs active:scale-95 transition-all"
+          style={{ background: "var(--crimson-tint)", color: "var(--crimson-signal)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)" }}
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          Logout
+        </button>
       </div>
-      <LogoutConfirmModal 
+      <LogoutConfirmModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}

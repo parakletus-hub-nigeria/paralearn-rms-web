@@ -48,41 +48,14 @@ const teacherClassesTourSteps = [
   },
 ];
 
-const DEFAULT_PRIMARY = "#641BC4";
-
 type TabType = "classes" | "subjects";
 
-// Helper to get color theme based on index
 const getThemeColor = (index: number) => {
   const themes = [
-    { 
-      primary: "#8B5CF6", // Purple
-      bg: "bg-[#F3E8FF]", 
-      border: "border-purple-100",
-      text: "text-purple-900",
-      badge: "bg-purple-100 text-purple-700"
-    }, 
-    { 
-      primary: "#10B981", // Emerald
-      bg: "bg-[#ECFDF5]", 
-      border: "border-emerald-100",
-      text: "text-emerald-900",
-      badge: "bg-emerald-100 text-emerald-700"
-    }, 
-    { 
-      primary: "#F43F5E", // Rose
-      bg: "bg-[#FFF1F2]", 
-      border: "border-rose-100",
-      text: "text-rose-900",
-      badge: "bg-rose-100 text-rose-700"
-    }, 
-    { 
-      primary: "#3B82F6", // Blue
-      bg: "bg-[#EFF6FF]", 
-      border: "border-blue-100",
-      text: "text-blue-900",
-      badge: "bg-blue-100 text-blue-700"
-    }, 
+    { primary: "var(--violet-ink)", tint: "var(--violet-tint)", signal: "var(--violet-ink)" },
+    { primary: "var(--emerald-signal)", tint: "var(--emerald-tint)", signal: "var(--emerald-signal)" },
+    { primary: "var(--crimson-signal)", tint: "var(--crimson-tint)", signal: "var(--crimson-signal)" },
+    { primary: "var(--cobalt-signal)", tint: "var(--cobalt-tint)", signal: "var(--cobalt-signal)" },
   ];
   return themes[index % themes.length];
 };
@@ -91,9 +64,6 @@ export function TeacherClassesPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { teacherClasses, academicCurrent, loading } = useSelector((s: RootState) => s.teacher);
   const { user } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
-
   const [activeTab, setActiveTab] = useState<TabType>("classes");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -208,56 +178,61 @@ export function TeacherClassesPage() {
   const getInitials = (f?: string, l?: string) => `${(f||"")[0]||""}${(l||"")[0]||""}`.toUpperCase() || "?";
 
   return (
-    <div className="w-full min-h-screen pb-20 bg-slate-50/30">
-      <TeacherHeader /> {/* Standard Top Bar */}
+    <div className="w-full min-h-screen pb-20">
+      <TeacherHeader />
       <ProductTour tourKey="teacher_classes" steps={teacherClassesTourSteps} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-8">
-        
+
         {/* Welcome & Stats Header Section */}
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 font-coolvetica">Good day, {(user as any)?.firstName || "Teacher"}!</h1>
-              <p className="text-slate-500 mt-1 font-coolvetica">Manage your class mastery and student progress.</p>
+              <h1 className="text-3xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
+                Good day, {(user as any)?.firstName || "Teacher"}!
+              </h1>
+              <p className="mt-1" style={{ color: "var(--foreground-muted)" }}>Manage your class mastery and student progress.</p>
             </div>
             <div className="flex gap-3 teacher-classes-quick-actions">
               <Link href={routespath.TEACHER_ATTENDANCE}>
-                <Button 
-                  variant="outline" 
-                  className="h-10 border-slate-200 bg-white text-slate-700 font-bold shadow-sm"
+                <button
+                  className="flex items-center gap-2 h-10 px-4 font-semibold text-sm"
+                  style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)", background: "white", color: "var(--foreground)" }}
                 >
-                  <CalendarDays className="w-4 h-4 mr-2 text-slate-400" />
+                  <CalendarDays className="w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
                   Start Attendance
-                </Button>
+                </button>
               </Link>
               <Link href={routespath.TEACHER_SCORES}>
-                <Button className="h-10 font-bold shadow-md bg-[#641BC4] hover:bg-[#5215a3] text-white">
-                  <BarChart3 className="w-4 h-4 mr-2" />
+                <button
+                  className="flex items-center gap-2 h-10 px-4 font-semibold text-sm text-white"
+                  style={{ borderRadius: "var(--radius-lg)", background: "var(--violet-ink)" }}
+                >
+                  <BarChart3 className="w-4 h-4" />
                   Record Scores
-                </Button>
+                </button>
               </Link>
             </div>
           </div>
 
           {/* Stats Cards */}
           <div className="teacher-classes-stats grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center">
-                 <GraduationCap className="w-8 h-8 text-purple-600" />
+            <div className="bg-white p-6 flex items-center gap-5" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+              <div className="w-16 h-16 flex items-center justify-center shrink-0" style={{ borderRadius: "var(--radius-xl)", background: "var(--violet-tint)" }}>
+                <GraduationCap className="w-8 h-8" style={{ color: "var(--violet-ink)" }} />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Total Classes</p>
-                <p className="text-4xl font-black text-slate-900">{stats.totalClasses}</p>
+                <p className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>Total Classes</p>
+                <p className="text-4xl font-black" style={{ color: "var(--foreground)" }}>{stats.totalClasses}</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
-                 <BookOpen className="w-8 h-8 text-blue-600" />
+            <div className="bg-white p-6 flex items-center gap-5" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+              <div className="w-16 h-16 flex items-center justify-center shrink-0" style={{ borderRadius: "var(--radius-xl)", background: "var(--cobalt-tint)" }}>
+                <BookOpen className="w-8 h-8" style={{ color: "var(--cobalt-signal)" }} />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">Total Subjects</p>
-                <p className="text-4xl font-black text-slate-900">{stats.totalSubjects}</p>
+                <p className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>Total Subjects</p>
+                <p className="text-4xl font-black" style={{ color: "var(--foreground)" }}>{stats.totalSubjects}</p>
               </div>
             </div>
           </div>
@@ -265,229 +240,283 @@ export function TeacherClassesPage() {
 
         {/* Navigation & Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4">
-           {/* Pill Tabs */}
-           <div className="teacher-classes-tabs flex bg-slate-100 rounded-full p-1.5 self-start shadow-inner">
-              <button
-                onClick={() => setActiveTab("classes")}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${
-                  activeTab === "classes" 
-                    ? "bg-white text-purple-700 shadow-sm" 
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <GraduationCap className={`w-4 h-4 ${activeTab === "classes" ? "text-purple-600" : ""}`} />
-                My Classes
-              </button>
-              <button
-                onClick={() => setActiveTab("subjects")}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${
-                  activeTab === "subjects" 
-                    ? "bg-white text-purple-700 shadow-sm" 
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <BookOpen className={`w-4 h-4 ${activeTab === "subjects" ? "text-purple-600" : ""}`} />
-                My Subjects <span className="opacity-60 text-xs ml-1">({stats.totalSubjects})</span>
-              </button>
-           </div>
+          {/* Pill Tabs */}
+          <div className="teacher-classes-tabs flex p-1.5 self-start" style={{ borderRadius: "9999px", background: "var(--surface-muted)" }}>
+            <button
+              onClick={() => setActiveTab("classes")}
+              className="flex items-center gap-2 px-6 py-2.5 font-bold text-sm transition-all"
+              style={{
+                borderRadius: "9999px",
+                background: activeTab === "classes" ? "white" : "transparent",
+                color: activeTab === "classes" ? "var(--violet-ink)" : "var(--foreground-muted)",
+                boxShadow: activeTab === "classes" ? "var(--shadow-card)" : "none",
+              }}
+            >
+              <GraduationCap className="w-4 h-4" />
+              My Classes
+            </button>
+            <button
+              onClick={() => setActiveTab("subjects")}
+              className="flex items-center gap-2 px-6 py-2.5 font-bold text-sm transition-all"
+              style={{
+                borderRadius: "9999px",
+                background: activeTab === "subjects" ? "white" : "transparent",
+                color: activeTab === "subjects" ? "var(--violet-ink)" : "var(--foreground-muted)",
+                boxShadow: activeTab === "subjects" ? "var(--shadow-card)" : "none",
+              }}
+            >
+              <BookOpen className="w-4 h-4" />
+              My Subjects <span className="opacity-60 text-xs ml-1">({stats.totalSubjects})</span>
+            </button>
+          </div>
 
-           <div className="flex gap-3 flex-1 md:justify-end">
-              <div className="relative flex-1 md:max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Search for a class or subject..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 h-11 rounded-xl border-slate-200 bg-white focus:bg-white transition-all shadow-sm"
-                />
-              </div>
-              <div className="flex bg-white rounded-xl border border-slate-200 p-1 shadow-sm">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-slate-100 text-slate-900" : "text-slate-400 hover:text-slate-600"}`}
-                >
-                  <Grid3X3 className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg transition-all ${viewMode === "list" ? "bg-slate-100 text-slate-900" : "text-slate-400 hover:text-slate-600"}`}
-                >
-                  <List className="w-5 h-5" />
-                </button>
-              </div>
-           </div>
+          <div className="flex gap-3 flex-1 md:justify-end">
+            <div className="relative flex-1 md:max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
+              <Input
+                placeholder="Search for a class or subject..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 h-11 bg-white"
+                style={{ borderRadius: "var(--radius-lg)", borderColor: "var(--border-fine)" }}
+              />
+            </div>
+            <div className="flex p-1" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)", background: "white" }}>
+              <button
+                onClick={() => setViewMode("grid")}
+                className="p-2 transition-all"
+                style={{ borderRadius: "var(--radius-md)", background: viewMode === "grid" ? "var(--surface-muted)" : "", color: viewMode === "grid" ? "var(--foreground)" : "var(--foreground-muted)" }}
+              >
+                <Grid3X3 className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className="p-2 transition-all"
+                style={{ borderRadius: "var(--radius-md)", background: viewMode === "list" ? "var(--surface-muted)" : "", color: viewMode === "list" ? "var(--foreground)" : "var(--foreground-muted)" }}
+              >
+                <List className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Content */}
         {loading ? (
-           <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-purple-600"/></div>
+          <div className="flex justify-center py-20">
+            <div className="h-12 w-12 rounded-full" style={{ border: "4px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
+          </div>
         ) : activeTab === "classes" ? (
-           filteredClassAssignments.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                <p className="text-slate-400 font-medium">No classes found.</p>
-              </div>
-           ) : viewMode === "grid" ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {filteredClassAssignments.map((cls: any, idx: number) => {
-                 const theme = getThemeColor(idx);
-                 const subjects = cls.subjects || [];
-                 return (
-                   <div key={cls.id} className={`rounded-3xl p-6 ${theme.bg} border ${theme.border} flex flex-col h-full hover:shadow-lg transition-all duration-300 relative group`}>
-                      <div className="flex justify-between items-start mb-6">
-                        <div>
-                          <h3 className={`text-2xl font-black ${theme.text} tracking-tight`}>{cls.className}</h3>
-                          <div className={`inline-flex items-center px-2 py-0.5 mt-1 rounded-md text-[10px] uppercase font-bold tracking-wider ${theme.badge}`}>
-                             Class Teacher
+          filteredClassAssignments.length === 0 ? (
+            <div className="text-center py-20 bg-white border border-dashed" style={{ borderRadius: "var(--radius-xl)", borderColor: "var(--border-medium)", color: "var(--foreground-muted)" }}>
+              <p className="font-medium">No classes found.</p>
+            </div>
+          ) : viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredClassAssignments.map((cls: any, idx: number) => {
+                const theme = getThemeColor(idx);
+                const subjects = cls.subjects || [];
+                return (
+                  <div
+                    key={cls.id}
+                    className="p-6 flex flex-col h-full transition-all duration-200"
+                    style={{ borderRadius: "var(--radius-xl)", background: theme.tint, border: `1px solid color-mix(in oklch, ${theme.primary} 15%, transparent)`, boxShadow: "var(--shadow-card)" }}
+                  >
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--foreground)" }}>{cls.className}</h3>
+                        <div className="inline-flex items-center px-2 py-0.5 mt-1 rounded-md text-[10px] uppercase font-bold tracking-wider" style={{ background: "rgba(255,255,255,0.7)", color: theme.primary }}>
+                          Class Teacher
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center justify-center w-14 h-14 bg-white rounded-full" style={{ boxShadow: "var(--shadow-card)" }}>
+                        <span className="text-lg font-black" style={{ color: theme.primary }}>{cls.studentCount}</span>
+                        <span className="text-[9px] font-bold uppercase -mt-1" style={{ color: "var(--foreground-muted)" }}>Students</span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 mb-6">
+                      <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--foreground-muted)" }}>Assigned Subjects</p>
+                      <div className="space-y-2.5">
+                        {subjects.slice(0, 3).map((s: any, i: number) => (
+                          <div key={i} className="flex items-center gap-2.5">
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: theme.primary }} />
+                            <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>{s.name}</span>
                           </div>
-                        </div>
-                        {/* Student Count Badge (replaces Circular Progress) */}
-                        <div className="flex flex-col items-center justify-center w-14 h-14 bg-white rounded-full shadow-sm ring-4 ring-white/50">
-                           <span className={`text-lg font-black ${theme.text}`}>{cls.studentCount}</span>
-                           <span className="text-[9px] text-slate-400 font-bold uppercase -mt-1">Students</span>
-                        </div>
+                        ))}
+                        {subjects.length > 3 && (
+                          <span className="text-xs font-bold ml-4" style={{ color: "var(--foreground-muted)" }}>+{subjects.length - 3} more subjects</span>
+                        )}
+                        {subjects.length === 0 && <span className="text-sm italic" style={{ color: "var(--foreground-muted)" }}>No subjects assigned</span>}
                       </div>
+                    </div>
 
-                      <div className="flex-1 mb-6">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Assigned Subjects</p>
-                        <div className="space-y-2.5">
-                          {subjects.slice(0, 3).map((s: any, i:number) => (
-                            <div key={i} className="flex items-center gap-2.5">
-                               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: theme.primary }} />
-                               <span className="text-sm text-slate-700 font-bold">{s.name}</span>
+                    <div className="pt-4 flex items-center justify-between gap-2 mt-auto" style={{ borderTop: `1px solid color-mix(in oklch, ${theme.primary} 10%, transparent)` }}>
+                      <div className="flex items-center gap-2">
+                        <span
+                          onClick={() => openStudentsModal(cls.classId)}
+                          className="cursor-pointer text-xs font-bold transition-colors"
+                          style={{ color: "var(--foreground-muted)" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = theme.primary)}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")}
+                        >
+                          View Class Details
+                        </span>
+                        <ChevronRight className="w-3 h-3" style={{ color: "var(--foreground-muted)" }} />
+                      </div>
+                      <div className="flex bg-white p-1 ml-auto" style={{ borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-card)" }}>
+                        <button onClick={() => openStudentsModal(cls.classId)} className="p-2 transition-colors" style={{ borderRadius: "var(--radius-sm)", color: "var(--foreground-muted)" }} onMouseEnter={(e) => (e.currentTarget.style.color = theme.primary)} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")} title="Students">
+                          <Users className="w-4 h-4" />
+                        </button>
+                        <Link href={`${routespath.TEACHER_ASSESSMENTS}?classId=${cls.classId}`}>
+                          <button className="p-2 transition-colors" style={{ borderRadius: "var(--radius-sm)", color: "var(--foreground-muted)" }} onMouseEnter={(e) => (e.currentTarget.style.color = theme.primary)} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")} title="Assessments">
+                            <ClipboardList className="w-4 h-4" />
+                          </button>
+                        </Link>
+                        <Link href={`${routespath.TEACHER_SCORES}?classId=${cls.classId}`}>
+                          <button className="p-2 transition-colors" style={{ borderRadius: "var(--radius-sm)", color: "var(--foreground-muted)" }} onMouseEnter={(e) => (e.currentTarget.style.color = "var(--emerald-signal)")} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")} title="Scores">
+                            <BarChart3 className="w-4 h-4" />
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-white overflow-hidden" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+              <table className="w-full text-left">
+                <thead style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+                  <tr>
+                    <th className="px-6 py-4 text-xs font-bold uppercase" style={{ color: "var(--foreground-muted)" }}>Class</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase" style={{ color: "var(--foreground-muted)" }}>Students</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase text-right" style={{ color: "var(--foreground-muted)" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredClassAssignments.map((cls: any) => (
+                    <tr
+                      key={cls.id}
+                      style={{ borderBottom: "1px solid var(--border-fine)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                    >
+                      <td className="px-6 py-4 font-bold" style={{ color: "var(--foreground)" }}>{cls.className}</td>
+                      <td className="px-6 py-4 font-bold" style={{ color: "var(--foreground-muted)" }}>{cls.studentCount}</td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="ghost" onClick={() => openStudentsModal(cls.classId)}><Users className="w-4 h-4" /></Button>
+                          <Link href={`${routespath.TEACHER_SCORES}?classId=${cls.classId}`}><Button size="sm" variant="ghost"><BarChart3 className="w-4 h-4" /></Button></Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : (
+          // SUBJECTS TAB
+          filteredSubjectAssignments.length === 0 ? (
+            <div className="text-center py-20 bg-white border border-dashed" style={{ borderRadius: "var(--radius-xl)", borderColor: "var(--border-medium)", color: "var(--foreground-muted)" }}>
+              <p className="font-medium">No subjects found.</p>
+            </div>
+          ) : viewMode === "grid" ? (
+            <div className="space-y-10">
+              {Array.from(subjectsByClass.entries()).map(([classId, subjects]: [string, any[]], idx: number) => {
+                const first = subjects[0];
+                const theme = getThemeColor(idx);
+                return (
+                  <div key={classId}>
+                    <div className="flex items-center gap-3 mb-4 ml-1">
+                      <div className="w-1.5 h-6 rounded-full" style={{ background: theme.primary }} />
+                      <h3 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>{first.className}</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {subjects.map((subj: any) => (
+                        <div
+                          key={subj.id}
+                          className="bg-white p-6 relative overflow-hidden transition-all"
+                          style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-card)")}
+                        >
+                          <div className="absolute top-0 left-0 w-1 h-full" style={{ background: theme.primary }} />
+                          <div className="flex justify-between items-start mb-4 pl-3">
+                            <div>
+                              <h4 className="text-lg font-bold" style={{ color: "var(--foreground)" }}>{subj.subjectName}</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Users className="w-3 h-3" style={{ color: "var(--foreground-muted)" }} />
+                                <span className="text-xs font-bold" style={{ color: "var(--foreground-muted)" }}>{subj.studentCount} Students</span>
+                              </div>
                             </div>
-                          ))}
-                          {subjects.length > 3 && (
-                             <span className="text-xs font-bold text-slate-400 ml-4">+{subjects.length - 3} more subjects</span>
-                          )}
-                          {subjects.length === 0 && <span className="text-sm italic text-slate-400">No subjects assigned</span>}
-                        </div>
-                      </div>
-
-                      <div className="border-t border-slate-200/50 pt-4 flex items-center justify-between gap-2 mt-auto">
-                         <div className="flex items-center gap-2">
-                            <span 
-                               onClick={() => openStudentsModal(cls.classId)}
-                               className="cursor-pointer text-xs font-bold text-slate-500 hover:text-purple-600 transition-colors"
-                            >
-                               View Class Details
-                            </span>
-                            <ChevronRight className="w-3 h-3 text-slate-400" />
-                         </div>
-                         
-                         {/* Action Icons Panel */}
-                         <div className="flex bg-white rounded-lg shadow-sm p-1 ml-auto">
-                            <button onClick={() => openStudentsModal(cls.classId)} className="p-2 rounded-md hover:bg-slate-50 text-slate-400 hover:text-purple-600 tooltip" title="Students">
+                            <div className="p-2" style={{ borderRadius: "var(--radius-md)", background: theme.tint }}>
+                              <BookOpen className="w-4 h-4" style={{ color: theme.primary }} />
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-6 pt-4" style={{ borderTop: "1px solid var(--border-fine)" }}>
+                            <button className="w-8 h-8 flex items-center justify-center transition-colors" style={{ borderRadius: "var(--radius-md)", color: "var(--foreground-muted)" }} onClick={() => openStudentsModal(subj.classId)} onMouseEnter={(e) => (e.currentTarget.style.color = theme.primary)} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")}>
                               <Users className="w-4 h-4" />
                             </button>
-                            <Link href={`${routespath.TEACHER_ASSESSMENTS}?classId=${cls.classId}`}>
-                              <button className="p-2 rounded-md hover:bg-slate-50 text-slate-400 hover:text-purple-600" title="Assessments">
+                            <Link href={`${routespath.TEACHER_ASSESSMENTS}?classId=${subj.classId}&subjectId=${subj.subjectId}`}>
+                              <button className="w-8 h-8 flex items-center justify-center transition-colors" style={{ borderRadius: "var(--radius-md)", color: "var(--foreground-muted)" }} onMouseEnter={(e) => (e.currentTarget.style.color = theme.primary)} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")}>
                                 <ClipboardList className="w-4 h-4" />
                               </button>
                             </Link>
-                            <Link href={`${routespath.TEACHER_SCORES}?classId=${cls.classId}`}>
-                              <button className="p-2 rounded-md hover:bg-slate-50 text-slate-400 hover:text-emerald-600" title="Scores">
+                            <Link href={`${routespath.TEACHER_SCORES}?classId=${subj.classId}&subjectId=${subj.subjectId}`}>
+                              <button className="w-8 h-8 flex items-center justify-center transition-colors" style={{ borderRadius: "var(--radius-md)", color: "var(--foreground-muted)" }} onMouseEnter={(e) => (e.currentTarget.style.color = "var(--emerald-signal)")} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")}>
                                 <BarChart3 className="w-4 h-4" />
                               </button>
                             </Link>
-                         </div>
-                      </div>
-                   </div>
-                 );
-               })}
-             </div>
-           ) : (
-             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                {/* List View Implementation (Table) */}
-                <table className="w-full text-left">
-                  <thead className="bg-slate-50/50 border-b border-slate-100">
-                    <tr><th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase">Class</th><th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase">Students</th><th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase text-right">Actions</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {filteredClassAssignments.map((cls:any) => (
-                      <tr key={cls.id} className="hover:bg-slate-50/50">
-                         <td className="px-6 py-4 font-bold text-slate-700">{cls.className}</td>
-                         <td className="px-6 py-4 font-bold text-slate-500">{cls.studentCount}</td>
-                         <td className="px-6 py-4 text-right flex justify-end gap-2">
-                            <Button size="sm" variant="ghost" onClick={() => openStudentsModal(cls.classId)}><Users className="w-4 h-4"/></Button>
-                            <Link href={`${routespath.TEACHER_SCORES}?classId=${cls.classId}`}><Button size="sm" variant="ghost"><BarChart3 className="w-4 h-4"/></Button></Link>
-                         </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-             </div>
-           )
-        ) : (
-           // SUBJECTS TAB
-           filteredSubjectAssignments.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                <p className="text-slate-400 font-medium">No subjects found.</p>
-              </div>
-           ) : viewMode === "grid" ? (
-             <div className="space-y-10">
-               {Array.from(subjectsByClass.entries()).map(([classId, subjects]: [string, any[]], idx: number) => {
-                 const first = subjects[0];
-                 const theme = getThemeColor(idx);
-                 return (
-                   <div key={classId}>
-                      <div className="flex items-center gap-3 mb-4 ml-1">
-                        <div className={`w-1.5 h-6 rounded-full`} style={{backgroundColor: theme.primary}}/>
-                        <h3 className="text-xl font-bold text-slate-800">{first.className}</h3>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {subjects.map((subj:any) => (
-                          <div key={subj.id} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden">
-                             <div className={`absolute top-0 left-0 w-1 h-full`} style={{backgroundColor: theme.primary}}/>
-                             <div className="flex justify-between items-start mb-4 pl-3">
-                                <div>
-                                  <h4 className="text-lg font-bold text-slate-900">{subj.subjectName}</h4>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <Users className="w-3 h-3 text-slate-400"/>
-                                    <span className="text-xs font-bold text-slate-500">{subj.studentCount} Students</span>
-                                  </div>
-                                </div>
-                                <div className={`p-2 rounded-xl ${theme.bg}`}>
-                                  <BookOpen className="w-4 h-4" style={{ color: theme.primary }}/>
-                                </div>
-                             </div>
-                             <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-slate-50">
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openStudentsModal(subj.classId)}><Users className="w-4 h-4 text-slate-400 hover:text-purple-600"/></Button>
-                                <Link href={`${routespath.TEACHER_ASSESSMENTS}?classId=${subj.classId}&subjectId=${subj.subjectId}`}><Button variant="ghost" size="sm" className="h-8 w-8 p-0"><ClipboardList className="w-4 h-4 text-slate-400 hover:text-purple-600"/></Button></Link>
-                                <Link href={`${routespath.TEACHER_SCORES}?classId=${subj.classId}&subjectId=${subj.subjectId}`}><Button variant="ghost" size="sm" className="h-8 w-8 p-0"><BarChart3 className="w-4 h-4 text-slate-400 hover:text-emerald-600"/></Button></Link>
-                             </div>
                           </div>
-                        ))}
-                      </div>
-                   </div>
-                 )
-               })}
-             </div>
-           ) : (
-             <div>{/* List View similar to above */}</div>
-           )
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ color: "var(--foreground-muted)" }} className="text-center py-8">Switch to grid view for subjects.</div>
+          )
         )}
       </div>
 
-      {/* Reused Student Modal (simplified for brevity) */}
+      {/* Student Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden m-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-              <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                 <h3 className="font-bold text-lg text-slate-900">{selectedClassData?.name} Students</h3>
-                 <button onClick={() => setShowModal(false)}><X className="w-5 h-5 text-slate-400"/></button>
-              </div>
-              <div className="p-4 bg-slate-50"><Input placeholder="Search students..." value={studentSearch} onChange={e=>setStudentSearch(e.target.value)} className="bg-white"/></div>
-              <div className="overflow-y-auto flex-1 p-0">
-                 {loadingStudents ? <div className="p-10 text-center">Loading...</div> : 
-                   filteredStudents.map((s:any, i:number) => (
-                     <div key={i} className="px-6 py-3 border-b border-slate-50 flex items-center gap-3 hover:bg-slate-50">
-                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">{getInitials(s.firstName, s.lastName)}</div>
-                        <div className="flex-1"><p className="font-bold text-sm text-slate-800">{s.firstName} {s.lastName}</p><p className="text-xs text-slate-500">{s.studentId}</p></div>
-                     </div>
-                   ))
-                 }
-              </div>
-           </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(15,23,42,0.5)" }} onClick={() => setShowModal(false)}>
+          <div className="bg-white w-full max-w-2xl m-4 max-h-[80vh] flex flex-col overflow-hidden" style={{ borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)" }} onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 flex justify-between items-center" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+              <h3 className="font-bold text-lg" style={{ color: "var(--foreground)" }}>{selectedClassData?.name} Students</h3>
+              <button onClick={() => setShowModal(false)} style={{ color: "var(--foreground-muted)" }}><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-4" style={{ background: "var(--surface-muted)" }}>
+              <Input placeholder="Search students..." value={studentSearch} onChange={e => setStudentSearch(e.target.value)} className="bg-white" style={{ borderColor: "var(--border-fine)" }} />
+            </div>
+            <div className="overflow-y-auto flex-1">
+              {loadingStudents ? (
+                <div className="p-10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
+                </div>
+              ) : filteredStudents.map((s: any, i: number) => (
+                <div
+                  key={i}
+                  className="px-6 py-3 flex items-center gap-3 transition-colors"
+                  style={{ borderBottom: "1px solid var(--border-fine)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--violet-tint)", color: "var(--violet-ink)" }}>
+                    {getInitials(s.firstName, s.lastName)}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-sm" style={{ color: "var(--foreground)" }}>{s.firstName} {s.lastName}</p>
+                    <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>{s.studentId}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

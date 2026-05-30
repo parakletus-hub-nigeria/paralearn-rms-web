@@ -155,7 +155,7 @@ export const AdminSchoolSettingsPage = () => {
 
         {/* ── School Information ── */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+          <div className="flex items-center gap-3 px-6 py-4 border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
             <div className="w-9 h-9 rounded-xl bg-[#641BC4] flex items-center justify-center">
               <Building2 className="w-4 h-4 text-white" />
             </div>
@@ -225,7 +225,7 @@ export const AdminSchoolSettingsPage = () => {
 
         {/* ── Report Card Templates ── */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+          <div className="flex items-center gap-3 px-6 py-4 border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
             <div className="w-9 h-9 rounded-xl bg-[#641BC4] flex items-center justify-center">
               <FileText className="w-4 h-4 text-white" />
             </div>
@@ -241,7 +241,7 @@ export const AdminSchoolSettingsPage = () => {
 
         {/* ── Branding ── */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+          <div className="flex items-center gap-3 px-6 py-4 border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
             <div className="w-9 h-9 rounded-xl bg-[#641BC4] flex items-center justify-center">
               <Palette className="w-4 h-4 text-white" />
             </div>

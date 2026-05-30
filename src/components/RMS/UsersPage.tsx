@@ -311,19 +311,16 @@ export const UsersPage = () => {
     }
   };
 
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      "bg-violet-500",
-      "bg-blue-500",
-      "bg-emerald-500",
-      "bg-amber-500",
-      "bg-rose-500",
-      "bg-cyan-500",
-      "bg-pink-500",
-      "bg-indigo-500",
+  const getAvatarAccent = (name: string) => {
+    const accents = [
+      { bg: "var(--violet-tint)", color: "var(--violet-ink)" },
+      { bg: "var(--cobalt-tint)", color: "var(--cobalt-signal)" },
+      { bg: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+      { bg: "var(--amber-tint)", color: "var(--amber-signal)" },
+      { bg: "var(--crimson-tint)", color: "var(--crimson-signal)" },
     ];
-    const index = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
-    return colors[index];
+    const index = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % accents.length;
+    return accents[index];
   };
 
   return (
@@ -335,263 +332,151 @@ export const UsersPage = () => {
       />
 
       {/* Page Header */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+      <div>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 20 }}>
           <div>
-            <h1 className="users-directory-header text-2xl font-bold text-slate-900 font-coolvetica">Directory</h1>
-            <p className="text-slate-500 text-sm mt-1 font-coolvetica">
+            <h1 className="users-directory-header" style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: "clamp(1.25rem, 2vw, 1.5rem)", fontWeight: 800, letterSpacing: "-0.025em", color: "var(--foreground)", margin: 0 }}>Directory</h1>
+            <p style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>
               Manage student and teacher access, roles, and class enrollments.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleExport}
-              className="h-11 rounded-xl border-slate-200 gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Button variant="outline" onClick={handleExport} className="h-10 gap-2" style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}>
+              <Download className="w-4 h-4" />Export
             </Button>
-            <Button
-              onClick={() => {
-                setAddModalType("student");
-                setAddModalOpen(true);
-              }}
-              className="users-add-button h-11 rounded-xl gap-2"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <Plus className="w-4 h-4" />
-              Add User
+            <Button onClick={() => { setAddModalType("student"); setAddModalOpen(true); }} className="users-add-button h-10 gap-2 text-white" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600 }}>
+              <Plus className="w-4 h-4" />Add User
             </Button>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="users-filter-bar flex flex-col md:flex-row gap-3 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Search users by name, email, or ID..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-slate-200 bg-slate-50/50"
-            />
+        <div className="users-filter-bar" style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
+          <div style={{ position: "relative", flex: "1 1 240px", minWidth: 0 }}>
+            <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 15, height: 15, color: "var(--text-secondary)", pointerEvents: "none" }} />
+            <Input placeholder="Search by name, email, or ID..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ paddingLeft: 36, height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
           </div>
-          <div className="flex gap-3">
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
-              <SelectTrigger className="h-11 w-[140px] rounded-xl border-slate-200">
+              <SelectTrigger style={{ height: 40, width: 140, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}>
                 <SelectValue placeholder="All Roles" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="teacher">Teachers</SelectItem>
                 <SelectItem value="student">Students</SelectItem>
               </SelectContent>
             </Select>
             <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="h-11 w-[160px] rounded-xl border-slate-200">
+              <SelectTrigger style={{ height: 40, width: 160, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}>
                 <SelectValue placeholder="All Classes" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent>
                 <SelectItem value="all">All Classes</SelectItem>
-                {classes.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
+                {classes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="outline" className="h-11 w-11 p-0 rounded-xl border-slate-200">
-              <Filter className="w-4 h-4 text-slate-500" />
-            </Button>
           </div>
         </div>
 
         {/* Table */}
         {loading && allUsers.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div
-                className="inline-block animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200 mb-4"
-                style={{ borderTopColor: primaryColor }}
-              />
-              <p className="text-slate-500 font-medium">Loading users...</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite", margin: "0 auto 12px" }} />
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500 }}>Loading users...</p>
             </div>
           </div>
         ) : (
           <>
-            <div className="rounded-2xl border border-slate-100 bg-white overflow-hidden">
-              <div className="overflow-x-auto w-full">
-                <table className="w-full">
-                <thead className="hidden md:table-header-group">
-                  <tr style={{ backgroundColor: primaryColor }}>
-                    <th className="text-left text-white font-semibold text-sm py-4 px-5 w-8">
-                      <input 
-                        type="checkbox" 
-                        className="rounded border-white/30" 
-                        checked={paginatedUsers.length > 0 && selectedIds.length === paginatedUsers.length}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                      />
-                    </th>
-                    <th className="text-left text-white font-semibold text-sm py-4 px-3">User Name</th>
-                    <th className="text-left text-white font-semibold text-sm py-4 px-3">Role</th>
-                    <th className="text-left text-white font-semibold text-sm py-4 px-3">Class</th>
-                    <th className="text-left text-white font-semibold text-sm py-4 px-3">Status</th>
-                    <th className="text-center text-white font-semibold text-sm py-4 px-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="block md:table-row-group">
-                  {paginatedUsers.map((user, idx) => (
-                    <tr
-                      key={user.dbId || idx}
-                      className={`block md:table-row border-b md:border-t md:border-b-0 border-slate-100 hover:bg-slate-50/50 transition-colors ${
-                        idx % 2 === 1 ? "bg-slate-50/30" : "bg-white"
-                      }`}
-                    >
-                      <td className="hidden md:table-cell py-4 px-5">
-                        <input 
-                          type="checkbox" 
-                          className="rounded border-slate-300" 
-                          checked={selectedIds.includes(user.dbId)}
-                          onChange={(e) => toggleSelectUser(user.dbId, e.target.checked)}
-                        />
-                      </td>
-                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
-                        <span className="md:hidden text-xs font-semibold text-slate-500">User</span>
-                        <div className="flex items-center gap-3">
-                          {user.avatar ? (
-                            <img
-                              src={user.avatar}
-                              alt=""
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                          ) : (
-                            <img
-                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.dbId || user?.id || 'user'}`}
-                              alt=""
-                              className="w-10 h-10 rounded-full bg-slate-100"
-                            />
-                          )}
-                          <div className="text-right md:text-left">
-                            <p className="font-semibold text-slate-900 text-sm">
-                              {user.firstName} {user.lastName}
-                            </p>
-                            <p className="text-slate-500 text-xs">{user.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
-                        <span className="md:hidden text-xs font-semibold text-slate-500">Role</span>
-                        <Badge
-                          className={`rounded-lg px-3 py-1 font-medium text-xs ${
-                            user.role === "teacher"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-blue-50 text-blue-700"
-                          }`}
-                        >
-                          {user.role === "teacher" ? "Teacher" : "Student"}
-                        </Badge>
-                      </td>
-                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
-                        <span className="md:hidden text-xs font-semibold text-slate-500">Class</span>
-                        <div className="text-right md:text-left">
-                          {user.className ? (
-                            <>
-                              <p className="font-medium text-slate-900 text-sm">
-                                {user.className}
-                              </p>
-                              <p className="text-slate-500 text-xs">Enrolled</p>
-                            </>
-                          ) : (
-                            <Badge variant="outline" className="text-xs text-slate-400 border-slate-200">
-                              {user.role === "student" ? "Not Enrolled" : "—"}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 border-b border-slate-50 md:border-none">
-                        <span className="md:hidden text-xs font-semibold text-slate-500">Status</span>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              user.status === "active" ? "bg-emerald-500" : "bg-slate-400"
-                            }`}
-                          />
-                          <span className="text-sm text-slate-600 capitalize">
-                            {user.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="flex md:table-cell justify-between items-center py-3 px-4 md:py-4 md:px-3 md:text-center">
-                        <span className="md:hidden text-xs font-semibold text-slate-500">Actions</span>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="users-action-menu p-2 rounded-lg hover:bg-slate-100 transition-colors outline-none">
-                              <MoreVertical className="w-4 h-4 text-slate-500" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="min-w-[160px] rounded-xl border border-slate-100 shadow-lg">
-                            <DropdownMenuItem onClick={() => handleViewUser(user)} className="cursor-pointer gap-2 py-2.5">
-                              <Eye className="w-4 h-4 text-slate-400" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer gap-2 py-2.5">
-                              <Pencil className="w-4 h-4 text-slate-400" />
-                              Edit User
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleHardDeleteUser(user)} className="cursor-pointer gap-2 py-2.5 text-red-600 focus:text-red-700 focus:bg-red-50">
-                              <Trash2 className="w-4 h-4" />
-                              Delete Permanently
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
+            <div style={{ background: "#ffffff", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", overflow: "hidden" }}>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+                      <th style={{ padding: "12px 16px", width: 40 }}>
+                        <input type="checkbox" checked={paginatedUsers.length > 0 && selectedIds.length === paginatedUsers.length} onChange={(e) => handleSelectAll(e.target.checked)} style={{ accentColor: "var(--violet-ink)" }} />
+                      </th>
+                      {["User Name", "Role", "Class", "Status", "Actions"].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 4 ? "center" : "left", fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-secondary)", padding: "12px 12px" }}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                  {paginatedUsers.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="py-16 text-center text-slate-500 font-medium">
-                        No users found matching your criteria.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {paginatedUsers.map((user, idx) => {
+                      const accent = getAvatarAccent(`${user.firstName}${user.lastName}`);
+                      return (
+                        <tr key={user.dbId || idx} style={{ borderBottom: "1px solid var(--border-fine)", background: "#ffffff", transition: "background var(--dur-fast)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--violet-tint)")} onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}>
+                          <td style={{ padding: "12px 16px" }}>
+                            <input type="checkbox" checked={selectedIds.includes(user.dbId)} onChange={(e) => toggleSelectUser(user.dbId, e.target.checked)} style={{ accentColor: "var(--violet-ink)" }} />
+                          </td>
+                          <td style={{ padding: "12px 12px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <div style={{ width: 36, height: 36, borderRadius: "50%", background: accent.bg, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, color: accent.color, flexShrink: 0 }}>
+                                {getInitials(user.firstName, user.lastName)}
+                              </div>
+                              <div>
+                                <p style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{user.firstName} {user.lastName}</p>
+                                <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>{user.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: "12px 12px" }}>
+                            <span className={user.role === "teacher" ? "badge badge-active" : "badge badge-info"} style={{ fontSize: 11 }}>
+                              {user.role === "teacher" ? "Teacher" : "Student"}
+                            </span>
+                          </td>
+                          <td style={{ padding: "12px 12px" }}>
+                            {user.className ? (
+                              <div>
+                                <p style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{user.className}</p>
+                                <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>Enrolled</p>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: 12, color: "var(--text-secondary)", fontStyle: "italic" }}>{user.role === "student" ? "Not enrolled" : "—"}</span>
+                            )}
+                          </td>
+                          <td style={{ padding: "12px 12px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ width: 7, height: 7, borderRadius: "50%", background: user.status === "active" ? "var(--emerald-signal)" : "var(--border-medium)", flexShrink: 0, display: "inline-block" }} />
+                              <span style={{ fontSize: 13, color: "var(--foreground)", textTransform: "capitalize" }}>{user.status}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: "12px 12px", textAlign: "center" }}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="users-action-menu" style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}>
+                                  <MoreVertical style={{ width: 15, height: 15 }} />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" style={{ minWidth: 160 }}>
+                                <DropdownMenuItem onClick={() => handleViewUser(user)} className="cursor-pointer gap-2 py-2"><Eye className="w-4 h-4 text-slate-400" />View Details</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer gap-2 py-2"><Pencil className="w-4 h-4 text-slate-400" />Edit User</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleHardDeleteUser(user)} className="cursor-pointer gap-2 py-2 text-red-600 focus:text-red-700 focus:bg-red-50"><Trash2 className="w-4 h-4" />Delete Permanently</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {paginatedUsers.length === 0 && (
+                      <tr><td colSpan={6} style={{ padding: "64px 0", textAlign: "center", color: "var(--text-secondary)", fontSize: 13 }}>No users found matching your criteria.</td></tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
 
             {/* Pagination */}
-            {filteredUsers.length > 0 && (
-              <div className="flex items-center justify-between mt-5">
-                <p className="text-sm text-slate-500">
-                  Showing <span className="font-semibold text-slate-700">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
-                  <span className="font-semibold text-slate-700">
-                    {Math.min(page * ITEMS_PER_PAGE, filteredUsers.length)}
-                  </span>{" "}
-                  of <span className="font-semibold text-slate-700">{filteredUsers.length}</span> results
+            {filteredUsers.length > 0 && totalPages > 1 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, flexWrap: "wrap", gap: 10 }}>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  Showing <strong style={{ color: "var(--foreground)" }}>{(page - 1) * ITEMS_PER_PAGE + 1}</strong>–<strong style={{ color: "var(--foreground)" }}>{Math.min(page * ITEMS_PER_PAGE, filteredUsers.length)}</strong> of <strong style={{ color: "var(--foreground)" }}>{filteredUsers.length}</strong>
                 </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="h-9 px-3 rounded-lg border-slate-200"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                    className="h-9 px-3 rounded-lg border-slate-200"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} style={{ height: 32, padding: "0 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)", background: "#ffffff", fontSize: 13, cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.4 : 1 }}>Previous</button>
+                  <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} style={{ height: 32, padding: "0 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)", background: "#ffffff", fontSize: 13, cursor: page >= totalPages ? "not-allowed" : "pointer", opacity: page >= totalPages ? 0.4 : 1 }}>Next</button>
                 </div>
               </div>
             )}
@@ -614,141 +499,56 @@ export const UsersPage = () => {
 
       {/* View User Modal */}
       {viewUserModal && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
-            onClick={() => setViewUserModal(null)} 
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="px-6 pt-6 pb-4 flex items-start justify-between border-b border-slate-100">
-              <div className="flex items-center gap-4">
-                {viewUserModal.avatar ? (
-                  <img
-                    src={viewUserModal.avatar}
-                    alt=""
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${viewUserModal?.dbId || viewUserModal?.id || 'user'}`}
-                    alt=""
-                    className="w-16 h-16 rounded-full bg-slate-100"
-                  />
-                )}
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => setViewUserModal(null)} />
+          <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 460, overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                {(() => {
+                  const accent = getAvatarAccent(`${viewUserModal.firstName}${viewUserModal.lastName}`);
+                  return (
+                    <div style={{ width: 52, height: 52, borderRadius: "50%", background: accent.bg, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 18, color: accent.color, flexShrink: 0 }}>
+                      {getInitials(viewUserModal.firstName, viewUserModal.lastName)}
+                    </div>
+                  );
+                })()}
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    {viewUserModal.firstName} {viewUserModal.lastName}
-                  </h2>
-                  <Badge
-                    className={`mt-1 rounded-lg px-2.5 py-0.5 font-medium text-xs ${
-                      viewUserModal.role === "teacher"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-blue-50 text-blue-700"
-                    }`}
-                  >
-                    {viewUserModal.role === "teacher" ? "Teacher" : "Student"}
-                  </Badge>
+                  <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{viewUserModal.firstName} {viewUserModal.lastName}</h2>
+                  <span className={viewUserModal.role === "teacher" ? "badge badge-active" : "badge badge-info"} style={{ fontSize: 11, marginTop: 5, display: "inline-flex" }}>{viewUserModal.role === "teacher" ? "Teacher" : "Student"}</span>
                 </div>
               </div>
-              <button 
-                onClick={() => setViewUserModal(null)} 
-                className="p-2 rounded-lg hover:bg-slate-100"
-              >
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
+              <button onClick={() => setViewUserModal(null)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
             </div>
-
-            {/* Content */}
-            <div className="px-6 py-5 space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Mail className="w-5 h-5 text-blue-600" />
-                  </div>
+            <div style={{ padding: "16px 24px", display: "flex", flexDirection: "column", gap: 8 }}>
+              {[
+                { icon: <Mail style={{ width: 15, height: 15 }} />, label: "Email", value: viewUserModal.email || "—", accent: { bg: "var(--cobalt-tint)", color: "var(--cobalt-signal)" } },
+                { icon: <Phone style={{ width: 15, height: 15 }} />, label: "Phone", value: viewUserModal.phoneNumber || "—", accent: { bg: "var(--emerald-tint)", color: "var(--emerald-signal)" } },
+                { icon: <Calendar style={{ width: 15, height: 15 }} />, label: "Date of Birth", value: viewUserModal.dateOfBirth ? new Date(viewUserModal.dateOfBirth).toLocaleDateString() : "—", accent: { bg: "var(--amber-tint)", color: "var(--amber-signal)" } },
+                { icon: <MapPin style={{ width: 15, height: 15 }} />, label: "Address", value: viewUserModal.address || "—", accent: { bg: "var(--violet-tint)", color: "var(--violet-ink)" } },
+                ...(viewUserModal.className ? [{ icon: <Eye style={{ width: 15, height: 15 }} />, label: "Class", value: viewUserModal.className, accent: { bg: "var(--cobalt-tint)", color: "var(--cobalt-signal)" } }] : []),
+              ].map(({ icon, label, value, accent }) => (
+                <div key={label} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--surface-muted)" }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: accent.bg, display: "flex", alignItems: "center", justifyContent: "center", color: accent.color, flexShrink: 0 }}>{icon}</div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Email</p>
-                    <p className="text-sm font-semibold text-slate-900">{viewUserModal.email || "—"}</p>
+                    <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0, fontWeight: 500 }}>{label}</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{value}</p>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <Phone className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium">Phone Number</p>
-                    <p className="text-sm font-semibold text-slate-900">{viewUserModal.phoneNumber || "—"}</p>
-                  </div>
+              ))}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--surface-muted)" }}>
+                <div style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--surface-muted)", border: "1px solid var(--border-fine)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: "var(--text-secondary)", letterSpacing: "0.05em" }}>ID</span>
                 </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium">Date of Birth</p>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {viewUserModal.dateOfBirth 
-                        ? new Date(viewUserModal.dateOfBirth).toLocaleDateString() 
-                        : "—"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium">Address</p>
-                    <p className="text-sm font-semibold text-slate-900">{viewUserModal.address || "—"}</p>
-                  </div>
-                </div>
-
-                {viewUserModal.className && (
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                    <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
-                      <Eye className="w-5 h-5 text-cyan-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 font-medium">Class</p>
-                      <p className="text-sm font-semibold text-slate-900">{viewUserModal.className}</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                    <span className="text-xs font-bold text-slate-600">ID</span>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium">User ID</p>
-                    <p className="text-sm font-semibold text-slate-900 font-mono">{viewUserModal.id}</p>
-                  </div>
+                <div>
+                  <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0, fontWeight: 500 }}>User ID</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", margin: 0, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{viewUserModal.id}</p>
                 </div>
               </div>
             </div>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => setViewUserModal(null)} 
-                className="h-11 px-6 rounded-xl"
-              >
-                Close
-              </Button>
-              <Button
-                onClick={() => {
-                  handleEditUser(viewUserModal);
-                  setViewUserModal(null);
-                }}
-                className="h-11 px-6 rounded-xl text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <Pencil className="w-4 h-4 mr-2" />
-                Edit User
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", gap: 10, background: "var(--surface-muted)" }}>
+              <Button variant="outline" onClick={() => setViewUserModal(null)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Close</Button>
+              <Button onClick={() => { handleEditUser(viewUserModal); setViewUserModal(null); }} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--violet-ink)", color: "#ffffff", display: "flex", alignItems: "center", gap: 6 }}>
+                <Pencil style={{ width: 13, height: 13 }} />Edit User
               </Button>
             </div>
           </div>

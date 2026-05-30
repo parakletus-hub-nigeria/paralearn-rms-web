@@ -87,44 +87,13 @@ const classTourSteps = [
 
 const DEFAULT_PRIMARY = "#641BC4";
 
-// Color palette for class cards
-const classColors = [
-  {
-    bg: "bg-violet-50",
-    border: "border-violet-200",
-    accent: "text-violet-700",
-    badge: "bg-violet-100 text-violet-700",
-  },
-  {
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    accent: "text-emerald-700",
-    badge: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    accent: "text-blue-700",
-    badge: "bg-blue-100 text-blue-700",
-  },
-  {
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    accent: "text-amber-700",
-    badge: "bg-amber-100 text-amber-700",
-  },
-  {
-    bg: "bg-rose-50",
-    border: "border-rose-200",
-    accent: "text-rose-700",
-    badge: "bg-rose-100 text-rose-700",
-  },
-  {
-    bg: "bg-cyan-50",
-    border: "border-cyan-200",
-    accent: "text-cyan-700",
-    badge: "bg-cyan-100 text-cyan-700",
-  },
+// Icon accent colors for class cards (uses design system tokens)
+const classAccents = [
+  { color: "var(--violet-ink)", tint: "var(--violet-tint)" },
+  { color: "var(--emerald-signal)", tint: "var(--emerald-tint)" },
+  { color: "var(--cobalt-signal)", tint: "var(--cobalt-tint)" },
+  { color: "var(--amber-signal)", tint: "var(--amber-tint)" },
+  { color: "var(--crimson-signal)", tint: "var(--crimson-tint)" },
 ];
 
 export function AdminClassesPage() {
@@ -404,8 +373,8 @@ export function AdminClassesPage() {
     }
   };
 
-  const getColorByIndex = (idx: number) =>
-    classColors[idx % classColors.length];
+  const getAccentByIndex = (idx: number) =>
+    classAccents[idx % classAccents.length];
 
   // Helper to get actual student count
   const getStudentCountForClass = (classId: string, backendCount?: number) => {
@@ -663,28 +632,29 @@ export function AdminClassesPage() {
       />
 
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 24 }}>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">
+          <h1 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: "clamp(1.25rem, 2vw, 1.5rem)", fontWeight: 800, letterSpacing: "-0.025em", color: "var(--foreground)", margin: 0 }}>
             Class Management
           </h1>
-          <p className="text-slate-500 text-sm mt-1 font-coolvetica">
+          <p style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>
             Create classes, assign teachers, and view enrolled students.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Button
             variant="outline"
-            className="h-11 rounded-xl border-slate-200 gap-2"
+            className="h-10 gap-2"
+            style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}
             onClick={handleExportRosters}
           >
             <Download className="w-4 h-4" />
-            Export Rosters
+            Export
           </Button>
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="classes-add-btn h-11 rounded-xl gap-2 text-white"
-            style={{ backgroundColor: primaryColor }}
+            className="classes-add-btn h-10 gap-2 text-white"
+            style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600 }}
           >
             <Plus className="w-4 h-4" />
             Add Class
@@ -693,46 +663,40 @@ export function AdminClassesPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="classes-filter-bar flex flex-col md:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      <div className="classes-filter-bar" style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
+        <div style={{ position: "relative", flex: "1 1 240px", minWidth: 0 }}>
+          <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 15, height: 15, color: "var(--text-secondary)", pointerEvents: "none" }} />
           <Input
             placeholder="Search by class name..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="pl-10 h-11 rounded-xl border-slate-200 bg-white shadow-sm"
+            style={{ paddingLeft: 36, height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}
           />
         </div>
-        <div className="flex gap-3 flex-wrap">
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Select value={sessionFilter} onValueChange={setSessionFilter}>
-            <SelectTrigger className="h-11 w-full sm:w-[160px] rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectTrigger style={{ height: 40, width: 160, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}>
               <SelectValue placeholder="Session" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl">
+            <SelectContent>
               <SelectItem value="all">All Sessions</SelectItem>
               {sessionOptions.map((opt) => (
-                <SelectItem key={opt.id} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
+                <SelectItem key={opt.id} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-white shadow-sm">
+          <div style={{ display: "flex", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-md)", overflow: "hidden", background: "#ffffff" }}>
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-2.5 transition-colors ${viewMode === "grid" ? "bg-slate-100" : "hover:bg-slate-50"}`}
+              style={{ padding: "0 10px", background: viewMode === "grid" ? "var(--surface-muted)" : "transparent", transition: "background var(--dur-fast)" }}
             >
-              <Grid
-                className={`w-4 h-4 ${viewMode === "grid" ? "text-slate-700" : "text-slate-400"}`}
-              />
+              <Grid style={{ width: 15, height: 15, color: viewMode === "grid" ? "var(--foreground)" : "var(--text-secondary)" }} />
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`p-2.5 transition-colors ${viewMode === "list" ? "bg-slate-100" : "hover:bg-slate-50"}`}
+              style={{ padding: "0 10px", background: viewMode === "list" ? "var(--surface-muted)" : "transparent", transition: "background var(--dur-fast)" }}
             >
-              <List
-                className={`w-4 h-4 ${viewMode === "list" ? "text-slate-700" : "text-slate-400"}`}
-              />
+              <List style={{ width: 15, height: 15, color: viewMode === "list" ? "var(--foreground)" : "var(--text-secondary)" }} />
             </button>
           </div>
         </div>
@@ -740,315 +704,205 @@ export function AdminClassesPage() {
 
       {/* Classes Grid/List */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div
-              className="inline-block animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200 mb-4"
-              style={{ borderTopColor: primaryColor }}
-            />
-            <p className="text-slate-500 font-medium">Loading classes...</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite", margin: "0 auto 12px" }} />
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500 }}>Loading classes...</p>
           </div>
         </div>
       ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {paginatedClasses.map((cls: any, idx) => {
-            const color = getColorByIndex(idx);
-            // Hybrid counting logic: use backend data as base but allow local list to override/enhance
-            const bStudentCount =
-              cls.studentCount ??
-              cls._count?.enrollments ??
-              cls._count?.students ??
-              0;
-            const bTeacherCount =
-              cls.teacherCount ??
-              cls._count?.teacherAssignments ??
-              cls._count?.teachers ??
-              0;
+        <div className="classes-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+          {filtered.length === 0 ? (
+            <div style={{ gridColumn: "1/-1", padding: "64px 0", textAlign: "center" }}>
+              <div style={{ width: 48, height: 48, borderRadius: "var(--radius-lg)", background: "var(--surface-muted)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+                <Users style={{ width: 22, height: 22, color: "var(--text-secondary)" }} />
+              </div>
+              <p style={{ fontWeight: 600, color: "var(--foreground)", fontSize: 14 }}>No classes found</p>
+              <p style={{ color: "var(--text-secondary)", fontSize: 13, marginTop: 4 }}>Create your first class to get started</p>
+            </div>
+          ) : (
+            paginatedClasses.map((cls: any, idx) => {
+              const accent = getAccentByIndex(idx);
+              const bStudentCount = cls.studentCount ?? cls._count?.enrollments ?? cls._count?.students ?? 0;
+              const bTeacherCount = cls.teacherCount ?? cls._count?.teacherAssignments ?? cls._count?.teachers ?? 0;
+              const studentCount = getStudentCountForClass(cls.id, bStudentCount);
+              const teacherCount = getTeacherCountForClass(cls.id, bTeacherCount);
+              const fillPct = cls.capacity ? Math.min((studentCount / cls.capacity) * 100, 100) : 0;
 
-            const studentCount = getStudentCountForClass(cls.id, bStudentCount);
-            const teacherCount = getTeacherCountForClass(cls.id, bTeacherCount);
-
-            return (
-              <div
-                key={cls.id}
-                className={`rounded-2xl border ${color.border} ${color.bg} p-5 hover:shadow-md transition-all`}
-              >
-                {/* Card Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">
-                      {cls.name}
-                    </h3>
-                    <p className={`text-sm font-medium ${color.accent}`}>
-                      Level: {cls.level || cls.name}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      className={`rounded-lg px-2.5 py-0.5 text-xs font-medium ${color.badge}`}
-                    >
-                      {cls.stream || "A"} Stream
-                    </Badge>
+              return (
+                <div
+                  key={cls.id}
+                  style={{ background: "#ffffff", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", padding: 20, display: "flex", flexDirection: "column", gap: 16, transition: "box-shadow var(--dur-smooth) var(--ease-out-expo), transform var(--dur-smooth) var(--ease-out-expo)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-hover)"; (e.currentTarget as HTMLDivElement).style.transform = "translateY(-1px)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-card)"; (e.currentTarget as HTMLDivElement).style.transform = "none"; }}
+                >
+                  {/* Card Header */}
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: accent.tint, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontWeight: 800, fontSize: 14, color: accent.color }}>
+                          {(cls.name || "?")[0].toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--foreground)", margin: 0, lineHeight: 1.3 }}>{cls.name}</p>
+                        <p style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 12, color: "var(--text-secondary)", margin: 0, marginTop: 2 }}>
+                          {cls.level ? `Level ${cls.level}` : "No level"}{cls.stream ? ` · Stream ${cls.stream}` : ""}
+                        </p>
+                      </div>
+                    </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="p-1.5 rounded-lg hover:bg-white/50 transition-colors focus:outline-none">
-                          <MoreVertical className="w-4 h-4 text-slate-500" />
+                        <button style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}>
+                          <MoreVertical style={{ width: 15, height: 15 }} />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-40 rounded-xl"
-                      >
-                        <DropdownMenuItem
-                          className="cursor-pointer"
-                          onClick={() => {
-                            setSelectedClass(cls);
-                            setEditForm({
-                              name: cls.name || "",
-                              level: String(cls.level || ""),
-                              stream: cls.stream || "",
-                              capacity: String(cls.capacity || ""),
-                              academicYear: cls.academicYear || "",
-                            });
-                            setShowEditModal(true);
-                          }}
-                        >
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Edit
+                      <DropdownMenuContent align="end" style={{ width: 148 }}>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => { setSelectedClass(cls); setEditForm({ name: cls.name || "", level: String(cls.level || ""), stream: cls.stream || "", capacity: String(cls.capacity || ""), academicYear: cls.academicYear || "" }); setShowEditModal(true); }}>
+                          <Pencil className="w-4 h-4 mr-2" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer"
-                          onClick={() => {
-                            setClassToDelete(cls);
-                            setShowDeleteModal(true);
-                          }}
-                        >
-                          <Trash className="w-4 h-4 mr-2" />
-                          Delete
+                        <DropdownMenuItem className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer" onClick={() => { setClassToDelete(cls); setShowDeleteModal(true); }}>
+                          <Trash className="w-4 h-4 mr-2" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                </div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-6 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-slate-500" />
-                    <span className="text-sm text-slate-700 font-medium">
-                      {studentCount} Students
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4 text-blue-500" />
-                    <span className="text-sm text-blue-600 font-medium">
-                      {teacherCount > 0
-                        ? `${teacherCount} Teachers`
-                        : "View Details"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Capacity */}
-                {cls.capacity && (
-                  <div className="mb-4">
-                    <div className="flex justify-between text-xs text-slate-500 mb-1">
-                      <span>Capacity</span>
-                      <span>
-                        {studentCount} / {cls.capacity}
-                      </span>
+                  {/* Stats row */}
+                  <div style={{ display: "flex", gap: 20 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <Users style={{ width: 14, height: 14, color: "var(--text-secondary)" }} />
+                      <span style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 13, fontWeight: 600, color: "var(--foreground)", fontVariantNumeric: "tabular-nums" }}>{studentCount}</span>
+                      <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>students</span>
                     </div>
-                    <div className="w-full bg-white/60 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full transition-all"
-                        style={{
-                          width: `${Math.min((studentCount / cls.capacity) * 100, 100)}%`,
-                          backgroundColor: primaryColor,
-                        }}
-                      />
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <GraduationCap style={{ width: 14, height: 14, color: "var(--cobalt-signal)" }} />
+                      <span style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 13, fontWeight: 600, color: "var(--foreground)", fontVariantNumeric: "tabular-nums" }}>{teacherCount}</span>
+                      <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>teachers</span>
                     </div>
                   </div>
-                )}
 
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1 h-10 rounded-xl text-sm font-semibold text-white gap-2"
-                    style={{ backgroundColor: primaryColor }}
-                    onClick={() => viewClassDetails(cls)}
-                  >
-                    <Eye className="w-4 h-4" />
-                    View Details
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-10 px-3 rounded-xl border-slate-200 bg-white"
-                    onClick={() => {
-                      setSelectedClass(cls);
-                      setShowAssignModal(true);
-                    }}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                  {/* Capacity bar */}
+                  {cls.capacity ? (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                        <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Capacity</span>
+                        <span style={{ fontSize: 11, color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>{studentCount} / {cls.capacity}</span>
+                      </div>
+                      <div style={{ height: 4, background: "var(--surface-muted)", borderRadius: "var(--radius-pill)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${fillPct}%`, background: fillPct >= 90 ? "var(--crimson-signal)" : fillPct >= 70 ? "var(--amber-signal)" : accent.color, borderRadius: "var(--radius-pill)", transition: "width var(--dur-smooth)" }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ height: 4 }} />
+                  )}
+
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+                    <button
+                      style={{ flex: 1, height: 36, background: "var(--violet-ink)", color: "#ffffff", border: "none", borderRadius: "var(--radius-md)", fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "opacity var(--dur-fast)" }}
+                      onClick={() => viewClassDetails(cls)}
+                      onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
+                      onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                    >
+                      <Eye style={{ width: 14, height: 14 }} /> View Details
+                    </button>
+                    <button
+                      style={{ width: 36, height: 36, background: "#ffffff", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-md)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)", transition: "background var(--dur-fast)" }}
+                      onClick={() => { setSelectedClass(cls); setShowAssignModal(true); }}
+                      title="Assign teacher"
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
+                    >
+                      <UserPlus style={{ width: 14, height: 14 }} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
 
           {/* Add Class Card */}
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-slate-300 p-5 min-h-[240px] flex flex-col items-center justify-center gap-3 group transition-all hover:shadow-sm"
-          >
-            <div
-              className="w-14 h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
-              style={{ backgroundColor: `${primaryColor}15` }}
+          {filtered.length > 0 && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              style={{ border: "2px dashed var(--border-medium)", borderRadius: "var(--radius-lg)", minHeight: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, background: "transparent", cursor: "pointer", transition: "border-color var(--dur-fast), background var(--dur-fast)" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--violet-ink)"; (e.currentTarget as HTMLButtonElement).style.background = "var(--violet-tint)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-medium)"; (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
             >
-              <Plus className="w-7 h-7" style={{ color: primaryColor }} />
-            </div>
-            <div className="text-center">
-              <p className="font-bold" style={{ color: primaryColor }}>
-                Add New Class
-              </p>
-              <p className="text-sm text-slate-500">Create a new class</p>
-            </div>
-          </button>
-
-          {filtered.length === 0 && (
-            <div className="col-span-full py-16 text-center">
-              <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">No classes found</p>
-              <p className="text-slate-400 text-sm mt-1">
-                Create your first class to get started
-              </p>
-            </div>
+              <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--violet-tint)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Plus style={{ width: 20, height: 20, color: "var(--violet-ink)" }} />
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: "var(--violet-ink)", margin: 0 }}>Add New Class</p>
+                <p style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 12, color: "var(--text-secondary)", margin: 0, marginTop: 2 }}>Create a new class</p>
+              </div>
+            </button>
           )}
         </div>
       ) : (
         /* List View */
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px]">
+        <div style={{ background: "#ffffff", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", overflow: "hidden" }}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", minWidth: 700, borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ backgroundColor: primaryColor }}>
-                  <th className="text-left text-white font-semibold text-sm py-4 px-5">
-                    Class Name
-                  </th>
-                  <th className="text-left text-white font-semibold text-sm py-4 px-3">
-                    Level
-                  </th>
-                  <th className="text-center text-white font-semibold text-sm py-4 px-3">
-                    Students
-                  </th>
-                  <th className="text-center text-white font-semibold text-sm py-4 px-3">
-                    Teachers
-                  </th>
-                  <th className="text-center text-white font-semibold text-sm py-4 px-3">
-                    Capacity
-                  </th>
-                  <th className="text-center text-white font-semibold text-sm py-4 px-3">
-                    Actions
-                  </th>
+                <tr style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+                  {["Class Name", "Level", "Students", "Teachers", "Capacity", "Actions"].map((h, i) => (
+                    <th key={h} style={{ textAlign: i <= 1 ? "left" : "center", fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-secondary)", padding: i === 0 ? "12px 20px" : "12px 12px" }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {paginatedClasses.map((cls: any, idx) => {
-                  const bStudentCount =
-                    cls.studentCount ??
-                    cls._count?.enrollments ??
-                    cls._count?.students ??
-                    0;
-                  const bTeacherCount =
-                    cls.teacherCount ??
-                    cls._count?.teacherAssignments ??
-                    cls._count?.teachers ??
-                    0;
-
-                  const studentCount = getStudentCountForClass(
-                    cls.id,
-                    bStudentCount,
-                  );
-                  const teacherCount = getTeacherCountForClass(
-                    cls.id,
-                    bTeacherCount,
-                  );
+                  const bStudentCount = cls.studentCount ?? cls._count?.enrollments ?? cls._count?.students ?? 0;
+                  const bTeacherCount = cls.teacherCount ?? cls._count?.teacherAssignments ?? cls._count?.teachers ?? 0;
+                  const studentCount = getStudentCountForClass(cls.id, bStudentCount);
+                  const teacherCount = getTeacherCountForClass(cls.id, bTeacherCount);
+                  const accent = getAccentByIndex(idx);
                   return (
                     <tr
                       key={cls.id}
-                      className={`border-t border-slate-100 hover:bg-slate-50/50 transition-colors ${
-                        idx % 2 === 1 ? "bg-slate-50/30" : "bg-white"
-                      }`}
+                      style={{ borderBottom: "1px solid var(--border-fine)", background: "#ffffff", transition: "background var(--dur-fast)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--violet-tint)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
                     >
-                      <td className="py-4 px-5">
-                        <div>
-                          <p className="font-semibold text-slate-900">
-                            {cls.name}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {cls.stream || "Stream A"}
-                          </p>
+                      <td style={{ padding: "14px 20px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: accent.tint, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <span style={{ fontWeight: 800, fontSize: 12, color: accent.color }}>{(cls.name || "?")[0].toUpperCase()}</span>
+                          </div>
+                          <div>
+                            <p style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontWeight: 600, fontSize: 14, color: "var(--foreground)", margin: 0 }}>{cls.name}</p>
+                            <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>{cls.stream ? `Stream ${cls.stream}` : "Stream A"}</p>
+                          </div>
                         </div>
                       </td>
-                      <td className="py-4 px-3 text-slate-600">
-                        {cls.level || "—"}
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <span className="font-semibold text-slate-900">
-                          {studentCount}
-                        </span>
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <span className="font-semibold text-blue-600">
-                          {teacherCount}
-                        </span>
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <span className="text-slate-600">
-                          {cls.capacity || "—"}
-                        </span>
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Button
-                            size="sm"
-                            className="h-9 rounded-xl text-white"
-                            style={{ backgroundColor: primaryColor }}
+                      <td style={{ padding: "14px 12px", fontSize: 13, color: "var(--text-secondary)" }}>{cls.level || "—"}</td>
+                      <td style={{ padding: "14px 12px", textAlign: "center", fontWeight: 600, fontSize: 14, color: "var(--foreground)", fontVariantNumeric: "tabular-nums" }}>{studentCount}</td>
+                      <td style={{ padding: "14px 12px", textAlign: "center", fontWeight: 600, fontSize: 14, color: "var(--cobalt-signal)", fontVariantNumeric: "tabular-nums" }}>{teacherCount}</td>
+                      <td style={{ padding: "14px 12px", textAlign: "center", fontSize: 13, color: "var(--text-secondary)" }}>{cls.capacity || "—"}</td>
+                      <td style={{ padding: "14px 12px", textAlign: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                          <button
+                            style={{ height: 32, padding: "0 12px", background: "var(--violet-ink)", color: "#ffffff", border: "none", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
                             onClick={() => viewClassDetails(cls)}
                           >
-                            <Eye className="w-4 h-4 mr-1.5" />
-                            View
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-9 w-9 p-0 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-                            onClick={() => {
-                              setSelectedClass(cls);
-                              setEditForm({
-                                name: cls.name || "",
-                                level: String(cls.level || ""),
-                                stream: cls.stream || "",
-                                capacity: String(cls.capacity || ""),
-                                academicYear: cls.academicYear || "",
-                              });
-                              setShowEditModal(true);
-                            }}
-                            title="Edit class"
+                            <Eye style={{ width: 13, height: 13 }} /> View
+                          </button>
+                          <button
+                            style={{ width: 32, height: 32, background: "#ffffff", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-sm)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)" }}
+                            onClick={() => { setSelectedClass(cls); setEditForm({ name: cls.name || "", level: String(cls.level || ""), stream: cls.stream || "", capacity: String(cls.capacity || ""), academicYear: cls.academicYear || "" }); setShowEditModal(true); }}
+                            title="Edit"
                           >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-9 w-9 p-0 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
-                            onClick={() => {
-                              setClassToDelete(cls);
-                              setShowDeleteModal(true);
-                            }}
-                            title="Delete class"
+                            <Pencil style={{ width: 13, height: 13 }} />
+                          </button>
+                          <button
+                            style={{ width: 32, height: 32, background: "#ffffff", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-sm)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--crimson-signal)" }}
+                            onClick={() => { setClassToDelete(cls); setShowDeleteModal(true); }}
+                            title="Delete"
                           >
-                            <Trash className="w-4 h-4" />
-                          </Button>
+                            <Trash style={{ width: 13, height: 13 }} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1062,31 +916,16 @@ export function AdminClassesPage() {
 
       {/* Pagination */}
       {totalClassPages > 1 && (
-        <div className="flex items-center justify-between mt-5">
-          <p className="text-sm text-slate-500">
-            Showing <span className="font-semibold text-slate-700">{(page - 1) * CLASSES_PER_PAGE + 1}</span> to{" "}
-            <span className="font-semibold text-slate-700">{Math.min(page * CLASSES_PER_PAGE, filtered.length)}</span>{" "}
-            of <span className="font-semibold text-slate-700">{filtered.length}</span> classes
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 20, flexWrap: "wrap", gap: 10 }}>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+            Showing <strong style={{ color: "var(--foreground)" }}>{(page - 1) * CLASSES_PER_PAGE + 1}</strong>–<strong style={{ color: "var(--foreground)" }}>{Math.min(page * CLASSES_PER_PAGE, filtered.length)}</strong> of <strong style={{ color: "var(--foreground)" }}>{filtered.length}</strong>
           </p>
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="h-9 px-3 rounded-lg border-slate-200">
-              Previous
-            </Button>
+          <div style={{ display: "flex", gap: 4 }}>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} style={{ height: 32, padding: "0 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)", background: "#ffffff", fontSize: 13, cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.4 : 1 }}>Previous</button>
             {Array.from({ length: totalClassPages }, (_, i) => i + 1).map((p) => (
-              <Button
-                key={p}
-                variant={page === p ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPage(p)}
-                className="h-9 w-9 rounded-lg"
-                style={page === p ? { backgroundColor: primaryColor } : {}}
-              >
-                {p}
-              </Button>
+              <button key={p} onClick={() => setPage(p)} style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)", background: page === p ? "var(--violet-ink)" : "#ffffff", color: page === p ? "#ffffff" : "var(--foreground)", fontSize: 13, fontWeight: page === p ? 600 : 400, cursor: "pointer" }}>{p}</button>
             ))}
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalClassPages, p + 1))} disabled={page === totalClassPages} className="h-9 px-3 rounded-lg border-slate-200">
-              Next
-            </Button>
+            <button onClick={() => setPage((p) => Math.min(totalClassPages, p + 1))} disabled={page === totalClassPages} style={{ height: 32, padding: "0 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)", background: "#ffffff", fontSize: 13, cursor: page === totalClassPages ? "not-allowed" : "pointer", opacity: page === totalClassPages ? 0.4 : 1 }}>Next</button>
           </div>
         </div>
       )}
@@ -1095,119 +934,45 @@ export function AdminClassesPage() {
       {showCreateModal &&
         typeof document !== "undefined" &&
         createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowCreateModal(false)}
-            />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => setShowCreateModal(false)} />
+            <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 460, overflow: "hidden" }}>
+              <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)" }}>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    Create Class
-                  </h2>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Add a new class to your school
-                  </p>
+                  <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Create Class</h2>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>Add a new class to your school</p>
                 </div>
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="p-2 rounded-lg hover:bg-slate-100"
-                >
-                  <X className="w-5 h-5 text-slate-500" />
-                </button>
+                <button onClick={() => setShowCreateModal(false)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
               </div>
-
-              <div className="px-6 py-5 space-y-4">
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
-                    Class Name
-                  </label>
-                  <Input
-                    value={form.name}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, name: e.target.value }))
-                    }
-                    placeholder="e.g. JSS 1A"
-                    className="mt-2 h-11 rounded-xl"
-                  />
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Class Name</label>
+                  <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. JSS 1A" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Level
-                    </label>
-                    <Input
-                      value={form.level}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, level: e.target.value }))
-                      }
-                      placeholder="e.g. JSS1"
-                      className="mt-2 h-11 rounded-xl"
-                    />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Level</label>
+                    <Input value={form.level} onChange={(e) => setForm((p) => ({ ...p, level: e.target.value }))} placeholder="e.g. JSS1" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Stream
-                    </label>
-                    <Input
-                      value={form.stream}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, stream: e.target.value }))
-                      }
-                      placeholder="e.g. A"
-                      className="mt-2 h-11 rounded-xl"
-                    />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Stream</label>
+                    <Input value={form.stream} onChange={(e) => setForm((p) => ({ ...p, stream: e.target.value }))} placeholder="e.g. A" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Capacity
-                    </label>
-                    <Input
-                      value={form.capacity}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, capacity: e.target.value }))
-                      }
-                      placeholder="e.g. 40"
-                      className="mt-2 h-11 rounded-xl"
-                    />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Capacity</label>
+                    <Input value={form.capacity} onChange={(e) => setForm((p) => ({ ...p, capacity: e.target.value }))} placeholder="e.g. 40" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Academic Year
-                    </label>
-                    <Input
-                      value={form.academicYear}
-                      onChange={(e) =>
-                        setForm((p) => ({ ...p, academicYear: e.target.value }))
-                      }
-                      placeholder={currentSession || "2024/2025"}
-                      className="mt-2 h-11 rounded-xl"
-                    />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Academic Year</label>
+                    <Input value={form.academicYear} onChange={(e) => setForm((p) => ({ ...p, academicYear: e.target.value }))} placeholder={currentSession || "2024/2025"} style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                   </div>
                 </div>
               </div>
-
-              <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateModal(false)}
-                  className="h-11 px-6 rounded-xl"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={submit}
-                  disabled={loading}
-                  className="h-11 px-6 rounded-xl text-white font-semibold shadow-lg shadow-purple-200"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {loading ? "Creating..." : "Create Class"}
-                </Button>
+              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", gap: 10, background: "var(--surface-muted)" }}>
+                <Button variant="outline" onClick={() => setShowCreateModal(false)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Cancel</Button>
+                <Button onClick={submit} disabled={loading} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--violet-ink)", color: "#ffffff" }}>{loading ? "Creating..." : "Create Class"}</Button>
               </div>
             </div>
           </div>,
@@ -1218,122 +983,45 @@ export function AdminClassesPage() {
       {showEditModal &&
         typeof document !== "undefined" &&
         createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowEditModal(false)}
-            />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => setShowEditModal(false)} />
+            <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 460, overflow: "hidden" }}>
+              <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)" }}>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    Edit Class
-                  </h2>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Update class details
-                  </p>
+                  <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Edit Class</h2>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>Update class details</p>
                 </div>
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="p-2 rounded-lg hover:bg-slate-100"
-                >
-                  <X className="w-5 h-5 text-slate-500" />
-                </button>
+                <button onClick={() => setShowEditModal(false)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
               </div>
-
-              <div className="px-6 py-5 space-y-4">
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
-                    Class Name
-                  </label>
-                  <Input
-                    value={editForm.name}
-                    onChange={(e) =>
-                      setEditForm((p) => ({ ...p, name: e.target.value }))
-                    }
-                    placeholder="e.g. JSS 1A"
-                    className="mt-2 h-11 rounded-xl"
-                  />
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Class Name</label>
+                  <Input value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. JSS 1A" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Level
-                    </label>
-                    <Input
-                      value={editForm.level}
-                      onChange={(e) =>
-                        setEditForm((p) => ({ ...p, level: e.target.value }))
-                      }
-                      placeholder="e.g. JSS1"
-                      className="mt-2 h-11 rounded-xl"
-                    />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Level</label>
+                    <Input value={editForm.level} onChange={(e) => setEditForm((p) => ({ ...p, level: e.target.value }))} placeholder="e.g. JSS1" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Stream
-                    </label>
-                    <Input
-                      value={editForm.stream}
-                      onChange={(e) =>
-                        setEditForm((p) => ({ ...p, stream: e.target.value }))
-                      }
-                      placeholder="e.g. A"
-                      className="mt-2 h-11 rounded-xl"
-                    />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Stream</label>
+                    <Input value={editForm.stream} onChange={(e) => setEditForm((p) => ({ ...p, stream: e.target.value }))} placeholder="e.g. A" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Capacity
-                    </label>
-                    <Input
-                      value={editForm.capacity}
-                      onChange={(e) =>
-                        setEditForm((p) => ({ ...p, capacity: e.target.value }))
-                      }
-                      placeholder="e.g. 40"
-                      className="mt-2 h-11 rounded-xl"
-                    />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Capacity</label>
+                    <Input value={editForm.capacity} onChange={(e) => setEditForm((p) => ({ ...p, capacity: e.target.value }))} placeholder="e.g. 40" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Academic Year
-                    </label>
-                    <Input
-                      value={editForm.academicYear}
-                      onChange={(e) =>
-                        setEditForm((p) => ({
-                          ...p,
-                          academicYear: e.target.value,
-                        }))
-                      }
-                      placeholder={currentSession || "2024/2025"}
-                      className="mt-2 h-11 rounded-xl"
-                    />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Academic Year</label>
+                    <Input value={editForm.academicYear} onChange={(e) => setEditForm((p) => ({ ...p, academicYear: e.target.value }))} placeholder={currentSession || "2024/2025"} style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                   </div>
                 </div>
               </div>
-
-              <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowEditModal(false)}
-                  className="h-11 px-6 rounded-xl"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleUpdateClass}
-                  disabled={isUpdating}
-                  className="h-11 px-6 rounded-xl text-white font-semibold shadow-lg shadow-purple-200"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {isUpdating ? "Updating..." : "Update Class"}
-                </Button>
+              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", gap: 10, background: "var(--surface-muted)" }}>
+                <Button variant="outline" onClick={() => setShowEditModal(false)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Cancel</Button>
+                <Button onClick={handleUpdateClass} disabled={isUpdating} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--violet-ink)", color: "#ffffff" }}>{isUpdating ? "Updating..." : "Update Class"}</Button>
               </div>
             </div>
           </div>,
@@ -1344,76 +1032,34 @@ export function AdminClassesPage() {
       {showAssignModal &&
         typeof document !== "undefined" &&
         createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowAssignModal(false)}
-            />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => setShowAssignModal(false)} />
+            <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 420, overflow: "hidden" }}>
+              <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)" }}>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    Assign Class Teacher
-                  </h2>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Assign a teacher to {selectedClass?.name || "this class"}
-                  </p>
+                  <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Assign Class Teacher</h2>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>Assign a teacher to {selectedClass?.name || "this class"}</p>
                 </div>
-                <button
-                  onClick={() => setShowAssignModal(false)}
-                  className="p-2 rounded-lg hover:bg-slate-100"
-                >
-                  <X className="w-5 h-5 text-slate-500" />
-                </button>
+                <button onClick={() => setShowAssignModal(false)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
               </div>
-
-              <div className="px-6 py-5">
-                <label className="text-sm font-semibold text-slate-700">
-                  Select Teacher
-                </label>
-                <div
-                  className="mt-2"
-                  style={{ position: "relative", zIndex: 10001 }}
-                >
-                  <Select
-                    value={assignTeacherId}
-                    onValueChange={setAssignTeacherId}
-                  >
-                    <SelectTrigger className="h-11 w-full rounded-xl">
+              <div style={{ padding: "20px 24px" }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Select Teacher</label>
+                <div style={{ position: "relative", zIndex: 10001 }}>
+                  <Select value={assignTeacherId} onValueChange={setAssignTeacherId}>
+                    <SelectTrigger style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}>
                       <SelectValue placeholder="Choose a teacher" />
                     </SelectTrigger>
-                    <SelectContent
-                      className="rounded-xl"
-                      style={{ zIndex: 10002 }}
-                    >
+                    <SelectContent style={{ zIndex: 10002 }}>
                       {(teachers || []).map((t: any) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {`${t.firstName || ""} ${t.lastName || ""}`.trim() ||
-                            t.email ||
-                            t.id}
-                        </SelectItem>
+                        <SelectItem key={t.id} value={t.id}>{`${t.firstName || ""} ${t.lastName || ""}`.trim() || t.email || t.id}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-
-              <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAssignModal(false)}
-                  className="h-11 px-6 rounded-xl"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={assignClassTeacher}
-                  disabled={loading}
-                  className="h-11 px-6 rounded-xl text-white"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {loading ? "Assigning..." : "Assign Teacher"}
-                </Button>
+              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", gap: 10, background: "var(--surface-muted)" }}>
+                <Button variant="outline" onClick={() => setShowAssignModal(false)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Cancel</Button>
+                <Button onClick={assignClassTeacher} disabled={loading} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--violet-ink)", color: "#ffffff" }}>{loading ? "Assigning..." : "Assign Teacher"}</Button>
               </div>
             </div>
           </div>,
@@ -1424,141 +1070,69 @@ export function AdminClassesPage() {
       {showDetailsModal &&
         typeof document !== "undefined" &&
         createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowDetailsModal(false)}
-            />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => setShowDetailsModal(false)} />
+            <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 680, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              {/* Header */}
+              <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)", flexShrink: 0 }}>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    {selectedClass?.name || "Class Details"}
-                  </h2>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Level: {selectedClass?.level || "—"} • Capacity:{" "}
-                    {selectedClass?.capacity || "—"}
-                  </p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <Badge className="rounded-lg bg-emerald-100 text-emerald-700 px-3 py-1">
-                      <Users className="w-3.5 h-3.5 mr-1.5 inline" />
-                      {classStudents.length} Students
-                    </Badge>
-                    <Badge className="rounded-lg bg-blue-100 text-blue-700 px-3 py-1">
-                      <GraduationCap className="w-3.5 h-3.5 mr-1.5 inline" />
-                      {classTeachers.length} Teachers
-                    </Badge>
+                  <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{selectedClass?.name || "Class Details"}</h2>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 6px" }}>Level: {selectedClass?.level || "—"} · Capacity: {selectedClass?.capacity || "—"}</p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <span className="badge badge-active" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Users style={{ width: 12, height: 12 }} />{classStudents.length} Students</span>
+                    <span className="badge badge-info" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><GraduationCap style={{ width: 12, height: 12 }} />{classTeachers.length} Teachers</span>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowDetailsModal(false)}
-                  className="p-2 rounded-lg hover:bg-slate-100"
-                >
-                  <X className="w-5 h-5 text-slate-500" />
-                </button>
+                <button onClick={() => setShowDetailsModal(false)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)", flexShrink: 0 }}><X style={{ width: 16, height: 16 }} /></button>
               </div>
 
-              <div className="px-6 py-5 max-h-[60vh] overflow-y-auto">
+              {/* Body */}
+              <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1 }}>
                 {loadingDetails ? (
-                  <div className="flex items-center justify-center py-10">
-                    <div
-                      className="inline-block animate-spin rounded-full h-8 w-8 border-[3px] border-slate-200"
-                      style={{ borderTopColor: primaryColor }}
-                    />
+                  <div style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
                   </div>
                 ) : (
                   <>
-                    {/* Teachers Section */}
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                          <GraduationCap className="w-5 h-5 text-blue-500" />
-                          Assigned Teachers ({classTeachers.length})
+                    {/* Teachers */}
+                    <div style={{ marginBottom: 24 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                        <h3 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: "var(--foreground)", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
+                          <GraduationCap style={{ width: 15, height: 15, color: "var(--cobalt-signal)" }} />Assigned Teachers ({classTeachers.length})
                         </h3>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 rounded-lg gap-1"
-                          onClick={() => {
-                            setShowDetailsModal(false);
-                            setShowAssignModal(true);
-                          }}
-                        >
-                          <Plus className="w-3 h-3" />
-                          Add
-                        </Button>
+                        <button
+                          onClick={() => { setShowDetailsModal(false); setShowAssignModal(true); }}
+                          style={{ height: 30, padding: "0 10px", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-sm)", background: "#ffffff", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: "var(--foreground)" }}
+                        ><Plus style={{ width: 12, height: 12 }} />Add</button>
                       </div>
                       {classTeachers.length === 0 ? (
-                        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
-                          <p className="text-sm text-amber-700 font-medium">
-                            No teachers assigned yet.
-                          </p>
-                          <p className="text-xs text-amber-600 mt-1">
-                            Use the "+" button on the class card to assign a
-                            class teacher, or assign teachers to subjects in the
-                            Subjects page.
-                          </p>
+                        <div style={{ padding: 14, borderRadius: "var(--radius-md)", background: "var(--amber-tint)", border: "1px solid var(--amber-signal)", opacity: 0.8 }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>No teachers assigned yet.</p>
+                          <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "4px 0 0" }}>Use the "+" button on the class card to assign a class teacher, or assign via the Subjects page.</p>
                         </div>
                       ) : (
-                        <div className="space-y-2">
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                           {classTeachers.map((t: any, idx: number) => {
                             const teacher = t.teacher || t;
-                            const isClassTeacher =
-                              t.type === "class_teacher" || !t.subjectName;
-                            const subjectName =
-                              t.subjectName || teacher?.subjectName;
-
+                            const isClassTeacher = t.type === "class_teacher" || !t.subjectName;
+                            const subjectName = t.subjectName || teacher?.subjectName;
                             return (
-                              <div
-                                key={`${teacher?.id || "-"}-${idx}`}
-                                className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${
-                                      isClassTeacher
-                                        ? "bg-blue-100 text-blue-700"
-                                        : "bg-purple-100 text-purple-700"
-                                    }`}
-                                  >
-                                    {(
-                                      teacher?.firstName?.[0] || "T"
-                                    ).toUpperCase()}
+                              <div key={`${teacher?.id || "-"}-${idx}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", background: "#ffffff" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: isClassTeacher ? "var(--cobalt-tint)" : "var(--violet-tint)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, color: isClassTeacher ? "var(--cobalt-signal)" : "var(--violet-ink)" }}>
+                                    {(teacher?.firstName?.[0] || "T").toUpperCase()}
                                   </div>
                                   <div>
-                                    <p className="font-semibold text-slate-900">
-                                      {`${teacher?.firstName || ""} ${teacher?.lastName || ""}`.trim() ||
-                                        "Teacher"}
-                                    </p>
-                                    <div className="flex items-center gap-2">
-                                      <p className="text-xs text-slate-500">
-                                        {teacher?.email ||
-                                          teacher?.teacherId ||
-                                          "—"}
-                                      </p>
-                                      <Badge
-                                        className={`text-[10px] px-1.5 py-0 ${
-                                          isClassTeacher
-                                            ? "bg-blue-100 text-blue-700"
-                                            : "bg-purple-100 text-purple-700"
-                                        }`}
-                                      >
-                                        {isClassTeacher
-                                          ? "Class Teacher"
-                                          : subjectName || "Subject Teacher"}
-                                      </Badge>
+                                    <p style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{`${teacher?.firstName || ""} ${teacher?.lastName || ""}`.trim() || "Teacher"}</p>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                                      <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>{teacher?.email || teacher?.teacherId || "—"}</p>
+                                      <span className={isClassTeacher ? "badge badge-info" : "badge badge-pending"} style={{ fontSize: 10 }}>{isClassTeacher ? "Class Teacher" : subjectName || "Subject Teacher"}</span>
                                     </div>
                                   </div>
                                 </div>
                                 {isClassTeacher && (
-                                  <button
-                                    onClick={() =>
-                                      handleRemoveTeacher(teacher?.id)
-                                    }
-                                    className="p-2 mr-1 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                                    title="Remove teacher"
-                                  >
-                                    <UserMinus className="w-4 h-4" />
+                                  <button onClick={() => handleRemoveTeacher(teacher?.id)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }} title="Remove">
+                                    <UserMinus style={{ width: 14, height: 14 }} />
                                   </button>
                                 )}
                               </div>
@@ -1568,180 +1142,80 @@ export function AdminClassesPage() {
                       )}
                     </div>
 
-                    {/* Subjects & Teachers Section */}
-                    <div className="border-t border-slate-100 pt-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                          <BookOpen className="w-5 h-5 text-purple-600" />
-                          Subjects & Specialists ({selectedClassSubjects.length}
-                          )
-                        </h3>
-                      </div>
+                    {/* Subjects */}
+                    <div style={{ borderTop: "1px solid var(--border-fine)", paddingTop: 20, marginBottom: 24 }}>
+                      <h3 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: "var(--foreground)", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 6 }}>
+                        <BookOpen style={{ width: 15, height: 15, color: "var(--violet-ink)" }} />Subjects & Specialists ({selectedClassSubjects.length})
+                      </h3>
                       {selectedClassSubjects.length === 0 ? (
-                        <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
-                          <p className="text-sm text-slate-500 italic">
-                            No subjects assigned to this class yet.
-                          </p>
+                        <div style={{ padding: 14, borderRadius: "var(--radius-md)", border: "2px dashed var(--border-medium)", textAlign: "center" }}>
+                          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>No subjects assigned to this class yet.</p>
                         </div>
                       ) : (
-                        <div className="space-y-4 mb-6">
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                           {selectedClassSubjects.map((subject: any) => {
                             const assignedTeachers = subject.teachers || [];
-                            const isAssigning =
-                              assigningSubjectId === subject.classSubjectId;
-
+                            const isAssigning = assigningSubjectId === subject.classSubjectId;
                             return (
-                              <div
-                                key={subject.classSubjectId}
-                                className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-purple-200 transition-all"
-                              >
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
-                                      <BookOpen className="w-5 h-5 text-purple-600" />
+                              <div key={subject.classSubjectId} style={{ padding: 14, borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", background: "#ffffff" }}>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "var(--violet-tint)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                      <BookOpen style={{ width: 16, height: 16, color: "var(--violet-ink)" }} />
                                     </div>
                                     <div>
-                                      <h4 className="font-bold text-slate-900">
-                                        {subject.name}
-                                      </h4>
-                                      <div className="flex items-center gap-2 mt-0.5">
-                                        <Badge
-                                          variant="outline"
-                                          className="text-[10px] uppercase border-slate-200 text-slate-500"
-                                        >
-                                          {subject.subjectType || "Core"}
-                                        </Badge>
-                                        {subject.difficulty && (
-                                          <Badge
-                                            variant="outline"
-                                            className="text-[10px] uppercase border-slate-200 text-slate-500"
-                                          >
-                                            {subject.difficulty}
-                                          </Badge>
-                                        )}
+                                      <p style={{ fontWeight: 700, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{subject.name}</p>
+                                      <div style={{ display: "flex", gap: 6, marginTop: 3 }}>
+                                        <span className="badge badge-draft" style={{ fontSize: 10, textTransform: "uppercase" }}>{subject.subjectType || "Core"}</span>
+                                        {subject.difficulty && <span className="badge badge-draft" style={{ fontSize: 10, textTransform: "uppercase" }}>{subject.difficulty}</span>}
                                       </div>
                                     </div>
                                   </div>
-
-                                  <div className="flex items-center gap-2">
-                                    {!isAssigning && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                          setAssigningSubjectId(
-                                            subject.classSubjectId,
-                                          )
-                                        }
-                                        className="h-9 px-3 rounded-lg text-purple-600 hover:text-purple-700 hover:bg-purple-50 gap-2"
-                                      >
-                                        <UserPlus className="w-4 h-4" />
-                                        {assignedTeachers.length > 0
-                                          ? "Add Support"
-                                          : "Assign Teacher"}
-                                      </Button>
-                                    )}
-                                  </div>
+                                  {!isAssigning && (
+                                    <button
+                                      onClick={() => setAssigningSubjectId(subject.classSubjectId)}
+                                      style={{ height: 30, padding: "0 10px", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-sm)", background: "#ffffff", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, color: "var(--violet-ink)" }}
+                                    ><UserPlus style={{ width: 12, height: 12 }} />{assignedTeachers.length > 0 ? "Add Support" : "Assign"}</button>
+                                  )}
                                 </div>
 
-                                {/* Teachers List for this Subject */}
-                                <div className="mt-4 pl-0 sm:pl-12 space-y-2">
-                                  {assignedTeachers.length === 0 &&
-                                    !isAssigning && (
-                                      <p className="text-[11px] text-slate-400 flex items-center gap-1.5 ml-1">
-                                        <AlertTriangle className="w-3 h-3 text-amber-500" />
-                                        No specialist assigned.
-                                      </p>
-                                    )}
-
+                                <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+                                  {assignedTeachers.length === 0 && !isAssigning && (
+                                    <p style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 5, margin: 0 }}>
+                                      <AlertTriangle style={{ width: 12, height: 12, color: "var(--amber-signal)" }} />No specialist assigned.
+                                    </p>
+                                  )}
                                   {assignedTeachers.map((t: any) => (
-                                    <div
-                                      key={t.id}
-                                      className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-slate-50 group"
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-700">
-                                          {(
-                                            t.teacher?.firstName?.[0] ||
-                                            t.teacher?.lastName?.[0] ||
-                                            "T"
-                                          ).toUpperCase()}
+                                    <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", borderRadius: "var(--radius-sm)", background: "var(--surface-muted)" }}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                        <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--violet-tint)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "var(--violet-ink)" }}>
+                                          {(t.teacher?.firstName?.[0] || t.teacher?.lastName?.[0] || "T").toUpperCase()}
                                         </div>
-                                        <span className="text-xs font-semibold text-slate-700">
-                                          {t.teacher?.firstName}{" "}
-                                          {t.teacher?.lastName}
-                                        </span>
-                                        {t.type === "primary" && (
-                                          <Badge className="text-[9px] bg-purple-100 text-purple-700 border-none px-1.5 h-4">
-                                            Primary
-                                          </Badge>
-                                        )}
+                                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{t.teacher?.firstName} {t.teacher?.lastName}</span>
+                                        {t.type === "primary" && <span className="badge badge-active" style={{ fontSize: 10 }}>Primary</span>}
                                       </div>
-                                      <button
-                                        onClick={() =>
-                                          handleRemoveSubjectTeacher(
-                                            subject.classSubjectId,
-                                            t.teacherId,
-                                          )
-                                        }
-                                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all"
-                                      >
-                                        <X className="w-3.5 h-3.5" />
+                                      <button onClick={() => handleRemoveSubjectTeacher(subject.classSubjectId, t.teacherId)} style={{ padding: 4, border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)", borderRadius: "var(--radius-xs)" }}>
+                                        <X style={{ width: 12, height: 12 }} />
                                       </button>
                                     </div>
                                   ))}
-
-                                  {/* Assignment UI */}
                                   {isAssigning && (
-                                    <div className="flex flex-col gap-2 mt-2 p-3 rounded-xl bg-purple-50/50 border border-purple-100 animate-in slide-in-from-left-2 fade-in duration-200">
-                                      <p className="text-[10px] font-bold text-purple-700 uppercase px-1">
-                                        Choose Specialist
-                                      </p>
-                                      <div className="flex items-center gap-2">
-                                        <Select
-                                          value={subjectTeacherId}
-                                          onValueChange={setSubjectTeacherId}
-                                        >
-                                          <SelectTrigger className="h-9 min-w-[200px] text-xs rounded-lg border-purple-200 bg-white">
-                                            <SelectValue placeholder="Select from directory..." />
-                                          </SelectTrigger>
-                                          <SelectContent className="rounded-xl">
-                                            {(teachers || []).map((t: any) => (
-                                              <SelectItem
-                                                key={t.id}
-                                                value={t.id}
-                                              >
-                                                {t.firstName} {t.lastName} (
-                                                {t.email})
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                        <Button
-                                          size="sm"
-                                          onClick={() =>
-                                            handleAssignSubjectTeacher(
-                                              subject.classSubjectId,
-                                              subjectTeacherId,
-                                            )
-                                          }
-                                          className="h-9 px-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white"
-                                        >
-                                          <Check className="w-4 h-4 mr-1" />
-                                          Assign
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => {
-                                            setAssigningSubjectId(null);
-                                            setSubjectTeacherId("");
-                                          }}
-                                          className="h-9 px-3 rounded-lg text-slate-500 hover:bg-slate-100"
-                                        >
-                                          Cancel
-                                        </Button>
-                                      </div>
+                                    <div style={{ padding: 10, borderRadius: "var(--radius-md)", background: "var(--violet-tint)", border: "1px solid var(--border-fine)", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                                      <p style={{ fontSize: 10, fontWeight: 700, color: "var(--violet-ink)", textTransform: "uppercase", margin: 0, width: "100%" }}>Choose Specialist</p>
+                                      <Select value={subjectTeacherId} onValueChange={setSubjectTeacherId}>
+                                        <SelectTrigger style={{ height: 34, minWidth: 200, fontSize: 12, borderColor: "var(--border-fine)", background: "#ffffff", borderRadius: "var(--radius-sm)" }}>
+                                          <SelectValue placeholder="Select from directory..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {(teachers || []).map((t: any) => (
+                                            <SelectItem key={t.id} value={t.id}>{t.firstName} {t.lastName} ({t.email})</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      <button onClick={() => handleAssignSubjectTeacher(subject.classSubjectId, subjectTeacherId)} style={{ height: 34, padding: "0 12px", background: "var(--violet-ink)", color: "#ffffff", border: "none", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                                        <Check style={{ width: 12, height: 12 }} />Assign
+                                      </button>
+                                      <button onClick={() => { setAssigningSubjectId(null); setSubjectTeacherId(""); }} style={{ height: 34, padding: "0 10px", background: "transparent", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-sm)", fontSize: 12, cursor: "pointer", color: "var(--text-secondary)" }}>Cancel</button>
                                     </div>
                                   )}
                                 </div>
@@ -1752,54 +1226,30 @@ export function AdminClassesPage() {
                       )}
                     </div>
 
-                    {/* Students Section */}
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                          <Users className="w-5 h-5 text-emerald-500" />
-                          Enrolled Students ({classStudents.length})
-                        </h3>
-                      </div>
+                    {/* Students */}
+                    <div style={{ borderTop: "1px solid var(--border-fine)", paddingTop: 20 }}>
+                      <h3 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: "var(--foreground)", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 6 }}>
+                        <Users style={{ width: 15, height: 15, color: "var(--emerald-signal)" }} />Enrolled Students ({classStudents.length})
+                      </h3>
                       {classStudents.length === 0 ? (
-                        <p className="text-sm text-slate-500 italic">
-                          No students enrolled yet. Go to Enrollments page to
-                          add students.
-                        </p>
+                        <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>No students enrolled yet. Go to Enrollments to add students.</p>
                       ) : (
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 280, overflowY: "auto" }}>
                           {classStudents.map((e: any, idx: number) => {
                             const student = e.student || e;
                             return (
-                              <div
-                                key={student?.id || idx}
-                                className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">
-                                    {(
-                                      student?.firstName?.[0] || "S"
-                                    ).toUpperCase()}
+                              <div key={student?.id || idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", background: "#ffffff" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--emerald-tint)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, color: "var(--emerald-signal)" }}>
+                                    {(student?.firstName?.[0] || "S").toUpperCase()}
                                   </div>
                                   <div>
-                                    <p className="font-semibold text-slate-900">
-                                      {`${student?.firstName || ""} ${student?.lastName || ""}`.trim() ||
-                                        "Student"}
-                                    </p>
-                                    <p className="text-xs text-slate-500">
-                                      {student?.studentId ||
-                                        student?.email ||
-                                        "—"}
-                                    </p>
+                                    <p style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{`${student?.firstName || ""} ${student?.lastName || ""}`.trim() || "Student"}</p>
+                                    <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "2px 0 0", fontFamily: "'Geist Mono', ui-monospace, monospace" }}>{student?.studentId || student?.email || "—"}</p>
                                   </div>
                                 </div>
-                                <button
-                                  onClick={() =>
-                                    handleRemoveStudent(student?.id)
-                                  }
-                                  className="p-2 mr-1 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                                  title="Remove student"
-                                >
-                                  <UserMinus className="w-4 h-4" />
+                                <button onClick={() => handleRemoveStudent(student?.id)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }} title="Remove">
+                                  <UserMinus style={{ width: 14, height: 14 }} />
                                 </button>
                               </div>
                             );
@@ -1811,14 +1261,8 @@ export function AdminClassesPage() {
                 )}
               </div>
 
-              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDetailsModal(false)}
-                  className="h-11 px-6 rounded-xl"
-                >
-                  Close
-                </Button>
+              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", background: "var(--surface-muted)", flexShrink: 0 }}>
+                <Button variant="outline" onClick={() => setShowDetailsModal(false)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Close</Button>
               </div>
             </div>
           </div>,
@@ -1830,50 +1274,27 @@ export function AdminClassesPage() {
         classToDelete &&
         typeof document !== "undefined" &&
         createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => !isDeleting && setShowDeleteModal(false)}
-            />
-            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="p-6 md:p-8 flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
-                  <AlertTriangle className="w-8 h-8 text-red-500" />
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.55)" }} onClick={() => !isDeleting && setShowDeleteModal(false)} />
+            <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 420, padding: "28px 28px 24px" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 12 }}>
+                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--crimson-tint)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <AlertTriangle style={{ width: 24, height: 24, color: "var(--crimson-signal)" }} />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2 font-coolvetica">
-                  Delete Class?
-                </h2>
-                <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                  Are you sure you want to delete{" "}
-                  <span className="font-bold text-slate-800">
-                    {classToDelete.name}
-                  </span>
-                  ? This action cannot be undone. Any students enrolled in this
-                  class will lose their class assignment.
-                </p>
-
-                <div className="flex w-full gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 h-12 rounded-xl font-bold border-slate-200 hover:bg-slate-50 text-slate-700"
-                    disabled={isDeleting}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleDeleteClass}
-                    className="flex-1 h-12 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-200 transition-all"
-                    disabled={isDeleting}
-                  >
+                <div>
+                  <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 17, fontWeight: 800, color: "var(--foreground)", margin: "0 0 6px" }}>Delete Class?</h2>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+                    Are you sure you want to delete <strong style={{ color: "var(--foreground)" }}>{classToDelete.name}</strong>? This cannot be undone. Enrolled students will lose their class assignment.
+                  </p>
+                </div>
+                <div style={{ display: "flex", width: "100%", gap: 10, marginTop: 8 }}>
+                  <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={isDeleting} style={{ flex: 1, height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600 }}>Cancel</Button>
+                  <Button onClick={handleDeleteClass} disabled={isDeleting} style={{ flex: 1, height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--crimson-signal)", color: "#ffffff", border: "none" }}>
                     {isDeleting ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Deleting...
-                      </div>
-                    ) : (
-                      "Delete Class"
-                    )}
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#ffffff", borderRadius: "50%", animation: "spin 0.6s linear infinite", display: "inline-block" }} />Deleting...
+                      </span>
+                    ) : "Delete Class"}
                   </Button>
                 </div>
               </div>

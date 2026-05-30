@@ -81,7 +81,7 @@ const Signin = () => {
                   : "Student Login"}
             </span>
           </p>
-          <p className="text-sm text-gray-700 text-center px-4">
+          <p className="text-sm text-center px-4" style={{ color: "var(--foreground-muted)" }}>
             {loginMode === "admin"
               ? "Login to your administrator's account to continue"
               : "Login with your username and password"}
@@ -99,7 +99,7 @@ const Signin = () => {
                 className={`h-11 rounded-lg font-semibold text-xs sm:text-sm transition-all capitalize ${
                   loginMode === mode
                     ? "bg-[#641BC4] text-white shadow-sm"
-                    : "text-slate-700 hover:bg-white"
+                    : "hover:bg-white"
                 }`}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -120,7 +120,7 @@ const Signin = () => {
                 onChange={() => setInstitutionType("k12")}
                 className="w-4 h-4 text-[#641BC4]"
               />
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
                 K-12 School
               </span>
             </label>
@@ -133,7 +133,7 @@ const Signin = () => {
                 onChange={() => setInstitutionType("university")}
                 className="w-4 h-4 text-[#641BC4]"
               />
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
                 University / College
               </span>
             </label>
@@ -191,7 +191,7 @@ const Signin = () => {
             </div>
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-sm" style={{ color: "var(--crimson-signal)" }}>{error}</p>}
         </div>
 
         <button

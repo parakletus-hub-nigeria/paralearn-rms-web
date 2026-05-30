@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import {
@@ -11,7 +11,6 @@ import { useGetStudentReportCardQuery } from "@/reduxToolKit/api/endpoints/repor
 import { downloadStudentReportCardPdf } from "@/lib/reportPdf";
 import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 import { StudentHeader } from "@/components/Student/StudentHeader";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -231,16 +230,15 @@ export default function StudentDashboardPage() {
         <main className="w-full pb-20">
           <div className="relative pt-16 pb-24 text-center px-4">
             <div className="max-w-4xl mx-auto space-y-4">
-              <span className="inline-block py-1 px-3 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-100 text-xs font-semibold tracking-wider uppercase mb-2 backdrop-blur-sm shadow-sm">
-                {/* FIX #11: Removed hardcoded year — use dynamic value when API provides it */}
+              <span className="inline-block py-1 px-3 text-xs font-semibold tracking-wider uppercase mb-2" style={{ borderRadius: "var(--radius-xl)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.85)" }}>
                 Online Assessment Platform
               </span>
-              <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4 drop-shadow-sm tracking-tight">
+              <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4 drop-shadow-sm tracking-tight" style={{ color: "white" }}>
                 Welcome back, {user?.firstName || "Student"}!
               </h1>
-              <p className="text-lg md:text-xl text-indigo-100 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed" style={{ color: "rgba(255,255,255,0.8)" }}>
                 Your academic journey continues. You have{" "}
-                <span className="font-bold text-white border-b-2 border-indigo-400 px-1">
+                <span className="font-bold px-1" style={{ color: "white", borderBottom: "2px solid rgba(255,255,255,0.5)" }}>
                   {activeList.length} assessment
                   {activeList.length !== 1 ? "s" : ""}
                 </span>{" "}
@@ -252,43 +250,43 @@ export default function StudentDashboardPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
             {/* Stats Grid */}
             <div className="student-stats-grid grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-2xl p-5 flex items-center gap-4 shadow-lg hover:shadow-xl transition-shadow cursor-default">
-                <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+              <div className="p-5 flex items-center gap-4 cursor-default" style={{ background: "rgba(255,255,255,0.92)", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+                <div className="w-12 h-12 flex items-center justify-center" style={{ borderRadius: "var(--radius-lg)", background: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                   <ClipboardList className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>
                     Total Assessments
                   </p>
-                  <p className="text-2xl font-bold text-gray-800">
+                  <p className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
                     {visibleAssessments.length}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-2xl p-5 flex items-center gap-4 shadow-lg hover:shadow-xl transition-shadow cursor-default">
-                <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+              <div className="p-5 flex items-center gap-4 cursor-default" style={{ background: "rgba(255,255,255,0.92)", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+                <div className="w-12 h-12 flex items-center justify-center" style={{ borderRadius: "var(--radius-lg)", background: "var(--amber-tint)", color: "var(--amber-signal)" }}>
                   <FileText className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>
                     Upcoming Exams
                   </p>
-                  <p className="text-2xl font-bold text-gray-800">
+                  <p className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
                     {upcomingCount}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white/65 backdrop-blur-xl border border-white/40 rounded-2xl p-5 flex items-center gap-4 shadow-lg hover:shadow-xl transition-shadow cursor-default">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+              <div className="p-5 flex items-center gap-4 cursor-default" style={{ background: "rgba(255,255,255,0.92)", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+                <div className="w-12 h-12 flex items-center justify-center" style={{ borderRadius: "var(--radius-lg)", background: "var(--emerald-tint)", color: "var(--emerald-signal)" }}>
                   <CheckSquare className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>
                     Completed Tests
                   </p>
-                  <p className="text-2xl font-bold text-gray-800">
+                  <p className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
                     {completedCount}
                   </p>
                 </div>
@@ -297,39 +295,28 @@ export default function StudentDashboardPage() {
 
             {/* Tab Switcher */}
             <div className="flex items-center justify-center mb-10">
-              <div className="bg-white/40 backdrop-blur-md p-1.5 rounded-2xl border border-white/30 flex gap-2 shadow-sm">
+              <div className="p-1.5 flex gap-2" style={{ background: "rgba(255,255,255,0.15)", borderRadius: "var(--radius-xl)", border: "1px solid rgba(255,255,255,0.2)" }}>
                 <button
                   onClick={() => setActiveTab("active")}
-                  className={`relative px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                    activeTab === "active"
-                      ? "text-indigo-700"
-                      : "text-slate-500 hover:text-slate-700"
-                  }`}
+                  className="relative px-4 sm:px-6 py-2 sm:py-3 text-sm font-bold transition-all duration-300 flex items-center gap-2"
+                  style={{ borderRadius: "var(--radius-lg)", color: activeTab === "active" ? "var(--violet-ink)" : "rgba(255,255,255,0.7)" }}
                 >
                   {activeTab === "active" && (
                     <motion.div
                       layoutId="activeTabBg"
-                      className="absolute inset-0 bg-white rounded-xl shadow-md z-0"
-                      transition={{
-                        type: "spring",
-                        bounce: 0.2,
-                        duration: 0.6,
-                      }}
+                      className="absolute inset-0 z-0"
+                      style={{ background: "white", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)" }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  <PlayCircle
-                    className={`w-4 h-4 relative z-10 ${activeTab === "active" ? "text-indigo-600" : "text-slate-400"}`}
-                  />
+                  <PlayCircle className="w-4 h-4 relative z-10" style={{ color: activeTab === "active" ? "var(--violet-ink)" : "rgba(255,255,255,0.5)" }} />
                   <span className="relative z-10">Active Exams</span>
                   {activeList.length > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className={`relative z-10 ml-1 px-2 py-0.5 rounded-full text-[10px] font-black ${
-                        activeTab === "active"
-                          ? "bg-indigo-100 text-indigo-700"
-                          : "bg-slate-200 text-slate-500"
-                      }`}
+                      className="relative z-10 ml-1 px-2 py-0.5 text-[10px] font-black"
+                      style={{ borderRadius: "var(--radius-xl)", background: activeTab === "active" ? "var(--violet-tint)" : "rgba(255,255,255,0.2)", color: activeTab === "active" ? "var(--violet-ink)" : "rgba(255,255,255,0.8)" }}
                     >
                       {activeList.length}
                     </motion.span>
@@ -337,36 +324,25 @@ export default function StudentDashboardPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("ended")}
-                  className={`relative px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                    activeTab === "ended"
-                      ? "text-red-700"
-                      : "text-slate-500 hover:text-slate-700"
-                  }`}
+                  className="relative px-4 sm:px-6 py-2 sm:py-3 text-sm font-bold transition-all duration-300 flex items-center gap-2"
+                  style={{ borderRadius: "var(--radius-lg)", color: activeTab === "ended" ? "var(--crimson-signal)" : "rgba(255,255,255,0.7)" }}
                 >
                   {activeTab === "ended" && (
                     <motion.div
                       layoutId="activeTabBg"
-                      className="absolute inset-0 bg-white rounded-xl shadow-md z-0"
-                      transition={{
-                        type: "spring",
-                        bounce: 0.2,
-                        duration: 0.6,
-                      }}
+                      className="absolute inset-0 z-0"
+                      style={{ background: "white", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)" }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  <Clock
-                    className={`w-4 h-4 relative z-10 ${activeTab === "ended" ? "text-red-600" : "text-slate-400"}`}
-                  />
+                  <Clock className="w-4 h-4 relative z-10" style={{ color: activeTab === "ended" ? "var(--crimson-signal)" : "rgba(255,255,255,0.5)" }} />
                   <span className="relative z-10">History</span>
                   {endedList.length > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className={`relative z-10 ml-1 px-2 py-0.5 rounded-full text-[10px] font-black ${
-                        activeTab === "ended"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-slate-200 text-slate-500"
-                      }`}
+                      className="relative z-10 ml-1 px-2 py-0.5 text-[10px] font-black"
+                      style={{ borderRadius: "var(--radius-xl)", background: activeTab === "ended" ? "var(--crimson-tint)" : "rgba(255,255,255,0.2)", color: activeTab === "ended" ? "var(--crimson-signal)" : "rgba(255,255,255,0.8)" }}
                     >
                       {endedList.length}
                     </motion.span>
@@ -375,22 +351,18 @@ export default function StudentDashboardPage() {
 
                 <button
                   onClick={() => setActiveTab("reports")}
-                  className={`relative px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                    activeTab === "reports"
-                      ? "text-emerald-700"
-                      : "text-slate-500 hover:text-slate-700"
-                  }`}
+                  className="relative px-4 sm:px-6 py-2 sm:py-3 text-sm font-bold transition-all duration-300 flex items-center gap-2"
+                  style={{ borderRadius: "var(--radius-lg)", color: activeTab === "reports" ? "var(--emerald-signal)" : "rgba(255,255,255,0.7)" }}
                 >
                   {activeTab === "reports" && (
                     <motion.div
                       layoutId="activeTabBg"
-                      className="absolute inset-0 bg-white rounded-xl shadow-md z-0"
+                      className="absolute inset-0 z-0"
+                      style={{ background: "white", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)" }}
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  <BookOpen
-                    className={`w-4 h-4 relative z-10 ${activeTab === "reports" ? "text-emerald-600" : "text-slate-400"}`}
-                  />
+                  <BookOpen className="w-4 h-4 relative z-10" style={{ color: activeTab === "reports" ? "var(--emerald-signal)" : "rgba(255,255,255,0.5)" }} />
                   <span className="relative z-10">Report Cards</span>
                 </button>
               </div>
@@ -411,39 +383,40 @@ export default function StudentDashboardPage() {
                 downloadingPdf={downloadingPdf}
               />
             ) : loading ? (
-              <div className="flex flex-col items-center justify-center py-20 bg-white/30 backdrop-blur-md rounded-3xl border border-white/20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4" />
-                <p className="text-white font-medium">
+              <div className="flex flex-col items-center justify-center py-20" style={{ background: "rgba(255,255,255,0.12)", borderRadius: "var(--radius-xl)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                <div className="animate-spin rounded-full h-12 w-12 mb-4" style={{ border: "3px solid rgba(255,255,255,0.2)", borderTopColor: "white" }} />
+                <p className="font-medium" style={{ color: "white" }}>
                   Loading your assessments...
                 </p>
               </div>
             ) : error ? (
-              <div className="bg-red-50/90 backdrop-blur-md border border-red-100 p-8 rounded-3xl text-center max-w-2xl mx-auto shadow-lg">
-                <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-red-900 mb-2">
+              <div className="p-8 text-center max-w-2xl mx-auto" style={{ background: "rgba(255,255,255,0.92)", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+                <AlertCircle className="w-16 h-16 mx-auto mb-4" style={{ color: "var(--crimson-signal)" }} />
+                <h3 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
                   Unavailable
                 </h3>
-                <p className="text-red-700 font-medium mb-6">{error}</p>
-                <Button
+                <p className="font-medium mb-6" style={{ color: "var(--crimson-signal)" }}>{error}</p>
+                <button
                   onClick={() => dispatch(fetchStudentAssessments())}
-                  className="bg-red-600 hover:bg-red-700 text-white rounded-xl px-8 py-6"
+                  className="px-8 py-3 font-semibold text-white"
+                  style={{ background: "var(--crimson-signal)", borderRadius: "var(--radius-lg)", border: "none" }}
                 >
                   Retry Connection
-                </Button>
+                </button>
               </div>
             ) : currentList.length === 0 ? (
-              <div className="bg-white/40 backdrop-blur-md border border-white/30 p-16 rounded-3xl text-center shadow-lg max-w-3xl mx-auto">
-                <div className="w-24 h-24 bg-white/50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <div className="p-16 text-center max-w-3xl mx-auto" style={{ background: "rgba(255,255,255,0.12)", borderRadius: "var(--radius-xl)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: "rgba(255,255,255,0.15)" }}>
                   {activeTab === "active" ? (
-                    <ClipboardList className="w-12 h-12 text-indigo-400" />
+                    <ClipboardList className="w-12 h-12" style={{ color: "rgba(255,255,255,0.6)" }} />
                   ) : (
-                    <Clock className="w-12 h-12 text-slate-400" />
+                    <Clock className="w-12 h-12" style={{ color: "rgba(255,255,255,0.6)" }} />
                   )}
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-3 font-serif">
+                <h3 className="text-2xl font-bold mb-3 font-serif" style={{ color: "white" }}>
                   {activeTab === "active" ? "All Caught Up!" : "No History Yet"}
                 </h3>
-                <p className="text-slate-600 text-lg max-w-md mx-auto">
+                <p className="text-lg max-w-md mx-auto" style={{ color: "rgba(255,255,255,0.7)" }}>
                   {activeTab === "active"
                     ? "You have no pending assessments at the moment. Enjoy your free time!"
                     : "Your completed and expired exams will appear here in the future."}
@@ -471,12 +444,10 @@ export default function StudentDashboardPage() {
                     const isOffline = assessment.isOnline === false;
 
                     let statusLabel = "Not Started";
-                    let statusBgClass =
-                      "bg-white/50 text-slate-600 border-white";
+                    let statusStyle: React.CSSProperties = { background: "rgba(255,255,255,0.6)", color: "var(--foreground-muted)", border: "1px solid var(--border-fine)" };
                     if (isSubmitted) {
                       statusLabel = "Completed";
-                      statusBgClass =
-                        "bg-emerald-100/80 text-emerald-700 border-emerald-200";
+                      statusStyle = { background: "var(--emerald-tint)", color: "var(--emerald-signal)", border: "1px solid var(--border-fine)" };
                     } else if (
                       assessment.status === "started" ||
                       assessment.submissions?.some(
@@ -485,32 +456,30 @@ export default function StudentDashboardPage() {
                       )
                     ) {
                       statusLabel = "In Progress";
-                      statusBgClass =
-                        "bg-amber-100/80 text-amber-700 border-amber-200";
+                      statusStyle = { background: "var(--amber-tint)", color: "var(--amber-signal)", border: "1px solid var(--border-fine)" };
                     } else if (assessment.status === "ended") {
                       statusLabel = "Ended";
-                      statusBgClass =
-                        "bg-red-100/80 text-red-700 border-red-200";
+                      statusStyle = { background: "var(--crimson-tint)", color: "var(--crimson-signal)", border: "1px solid var(--border-fine)" };
                     }
 
-                    // Gradient colors based on subject
-                    const gradientClass = isMath
-                      ? "from-pink-500 to-rose-500"
+                    // Subject accent colors (solid, no gradient)
+                    const subjectAccentBg = isMath
+                      ? "oklch(0.55 0.22 0)"
                       : isScience
-                        ? "from-cyan-500 to-blue-500"
-                        : "from-indigo-500 to-purple-500";
+                        ? "oklch(0.55 0.18 220)"
+                        : "var(--violet-ink)";
 
-                    const iconColorClass = isMath
-                      ? "text-rose-600"
+                    const iconBg = isMath
+                      ? "oklch(0.95 0.04 0)"
                       : isScience
-                        ? "text-cyan-600"
-                        : "text-indigo-600";
+                        ? "oklch(0.95 0.04 220)"
+                        : "var(--violet-tint)";
 
-                    const bgIconClass = isMath
-                      ? "bg-rose-50 border-rose-100"
+                    const iconColor = isMath
+                      ? "oklch(0.55 0.22 0)"
                       : isScience
-                        ? "bg-cyan-50 border-cyan-100"
-                        : "bg-indigo-50 border-indigo-100";
+                        ? "oklch(0.55 0.18 220)"
+                        : "var(--violet-ink)";
 
                     return (
                       <motion.div
@@ -520,22 +489,21 @@ export default function StudentDashboardPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.4, delay: idx * 0.05 }}
-                        className="group bg-white/65 backdrop-blur-xl border border-white/40 rounded-3xl p-6 flex flex-col h-auto min-h-[340px] shadow-xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
+                        className="group flex flex-col h-auto min-h-[340px] relative overflow-hidden hover:-translate-y-2 transition-all duration-300"
+                        style={{ background: "rgba(255,255,255,0.92)", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)", padding: "1.5rem" }}
                       >
-                        {/* Glow Effect */}
+                        {/* Subject tag */}
                         <div
-                          className={`absolute -right-10 -top-10 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity bg-current ${iconColorClass}`}
-                        ></div>
-
-                        <div
-                          className={`absolute top-0 left-1/2 transform -translate-x-1/2 bg-gradient-to-r ${gradientClass} text-white text-[10px] font-bold px-3 py-1 rounded-b-lg shadow-md uppercase tracking-wide z-10`}
+                          className="absolute top-0 left-1/2 transform -translate-x-1/2 text-white text-[10px] font-bold px-3 py-1 uppercase tracking-wide z-10"
+                          style={{ background: subjectAccentBg, borderRadius: "0 0 var(--radius-md) var(--radius-md)" }}
                         >
                           {subjectName} {isOffline ? "(Offline)" : ""}
                         </div>
 
                         <div className="mt-4 flex justify-between items-start mb-6 z-10 relative">
                           <div
-                            className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm border ${bgIconClass} ${iconColorClass}`}
+                            className="w-14 h-14 flex items-center justify-center"
+                            style={{ borderRadius: "var(--radius-lg)", background: iconBg, color: iconColor, border: "1px solid var(--border-fine)" }}
                           >
                             {isMath ? (
                               <Calculator className="w-7 h-7" />
@@ -546,68 +514,69 @@ export default function StudentDashboardPage() {
                             )}
                           </div>
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase border shadow-sm backdrop-blur-sm ${statusBgClass}`}
+                            className="px-3 py-1 text-xs font-bold tracking-wide uppercase"
+                            style={{ borderRadius: "var(--radius-xl)", ...statusStyle }}
                           >
                             {statusLabel}
                           </span>
                         </div>
 
-                        <h2
-                          className={`text-2xl font-bold text-slate-800 mb-2 transition-colors relative z-10 group-hover:${iconColorClass}`}
-                        >
+                        <h2 className="text-xl font-bold mb-2 relative z-10" style={{ color: "var(--foreground)" }}>
                           {assessment.title}
                         </h2>
-                        <p className="text-sm text-slate-500 mb-6 line-clamp-2 leading-relaxed">
+                        <p className="text-sm mb-6 line-clamp-2 leading-relaxed" style={{ color: "var(--foreground-muted)" }}>
                           {assessment.instructions ||
                             "No detailed instructions provided for this assessment."}
                         </p>
 
                         <div className="mt-auto space-y-4 relative z-10">
-                          <div className="flex items-center gap-4 text-slate-600 text-sm font-medium">
+                          <div className="flex items-center gap-3 text-sm font-medium" style={{ color: "var(--foreground-muted)" }}>
                             {!isOffline && (
-                              <div className="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-lg border border-white/20">
-                                <Clock
-                                  className={`w-4 h-4 ${iconColorClass}`}
-                                />
+                              <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)" }}>
+                                <Clock className="w-4 h-4" style={{ color: iconColor }} />
                                 <span>{assessment.durationMins} Mins</span>
                               </div>
                             )}
-                            <div className="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-lg border border-white/20">
-                              <CheckCircle
-                                className={`w-4 h-4 ${iconColorClass}`}
-                              />
+                            <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)" }}>
+                              <CheckCircle className="w-4 h-4" style={{ color: iconColor }} />
                               <span>{assessment.questionCount || "?"} Qs</span>
                             </div>
                           </div>
 
                           {isSubmitted ? (
-                            <Button
+                            <button
                               onClick={() => setResultAssessment(assessment)}
-                              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-6 rounded-2xl shadow-md"
+                              className="w-full font-semibold py-4 flex items-center justify-center gap-2 text-white"
+                              style={{ background: "var(--emerald-signal)", borderRadius: "var(--radius-lg)", border: "none" }}
+                              onMouseEnter={e => (e.currentTarget.style.opacity = "0.9")}
+                              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
                             >
-                              View Result <BarChart3 className="w-4 h-4 ml-2" />
-                            </Button>
+                              View Result <BarChart3 className="w-4 h-4" />
+                            </button>
                           ) : isOffline ? (
-                            <Button className="w-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-semibold py-6 rounded-2xl shadow-none cursor-not-allowed">
-                              Paper Exam <Lock className="w-4 h-4 ml-2" />
-                            </Button>
+                            <button className="w-full font-semibold py-4 flex items-center justify-center gap-2 cursor-not-allowed" style={{ background: "var(--surface-muted)", color: "var(--foreground-muted)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)" }} disabled>
+                              Paper Exam <Lock className="w-4 h-4" />
+                            </button>
                           ) : statusLabel === "Ended" ? (
-                            <Button className="w-full bg-slate-100 hover:bg-slate-200 text-red-400 font-semibold py-6 rounded-2xl shadow-none cursor-not-allowed flex items-center justify-center gap-2">
+                            <button className="w-full font-semibold py-4 flex items-center justify-center gap-2 cursor-not-allowed" style={{ background: "var(--surface-muted)", color: "var(--crimson-signal)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)" }} disabled>
                               Time Expired <Lock className="w-4 h-4" />
-                            </Button>
+                            </button>
                           ) : (
                             <Link
                               href={`/student/lobby?assessmentId=${assessment.id}`}
-                              className="block"
+                              className="student-enter-lobby-button block"
                             >
-                              <Button
-                                className={`student-enter-lobby-button w-full bg-gradient-to-r ${gradientClass} bg-[length:200%_auto] hover:bg-[position:right_center] text-white py-6 rounded-2xl flex items-center justify-center gap-2 transition-all duration-500 font-bold shadow-lg group-hover:shadow-xl`}
+                              <button
+                                className="w-full text-white py-4 flex items-center justify-center gap-2 transition-all font-bold"
+                                style={{ background: subjectAccentBg, borderRadius: "var(--radius-lg)", border: "none", boxShadow: "var(--shadow-card)" }}
+                                onMouseEnter={e => (e.currentTarget.style.opacity = "0.9")}
+                                onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
                               >
                                 {statusLabel === "In Progress"
                                   ? "Resume Exam"
                                   : "Enter Lobby"}
                                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                              </Button>
+                              </button>
                             </Link>
                           )}
                         </div>
@@ -624,24 +593,29 @@ export default function StudentDashboardPage() {
       {/* Result Modal */}
       {resultAssessment && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(15,23,42,0.6)", backdropFilter: "blur(12px)" }}
           onClick={() => setResultAssessment(null)}
         >
           <div
-            className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8"
+            className="max-w-md w-full p-6 sm:p-8"
+            style={{ background: "white", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-slate-800">Assessment Result</h2>
+              <h2 className="text-lg font-bold" style={{ color: "var(--foreground)" }}>Assessment Result</h2>
               <button
                 onClick={() => setResultAssessment(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
+                className="w-8 h-8 flex items-center justify-center transition-colors"
+                style={{ borderRadius: "50%", background: "var(--surface-muted)", color: "var(--foreground-muted)", border: "none" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--border-fine)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "var(--surface-muted)")}
               >
                 ✕
               </button>
             </div>
-            <p className="text-xl font-bold text-slate-900 mb-1">{resultAssessment.title}</p>
-            <p className="text-sm text-slate-500 mb-6">
+            <p className="text-xl font-bold mb-1" style={{ color: "var(--foreground)" }}>{resultAssessment.title}</p>
+            <p className="text-sm mb-6" style={{ color: "var(--foreground-muted)" }}>
               {resultAssessment.subject?.name || "General"} •{" "}
               {resultAssessment.subject?.class?.name || ""}
             </p>
@@ -654,31 +628,31 @@ export default function StudentDashboardPage() {
 
               return (
                 <div className="space-y-4">
-                  <div className="bg-slate-50 rounded-2xl p-5 text-center">
+                  <div className="p-5 text-center" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-lg)" }}>
                     {score !== null ? (
                       <>
-                        <p className="text-5xl font-black text-slate-800">
+                        <p className="text-5xl font-black" style={{ color: "var(--foreground)" }}>
                           {score}
                           {totalMarks !== null && (
-                            <span className="text-2xl font-medium text-slate-400">/{totalMarks}</span>
+                            <span className="text-2xl font-medium" style={{ color: "var(--foreground-muted)" }}>/{totalMarks}</span>
                           )}
                         </p>
                         {totalMarks !== null && (
-                          <p className="text-sm text-slate-500 mt-1">
+                          <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>
                             {((score / totalMarks) * 100).toFixed(1)}%
                           </p>
                         )}
                       </>
                     ) : (
                       <div className="py-3">
-                        <Clock className="w-10 h-10 text-amber-500 mx-auto mb-2" />
-                        <p className="text-slate-600 font-medium">Awaiting Manual Grading</p>
-                        <p className="text-sm text-slate-400 mt-1">Your teacher is reviewing your answers.</p>
+                        <Clock className="w-10 h-10 mx-auto mb-2" style={{ color: "var(--amber-signal)" }} />
+                        <p className="font-medium" style={{ color: "var(--foreground)" }}>Awaiting Manual Grading</p>
+                        <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>Your teacher is reviewing your answers.</p>
                       </div>
                     )}
                   </div>
                   {passed !== null && (
-                    <div className={`rounded-xl px-4 py-3 text-center font-semibold text-sm ${passed ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                    <div className="px-4 py-3 text-center font-semibold text-sm" style={{ borderRadius: "var(--radius-lg)", background: passed ? "var(--emerald-tint)" : "var(--crimson-tint)", color: passed ? "var(--emerald-signal)" : "var(--crimson-signal)" }}>
                       {passed ? "✓ Passed" : "✗ Did not meet passing mark"}
                       {passingMarks !== null && (
                         <span className="font-normal opacity-75"> (passing: {passingMarks})</span>
@@ -686,7 +660,7 @@ export default function StudentDashboardPage() {
                     </div>
                   )}
                   {submission?.finishedAt && (
-                    <p className="text-xs text-slate-400 text-center">
+                    <p className="text-xs text-center" style={{ color: "var(--foreground-muted)" }}>
                       Submitted {new Date(submission.finishedAt).toLocaleString()}
                     </p>
                   )}
@@ -749,15 +723,27 @@ function StudentReportCardTab({
   // 'N/A' grade means backend found no subjects/enrollments for this student — no real scores yet
   const hasNoScores = subjects.length === 0 && (overallGrade === "N/A" || overall?.score === 0);
 
+  const getGradeStyle = (grade: string): React.CSSProperties => {
+    switch (grade?.toUpperCase()) {
+      case "A": case "A+": return { background: "var(--emerald-tint)", color: "var(--emerald-signal)" };
+      case "B": case "B+": return { background: "var(--cobalt-tint)", color: "var(--cobalt-signal)" };
+      case "C": case "C+": return { background: "var(--amber-tint)", color: "var(--amber-signal)" };
+      case "F": return { background: "var(--crimson-tint)", color: "var(--crimson-signal)" };
+      default: return { background: "var(--surface-muted)", color: "var(--foreground-muted)" };
+    }
+  };
+
+  const emptyCardStyle: React.CSSProperties = { background: "rgba(255,255,255,0.12)", borderRadius: "var(--radius-xl)", border: "1px solid rgba(255,255,255,0.15)" };
+
   return (
     <div className="space-y-6 pb-20">
       {/* Session / Term selectors */}
-      <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row gap-3">
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-3" style={{ background: "rgba(255,255,255,0.92)", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)" }}>
         <Select value={selectedSession} onValueChange={onSessionChange}>
-          <SelectTrigger className="h-11 flex-1 rounded-xl bg-white border-slate-200">
+          <SelectTrigger className="h-11 flex-1" style={{ borderRadius: "var(--radius-lg)" }}>
             <SelectValue placeholder="Select Session" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
+          <SelectContent style={{ borderRadius: "var(--radius-lg)" }}>
             {sessionOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
@@ -767,10 +753,10 @@ function StudentReportCardTab({
         </Select>
 
         <Select value={selectedTerm} onValueChange={onTermChange} disabled={!selectedSession}>
-          <SelectTrigger className="h-11 flex-1 rounded-xl bg-white border-slate-200">
+          <SelectTrigger className="h-11 flex-1" style={{ borderRadius: "var(--radius-lg)" }}>
             <SelectValue placeholder="Select Term" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
+          <SelectContent style={{ borderRadius: "var(--radius-lg)" }}>
             {termOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
@@ -782,60 +768,60 @@ function StudentReportCardTab({
 
       {/* States */}
       {!selectedSession || !selectedTerm ? (
-        <div className="bg-white/40 backdrop-blur-md border border-white/30 p-12 rounded-3xl text-center">
-          <BookOpen className="w-14 h-14 text-white/50 mx-auto mb-4" />
-          <p className="text-white font-semibold text-lg">Select a session and term</p>
-          <p className="text-white/70 mt-1 text-sm">Your report cards will appear here once you choose an academic period.</p>
+        <div className="p-12 text-center" style={emptyCardStyle}>
+          <BookOpen className="w-14 h-14 mx-auto mb-4" style={{ color: "rgba(255,255,255,0.4)" }} />
+          <p className="font-semibold text-lg" style={{ color: "white" }}>Select a session and term</p>
+          <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.65)" }}>Your report cards will appear here once you choose an academic period.</p>
         </div>
       ) : reportLoading ? (
-        <div className="bg-white/40 backdrop-blur-md border border-white/30 p-12 rounded-3xl text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mx-auto mb-4" />
-          <p className="text-white font-medium">Loading your report card…</p>
+        <div className="p-12 text-center" style={emptyCardStyle}>
+          <div className="animate-spin rounded-full h-10 w-10 mx-auto mb-4" style={{ border: "3px solid rgba(255,255,255,0.2)", borderTopColor: "white" }} />
+          <p className="font-medium" style={{ color: "white" }}>Loading your report card…</p>
         </div>
       ) : reportError ? (
-        <div className="bg-white/40 backdrop-blur-md border border-white/30 p-12 rounded-3xl text-center">
-          <AlertCircle className="w-14 h-14 text-red-300 mx-auto mb-4" />
-          <p className="text-white font-semibold text-lg">Could Not Load Report Card</p>
-          <p className="text-white/70 mt-1 text-sm max-w-sm mx-auto">
+        <div className="p-12 text-center" style={emptyCardStyle}>
+          <AlertCircle className="w-14 h-14 mx-auto mb-4" style={{ color: "var(--crimson-signal)" }} />
+          <p className="font-semibold text-lg" style={{ color: "white" }}>Could Not Load Report Card</p>
+          <p className="mt-1 text-sm max-w-sm mx-auto" style={{ color: "rgba(255,255,255,0.65)" }}>
             There was a problem fetching your report card. Please try again or contact your school administrator.
           </p>
         </div>
       ) : !isAvailable ? (
-        <div className="bg-white/40 backdrop-blur-md border border-white/30 p-12 rounded-3xl text-center">
-          <FileText className="w-14 h-14 text-white/40 mx-auto mb-4" />
-          <p className="text-white font-semibold text-lg">No Report Card Available</p>
-          <p className="text-white/70 mt-1 text-sm max-w-sm mx-auto">
+        <div className="p-12 text-center" style={emptyCardStyle}>
+          <FileText className="w-14 h-14 mx-auto mb-4" style={{ color: "rgba(255,255,255,0.35)" }} />
+          <p className="font-semibold text-lg" style={{ color: "white" }}>No Report Card Available</p>
+          <p className="mt-1 text-sm max-w-sm mx-auto" style={{ color: "rgba(255,255,255,0.65)" }}>
             No grades have been recorded for this period yet. Check back after your teacher submits scores.
           </p>
         </div>
       ) : hasNoScores ? (
-        <div className="bg-white/40 backdrop-blur-md border border-white/30 p-12 rounded-3xl text-center">
-          <BarChart3 className="w-14 h-14 text-white/40 mx-auto mb-4" />
-          <p className="text-white font-semibold text-lg">No Scores Recorded Yet</p>
-          <p className="text-white/70 mt-1 text-sm max-w-sm mx-auto">
+        <div className="p-12 text-center" style={emptyCardStyle}>
+          <BarChart3 className="w-14 h-14 mx-auto mb-4" style={{ color: "rgba(255,255,255,0.35)" }} />
+          <p className="font-semibold text-lg" style={{ color: "white" }}>No Scores Recorded Yet</p>
+          <p className="mt-1 text-sm max-w-sm mx-auto" style={{ color: "rgba(255,255,255,0.65)" }}>
             Your teacher hasn't uploaded scores for this term yet. Report cards will appear here once scores are available.
           </p>
         </div>
       ) : (
-        <div className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl overflow-hidden shadow-xl">
+        <div className="overflow-hidden" style={{ background: "rgba(255,255,255,0.95)", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
           {/* Header */}
-          <div className="p-5 sm:p-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+          <div className="p-5 sm:p-6 text-white" style={{ background: "var(--emerald-signal)" }}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold">{studentName || "Report Card"}</h3>
-                <p className="text-white/80 text-sm mt-0.5">
+                <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.8)" }}>
                   {selectedSession} • {selectedTerm}
                 </p>
               </div>
               <div className="flex flex-col sm:items-end gap-2">
                 {average != null && (
                   <div className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-yellow-300" />
+                    <Trophy className="w-5 h-5" style={{ color: "rgba(255,255,255,0.8)" }} />
                     <span className="text-2xl font-black">{Number(average).toFixed(1)}%</span>
                   </div>
                 )}
                 {overallGrade && (
-                  <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-bold">
+                  <span className="px-3 py-1 text-sm font-bold" style={{ background: "rgba(255,255,255,0.2)", borderRadius: "var(--radius-xl)" }}>
                     Grade: {overallGrade}
                   </span>
                 )}
@@ -848,35 +834,34 @@ function StudentReportCardTab({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[400px]">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="text-left py-3 px-4 sm:px-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Subject</th>
-                    <th className="text-center py-3 px-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Score</th>
-                    <th className="text-center py-3 px-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Max</th>
-                    <th className="text-center py-3 px-3 text-xs font-bold text-slate-500 uppercase tracking-wider">%</th>
-                    <th className="text-center py-3 px-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Grade</th>
+                  <tr style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+                    <th className="text-left py-3 px-4 sm:px-5 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>Subject</th>
+                    <th className="text-center py-3 px-3 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>Score</th>
+                    <th className="text-center py-3 px-3 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>Max</th>
+                    <th className="text-center py-3 px-3 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>%</th>
+                    <th className="text-center py-3 px-3 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>Grade</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody>
                   {subjects.map((subj: any, i: number) => {
                     const name = subj.subjectName || subj.name || "—";
                     const score = subj.score ?? subj.totalScore ?? "—";
                     const max = subj.max ?? "—";
                     const pct = subj.percent != null ? Number(subj.percent).toFixed(1) + "%" : "—";
                     const grade = subj.grade ?? subj.letterGrade ?? "—";
-                    const gradeColor =
-                      grade === "A" ? "bg-emerald-100 text-emerald-700" :
-                      grade === "B" ? "bg-blue-100 text-blue-700" :
-                      grade === "C" ? "bg-yellow-100 text-yellow-700" :
-                      grade === "F" ? "bg-red-100 text-red-700" :
-                      "bg-slate-100 text-slate-600";
                     return (
-                      <tr key={i} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-4 sm:px-5 font-medium text-slate-800 text-sm">{name}</td>
-                        <td className="py-3 px-3 text-center font-bold text-slate-800 text-sm">{score}</td>
-                        <td className="py-3 px-3 text-center text-slate-500 text-sm">{max}</td>
-                        <td className="py-3 px-3 text-center text-slate-600 text-sm">{pct}</td>
+                      <tr
+                        key={i}
+                        style={{ borderBottom: "1px solid var(--border-fine)" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-muted)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "")}
+                      >
+                        <td className="py-3 px-4 sm:px-5 font-medium text-sm" style={{ color: "var(--foreground)" }}>{name}</td>
+                        <td className="py-3 px-3 text-center font-bold text-sm" style={{ color: "var(--foreground)" }}>{score}</td>
+                        <td className="py-3 px-3 text-center text-sm" style={{ color: "var(--foreground-muted)" }}>{max}</td>
+                        <td className="py-3 px-3 text-center text-sm" style={{ color: "var(--foreground-muted)" }}>{pct}</td>
                         <td className="py-3 px-3 text-center">
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${gradeColor}`}>
+                          <span className="inline-block px-2 py-0.5 text-xs font-bold" style={{ borderRadius: "var(--radius-xl)", ...getGradeStyle(grade) }}>
                             {grade}
                           </span>
                         </td>
@@ -889,17 +874,20 @@ function StudentReportCardTab({
           )}
 
           {/* Download button */}
-          <div className="p-4 sm:p-5 border-t border-slate-100 flex flex-col gap-2">
-            <Button
+          <div className="p-4 sm:p-5 flex flex-col gap-2" style={{ borderTop: "1px solid var(--border-fine)" }}>
+            <button
               onClick={onDownload}
               disabled={downloadingPdf || hasNoScores || subjects.length === 0}
-              className="w-full sm:w-auto h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto h-11 font-semibold flex items-center justify-center gap-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: "var(--emerald-signal)", borderRadius: "var(--radius-lg)", border: "none", paddingLeft: "1.5rem", paddingRight: "1.5rem" }}
+              onMouseEnter={e => { if (!downloadingPdf && subjects.length > 0) e.currentTarget.style.opacity = "0.9"; }}
+              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
             >
               <Download className="w-4 h-4" />
               {downloadingPdf ? "Downloading…" : "Download PDF"}
-            </Button>
+            </button>
             {subjects.length === 0 && (
-              <p className="text-xs text-slate-400">PDF available once subject scores are recorded.</p>
+              <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>PDF available once subject scores are recorded.</p>
             )}
           </div>
         </div>

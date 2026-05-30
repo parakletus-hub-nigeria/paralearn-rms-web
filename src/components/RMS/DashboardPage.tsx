@@ -2,54 +2,46 @@
 
 import { Header } from "@/components/RMS/header";
 import { apiFetch } from "@/lib/interceptor";
-import { Plus, Clock, Eye, ArrowRight } from "lucide-react";
-import { GraduationCap, Users, Book, BookImage, TrendingUp, Calendar } from "lucide-react";
+import { Plus, Clock, ArrowRight, GraduationCap, Users, BookOpen, FileText, Calendar, ChevronRight } from "lucide-react";
 import { AddStudentDialog, AddTeacherDialog } from "@/components/RMS/dialogs";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { selectDashboardUserData, selectCurrentSession } from "@/reduxToolKit/selectors";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpSlice";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
 import { ProductTour } from "@/components/common/ProductTour";
 
 const adminTourSteps = [
-  {
-    target: '.rms-header-greeting',
-    title: "Welcome to ParaLearn!",
-    content: "This is your central command center. From here, you can monitor school performance, manage staff and students, and oversee all academic activities.",
-    disableBeacon: true,
-  },
-  {
-    target: '.dashboard-academic-banner',
-    title: "Current Term Status",
-    content: "This banner displays your active academic Session and Term. Keeping this updated ensures accurate reporting across the school.",
-  },
-  {
-    target: '.dashboard-stats-grid',
-    title: "Quick Statistics",
-    content: "Get an instant count of your students, teachers, subjects, and assessments to ensure everyone is properly enrolled and active.",
-  },
-  {
-    target: '.dashboard-recent-assessments',
-    title: "Recent Academic Activity",
-    content: "Track the latest exams and assignments created by teachers in real-time to monitor curriculum progress.",
-  },
+  { target: ".rms-header-greeting", title: "Welcome to ParaLearn!", content: "Your central command center. Monitor school performance, manage staff and students, and oversee all academic activities.", disableBeacon: true },
+  { target: ".dashboard-academic-banner", title: "Current Term Status", content: "Displays your active academic session and term. Keeping this updated ensures accurate reporting." },
+  { target: ".dashboard-stats-grid", title: "Quick Statistics", content: "Instant counts of students, teachers, subjects, and assessments." },
+  { target: ".dashboard-recent-assessments", title: "Recent Activity", content: "Track the latest exams and assignments created by teachers." },
 ];
+
+const statusMeta = (status: string) => {
+  if (status === "started" || status === "in_progress")
+    return { label: "Active", cls: "badge badge-active" };
+  if (status === "ended" || status === "completed")
+    return { label: "Ended", cls: "badge badge-draft" };
+  return { label: "Draft", cls: "badge badge-draft" };
+};
+
+const reportStatusMeta = (status: string) => {
+  if (status === "published") return { label: "Published", cls: "badge badge-published" };
+  if (status === "approved")  return { label: "Approved",  cls: "badge badge-published" };
+  return { label: "Draft", cls: "badge badge-draft" };
+};
 
 export const DashboardPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { studentCount, teacherCount, tenantInfo } = useSelector(selectDashboardUserData);
   const { users } = useSelector((state: RootState) => state.user);
   const currentSession = useSelector(selectCurrentSession);
-  const [SubjectCount, setSubjectCount] = useState(0);
-  const [AssessmentCount, setAssessmentCount] = useState(0);
+  const [subjectCount, setSubjectCount] = useState(0);
+  const [assessmentCount, setAssessmentCount] = useState(0);
   const [recentAssessments, setRecentAssessments] = useState<any[]>([]);
   const [recentReportCards, setRecentReportCards] = useState<any[]>([]);
 
@@ -57,361 +49,376 @@ export const DashboardPage = () => {
     dispatch(fetchCurrentSession());
     dispatch(getTenantInfo());
 
-    async function fetchDashboardData() {
+    async function load() {
       const fetchJson = async (url: string) => {
         const res = await apiFetch(url, { method: "GET", headers: { "Content-Type": "application/json" } });
         return res.ok ? res.json() : null;
       };
-
-      const fetchAssessmentStatus = async (status: string) => {
-        try {
-          const data = await fetchJson(`/api/proxy/assessments/${status}`);
-          return Array.isArray(data) ? data : [];
-        } catch {
-          try {
-            const data = await fetchJson(`/api/proxy/assessments?status=${status}`);
-            return Array.isArray(data) ? data : [];
-          } catch {
-            return [];
-          }
-        }
+      const fetchByStatus = async (status: string) => {
+        try { const d = await fetchJson(`/api/proxy/assessments/${status}`); return Array.isArray(d) ? d : []; }
+        catch { try { const d = await fetchJson(`/api/proxy/assessments?status=${status}`); return Array.isArray(d) ? d : []; } catch { return []; } }
       };
 
-      // All fetches run in parallel — users via Redux (populates state), rest via direct fetch
-      const [
-        usersResult,
-        subjectResult,
-        assessStarted,
-        assessEnded,
-        assessNotStarted,
-        reportResult,
-      ] = await Promise.all([
+      const [usersResult, subjectResult, aStarted, aEnded, aNotStarted, reportResult] = await Promise.all([
         dispatch(fetchAllUsers()).unwrap().catch(() => ({ users: [] as any[] })),
         fetchJson("/api/proxy/subjects").catch(() => null),
-        fetchAssessmentStatus("started"),
-        fetchAssessmentStatus("ended"),
-        fetchAssessmentStatus("not_started"),
+        fetchByStatus("started"),
+        fetchByStatus("ended"),
+        fetchByStatus("not_started"),
         fetchJson("/api/proxy/reports/report-cards?limit=10").catch(() => null),
       ]);
 
-      // Subjects count
-      const subjectsArray = subjectResult?.data || subjectResult?.subjects || subjectResult;
-      setSubjectCount(Array.isArray(subjectsArray) ? subjectsArray.length : 0);
+      const subjectsArr = subjectResult?.data || subjectResult?.subjects || subjectResult;
+      setSubjectCount(Array.isArray(subjectsArr) ? subjectsArr.length : 0);
 
-      // Assessments
-      const allAssessments = [...assessStarted, ...assessEnded, ...assessNotStarted];
-      setAssessmentCount(allAssessments.length);
-      const recentAssess = [...allAssessments]
-        .sort((a, b) => new Date(b.createdAt || b.startsAt || 0).getTime() - new Date(a.createdAt || a.startsAt || 0).getTime())
-        .slice(0, 5);
-      setRecentAssessments(recentAssess);
+      const all = [...aStarted, ...aEnded, ...aNotStarted];
+      setAssessmentCount(all.length);
+      setRecentAssessments([...all].sort((a, b) => new Date(b.createdAt || b.startsAt || 0).getTime() - new Date(a.createdAt || a.startsAt || 0).getTime()).slice(0, 5));
 
-      // Report cards — enrich with user data from the Redux result
       const usersData: any[] = usersResult?.users || [];
       if (reportResult) {
-        const studentsArray = reportResult?.data || reportResult || [];
+        const studentsArr = reportResult?.data || reportResult || [];
         const allReports: any[] = [];
-
-        if (Array.isArray(studentsArray)) {
-          studentsArray.forEach((student: any) => {
-            (student.reportCardsAsStudent || []).forEach((reportCard: any) => {
-              allReports.push({ ...reportCard, studentId: reportCard.studentId });
-            });
-          });
+        if (Array.isArray(studentsArr)) {
+          studentsArr.forEach((s: any) => (s.reportCardsAsStudent || []).forEach((r: any) => allReports.push({ ...r, studentId: r.studentId })));
         }
-
-        const enrichedReports = allReports.map((report) => {
-          const matchingStudent = usersData.find((u: any) => u.id === report.studentId);
-          let studentClass = null;
-          if (matchingStudent?.enrollments && Array.isArray(matchingStudent.enrollments)) {
-            const activeEnrollment = matchingStudent.enrollments.find((e: any) => e.status === "active");
-            studentClass = (activeEnrollment || matchingStudent.enrollments[0])?.class;
-          }
-          return {
-            ...report,
-            student: matchingStudent
-              ? { id: matchingStudent.id, code: matchingStudent.studentId || matchingStudent.id, firstName: matchingStudent.firstName, lastName: matchingStudent.lastName, class: studentClass }
-              : null,
-          };
+        const enriched = allReports.map((r) => {
+          const student = usersData.find((u: any) => u.id === r.studentId);
+          const enrollment = student?.enrollments?.find((e: any) => e.status === "active") || student?.enrollments?.[0];
+          return { ...r, student: student ? { id: student.id, code: student.studentId || student.id, firstName: student.firstName, lastName: student.lastName, class: enrollment?.class } : null };
         });
-
-        const recentCards = enrichedReports
-          .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-          .slice(0, 10);
-        setRecentReportCards(recentCards);
-      } else {
-        setRecentReportCards([]);
+        setRecentReportCards(enriched.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 10));
       }
     }
 
-    fetchDashboardData().catch((err) => console.error("[Dashboard] fetchDashboardData error:", err));
+    load().catch(console.error);
   }, [dispatch]);
 
-  const vv = [
-    {
-      title: "Students",
-      icon: GraduationCap,
-      figure: studentCount,
-      bg_color: "#F0E5FF",
-      icon_color: "#9747FF",
-    },
-    {
-      title: "Teachers",
-      icon: Users,
-      figure: teacherCount,
-      bg_color: "#DFF9D8",
-      icon_color: "#3AC13A",
-    },
-    {
-      title: "Subjects",
-      icon: Book,
-      figure: SubjectCount,
-      bg_color: "#DBE9FF",
-      icon_color: "#2A64F6",
-    },
-    {
-      title: "Assessments",
-      icon: BookImage,
-      figure: AssessmentCount,
-      bg_color: "#FFE9CC",
-      icon_color: "#F28C1F",
-    },
+  const stats = [
+    { label: "Students",    value: studentCount,    icon: GraduationCap, tint: "var(--violet-tint)",  iconColor: "var(--violet-ink)" },
+    { label: "Teachers",    value: teacherCount,    icon: Users,         tint: "var(--emerald-tint)", iconColor: "var(--emerald-signal)" },
+    { label: "Subjects",    value: subjectCount,    icon: BookOpen,      tint: "var(--cobalt-tint)",  iconColor: "var(--cobalt-signal)" },
+    { label: "Assessments", value: assessmentCount, icon: FileText,      tint: "var(--amber-tint)",   iconColor: "var(--amber-signal)" },
   ];
 
   return (
-    <div className="w-full space-y-6 pb-8">
+    <div style={{ width: "100%", paddingBottom: 48 }}>
       <ProductTour tourKey="admin_dashboard" steps={adminTourSteps} />
-      
-      {/* Header Section */}
-      <Header 
-        schoolLogo={tenantInfo?.logoUrl} 
+
+      <Header
+        schoolLogo={tenantInfo?.logoUrl}
         schoolName={tenantInfo?.name || "ParaLearn School"}
-        showGreeting={true}
+        showGreeting
       />
 
-      {/* Current Academic Session Banner */}
+      {/* ── Active term banner ──────────────────────────────────────── */}
       {currentSession && (
-        <div className="mb-6">
-          <div className="dashboard-academic-banner relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-4 sm:p-6 text-white shadow-lg">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Calendar className="w-24 h-24" />
+        <div
+          className="dashboard-academic-banner"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            padding: "16px 20px",
+            borderRadius: "var(--radius-lg)",
+            border: "1px solid var(--border-fine)",
+            background: "#ffffff",
+            marginBottom: 24,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "var(--radius-md)",
+                background: "var(--violet-tint)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Calendar style={{ width: 16, height: 16, color: "var(--violet-ink)" }} />
             </div>
-            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <p className="text-white text-xs font-bold uppercase tracking-wider mb-1">
-                  Active Academic Period
-                </p>
-                <h2 className="text-xl sm:text-2xl font-black text-white">
-                  {currentSession.session} — {currentSession.term}
-                </h2>
-              </div>
-              <Link href={routespath.ACADEMIC}>
-                <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-md">
-                  Manage Sessions
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.06em", lineHeight: 1.3 }}>
+                Active academic period
+              </p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", lineHeight: 1.3, marginTop: 2 }}>
+                {currentSession.session} — {currentSession.term}
+              </p>
             </div>
           </div>
+          <Link href={routespath.ACADEMIC}>
+            <button className="btn-ghost" style={{ padding: "7px 14px", fontSize: 13 }}>
+              Manage
+              <ChevronRight style={{ width: 14, height: 14 }} />
+            </button>
+          </Link>
         </div>
       )}
 
-      {/* Stats Cards Grid */}
-      <div className="dashboard-stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {vv.map((item, index) => (
-          <Card
-            key={index}
-            className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-            style={{ backgroundColor: item.bg_color }}
+      {/* ── Stats ───────────────────────────────────────────────────── */}
+      <div
+        className="dashboard-stats-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
+          marginBottom: 32,
+        }}
+      >
+        {stats.map(({ label, value, icon: Icon, tint, iconColor }) => (
+          <div
+            key={label}
+            style={{
+              background: "#ffffff",
+              border: "1px solid var(--border-fine)",
+              borderRadius: "var(--radius-lg)",
+              boxShadow: "var(--shadow-card)",
+              padding: "20px 24px",
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+            }}
           >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-600 mb-1">
-                    {item.title}
-                  </p>
-                  <p className="text-3xl font-bold text-slate-900">
-                    {item.figure.toLocaleString()}
-                  </p>
-                </div>
-                <div
-                  className="rounded-full p-3 shadow-sm"
-                  style={{ backgroundColor: item.icon_color }}
-                >
-                  <item.icon className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: "var(--radius-md)",
+                background: tint,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Icon style={{ width: 18, height: 18, color: iconColor }} strokeWidth={1.75} />
+            </div>
+            <div>
+              <p
+                style={{
+                  fontFamily: "var(--font-manrope), system-ui, sans-serif",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--text-secondary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  lineHeight: 1.3,
+                }}
+              >
+                {label}
+              </p>
+              <p
+                style={{
+                  fontFamily: "var(--font-manrope), system-ui, sans-serif",
+                  fontSize: 28,
+                  fontWeight: 800,
+                  letterSpacing: "-0.03em",
+                  color: "#0f172a",
+                  lineHeight: 1.1,
+                  marginTop: 2,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {value.toLocaleString()}
+              </p>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Assessments Section */}
-        <div className="dashboard-recent-assessments lg:col-span-1 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900 font-coolvetica">Recent Assessments</h2>
+      {/* ── Main 2-col grid ─────────────────────────────────────────── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 2fr",
+          gap: 24,
+          alignItems: "start",
+        }}
+        className="grid-cols-1 lg:grid-cols-[1fr_2fr]"
+      >
+        {/* Recent Assessments */}
+        <div className="dashboard-recent-assessments">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>
+              Recent Assessments
+            </h2>
             <Link href={routespath.ASSESSMENTS}>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-[#641BC4] hover:bg-[#641BC4] hover:text-white text-xs font-semibold font-coolvetica"
+              <button
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "var(--violet-ink)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px 0",
+                }}
               >
-                View All
-                <ArrowRight className="w-3 h-3 ml-1" />
-              </Button>
+                View all <ArrowRight style={{ width: 13, height: 13 }} />
+              </button>
             </Link>
           </div>
-          <div className="space-y-3">
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {recentAssessments.length === 0 ? (
-              <Card className="border border-slate-200 shadow-sm">
-                <CardContent className="p-6 text-center">
-                  <p className="text-sm text-slate-500 font-coolvetica">No assessments yet</p>
-                </CardContent>
-              </Card>
+              <div
+                style={{
+                  border: "1px dashed var(--border-fine)",
+                  borderRadius: "var(--radius-lg)",
+                  padding: "32px 24px",
+                  textAlign: "center",
+                }}
+              >
+                <FileText style={{ width: 28, height: 28, color: "var(--text-secondary)", margin: "0 auto 8px" }} strokeWidth={1.5} />
+                <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>No assessments yet</p>
+              </div>
             ) : (
-              recentAssessments.map((item: any, index: number) => (
-                <Card
-                  key={item.id || index}
-                  className="border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
-                >
-                  <div className="flex">
-                    <div className="w-2 bg-gradient-to-b from-[#641BC4] to-[#8538E0]"></div>
-                    <CardContent className="flex-1 p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-slate-900 text-base line-clamp-1 font-coolvetica">
-                            {item.title || item.subject?.name || "Untitled Assessment"}
-                          </h3>
-                          <p className="text-xs text-slate-500 mt-1 font-coolvetica">
-                            {item.subject?.name || "Subject"}
-                          </p>
-                        </div>
-                        <Badge
-                          variant={item.status === "started" ? "default" : "secondary"}
-                          className={
-                            item.status === "started"
-                              ? "bg-green-100 text-green-800 hover:bg-green-100 ml-2"
-                              : item.status === "ended"
-                              ? "bg-amber-100 text-amber-800 hover:bg-amber-100 ml-2"
-                              : "bg-slate-100 text-slate-800 hover:bg-slate-100 ml-2"
-                          }
-                        >
-                          {item.status === "started" ? "Active" : item.status === "ended" ? "Ended" : "Draft"}
-                        </Badge>
+              recentAssessments.map((item: any, i: number) => {
+                const { label, cls } = statusMeta(item.status);
+                return (
+                  <div
+                    key={item.id || i}
+                    style={{
+                      background: "#ffffff",
+                      border: "1px solid var(--border-fine)",
+                      borderRadius: "var(--radius-lg)",
+                      padding: "14px 16px",
+                      transition: "box-shadow var(--dur-smooth) var(--ease-out-expo)",
+                    }}
+                    className="hover:shadow-[var(--shadow-hover)]"
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {item.title || item.subject?.name || "Untitled"}
+                        </p>
+                        <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>
+                          {item.subject?.name || "—"}
+                        </p>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-4 text-xs text-slate-600 font-coolvetica">
-                          <span className="font-medium">
-                            {item.totalMarks || 100} Marks
-                          </span>
-                          {item.duration && (
-                            <span className="font-medium">
-                              {item.duration} mins
-                            </span>
-                          )}
-                        </div>
-                        {item.startsAt && (
-                          <div className="flex items-center gap-2 text-xs text-slate-500 font-coolvetica">
-                            <Clock className="w-3 h-3" />
-                            <span>{new Date(item.startsAt).toLocaleDateString()}</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
+                      <span className={cls} style={{ flexShrink: 0 }}>{label}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                        {item.totalMarks || 100} marks
+                      </span>
+                      {item.duration && (
+                        <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{item.duration} min</span>
+                      )}
+                      {item.startsAt && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--text-secondary)" }}>
+                          <Clock style={{ width: 11, height: 11 }} />
+                          {new Date(item.startsAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </Card>
-              ))
+                );
+              })
             )}
           </div>
         </div>
 
-        {/* Report Cards Section */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <h2 className="text-xl font-bold text-slate-900 font-coolvetica">Recent Report Cards</h2>
+        {/* Report Cards */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>
+              Recent Report Cards
+            </h2>
             <Link href={routespath.REPORT}>
-              <Button className="bg-[#9747FF] hover:bg-[#8538E0] text-white shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Generate Report Cards
-              </Button>
+              <button className="btn-primary" style={{ padding: "8px 16px", fontSize: 13 }}>
+                <Plus style={{ width: 14, height: 14 }} />
+                Generate
+              </button>
             </Link>
           </div>
 
-          {/* Responsive Table Container */}
-          <Card className="border border-slate-200 shadow-sm">
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid var(--border-fine)",
+              borderRadius: "var(--radius-lg)",
+              boxShadow: "var(--shadow-card)",
+              overflow: "hidden",
+            }}
+          >
             {recentReportCards.length === 0 ? (
-              <CardContent className="p-8 text-center">
-                <p className="text-sm text-slate-500">No report cards generated yet</p>
-              </CardContent>
+              <div style={{ padding: "48px 24px", textAlign: "center" }}>
+                <FileText style={{ width: 32, height: 32, color: "var(--text-secondary)", margin: "0 auto 10px" }} strokeWidth={1.5} />
+                <p style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 4 }}>No report cards yet</p>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Generate report cards at the end of each term</p>
+              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
-                    <tr className="bg-gradient-to-r from-[#AD8ED6] to-[#9747FF]">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider rounded-tl-lg">
-                        Student ID
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                        Class
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                        Session/Term
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider rounded-tr-lg">
-                        Created
-                      </th>
+                    <tr style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+                      {["Student ID", "Name", "Class", "Session / Term", "Status", "Created"].map((h) => (
+                        <th
+                          key={h}
+                          style={{
+                            padding: "10px 16px",
+                            textAlign: "left",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#0f172a",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            whiteSpace: "nowrap",
+                            fontFamily: "var(--font-manrope), system-ui, sans-serif",
+                          }}
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {recentReportCards.map((report: any, index: number) => (
-                      <tr
-                        key={report.id || index}
-                        className={`hover:bg-slate-50 transition-colors ${
-                          index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
-                        }`}
-                      >
-                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
-                          {report.student?.code || report.studentId || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-700">
-                          {report.student?.firstName || ""} {report.student?.lastName || report.studentName || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
-                          {report.student?.class?.name || report.className || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
-                          {report.session || "—"} / {report.term || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
-                          <Badge
-                            variant={report.status === "published" ? "default" : "secondary"}
-                            className={
-                              report.status === "published"
-                                ? "bg-green-100 text-green-800 hover:bg-green-100"
-                                : "bg-slate-100 text-slate-800 hover:bg-slate-100"
-                            }
-                          >
-                            {report.status === "published" ? "Published" : "Draft"}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
-                          {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : "—"}
-                        </td>
-                      </tr>
-                    ))}
+                  <tbody>
+                    {recentReportCards.map((r: any, i: number) => {
+                      const { label, cls } = reportStatusMeta(r.status);
+                      return (
+                        <tr
+                          key={r.id || i}
+                          style={{
+                            borderBottom: "1px solid var(--border-fine)",
+                            transition: "background var(--dur-quick)",
+                          }}
+                          className="hover:bg-[#f7f3ff]/50"
+                        >
+                          <td style={{ padding: "13px 16px", fontSize: 13, color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums", fontFamily: "'Geist Mono', ui-monospace, monospace", whiteSpace: "nowrap" }}>
+                            {r.student?.code || r.studentId || "—"}
+                          </td>
+                          <td style={{ padding: "13px 16px", fontSize: 13, color: "#0f172a", fontWeight: 500 }}>
+                            {r.student?.firstName || ""} {r.student?.lastName || r.studentName || "—"}
+                          </td>
+                          <td style={{ padding: "13px 16px", fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
+                            {r.student?.class?.name || r.className || "—"}
+                          </td>
+                          <td style={{ padding: "13px 16px", fontSize: 13, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
+                            {r.session || "—"} / {r.term || "—"}
+                          </td>
+                          <td style={{ padding: "13px 16px" }}>
+                            <span className={cls}>{label}</span>
+                          </td>
+                          <td style={{ padding: "13px 16px", fontSize: 12, color: "var(--text-secondary)", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+                            {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
-          </Card>
+          </div>
         </div>
       </div>
     </div>

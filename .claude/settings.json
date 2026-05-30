@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/HP/paralearn-backend/src/super-admin/services/**)",
-      "Bash(find /c/Users/HP/paralearn-rms-web/src/components -name \"*.tsx\" -exec grep -l \"setError\\\\|errorMessage\" {} \\\\;)"
+      "Bash(find /c/Users/HP/paralearn-rms-web/src/components -name \"*.tsx\" -exec grep -l \"setError\\\\|errorMessage\" {} \\\\;)",
+      "Read(//c/Users/HP/.claude/skills/impeccable/reference/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\HP\\uni-para-learn-backend\\src\\attendance\\dto",

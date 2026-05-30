@@ -57,7 +57,6 @@ import {
 import { routespath } from "@/lib/routepath";
 import { toast } from "sonner";
 
-const DEFAULT_PRIMARY = "#641BC4";
 import { ProductTour } from "@/components/common/ProductTour";
 
 const teacherAssessmentsTourSteps = [
@@ -79,40 +78,12 @@ const teacherAssessmentsTourSteps = [
   },
 ];
 
-const statusConfig: Record<
-  string,
-  { bg: string; text: string; icon: typeof CheckCircle; label: string }
-> = {
-  started: {
-    bg: "bg-emerald-100",
-    text: "text-emerald-700",
-    icon: PlayCircle,
-    label: "Active",
-  },
-  active: {
-    bg: "bg-emerald-100",
-    text: "text-emerald-700",
-    icon: PlayCircle,
-    label: "Active",
-  },
-  ended: {
-    bg: "bg-slate-100",
-    text: "text-slate-600",
-    icon: CheckCircle,
-    label: "Ended",
-  },
-  not_started: {
-    bg: "bg-amber-100",
-    text: "text-amber-700",
-    icon: Clock,
-    label: "Not Started",
-  },
-  draft: {
-    bg: "bg-slate-100",
-    text: "text-slate-600",
-    icon: FileText,
-    label: "Draft",
-  },
+const statusConfig: Record<string, { background: string; color: string; icon: typeof CheckCircle; label: string }> = {
+  started: { background: "var(--emerald-tint)", color: "var(--emerald-signal)", icon: PlayCircle, label: "Active" },
+  active: { background: "var(--emerald-tint)", color: "var(--emerald-signal)", icon: PlayCircle, label: "Active" },
+  ended: { background: "var(--surface-muted)", color: "var(--foreground-muted)", icon: CheckCircle, label: "Ended" },
+  not_started: { background: "var(--amber-tint)", color: "var(--amber-signal)", icon: Clock, label: "Not Started" },
+  draft: { background: "var(--surface-muted)", color: "var(--foreground-muted)", icon: FileText, label: "Draft" },
 };
 
 export function TeacherAssessmentsPage() {
@@ -127,9 +98,6 @@ export function TeacherAssessmentsPage() {
     classesLoading,
   } = useSelector((s: RootState) => s.teacher);
   const { user } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
-
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -536,13 +504,13 @@ export function TeacherAssessmentsPage() {
 
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white">
+        <div className="p-6 md:p-8" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", background: "var(--surface-muted)", boxShadow: "var(--shadow-card)" }}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold font-coolvetica">
+              <h1 className="text-2xl md:text-3xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
                 Assessment Management
               </h1>
-              <p className="text-purple-200 mt-1 font-coolvetica">
+              <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>
                 Create, manage, and grade your assessments
               </p>
             </div>
@@ -552,127 +520,82 @@ export function TeacherAssessmentsPage() {
                 onClick={() => refreshData(true)}
                 disabled={assessmentsLoading || classesLoading}
                 variant="outline"
-                className="h-12 w-12 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 p-0"
+                className="h-10 w-10 p-0"
+                style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)" }}
                 title="Refresh Data"
               >
-                <RefreshCcw
-                  className={`w-5 h-5 ${assessmentsLoading ? "animate-spin" : ""}`}
-                />
+                <RefreshCcw className={`w-4 h-4 ${assessmentsLoading ? "animate-spin" : ""}`} style={{ color: "var(--foreground-muted)" }} />
               </Button>
-
               <Button
                 onClick={() => setShowCreateModal(true)}
-                className="teacher-assessments-create-btn h-12 px-6 rounded-xl bg-white text-purple-600 hover:bg-purple-50 font-semibold gap-2"
+                className="teacher-assessments-create-btn h-10 px-5 text-white font-semibold gap-2"
+                style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
                 Create Assessment
               </Button>
             </div>
           </div>
 
           {/* Stats Row */}
-          <div className="teacher-assessments-stats grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+          <div className="teacher-assessments-stats grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
             {[
-              { label: "Total", value: stats.total, color: "bg-white/20" },
-              {
-                label: "Active",
-                value: stats.active,
-                color: "bg-emerald-500/30",
-              },
-              {
-                label: "Not Started",
-                value: stats.notStarted,
-                color: "bg-amber-500/30",
-              },
-              { label: "Ended", value: stats.ended, color: "bg-slate-500/30" },
+              { label: "Total", value: stats.total, bg: "white", color: "var(--foreground)", border: "var(--border-fine)" },
+              { label: "Active", value: stats.active, bg: "var(--emerald-tint)", color: "var(--emerald-signal)", border: "color-mix(in oklch, var(--emerald-signal) 20%, transparent)" },
+              { label: "Not Started", value: stats.notStarted, bg: "var(--amber-tint)", color: "var(--amber-signal)", border: "color-mix(in oklch, var(--amber-signal) 20%, transparent)" },
+              { label: "Ended", value: stats.ended, bg: "var(--surface-muted)", color: "var(--foreground-muted)", border: "var(--border-fine)" },
             ].map((stat) => (
-              <div
-                key={stat.label}
-                className={`${stat.color} rounded-xl px-4 py-3 backdrop-blur-sm`}
-              >
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-sm text-purple-100">{stat.label}</p>
+              <div key={stat.label} className="px-4 py-3" style={{ borderRadius: "var(--radius-lg)", background: stat.bg, border: `1px solid ${stat.border}` }}>
+                <p className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
+                <p className="text-sm" style={{ color: stat.color, opacity: 0.8 }}>{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Filters */}
-        <div className="teacher-assessments-filter-bar bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+        <div className="teacher-assessments-filter-bar bg-white p-4" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
           <div className="flex flex-wrap items-center gap-3">
-            {/* Search */}
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Search assessments..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-11 rounded-xl border-slate-200"
-              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
+              <Input placeholder="Search assessments..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 h-11 bg-white" style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)" }} />
             </div>
-
-            {/* Class Filter */}
             <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="h-11 w-full sm:w-[160px] rounded-xl border-slate-200">
+              <SelectTrigger className="h-11 w-full sm:w-[160px] bg-white" style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)" }}>
                 <SelectValue placeholder="All Classes" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent style={{ borderRadius: "var(--radius-md)" }}>
                 <SelectItem value="all">All Classes</SelectItem>
-                {uniqueClasses.map((cls: any) => (
-                  <SelectItem key={cls.id} value={cls.id}>
-                    {cls.name}
-                  </SelectItem>
-                ))}
+                {uniqueClasses.map((cls: any) => <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>)}
               </SelectContent>
             </Select>
-
-            {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-11 w-full sm:w-[140px] rounded-xl border-slate-200">
+              <SelectTrigger className="h-11 w-full sm:w-[140px] bg-white" style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)" }}>
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent style={{ borderRadius: "var(--radius-md)" }}>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="started">Active</SelectItem>
                 <SelectItem value="not_started">Not Started</SelectItem>
                 <SelectItem value="ended">Ended</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* Type Filter */}
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-11 w-full sm:w-[120px] rounded-xl border-slate-200">
+              <SelectTrigger className="h-11 w-full sm:w-[120px] bg-white" style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)" }}>
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent style={{ borderRadius: "var(--radius-md)" }}>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="online">Online</SelectItem>
                 <SelectItem value="offline">Offline</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* View Toggle */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 ml-auto">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "grid"
-                    ? "bg-white shadow-sm text-slate-900"
-                    : "text-slate-500"
-                }`}
-              >
-                <Grid3X3 className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "list"
-                    ? "bg-white shadow-sm text-slate-900"
-                    : "text-slate-500"
-                }`}
-              >
-                <List className="w-5 h-5" />
-              </button>
+            <div className="flex items-center gap-1 p-1 ml-auto" style={{ borderRadius: "var(--radius-lg)", background: "var(--surface-muted)" }}>
+              {(["grid", "list"] as const).map((mode) => (
+                <button key={mode} onClick={() => setViewMode(mode)} className="p-2 transition-all" style={{ borderRadius: "var(--radius-md)", background: viewMode === mode ? "white" : "transparent", color: viewMode === mode ? "var(--foreground)" : "var(--foreground-muted)", boxShadow: viewMode === mode ? "var(--shadow-card)" : "none" }}>
+                  {mode === "grid" ? <Grid3X3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -680,29 +603,17 @@ export function TeacherAssessmentsPage() {
         {/* Assessment Cards */}
         {assessmentsLoading && assessments.length === 0 ? (
           <div className="flex items-center justify-center py-20">
-            <div
-              className="animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200"
-              style={{ borderTopColor: primaryColor }}
-            />
+            <div className="h-10 w-10 rounded-full" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
           </div>
         ) : filteredAssessments.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
-            <ClipboardList className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-900 mb-2">
-              No Assessments Found
-            </h3>
-            <p className="text-slate-500 max-w-md mx-auto mb-4">
-              {search || statusFilter !== "all" || classFilter !== "all"
-                ? "Try adjusting your filters"
-                : "Create your first assessment to get started."}
+          <div className="bg-white p-10 text-center" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+            <ClipboardList className="w-16 h-16 mx-auto mb-4" style={{ color: "var(--border-medium)" }} />
+            <h3 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>No Assessments Found</h3>
+            <p className="max-w-md mx-auto mb-4" style={{ color: "var(--foreground-muted)" }}>
+              {search || statusFilter !== "all" || classFilter !== "all" ? "Try adjusting your filters" : "Create your first assessment to get started."}
             </p>
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="h-11 px-6 rounded-xl text-white font-semibold"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Assessment
+            <Button onClick={() => setShowCreateModal(true)} className="h-11 px-6 text-white font-semibold gap-2" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
+              <Plus className="w-4 h-4" /> Create Assessment
             </Button>
           </div>
         ) : viewMode === "grid" ? (
@@ -721,49 +632,43 @@ export function TeacherAssessmentsPage() {
               return (
                 <div
                   key={assessment.id || idx}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-slate-200 transition-all overflow-hidden relative"
-                  style={{ backgroundImage: bgPattern }}
+                  className="bg-white overflow-hidden transition-all"
+                  style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-card)")}
                 >
                   {/* Card Header */}
-                  <div className="p-5 relative z-10">
+                  <div className="p-5">
                     <div className="flex items-start justify-between mb-3">
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center bg-white shadow-sm border border-slate-100"
-                        style={{ color: primaryColor }}
-                      >
-                        <ClipboardList className="w-5 h-5" />
+                      <div className="w-11 h-11 flex items-center justify-center" style={{ borderRadius: "var(--radius-lg)", background: "var(--violet-tint)" }}>
+                        <ClipboardList className="w-5 h-5" style={{ color: "var(--violet-ink)" }} />
                       </div>
-                      <Badge
-                        className={`rounded-lg ${statusStyle.bg} ${statusStyle.text} backdrop-blur-sm bg-opacity-90`}
-                      >
-                        <StatusIcon className="w-3 h-3 mr-1" />
+                      <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.background, color: statusStyle.color }}>
+                        <StatusIcon className="w-3 h-3" />
                         {statusStyle.label}
-                      </Badge>
+                      </span>
                     </div>
-                    <h3 className="font-bold text-slate-900 text-lg mb-1 line-clamp-1 pr-24 relative">
+                    <h3 className="font-bold text-lg mb-1 line-clamp-1 pr-24 relative" style={{ color: "var(--foreground)" }}>
                       {assessment.title}
                       <div className="absolute top-0 right-0 flex items-center gap-1">
                         <button
                           onClick={() => handleEditClick(assessment)}
-                          className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-purple-100 text-slate-500 hover:text-purple-600 transition-colors bg-white shadow-sm border border-slate-100 text-xs font-semibold"
+                          className="flex items-center gap-1 px-2 py-1 text-xs font-semibold transition-colors"
+                          style={{ borderRadius: "var(--radius-sm)", background: "var(--surface-muted)", color: "var(--foreground-muted)", border: "1px solid var(--border-fine)" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--violet-tint)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--violet-ink)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--surface-muted)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--foreground-muted)"; }}
                         >
                           <Edit className="w-3.5 h-3.5" />
                           <span>Edit</span>
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-1 rounded-md hover:bg-slate-100 text-slate-400 transition-colors bg-white shadow-sm border border-slate-100">
+                            <button className="p-1 transition-colors" style={{ borderRadius: "var(--radius-sm)", background: "var(--surface-muted)", border: "1px solid var(--border-fine)", color: "var(--foreground-muted)" }}>
                               <MoreVertical className="w-4 h-4" />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="rounded-xl min-w-[140px] z-50"
-                          >
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(assessment.id)}
-                              className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer text-sm"
-                            >
+                          <DropdownMenuContent align="end" style={{ borderRadius: "var(--radius-md)" }} className="min-w-[140px] z-50">
+                            <DropdownMenuItem onClick={() => handleDelete(assessment.id)} className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer text-sm">
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
@@ -771,28 +676,27 @@ export function TeacherAssessmentsPage() {
                         </DropdownMenu>
                       </div>
                     </h3>
-                    <p className="text-sm text-slate-500 flex items-center gap-2 mb-4">
+                    <p className="text-sm flex items-center gap-2 mb-4" style={{ color: "var(--foreground-muted)" }}>
                       <BookOpen className="w-4 h-4" />
-                      {assessment.subject?.name || "Subject"} •{" "}
-                      {getClassName(assessment.classId)}
+                      {assessment.subject?.name || "Subject"} • {getClassName(assessment.classId)}
                     </p>
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-3 text-center py-3 border-y border-slate-100">
+                    <div className="grid grid-cols-3 gap-3 text-center py-3" style={{ borderTop: "1px solid var(--border-fine)", borderBottom: "1px solid var(--border-fine)" }}>
                       <div>
-                        <p className="text-lg font-bold text-slate-900">
+                        <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
                           {assessment.totalMarks ?? assessment.marks ?? 100}
                         </p>
-                        <p className="text-xs text-slate-500">Marks</p>
+                        <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>Marks</p>
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-900">
+                        <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
                           {duration}m
                         </p>
-                        <p className="text-xs text-slate-500">Duration</p>
+                        <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>Duration</p>
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-900">
+                        <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
                           {(() => {
                             const subs = assessment.submissions || [];
                             if (Array.isArray(subs) && subs.length > 0) {
@@ -812,58 +716,43 @@ export function TeacherAssessmentsPage() {
                             );
                           })()}
                         </p>
-                        <p className="text-xs text-slate-500">Submitted</p>
+                        <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>Submitted</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Card Footer */}
-                  <div className="px-5 py-4 bg-slate-50/50 border-t border-slate-100 grid grid-cols-2 gap-2">
+                  <div className="px-5 py-4 grid grid-cols-2 gap-2" style={{ borderTop: "1px solid var(--border-fine)", background: "var(--surface-muted)" }}>
                     {assessment.isOnline ? (
                       <>
                         {status !== "ended" && (
-                          <Link
-                            href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
-                            className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors col-span-2 mb-1"
+                          <Link href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
+                            className="flex items-center justify-center gap-2 h-10 text-sm font-semibold transition-colors col-span-2 mb-1 bg-white"
+                            style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", color: "var(--violet-ink)" }}
                           >
-                            <Sparkles className="w-4 h-4 text-purple-600" />
+                            <Sparkles className="w-4 h-4" />
                             Draft Questions
                           </Link>
                         )}
                         {status === "not_started" ? (
-                          <Button
-                            onClick={() => handlePublish(assessment.id)}
-                            className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
-                            style={{ backgroundColor: primaryColor }}
-                          >
+                          <Button onClick={() => handlePublish(assessment.id)} className="flex items-center justify-center gap-2 h-10 text-sm font-semibold text-white col-span-2" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
                             <Send className="w-4 h-4" />
                             Publish Assessment
                           </Button>
                         ) : (
-                          <Link
-                            href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
-                            className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors col-span-2"
-                            style={{ backgroundColor: primaryColor }}
-                          >
-                            <BarChart3 className="w-4 h-4 mr-1" />
+                          <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`} className="flex items-center justify-center gap-2 h-10 text-sm font-semibold text-white col-span-2" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
+                            <BarChart3 className="w-4 h-4" />
                             Grade Submissions
                           </Link>
                         )}
                       </>
                     ) : (
                       <>
-                        <button
-                          onClick={() => handleEditClick(assessment)}
-                          className="flex items-center justify-center gap-2 h-10 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                        >
+                        <button onClick={() => handleEditClick(assessment)} className="flex items-center justify-center gap-2 h-10 text-sm font-semibold bg-white transition-colors" style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", color: "var(--foreground)" }}>
                           <Edit className="w-4 h-4" />
                           Edit
                         </button>
-                        <Link
-                          href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}
-                          className="flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold text-white transition-colors"
-                          style={{ backgroundColor: primaryColor }}
-                        >
+                        <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`} className="flex items-center justify-center gap-2 h-10 text-sm font-semibold text-white" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
                           <BarChart3 className="w-4 h-4" />
                           Grade
                         </Link>
@@ -875,28 +764,16 @@ export function TeacherAssessmentsPage() {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white overflow-hidden" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="text-left py-4 px-5 text-sm font-semibold text-slate-600">
-                    Assessment
-                  </th>
-                  <th className="text-left py-4 px-3 text-sm font-semibold text-slate-600">
-                    Class
-                  </th>
-                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">
-                    Marks
-                  </th>
-                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">
-                    Duration
-                  </th>
-                  <th className="text-center py-4 px-3 text-sm font-semibold text-slate-600">
-                    Status
-                  </th>
-                  <th className="text-right py-4 px-5 text-sm font-semibold text-slate-600">
-                    Actions
-                  </th>
+                <tr style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+                  <th className="text-left py-4 px-5 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>Assessment</th>
+                  <th className="text-left py-4 px-3 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>Class</th>
+                  <th className="text-center py-4 px-3 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>Marks</th>
+                  <th className="text-center py-4 px-3 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>Duration</th>
+                  <th className="text-center py-4 px-3 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>Status</th>
+                  <th className="text-right py-4 px-5 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -907,118 +784,61 @@ export function TeacherAssessmentsPage() {
                   return (
                     <tr
                       key={assessment.id || idx}
-                      className={`border-b border-slate-100 last:border-0 ${
-                        idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"
-                      }`}
+                      className="transition-colors"
+                      style={{ borderTop: "1px solid var(--border-fine)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                     >
                       <td className="py-4 px-5">
                         <div className="flex items-center gap-3">
-                          <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                            style={{ backgroundColor: `${primaryColor}15` }}
-                          >
-                            <ClipboardList
-                              className="w-5 h-5"
-                              style={{ color: primaryColor }}
-                            />
+                          <div className="w-10 h-10 flex items-center justify-center shrink-0" style={{ borderRadius: "var(--radius-lg)", background: "var(--violet-tint)" }}>
+                            <ClipboardList className="w-5 h-5" style={{ color: "var(--violet-ink)" }} />
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-900">
-                              {assessment.title}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                              {assessment.subject?.name || "Subject"}
-                            </p>
+                            <p className="font-semibold" style={{ color: "var(--foreground)" }}>{assessment.title}</p>
+                            <p className="text-sm" style={{ color: "var(--foreground-muted)" }}>{assessment.subject?.name || "Subject"}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-3 text-slate-600">
-                        {getClassName(assessment.classId)}
-                      </td>
-                      <td className="py-4 px-3 text-center font-semibold">
-                        {assessment.totalMarks ?? assessment.marks ?? 100}
-                      </td>
+                      <td className="py-4 px-3" style={{ color: "var(--foreground-muted)" }}>{getClassName(assessment.classId)}</td>
+                      <td className="py-4 px-3 text-center font-semibold" style={{ color: "var(--foreground)" }}>{assessment.totalMarks ?? assessment.marks ?? 100}</td>
+                      <td className="py-4 px-3 text-center" style={{ color: "var(--foreground-muted)" }}>{assessment.durationMinutes ?? assessment.durationMins ?? assessment.duration ?? 30}m</td>
                       <td className="py-4 px-3 text-center">
-                        {assessment.durationMinutes ??
-                          assessment.durationMins ??
-                          assessment.duration ??
-                          30}
-                        m
-                      </td>
-                      <td className="py-4 px-3 text-center">
-                        <Badge
-                          className={`rounded ${statusStyle.bg} ${statusStyle.text}`}
-                        >
+                        <span className="inline-flex items-center text-xs font-medium px-2.5 py-0.5" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.background, color: statusStyle.color }}>
                           {statusStyle.label}
-                        </Badge>
+                        </span>
                       </td>
                       <td className="py-4 px-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {assessment.isOnline ? (
                             <div className="flex items-center gap-2">
                               {status !== "ended" && (
-                                <Link
-                                  href={`/teacher/question-drafting?assessmentId=${assessment.id}`}
-                                >
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="rounded-lg h-9 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100"
-                                  >
-                                    <Sparkles className="w-4 h-4 mr-1" />
-                                    Questions
+                                <Link href={`/teacher/question-drafting?assessmentId=${assessment.id}`}>
+                                  <Button variant="outline" size="sm" className="h-9 gap-1" style={{ borderRadius: "var(--radius-md)", borderColor: "color-mix(in oklch, var(--violet-ink) 30%, transparent)", color: "var(--violet-ink)", background: "var(--violet-tint)" }}>
+                                    <Sparkles className="w-4 h-4" /> Questions
                                   </Button>
                                 </Link>
                               )}
                               {status === "not_started" ? (
-                                <Button
-                                  onClick={() => handlePublish(assessment.id)}
-                                  size="sm"
-                                  className="rounded-lg h-9 text-white"
-                                  style={{ backgroundColor: primaryColor }}
-                                >
-                                  <Send className="w-4 h-4 mr-1" />
-                                  Publish
+                                <Button onClick={() => handlePublish(assessment.id)} size="sm" className="h-9 text-white gap-1" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
+                                  <Send className="w-4 h-4" /> Publish
                                 </Button>
                               ) : (
-                                <Link
-                                  href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}
-                                >
-                                  <Button
-                                    size="sm"
-                                    className="rounded-lg h-9 text-white"
-                                    style={{ backgroundColor: primaryColor }}
-                                  >
-                                    <BarChart3 className="w-4 h-4 mr-1" />
-                                    Grade
+                                <Link href={`${routespath.TEACHER_ASSESSMENTS}/${assessment.id}`}>
+                                  <Button size="sm" className="h-9 text-white gap-1" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
+                                    <BarChart3 className="w-4 h-4" /> Grade
                                   </Button>
                                 </Link>
                               )}
                             </div>
                           ) : (
                             <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleEditClick(assessment)}
-                              >
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="rounded-lg h-9"
-                                >
-                                  <Edit className="w-4 h-4 mr-1" />
-                                  Edit
-                                </Button>
-                              </button>
-                              <Link
-                                href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}
-                              >
-                                <Button
-                                  size="sm"
-                                  className="rounded-lg h-9 text-white"
-                                  style={{ backgroundColor: primaryColor }}
-                                >
-                                  <BarChart3 className="w-4 h-4 mr-1" />
-                                  Grade
+                              <Button variant="outline" size="sm" className="h-9 gap-1" style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)" }} onClick={() => handleEditClick(assessment)}>
+                                <Edit className="w-4 h-4" /> Edit
+                              </Button>
+                              <Link href={`${routespath.TEACHER_SCORES}?assessmentId=${assessment.id}`}>
+                                <Button size="sm" className="h-9 text-white gap-1" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
+                                  <BarChart3 className="w-4 h-4" /> Grade
                                 </Button>
                               </Link>
                             </div>
@@ -1027,7 +847,7 @@ export function TeacherAssessmentsPage() {
                           {/* Delete Dropdown for List View */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="p-2 ml-1 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 transition-colors">
+                              <button className="p-2 ml-1 transition-colors" style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", color: "var(--foreground-muted)" }}>
                                 <MoreVertical className="w-4 h-4" />
                               </button>
                             </DropdownMenuTrigger>
@@ -1060,36 +880,23 @@ export function TeacherAssessmentsPage() {
         isMounted &&
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowCreateModal(false)}
-            />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+            <div className="absolute inset-0" style={{ background: "rgba(15,23,42,0.5)" }} onClick={() => setShowCreateModal(false)} />
+            <div className="relative bg-white w-full max-w-lg mx-4 overflow-hidden" style={{ borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)" }}>
               {/* Modal Header */}
-              <div
-                className="px-6 py-5 border-b border-slate-100 flex items-center justify-between"
-                style={{ backgroundColor: `${primaryColor}10` }}
-              >
+              <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border-fine)", background: "var(--violet-tint)" }}>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    Create New Assessment
-                  </h2>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Create a quiz, exam, or homework
-                  </p>
+                  <h2 className="text-xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>Create New Assessment</h2>
+                  <p className="text-sm mt-0.5" style={{ color: "var(--foreground-muted)" }}>Create a quiz, exam, or homework</p>
                 </div>
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="p-2 rounded-lg hover:bg-white/50"
-                >
-                  <X className="w-5 h-5 text-slate-500" />
+                <button onClick={() => setShowCreateModal(false)} className="p-2 transition-colors" style={{ borderRadius: "var(--radius-md)", color: "var(--foreground-muted)" }} onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.5)")} onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = "")}>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Modal Content */}
               <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                     Title *
                   </label>
                   <Input
@@ -1104,7 +911,7 @@ export function TeacherAssessmentsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Class *
                     </label>
                     <Select
@@ -1132,7 +939,7 @@ export function TeacherAssessmentsPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Subject *
                     </label>
                     <Select
@@ -1170,7 +977,7 @@ export function TeacherAssessmentsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Category *
                     </label>
                     <Select
@@ -1198,7 +1005,7 @@ export function TeacherAssessmentsPage() {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Total Marks
                     </label>
                     <Input
@@ -1218,7 +1025,7 @@ export function TeacherAssessmentsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Start Date
                     </label>
                     <Input
@@ -1234,7 +1041,7 @@ export function TeacherAssessmentsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       End Date
                     </label>
                     <Input
@@ -1250,7 +1057,7 @@ export function TeacherAssessmentsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Assessment Type
                     </label>
                     <Select
@@ -1271,7 +1078,7 @@ export function TeacherAssessmentsPage() {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Duration (mins)
                     </label>
                     <Input
@@ -1290,7 +1097,7 @@ export function TeacherAssessmentsPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                     Instructions
                   </label>
                   <textarea
@@ -1301,7 +1108,8 @@ export function TeacherAssessmentsPage() {
                         instructions: e.target.value,
                       }))
                     }
-                    className="mt-2 w-full p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="mt-2 w-full p-3 text-sm focus:outline-none"
+                    style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", color: "var(--foreground)" }}
                     rows={3}
                     placeholder="Instructions for students..."
                   />
@@ -1310,18 +1118,11 @@ export function TeacherAssessmentsPage() {
                 {/* Online Questions Builder Removed */}
                 {createForm.isOnline === "true" && (
                   <div className="mt-6 pt-6 border-t border-slate-100">
-                    <div className="bg-purple-50 rounded-xl p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Sparkles className="w-5 h-5 text-purple-600" />
-                        <div>
-                          <h3 className="font-bold text-slate-900 text-sm">
-                            AI Question Drafter Available
-                          </h3>
-                          <p className="text-xs text-slate-500">
-                            Create the assessment first, then click "Draft
-                            Questions" to use our new AI tools.
-                          </p>
-                        </div>
+                    <div className="p-4 flex items-center gap-3" style={{ borderRadius: "var(--radius-lg)", background: "var(--violet-tint)", border: "1px solid color-mix(in oklch, var(--violet-ink) 20%, transparent)" }}>
+                      <Sparkles className="w-5 h-5 shrink-0" style={{ color: "var(--violet-ink)" }} />
+                      <div>
+                        <h3 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>AI Question Drafter Available</h3>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--foreground-muted)" }}>Create the assessment first, then click "Draft Questions" to use our new AI tools.</p>
                       </div>
                     </div>
                   </div>
@@ -1329,20 +1130,9 @@ export function TeacherAssessmentsPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateModal(false)}
-                  className="h-11 px-6 rounded-xl"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreate}
-                  disabled={loading}
-                  className="h-11 px-6 rounded-xl text-white"
-                  style={{ backgroundColor: primaryColor }}
-                >
+              <div className="px-6 py-4 flex items-center justify-end gap-3" style={{ borderTop: "1px solid var(--border-fine)", background: "var(--surface-muted)" }}>
+                <Button variant="outline" onClick={() => setShowCreateModal(false)} className="h-11 px-6" style={{ borderRadius: "var(--radius-md)" }}>Cancel</Button>
+                <Button onClick={handleCreate} disabled={loading} className="h-11 px-6 text-white" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
                   {loading ? "Creating..." : "Create Assessment"}
                 </Button>
               </div>
@@ -1357,29 +1147,23 @@ export function TeacherAssessmentsPage() {
         isMounted &&
         createPortal(
           <div className="fixed inset-0 z-[500] flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowEditModal(false)}
-            />
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 animate-in fade-in zoom-in-95 max-h-[90vh] flex flex-col">
-              <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4 shrink-0">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-50 text-purple-600">
+            <div className="absolute inset-0" style={{ background: "rgba(15,23,42,0.5)" }} onClick={() => setShowEditModal(false)} />
+            <div className="relative bg-white w-full max-w-lg mx-4 p-6 max-h-[90vh] flex flex-col" style={{ borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)" }}>
+              <div className="flex justify-between items-center mb-6 pb-4 shrink-0" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+                <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
+                  <div className="w-8 h-8 flex items-center justify-center" style={{ borderRadius: "var(--radius-md)", background: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                     <Edit className="w-4 h-4" />
                   </div>
                   Edit Assessment
                 </h3>
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400"
-                >
+                <button onClick={() => setShowEditModal(false)} className="p-2 transition-colors" style={{ borderRadius: "var(--radius-md)", color: "var(--foreground-muted)" }} onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = "var(--surface-muted)")} onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = "")}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="space-y-4 overflow-y-auto pr-2 pb-2 flex-grow custom-scrollbar">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                     Assessment Title
                   </label>
                   <Input
@@ -1393,7 +1177,7 @@ export function TeacherAssessmentsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Total Marks
                     </label>
                     <Input
@@ -1409,7 +1193,7 @@ export function TeacherAssessmentsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Duration (mins)
                     </label>
                     <Input
@@ -1427,7 +1211,7 @@ export function TeacherAssessmentsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Start Date
                     </label>
                     <Input
@@ -1440,7 +1224,7 @@ export function TeacherAssessmentsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       End Date
                     </label>
                     <Input
@@ -1454,7 +1238,7 @@ export function TeacherAssessmentsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                     Instructions
                   </label>
                   <textarea
@@ -1465,27 +1249,23 @@ export function TeacherAssessmentsPage() {
                         instructions: e.target.value,
                       }))
                     }
-                    className="mt-1 w-full p-3 border border-slate-200 rounded-xl text-sm"
+                    className="mt-1 w-full p-3 text-sm focus:outline-none"
+                    style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", color: "var(--foreground)" }}
                     rows={3}
                   />
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 flex flex-col gap-3 shrink-0">
-                  <Button
-                    onClick={handleUpdateAssessment}
-                    className="w-full bg-[#641BC4] hover:bg-purple-700 text-white h-11 rounded-xl font-semibold"
-                  >
+                <div className="pt-4 flex flex-col gap-3 shrink-0" style={{ borderTop: "1px solid var(--border-fine)" }}>
+                  <Button onClick={handleUpdateAssessment} className="w-full h-11 text-white font-semibold" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
                     Save Changes
                   </Button>
                   <div className="flex gap-3">
                     <Button
                       onClick={() => handlePublishToggle(true)}
                       variant="outline"
-                      disabled={
-                        selectedEditAssessment.status === "started" ||
-                        selectedEditAssessment.status === "active"
-                      }
-                      className="flex-1 h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 font-semibold"
+                      disabled={selectedEditAssessment.status === "started" || selectedEditAssessment.status === "active"}
+                      className="flex-1 h-11 font-semibold"
+                      style={{ borderRadius: "var(--radius-md)", borderColor: "color-mix(in oklch, var(--emerald-signal) 30%, transparent)", color: "var(--emerald-signal)" }}
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Publish
@@ -1493,11 +1273,9 @@ export function TeacherAssessmentsPage() {
                     <Button
                       onClick={() => handlePublishToggle(false)}
                       variant="outline"
-                      disabled={
-                        selectedEditAssessment.status === "not_started" ||
-                        selectedEditAssessment.status === "draft"
-                      }
-                      className="flex-1 h-11 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
+                      disabled={selectedEditAssessment.status === "not_started" || selectedEditAssessment.status === "draft"}
+                      className="flex-1 h-11 font-semibold"
+                      style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", color: "var(--foreground-muted)" }}
                     >
                       <X className="w-4 h-4 mr-2" />
                       Unpublish

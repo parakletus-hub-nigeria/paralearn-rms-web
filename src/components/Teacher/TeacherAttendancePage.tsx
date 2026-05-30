@@ -280,94 +280,67 @@ export default function TeacherAttendancePage() {
   const getInitials = (f?: string, l?: string) =>
     `${(f || "")[0] || ""}${(l || "")[0] || ""}`.toUpperCase() || "?";
 
-  // ─── Render: Editable Status Buttons (Today mode) ───────────────────────
+  // ─── Render: Editable Status Buttons ───────────────────────────────────
   const renderStatusButtons = (enrollmentId: string, status: string, isMobile = false) => (
-    <div className={`inline-flex ${isMobile ? "bg-[#F3F4F6]" : "bg-slate-100"} p-1 rounded-lg gap-1`}>
-      <button
-        onClick={() => handleStatusChange(enrollmentId, "PRESENT")}
-        className={`rounded-md flex items-center justify-center font-bold text-xs transition-all ${
-          isMobile ? "w-8 h-8" : "w-9 h-8"
-        } ${
-          status === "PRESENT"
-            ? "bg-[#00C853] text-white shadow-sm"
-            : "text-slate-400 hover:text-slate-600 hover:bg-slate-200"
-        }`}
-        title="Present"
-      >
-        P
-      </button>
-      <button
-        onClick={() => handleStatusChange(enrollmentId, "LATE")}
-        className={`rounded-md flex items-center justify-center font-bold text-xs transition-all ${
-          isMobile ? "w-8 h-8" : "w-9 h-8"
-        } ${
-          status === "LATE"
-            ? "bg-[#FF9800] text-white shadow-sm"
-            : "text-slate-400 hover:text-slate-600 hover:bg-slate-200"
-        }`}
-        title="Late"
-      >
-        L
-      </button>
-      <button
-        onClick={() => handleStatusChange(enrollmentId, "ABSENT")}
-        className={`rounded-md flex items-center justify-center font-bold text-xs transition-all ${
-          isMobile ? "w-8 h-8" : "w-9 h-8"
-        } ${
-          status === "ABSENT"
-            ? "bg-[#F44336] text-white shadow-sm"
-            : "text-slate-400 hover:text-slate-600 hover:bg-slate-200"
-        }`}
-        title="Absent"
-      >
-        A
-      </button>
+    <div className="inline-flex p-1 gap-1" style={{ borderRadius: "var(--radius-md)", background: "var(--surface-muted)" }}>
+      {(["PRESENT", "LATE", "ABSENT"] as const).map((s) => {
+        const isActive = status === s;
+        const activeBg = s === "PRESENT" ? "var(--emerald-signal)" : s === "LATE" ? "var(--amber-signal)" : "var(--crimson-signal)";
+        const label = s[0];
+        return (
+          <button
+            key={s}
+            onClick={() => handleStatusChange(enrollmentId, s)}
+            className={`flex items-center justify-center font-bold text-xs transition-all ${isMobile ? "w-8 h-8" : "w-9 h-8"}`}
+            style={{
+              borderRadius: "var(--radius-sm)",
+              background: isActive ? activeBg : "",
+              color: isActive ? "white" : "var(--foreground-muted)",
+              boxShadow: isActive ? "var(--shadow-card)" : "",
+            }}
+            title={s.charAt(0) + s.slice(1).toLowerCase()}
+          >
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 
   // ─── Render: Read-Only Status Badge (History mode) ───────────────────────
   const renderStatusBadge = (status: string, isMobile = false) => {
-    const size = isMobile ? "w-9 h-9" : "w-10 h-9";
-    if (status === "PRESENT") {
-      return (
-        <span className={`inline-flex items-center justify-center ${size} rounded-md bg-emerald-100 text-emerald-700 font-bold text-xs`}>
-          P
-        </span>
-      );
-    }
-    if (status === "LATE") {
-      return (
-        <span className={`inline-flex items-center justify-center ${size} rounded-md bg-orange-100 text-orange-700 font-bold text-xs`}>
-          L
-        </span>
-      );
-    }
+    const sz = isMobile ? "w-9 h-9" : "w-10 h-9";
+    const cfg = status === "PRESENT"
+      ? { bg: "var(--emerald-tint)", color: "var(--emerald-signal)", label: "P" }
+      : status === "LATE"
+      ? { bg: "var(--amber-tint)", color: "var(--amber-signal)", label: "L" }
+      : { bg: "var(--crimson-tint)", color: "var(--crimson-signal)", label: "A" };
     return (
-      <span className={`inline-flex items-center justify-center ${size} rounded-md bg-red-100 text-red-700 font-bold text-xs`}>
-        A
+      <span className={`inline-flex items-center justify-center ${sz} font-bold text-xs`} style={{ borderRadius: "var(--radius-md)", background: cfg.bg, color: cfg.color }}>
+        {cfg.label}
       </span>
     );
   };
 
   return (
-    <div className="w-full min-h-screen pb-32 md:pb-20 bg-slate-50/30">
+    <div className="w-full min-h-screen pb-32 md:pb-20">
       <div className="hidden md:block">
         <TeacherHeader />
       </div>
 
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-100 sticky top-0 z-30">
+      <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-30 bg-white" style={{ borderBottom: "1px solid var(--border-fine)" }}>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#641BC4] rounded-full flex items-center justify-center text-white font-bold">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold" style={{ background: "var(--violet-ink)" }}>
             P
           </div>
-          <span className="font-bold text-xl tracking-tight">ParaLearn</span>
+          <span className="font-bold text-xl tracking-tight" style={{ color: "var(--foreground)" }}>ParaLearn</span>
         </div>
         <div className="text-right">
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>
             {activeTab === "today" ? "TODAY" : "HISTORY"}
           </p>
-          <p className="text-xs font-bold text-slate-900">
+          <p className="text-xs font-bold" style={{ color: "var(--foreground)" }}>
             {activeTab === "today"
               ? format(today, "MMM d, yyyy")
               : format(parseISO(historyDateStr), "MMM d, yyyy")}
@@ -380,8 +353,8 @@ export default function TeacherAttendancePage() {
         {/* Page Title */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 font-coolvetica">Class Attendance</h1>
-            <p className="text-slate-500 mt-1 font-coolvetica">
+            <h1 className="text-3xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>Class Attendance</h1>
+            <p className="mt-1" style={{ color: "var(--foreground-muted)" }}>
               {isReadOnly
                 ? "Viewing past attendance records — read only."
                 : "Mark attendance and track student presence."}
@@ -389,77 +362,65 @@ export default function TeacherAttendancePage() {
           </div>
 
           {/* ── Tab Switcher ── */}
-          <div className="flex bg-slate-100 p-1 rounded-xl gap-1 self-start md:self-auto">
-            <button
-              onClick={() => setActiveTab("today")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                activeTab === "today"
-                  ? "bg-white text-[#641BC4] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <Sun className="w-4 h-4" />
-              Today
-            </button>
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                activeTab === "history"
-                  ? "bg-white text-[#641BC4] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <Clock className="w-4 h-4" />
-              History
-            </button>
+          <div className="flex p-1 gap-1 self-start md:self-auto" style={{ borderRadius: "var(--radius-lg)", background: "var(--surface-muted)" }}>
+            {(["today", "history"] as TabType[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-bold transition-all"
+                style={{
+                  borderRadius: "var(--radius-md)",
+                  background: activeTab === tab ? "white" : "transparent",
+                  color: activeTab === tab ? "var(--violet-ink)" : "var(--foreground-muted)",
+                  boxShadow: activeTab === tab ? "var(--shadow-card)" : "none",
+                }}
+              >
+                {tab === "today" ? <Sun className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                {tab === "today" ? "Today" : "History"}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* ── Read-only Banner (History mode) ── */}
         {isReadOnly && (
-          <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm font-semibold">
+          <div className="flex items-center gap-3 px-4 py-3 text-sm font-semibold" style={{ borderRadius: "var(--radius-lg)", background: "var(--amber-tint)", border: "1px solid color-mix(in oklch, var(--amber-signal) 25%, transparent)", color: "var(--amber-signal)" }}>
             <Eye className="w-4 h-4 flex-shrink-0" />
             <span>View-only · Past Record — you cannot edit historical attendance.</span>
           </div>
         )}
 
         {/* Controls Bar */}
-        <div className="bg-transparent md:bg-white md:p-4 md:rounded-2xl md:shadow-sm md:border md:border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="hidden md:flex bg-white p-4 flex-col md:flex-row gap-4 items-center justify-between" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            {/* Class Selector */}
             <div className="relative w-full md:w-80">
               <div className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-                <Search className="h-4 w-4 text-slate-400" />
+                <Search className="h-4 w-4" style={{ color: "var(--foreground-muted)" }} />
               </div>
               <Select
                 value={selectedClassId}
                 onValueChange={(val) => {
                   if (hasUnsavedChanges) {
-                    if (!confirm("You have unsaved attendance changes. Are you sure you want to switch classes? Your changes will be lost.")) {
-                      return;
-                    }
+                    if (!confirm("You have unsaved attendance changes. Are you sure you want to switch classes? Your changes will be lost.")) return;
                   }
                   setSelectedClassId(val);
                   setDraftAttendance({});
                   setHasUnsavedChanges(false);
                 }}
               >
-                <SelectTrigger className="pl-4 md:pl-10 h-12 md:h-11 bg-slate-100 md:bg-slate-50 border-transparent md:border-slate-200 rounded-xl font-bold text-slate-700 w-full mb-1">
+                <SelectTrigger className="pl-4 md:pl-10 h-11 w-full font-bold" style={{ borderRadius: "var(--radius-lg)", background: "var(--surface-muted)", borderColor: "var(--border-fine)", color: "var(--foreground)" }}>
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
                 <SelectContent>
                   {uniqueClasses.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Date: Today display OR History date picker */}
             {activeTab === "today" ? (
-              <div className="hidden md:flex items-center gap-2 px-4 h-11 bg-purple-50 text-purple-700 rounded-xl font-bold border border-purple-100 min-w-[200px] justify-center">
+              <div className="hidden md:flex items-center gap-2 px-4 h-11 font-bold min-w-[200px] justify-center" style={{ borderRadius: "var(--radius-lg)", background: "var(--violet-tint)", border: "1px solid color-mix(in oklch, var(--violet-ink) 15%, transparent)", color: "var(--violet-ink)" }}>
                 <Sun className="w-4 h-4" />
                 <span>{format(today, "eeee, d MMMM")}</span>
               </div>
@@ -470,76 +431,79 @@ export default function TeacherAttendancePage() {
                   value={historyDateStr}
                   max={format(subDays(today, 1), "yyyy-MM-dd")}
                   onChange={(e) => {
-                    // FIX #4: reject future dates that some browsers allow past max attr
                     if (e.target.value >= todayStr) {
                       toast.error("Cannot view attendance for today or future dates in History mode.");
                       return;
                     }
                     setHistoryDateStr(e.target.value);
                   }}
-                  className="h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 w-full md:w-auto"
+                  className="h-11 px-4 font-bold text-sm focus:outline-none w-full md:w-auto"
+                  style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)", background: "var(--surface-muted)", color: "var(--foreground)" }}
                 />
               </div>
             )}
           </div>
 
-          {/* Mark All Present — Today only */}
           {!isReadOnly && (
-            <div className="flex items-center justify-between w-full md:w-auto gap-3">
-              <p className="md:hidden text-xs font-bold text-slate-500 uppercase tracking-widest">
-                Students ({filteredData.length})
-              </p>
-              <div className="md:hidden px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold">
-                {format(today, "eeee bbbb")}
-              </div>
-              <Button
-                onClick={handleMarkAllPresent}
-                className="h-10 md:h-11 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold rounded-xl px-4 md:px-6 ml-auto md:ml-0"
-              >
-                <CheckCheck className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Mark All Present</span>
-                <span className="md:hidden">Mark All</span>
-              </Button>
-            </div>
+            <button
+              onClick={handleMarkAllPresent}
+              className="flex items-center gap-2 h-11 font-bold px-6 transition-colors"
+              style={{ borderRadius: "var(--radius-lg)", background: "var(--emerald-tint)", border: "1px solid color-mix(in oklch, var(--emerald-signal) 25%, transparent)", color: "var(--emerald-signal)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "color-mix(in oklch, var(--emerald-tint) 80%, white)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "var(--emerald-tint)")}
+            >
+              <CheckCheck className="w-4 h-4" />
+              Mark All Present
+            </button>
           )}
+        </div>
 
-          {/* Search (History mode mobile label) */}
-          {isReadOnly && (
-            <div className="md:hidden flex items-center justify-between w-full">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                Students ({filteredData.length})
-              </p>
+        {/* Mobile Controls */}
+        <div className="md:hidden flex flex-col gap-3">
+          <Select value={selectedClassId} onValueChange={(val) => { setSelectedClassId(val); setDraftAttendance({}); setHasUnsavedChanges(false); }}>
+            <SelectTrigger className="h-12 w-full font-bold" style={{ borderRadius: "var(--radius-lg)", background: "var(--surface-muted)", borderColor: "var(--border-fine)", color: "var(--foreground)" }}>
+              <SelectValue placeholder="Select Class" />
+            </SelectTrigger>
+            <SelectContent>
+              {uniqueClasses.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {!isReadOnly && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--foreground-muted)" }}>Students ({filteredData.length})</span>
+              <button
+                onClick={handleMarkAllPresent}
+                className="flex items-center gap-2 h-9 px-4 font-bold text-sm"
+                style={{ borderRadius: "var(--radius-lg)", background: "var(--emerald-tint)", color: "var(--emerald-signal)" }}
+              >
+                <CheckCheck className="w-4 h-4" /> Mark All
+              </button>
             </div>
           )}
         </div>
 
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--foreground-muted)" }} />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search students..."
-            className="pl-9 h-11 bg-white border-slate-200 rounded-xl"
+            className="pl-9 h-11 bg-white"
+            style={{ borderRadius: "var(--radius-lg)", borderColor: "var(--border-fine)" }}
           />
         </div>
 
         {/* ─── Desktop Table View ─── */}
-        <div className="hidden md:block bg-white rounded-3xl shadow-sm border border-slate-200 overflow-x-auto">
+        <div className="hidden md:block bg-white overflow-x-auto" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
           <Table className="min-w-[800px]">
-            <TableHeader className="bg-slate-50/50">
+            <TableHeader style={{ background: "var(--surface-muted)" }}>
               <TableRow>
-                <TableHead className="w-[80px] font-bold text-xs uppercase text-slate-400 pl-8 py-5">S/N</TableHead>
-                <TableHead className="font-bold text-xs uppercase text-slate-400 py-5">Student Details</TableHead>
-                <TableHead className="font-bold text-xs uppercase text-slate-400 py-5 text-center">
-                  Attendance Status
-                </TableHead>
-                <TableHead className="font-bold text-xs uppercase text-slate-400 py-5">
-                  {isReadOnly ? "Remark" : "Last Remark"}
-                </TableHead>
-                <TableHead className="w-[100px] font-bold text-xs uppercase text-slate-400 py-5 text-right pr-8">
-                  Action
-                </TableHead>
+                <TableHead className="w-[80px] font-bold text-xs uppercase pl-8 py-5" style={{ color: "var(--foreground-muted)" }}>S/N</TableHead>
+                <TableHead className="font-bold text-xs uppercase py-5" style={{ color: "var(--foreground-muted)" }}>Student Details</TableHead>
+                <TableHead className="font-bold text-xs uppercase py-5 text-center" style={{ color: "var(--foreground-muted)" }}>Attendance Status</TableHead>
+                <TableHead className="font-bold text-xs uppercase py-5" style={{ color: "var(--foreground-muted)" }}>{isReadOnly ? "Remark" : "Last Remark"}</TableHead>
+                <TableHead className="w-[100px] font-bold text-xs uppercase py-5 text-right pr-8" style={{ color: "var(--foreground-muted)" }}>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -547,25 +511,25 @@ export default function TeacherAttendancePage() {
                 <TableRow>
                   <TableCell colSpan={5} className="h-40 text-center">
                     <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+                      <div className="h-8 w-8 rounded-full" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
                     </div>
                   </TableCell>
                 </TableRow>
               ) : isError ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-40 text-center text-red-500 font-medium">
+                  <TableCell colSpan={5} className="h-40 text-center font-medium" style={{ color: "var(--crimson-signal)" }}>
                     Failed to load attendance data. Please try again.
                   </TableCell>
                 </TableRow>
               ) : !attendanceData ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-40 text-center text-slate-500">
+                  <TableCell colSpan={5} className="h-40 text-center" style={{ color: "var(--foreground-muted)" }}>
                     No attendance data found for this date/class.
                   </TableCell>
                 </TableRow>
               ) : filteredData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-40 text-center text-slate-500">
+                  <TableCell colSpan={5} className="h-40 text-center" style={{ color: "var(--foreground-muted)" }}>
                     No students found matching your search.
                   </TableCell>
                 </TableRow>
@@ -575,55 +539,55 @@ export default function TeacherAttendancePage() {
                   return (
                     <TableRow
                       key={record.enrollmentId}
-                      className={`hover:bg-slate-50/50 group ${isReadOnly ? "opacity-95" : ""}`}
+                      className="group transition-colors"
+                      style={{ borderBottom: "1px solid var(--border-fine)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                     >
-                      <TableCell className="font-bold text-slate-400 pl-8">
+                      <TableCell className="font-bold pl-8" style={{ color: "var(--foreground-muted)" }}>
                         {String(index + 1).padStart(2, "0")}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                          <Avatar className="h-10 w-10 border-2 border-white" style={{ boxShadow: "var(--shadow-card)" }}>
                             <AvatarImage src={record?.student?.profilePicture} />
-                            <AvatarFallback className="bg-purple-100 text-purple-700 font-bold">
+                            <AvatarFallback className="font-bold" style={{ background: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                               {getInitials(record.student.firstName, record.student.lastName)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-bold text-slate-900">
+                            <p className="font-bold" style={{ color: "var(--foreground)" }}>
                               {record.student.firstName} {record.student.lastName}
                             </p>
-                            <p className="text-xs text-slate-400 font-medium">
+                            <p className="text-xs font-medium" style={{ color: "var(--foreground-muted)" }}>
                               {record.student.studentId || "#PL-000"}
                             </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        {isReadOnly
-                          ? renderStatusBadge(status)
-                          : renderStatusButtons(record.enrollmentId, status)}
+                        {isReadOnly ? renderStatusBadge(status) : renderStatusButtons(record.enrollmentId, status)}
                       </TableCell>
                       <TableCell>
                         {isReadOnly ? (
-                          <span className="text-sm text-slate-500 italic">
-                            {remarks || "—"}
-                          </span>
+                          <span className="text-sm italic" style={{ color: "var(--foreground-muted)" }}>{remarks || "—"}</span>
                         ) : (
                           <Input
                             maxLength={255}
                             value={remarks}
-                            onChange={(e) =>
-                              handleRemarkChange(record.enrollmentId, e.target.value)
-                            }
+                            onChange={(e) => handleRemarkChange(record.enrollmentId, e.target.value)}
                             placeholder="Add remark..."
-                            className="h-9 bg-transparent border-transparent hover:border-slate-200 focus:bg-white focus:border-purple-200 rounded-lg text-sm transition-all"
+                            className="h-9 text-sm transition-all bg-transparent"
+                            style={{ borderRadius: "var(--radius-md)", borderColor: "transparent" }}
+                            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--border-medium)")}
+                            onBlur={(e) => (e.currentTarget.style.borderColor = "transparent")}
                           />
                         )}
                       </TableCell>
                       <TableCell className="text-right pr-8">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0 text-slate-300 hover:text-slate-600">
+                            <Button variant="ghost" className="h-8 w-8 p-0" style={{ color: "var(--foreground-muted)" }}>
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -664,20 +628,21 @@ export default function TeacherAttendancePage() {
               return (
                 <div
                   key={record.enrollmentId}
-                  className="bg-white p-4 rounded-3xl border border-slate-100 flex items-center justify-between shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]"
+                  className="p-4 flex items-center justify-between"
+                  style={{ background: "white", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12 border border-white shadow-sm">
+                    <Avatar className="h-12 w-12" style={{ border: "1px solid var(--border-fine)" }}>
                       <AvatarImage src={record?.student?.profilePicture} />
-                      <AvatarFallback className="bg-purple-100 text-purple-700 font-bold">
+                      <AvatarFallback className="font-bold" style={{ background: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                         {getInitials(record.student.firstName, record.student.lastName)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-bold text-slate-900 text-[15px]">
+                      <p className="font-bold text-[15px]" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
                         {record.student.firstName} {record.student.lastName}
                       </p>
-                      <p className="text-xs text-slate-400 font-bold">
+                      <p className="text-xs font-bold" style={{ color: "var(--foreground-muted)" }}>
                         {record.student.studentId || "#PL-001"}
                       </p>
                     </div>
@@ -697,17 +662,17 @@ export default function TeacherAttendancePage() {
       {/* ─── Persistent Footer ─── */}
       {/* Only shown in Today mode */}
       {!isReadOnly && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 z-40 md:pl-[280px]">
+        <div className="fixed bottom-0 left-0 right-0 p-4 z-40 md:pl-[280px]" style={{ background: "white", borderTop: "1px solid var(--border-fine)" }}>
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
 
             {/* Mobile Footer Top */}
             <div className="flex md:hidden items-center justify-between w-full">
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-[#00C853]" />
-                <div className="w-3 h-3 rounded-full bg-[#FF9800]" />
-                <div className="w-3 h-3 rounded-full bg-[#F44336]" />
+                <div className="w-3 h-3 rounded-full" style={{ background: "var(--emerald-signal)" }} />
+                <div className="w-3 h-3 rounded-full" style={{ background: "var(--amber-signal)" }} />
+                <div className="w-3 h-3 rounded-full" style={{ background: "var(--crimson-signal)" }} />
               </div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--foreground-muted)" }}>
                 {stats.present + stats.late + stats.absent}/{stats.total} Marked Complete
               </div>
             </div>
@@ -715,16 +680,17 @@ export default function TeacherAttendancePage() {
             {/* Desktop Progress */}
             <div className="hidden md:flex items-center gap-6 flex-1">
               <div className="flex flex-col gap-1 w-full max-w-md">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "var(--foreground-muted)" }}>
                   <span>Marked Progress</span>
-                  <span className="text-purple-600">
+                  <span style={{ color: "var(--violet-ink)" }}>
                     {stats.present + stats.late + stats.absent} / {stats.total} Students
                   </span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: "var(--surface-muted)" }}>
                   <div
-                    className="h-full bg-[#641BC4] transition-all duration-500"
+                    className="h-full transition-all duration-500"
                     style={{
+                      background: "var(--violet-ink)",
                       width: `${
                         stats.total
                           ? ((stats.present + stats.late + stats.absent) / stats.total) * 100
@@ -739,31 +705,32 @@ export default function TeacherAttendancePage() {
             <div className="flex items-center gap-4 w-full md:w-auto">
               {/* Desktop Status Circles */}
               <div className="hidden md:flex items-center gap-2 mr-4">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700" title="Present">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--emerald-tint)", color: "var(--emerald-signal)" }} title="Present">
                   {stats.present}
                 </div>
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-700" title="Late">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--amber-tint)", color: "var(--amber-signal)" }} title="Late">
                   {stats.late}
                 </div>
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-red-700" title="Absent">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "var(--crimson-tint)", color: "var(--crimson-signal)" }} title="Absent">
                   {stats.absent}
                 </div>
               </div>
 
-              <Button
+              <button
                 onClick={handleSave}
                 disabled={isSaving || isLoading}
-                className="h-12 w-full md:w-auto px-8 bg-[#651BC6] hover:bg-[#5215a3] text-white font-bold rounded-xl shadow-lg shadow-purple-200 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+                className="h-12 w-full md:w-auto px-8 font-bold transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ background: "var(--violet-ink)", color: "white", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", border: "none" }}
               >
                 {isSaving ? (
                   <>Saving...</>
                 ) : (
                   <>
-                    <Save className="w-5 h-5 mr-2" />
+                    <Save className="w-5 h-5" />
                     Save Attendance
                   </>
                 )}
-              </Button>
+              </button>
             </div>
           </div>
         </div>

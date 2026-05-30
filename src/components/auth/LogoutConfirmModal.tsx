@@ -28,22 +28,23 @@ export const LogoutConfirmModal = ({
 }: LogoutConfirmModalProps) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-[400px] border-purple-100">
+      <AlertDialogContent className="max-w-[400px]" style={{ borderColor: "var(--border-fine)" }}>
         <AlertDialogHeader className="flex flex-col items-center text-center">
-          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-2">
-            <LogOut className="w-6 h-6 text-red-600" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ background: "var(--crimson-tint)" }}>
+            <LogOut className="w-6 h-6" style={{ color: "var(--crimson-signal)" }} />
           </div>
-          <AlertDialogTitle className="text-xl font-bold text-slate-900">
+          <AlertDialogTitle className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
             Confirm Logout
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-slate-500">
+          <AlertDialogDescription style={{ color: "var(--foreground-muted)" }}>
             Are you sure you want to log out of your account? You will need to sign in again to access the dashboard.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-center gap-3 mt-4">
-          <AlertDialogCancel 
+          <AlertDialogCancel
             onClick={onClose}
-            className="rounded-xl border-slate-200 hover:bg-slate-50 min-w-[120px]"
+            className="min-w-[120px]"
+            style={{ borderRadius: "var(--radius-lg)", borderColor: "var(--border-medium)" }}
           >
             Cancel
           </AlertDialogCancel>
@@ -53,7 +54,8 @@ export const LogoutConfirmModal = ({
               onConfirm();
             }}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white rounded-xl min-w-[120px]"
+            className="min-w-[120px] text-white"
+            style={{ background: "var(--crimson-signal)", borderRadius: "var(--radius-lg)" }}
           >
             {loading ? "Logging out..." : "Log Out"}
           </AlertDialogAction>

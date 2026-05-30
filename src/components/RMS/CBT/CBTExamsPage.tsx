@@ -49,14 +49,12 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
-const DEFAULT_PRIMARY = "#641BC4";
-
 const getStatusStyle = (status?: string) => {
   if (status === "started" || status === "active")
-    return { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", label: "Active" };
+    return { background: "var(--emerald-tint)", color: "var(--emerald-signal)", label: "Active" };
   if (status === "ended")
-    return { bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400", label: "Ended" };
-  return { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-400", label: "Pending" };
+    return { background: "var(--surface-muted)", color: "var(--foreground-muted)", label: "Ended" };
+  return { background: "var(--amber-tint)", color: "var(--amber-signal)", label: "Pending" };
 };
 
 export function CBTExamsPage() {
@@ -64,9 +62,6 @@ export function CBTExamsPage() {
   const { assessments, classes, subjects, loading, assessmentCategories, cbtExamIds } =
     useSelector((s: RootState) => s.admin);
   const { tenantInfo } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
-
   const [q, setQ] = useState("");
   const [classFilter, setClassFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -246,12 +241,12 @@ export function CBTExamsPage() {
 
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">CBT Exams</h1>
-          <p className="text-slate-500 text-sm mt-1">Create and manage all computer-based exams.</p>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>CBT Exams</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>Create and manage all computer-based exams.</p>
         </div>
         <Button
           className="gap-2 text-white shadow-sm h-10"
-          style={{ backgroundColor: primaryColor }}
+          style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}
           onClick={() => setShowCreate(true)}
         >
           <Plus className="w-4 h-4" /> Create Exam
@@ -298,9 +293,9 @@ export function CBTExamsPage() {
           { label: "Active", value: cbtExams.filter((a: any) => a.status === "started" || a.status === "active").length },
           { label: "Completed", value: cbtExams.filter((a: any) => a.status === "ended").length },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm text-center">
-            <p className="text-2xl font-bold text-slate-900">{loading ? "—" : s.value}</p>
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mt-0.5">{s.label}</p>
+          <div key={s.label} className="bg-white rounded-xl p-4 text-center" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+            <p className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>{loading ? "—" : s.value}</p>
+            <p className="text-xs uppercase tracking-wide font-semibold mt-0.5" style={{ color: "var(--foreground-muted)" }}>{s.label}</p>
           </div>
         ))}
       </div>
@@ -308,57 +303,63 @@ export function CBTExamsPage() {
       {/* Exam list */}
       {loading && cbtExams.length === 0 ? (
         <div className="flex items-center justify-center py-20">
-          <div className="inline-block animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200" style={{ borderTopColor: primaryColor }} />
+          <div className="h-10 w-10 rounded-full" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white overflow-hidden" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
           {filtered.length === 0 ? (
             <div className="py-16 text-center">
-              <MonitorCheck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">No exams found</p>
-              <p className="text-slate-400 text-sm mt-1">Create a new CBT exam to get started.</p>
+              <MonitorCheck className="w-12 h-12 mx-auto mb-3" style={{ color: "var(--border-medium)" }} />
+              <p className="font-medium" style={{ color: "var(--foreground-muted)" }}>No exams found</p>
+              <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)", opacity: 0.7 }}>Create a new CBT exam to get started.</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-50">
+            <div>
               {filtered.map((exam: any) => {
-                const statusStyle = getStatusStyle(exam.status);
+                const ss = getStatusStyle(exam.status);
                 const subjectName = subjectNameById.get(exam.subjectId || "") || "—";
                 const className = classNameById.get(exam.classId || "") || "—";
                 const qCount = exam.questionCount ?? exam._count?.questions ?? 0;
                 return (
-                  <div key={exam.id} className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
-                    <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center shrink-0">
-                      <MonitorCheck className="w-5 h-5 text-violet-600" />
+                  <div
+                    key={exam.id}
+                    className="px-5 py-4 flex items-center gap-4 transition-colors"
+                    style={{ borderTop: "1px solid var(--border-fine)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center shrink-0" style={{ borderRadius: "var(--radius-lg)", background: "var(--violet-tint)" }}>
+                      <MonitorCheck className="w-5 h-5" style={{ color: "var(--violet-ink)" }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-900 truncate">{exam.title}</p>
+                      <p className="font-semibold truncate" style={{ color: "var(--foreground)" }}>{exam.title}</p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span className="text-xs text-slate-500">{subjectName}</span>
-                        <span className="text-slate-300 text-xs">•</span>
-                        <span className="text-xs text-slate-500">{className}</span>
+                        <span className="text-xs" style={{ color: "var(--foreground-muted)" }}>{subjectName}</span>
+                        <span className="text-xs" style={{ color: "var(--border-medium)" }}>•</span>
+                        <span className="text-xs" style={{ color: "var(--foreground-muted)" }}>{className}</span>
                         {exam.durationMins && (
                           <>
-                            <span className="text-slate-300 text-xs">•</span>
-                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                            <span className="text-xs" style={{ color: "var(--border-medium)" }}>•</span>
+                            <span className="text-xs flex items-center gap-1" style={{ color: "var(--foreground-muted)" }}>
                               <Clock className="w-3 h-3" />{exam.durationMins} min
                             </span>
                           </>
                         )}
-                        <span className="text-slate-300 text-xs">•</span>
-                        <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <span className="text-xs" style={{ color: "var(--border-medium)" }}>•</span>
+                        <span className="text-xs flex items-center gap-1" style={{ color: "var(--foreground-muted)" }}>
                           <FileQuestion className="w-3 h-3" />{qCount} questions
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       {exam.startsAt && (
-                        <span className="text-xs text-slate-400 hidden lg:block">
+                        <span className="text-xs hidden lg:block" style={{ color: "var(--foreground-muted)" }}>
                           {format(new Date(exam.startsAt), "MMM d, yyyy")}
                         </span>
                       )}
-                      <Badge className={`rounded-lg px-2.5 py-0.5 text-xs font-medium border-0 ${statusStyle.bg} ${statusStyle.text}`}>
-                        {statusStyle.label}
-                      </Badge>
+                      <span className="inline-flex items-center text-xs font-medium px-2.5 py-0.5" style={{ borderRadius: "var(--radius-sm)", background: ss.background, color: ss.color }}>
+                        {ss.label}
+                      </span>
                       <Link href={`/RMS/cbt/exams/${exam.id}`}>
                         <Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-lg border-slate-200 text-xs">
                           <Eye className="w-3.5 h-3.5" /> Open
@@ -391,8 +392,8 @@ export function CBTExamsPage() {
       {/* Create Exam Modal */}
       {showCreate && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowCreate(false); resetForm(); }} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0" style={{ background: "rgba(15,23,42,0.5)" }} onClick={() => { setShowCreate(false); resetForm(); }} />
+          <div className="relative bg-white w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col overflow-hidden" style={{ borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)" }}>
             <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Create CBT Exam</h2>
@@ -416,7 +417,7 @@ export function CBTExamsPage() {
                     <div className="mt-2 flex items-center gap-2 rounded-xl border border-dashed border-slate-300 px-3 h-10">
                       <span className="text-xs text-slate-400 flex-1">No categories yet</span>
                       <ManageCategoriesDialog>
-                        <button type="button" className="text-xs font-semibold underline underline-offset-2" style={{ color: primaryColor }}>
+                        <button type="button" className="text-xs font-semibold underline underline-offset-2" style={{ color: "var(--violet-ink)" }}>
                           Create category
                         </button>
                       </ManageCategoriesDialog>
@@ -540,15 +541,15 @@ export function CBTExamsPage() {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
-              <p className="text-xs text-slate-400">
+            <div className="px-6 py-4 flex items-center justify-between shrink-0" style={{ borderTop: "1px solid var(--border-fine)", background: "var(--surface-muted)" }}>
+              <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>
                 {form.classIds.length > 0 && form.subjectNames.length > 0
                   ? `${subjectsInSelectedClasses.filter((s) => form.subjectNames.includes(s.name)).length} exam(s) will be created`
                   : "Select classes and subjects"}
               </p>
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => { setShowCreate(false); resetForm(); }} className="h-11 px-6 rounded-xl">Cancel</Button>
-                <Button onClick={handleCreate} disabled={creating} className="h-11 px-6 rounded-xl text-white" style={{ backgroundColor: primaryColor }}>
+                <Button onClick={handleCreate} disabled={creating} className="h-11 px-6 text-white" style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}>
                   {creating ? "Creating..." : "Create Exam(s)"}
                 </Button>
               </div>

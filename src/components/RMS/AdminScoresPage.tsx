@@ -22,17 +22,14 @@ import {
 import { Search, Download, FileText, Copy, TrendingUp, BookOpen, Calendar, Target, AlertCircle, Eye, Upload, FileSpreadsheet, TableProperties } from "lucide-react";
 import Link from "next/link";
 
-const DEFAULT_PRIMARY = "#641BC4";
-
-// Calculate grade from score
 const getGrade = (score: number, maxMarks: number) => {
-  if (!maxMarks) return { letter: "—", color: "bg-slate-100 text-slate-600" };
+  if (!maxMarks) return { letter: "—", bg: "var(--surface-muted)", color: "var(--foreground-muted)" };
   const percentage = (score / maxMarks) * 100;
-  if (percentage >= 80) return { letter: "A", color: "bg-emerald-500 text-white" };
-  if (percentage >= 70) return { letter: "B", color: "bg-blue-500 text-white" };
-  if (percentage >= 60) return { letter: "C", color: "bg-amber-500 text-white" };
-  if (percentage >= 50) return { letter: "D", color: "bg-orange-500 text-white" };
-  return { letter: "F", color: "bg-red-500 text-white" };
+  if (percentage >= 80) return { letter: "A", bg: "var(--emerald-signal)", color: "#fff" };
+  if (percentage >= 70) return { letter: "B", bg: "var(--cobalt-signal)", color: "#fff" };
+  if (percentage >= 60) return { letter: "C", bg: "var(--amber-signal)", color: "#fff" };
+  if (percentage >= 50) return { letter: "D", bg: "var(--violet-ink)", color: "#fff" };
+  return { letter: "F", bg: "var(--crimson-signal)", color: "#fff" };
 };
 
 export function AdminScoresPage() {
@@ -41,9 +38,6 @@ export function AdminScoresPage() {
     (s: RootState) => s.admin
   );
   const { tenantInfo } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
-
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<string>("1st Term");
@@ -194,32 +188,39 @@ export function AdminScoresPage() {
       />
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start justify-between gap-3">
+      <div
+        className="rounded-xl p-4 mb-6 flex items-start justify-between gap-3"
+        style={{ background: "var(--cobalt-tint)", border: "1px solid color-mix(in oklch, var(--cobalt-signal) 20%, transparent)" }}
+      >
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "var(--cobalt-signal)" }} />
           <div>
-            <p className="text-sm font-semibold text-blue-900">Score Management</p>
-            <p className="text-sm text-blue-700 mt-0.5">
+            <p className="text-sm font-semibold" style={{ color: "var(--cobalt-signal)" }}>Score Management</p>
+            <p className="text-sm mt-0.5" style={{ color: "var(--cobalt-signal)", opacity: 0.85 }}>
               View, export, or bulk-upload scores. To import a full school record sheet (multiple subjects &amp; classes),
               use the Import Wizard.
             </p>
           </div>
         </div>
         <Link href="/RMS/scores/import" className="flex-shrink-0">
-          <Button variant="outline" className="h-9 rounded-xl gap-2 border-blue-200 text-blue-700 hover:bg-blue-100 text-sm whitespace-nowrap">
+          <Button
+            variant="outline"
+            className="h-9 gap-2 text-sm whitespace-nowrap"
+            style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", color: "var(--cobalt-signal)" }}
+          >
             <TableProperties className="w-4 h-4" /> Import Wizard
           </Button>
         </Link>
       </div>
 
       {/* Score Sheet Header */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+      <div className="bg-white p-6 mb-6" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
               Score Overview
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>
               {currentAssessment?.title || "Select an assessment"} • {currentAssessment?.session || "Academic Session"}
             </p>
           </div>
@@ -247,10 +248,10 @@ export function AdminScoresPage() {
 
         {/* Info Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+          <div className="rounded-xl p-4" style={{ background: "var(--surface-muted)", border: "1px solid var(--border-fine)" }}>
             <div className="flex items-center gap-2 mb-2">
-              <BookOpen className="w-4 h-4 text-slate-500" />
-              <span className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Subject</span>
+              <BookOpen className="w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
+              <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Subject</span>
             </div>
             <Select value={selectedSubject} onValueChange={setSelectedSubject}>
               <SelectTrigger className="h-10 rounded-lg border-0 bg-white shadow-sm">
@@ -264,10 +265,10 @@ export function AdminScoresPage() {
             </Select>
           </div>
 
-          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+          <div className="rounded-xl p-4" style={{ background: "var(--surface-muted)", border: "1px solid var(--border-fine)" }}>
             <div className="flex items-center gap-2 mb-2">
-              <Copy className="w-4 h-4 text-emerald-500" />
-              <span className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Class</span>
+              <Copy className="w-4 h-4" style={{ color: "var(--emerald-signal)" }} />
+              <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Class</span>
             </div>
             <Select value={selectedClass} onValueChange={setSelectedClass}>
               <SelectTrigger className="h-10 rounded-lg border-0 bg-white shadow-sm">
@@ -281,10 +282,10 @@ export function AdminScoresPage() {
             </Select>
           </div>
 
-          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+          <div className="rounded-xl p-4" style={{ background: "var(--surface-muted)", border: "1px solid var(--border-fine)" }}>
             <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 text-slate-500" />
-              <span className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Term</span>
+              <Calendar className="w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
+              <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Term</span>
             </div>
             <Select value={selectedTerm} onValueChange={setSelectedTerm}>
               <SelectTrigger className="h-10 rounded-lg border-0 bg-white shadow-sm">
@@ -298,15 +299,15 @@ export function AdminScoresPage() {
             </Select>
           </div>
 
-          <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl p-4 border border-violet-100">
+          <div className="rounded-xl p-4" style={{ background: "var(--violet-tint)", border: "1px solid color-mix(in oklch, var(--violet-ink) 20%, transparent)" }}>
             <div className="flex items-center gap-2 mb-2">
-              <Target className="w-4 h-4 text-violet-500" />
-              <span className="text-xs text-violet-600 uppercase tracking-wide font-semibold">Class Average</span>
+              <Target className="w-4 h-4" style={{ color: "var(--violet-ink)" }} />
+              <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--violet-ink)" }}>Class Average</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-violet-700">{classAverage}</span>
+              <span className="text-2xl font-bold" style={{ color: "var(--violet-ink)" }}>{classAverage}</span>
               {classAverage > 0 && (
-                <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5">
+                <span className="text-xs font-medium flex items-center gap-0.5" style={{ color: "var(--emerald-signal)" }}>
                   <TrendingUp className="w-3 h-3" />
                   pts
                 </span>
@@ -332,8 +333,8 @@ export function AdminScoresPage() {
           <Button
             onClick={loadScores}
             disabled={loading || !selectedAssessment}
-            className="h-11 rounded-xl text-white gap-2"
-            style={{ backgroundColor: primaryColor }}
+            className="h-11 text-white gap-2"
+            style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}
           >
             <Eye className="w-4 h-4" />
             {loading ? "Loading..." : "View Scores"}
@@ -341,7 +342,7 @@ export function AdminScoresPage() {
         </div>
 
         {/* Bulk Upload Section */}
-        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="mt-4 pt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3" style={{ borderTop: "1px solid var(--border-fine)" }}>
           <div className="flex items-center gap-2 flex-1">
             <FileSpreadsheet className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <div>
@@ -366,8 +367,8 @@ export function AdminScoresPage() {
               onChange={handleBulkUpload}
             />
             <Button
-              className="h-10 rounded-xl gap-2 text-white text-sm"
-              style={{ backgroundColor: primaryColor }}
+              className="h-10 gap-2 text-white text-sm"
+              style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}
               disabled={!selectedAssessment || uploading}
               onClick={() => fileInputRef.current?.click()}
             >
@@ -379,16 +380,16 @@ export function AdminScoresPage() {
       </div>
 
       {/* Score Table (View Only) */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+      <div className="bg-white overflow-x-auto" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
         <table className="w-full min-w-[700px]">
           <thead>
-            <tr className="bg-gradient-to-r from-violet-500 to-purple-600">
-              <th className="text-left text-white font-semibold text-xs uppercase tracking-wide py-4 px-5 w-[100px]">Student ID</th>
-              <th className="text-left text-white font-semibold text-xs uppercase tracking-wide py-4 px-3">Student Name</th>
-              <th className="text-center text-white font-semibold text-xs uppercase tracking-wide py-4 px-3">Marks Awarded</th>
-              <th className="text-center text-white font-semibold text-xs uppercase tracking-wide py-4 px-3">Max Marks</th>
-              <th className="text-center text-white font-semibold text-xs uppercase tracking-wide py-4 px-3">Percentage</th>
-              <th className="text-center text-white font-semibold text-xs uppercase tracking-wide py-4 px-3">Grade</th>
+            <tr style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+              <th className="text-left font-semibold text-xs uppercase tracking-wide py-4 px-5 w-[100px]" style={{ color: "var(--foreground-muted)" }}>Student ID</th>
+              <th className="text-left font-semibold text-xs uppercase tracking-wide py-4 px-3" style={{ color: "var(--foreground-muted)" }}>Student Name</th>
+              <th className="text-center font-semibold text-xs uppercase tracking-wide py-4 px-3" style={{ color: "var(--foreground-muted)" }}>Marks Awarded</th>
+              <th className="text-center font-semibold text-xs uppercase tracking-wide py-4 px-3" style={{ color: "var(--foreground-muted)" }}>Max Marks</th>
+              <th className="text-center font-semibold text-xs uppercase tracking-wide py-4 px-3" style={{ color: "var(--foreground-muted)" }}>Percentage</th>
+              <th className="text-center font-semibold text-xs uppercase tracking-wide py-4 px-3" style={{ color: "var(--foreground-muted)" }}>Grade</th>
             </tr>
           </thead>
           <tbody>
@@ -405,32 +406,36 @@ export function AdminScoresPage() {
               return (
                 <tr
                   key={score?.id || idx}
-                  className={`border-t border-slate-100 hover:bg-violet-50/30 transition-colors ${
-                    idx % 2 === 1 ? "bg-slate-50/30" : "bg-white"
-                  }`}
+                  className="transition-colors"
+                  style={{ borderTop: "1px solid var(--border-fine)", background: idx % 2 === 1 ? "var(--surface-muted)" : "white" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--violet-tint)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 1 ? "var(--surface-muted)" : "white")}
                 >
-                  <td className="py-4 px-5 text-sm text-slate-500 font-medium">{studentId}</td>
+                  <td className="py-4 px-5 text-sm font-medium" style={{ color: "var(--foreground-muted)", fontFamily: "var(--font-geist-mono)", fontVariantNumeric: "tabular-nums" }}>{studentId}</td>
                   <td className="py-4 px-3">
-                    <span className="font-semibold text-slate-900">{studentName}</span>
+                    <span className="font-semibold" style={{ color: "var(--foreground)" }}>{studentName}</span>
                   </td>
                   <td className="py-4 px-3 text-center">
-                    <span className="font-bold text-slate-900">{marksAwarded}</span>
+                    <span className="font-bold" style={{ color: "var(--foreground)", fontVariantNumeric: "tabular-nums" }}>{marksAwarded}</span>
                   </td>
                   <td className="py-4 px-3 text-center">
-                    <span className="text-slate-600">{maxMarks}</span>
+                    <span style={{ color: "var(--foreground-muted)", fontVariantNumeric: "tabular-nums" }}>{maxMarks}</span>
                   </td>
                   <td className="py-4 px-3 text-center">
                     <span
                       className="font-semibold"
-                      style={{ color: percentage >= 70 ? "#10b981" : percentage >= 50 ? primaryColor : "#ef4444" }}
+                      style={{ color: percentage >= 70 ? "var(--emerald-signal)" : percentage >= 50 ? "var(--amber-signal)" : "var(--crimson-signal)", fontVariantNumeric: "tabular-nums" }}
                     >
                       {percentage}%
                     </span>
                   </td>
                   <td className="py-4 px-3 text-center">
-                    <Badge className={`w-9 h-9 rounded-xl text-sm font-bold ${grade.color}`}>
+                    <span
+                      className="inline-flex items-center justify-center w-9 h-9 text-sm font-bold"
+                      style={{ borderRadius: "var(--radius-md)", background: grade.bg, color: grade.color }}
+                    >
                       {grade.letter}
-                    </Badge>
+                    </span>
                   </td>
                 </tr>
               );
@@ -451,25 +456,25 @@ export function AdminScoresPage() {
       {/* Statistics */}
       {scores.length > 0 && (
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Total Students</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{scores.length}</p>
+          <div className="bg-white rounded-xl p-4" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+            <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Total Students</p>
+            <p className="text-2xl font-bold mt-1" style={{ color: "var(--foreground)" }}>{scores.length}</p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Highest Score</p>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">
+          <div className="bg-white rounded-xl p-4" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+            <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Highest Score</p>
+            <p className="text-2xl font-bold mt-1" style={{ color: "var(--emerald-signal)" }}>
               {Math.max(...scores.map((s: any) => s?.marksAwarded ?? s?.score ?? 0))}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Lowest Score</p>
-            <p className="text-2xl font-bold text-red-600 mt-1">
+          <div className="bg-white rounded-xl p-4" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+            <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Lowest Score</p>
+            <p className="text-2xl font-bold mt-1" style={{ color: "var(--crimson-signal)" }}>
               {Math.min(...scores.map((s: any) => s?.marksAwarded ?? s?.score ?? 0))}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Pass Rate</p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">
+          <div className="bg-white rounded-xl p-4" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+            <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Pass Rate</p>
+            <p className="text-2xl font-bold mt-1" style={{ color: "var(--cobalt-signal)" }}>
               {Math.round(
                 (scores.filter((s: any) => {
                   const marks = s?.marksAwarded ?? s?.score ?? 0;

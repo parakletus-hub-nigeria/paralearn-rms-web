@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -15,9 +15,7 @@ import { useSessionsAndTerms } from "@/hooks/useSessionsAndTerms";
 import { useGetSchoolReportCardTemplatesQuery } from "@/reduxToolKit/api/endpoints/settings";
 import { useDeleteReportCardMutation, useDeleteClassReportCardsMutation, useDeleteClassReportCardJobMutation } from "@/reduxToolKit/api/endpoints/reports";
 import { TeacherHeader } from "./TeacherHeader";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -56,12 +54,12 @@ function ClassJobBanner({
 }) {
   if (job.status === "processing") {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
+      <div className="p-4 flex items-center justify-between" style={{ borderRadius: "var(--radius-lg)", background: "var(--cobalt-tint)", border: "1px solid color-mix(in oklch, var(--cobalt-signal) 20%, transparent)" }}>
         <div className="flex items-center gap-3">
-          <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+          <div className="w-6 h-6 rounded-full shrink-0" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--cobalt-signal)", animation: "spin 0.6s linear infinite" }} />
           <div>
-            <p className="text-sm font-medium text-blue-900">Generating Class Report Cards…</p>
-            <p className="text-xs text-blue-700">This might take a few minutes. You can leave this page.</p>
+            <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Generating Class Report Cards…</p>
+            <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>This might take a few minutes. You can leave this page.</p>
           </div>
         </div>
       </div>
@@ -70,22 +68,30 @@ function ClassJobBanner({
 
   if (job.status === "completed") {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
+      <div className="p-4 flex items-center justify-between" style={{ borderRadius: "var(--radius-lg)", background: "var(--emerald-tint)", border: "1px solid color-mix(in oklch, var(--emerald-signal) 20%, transparent)" }}>
         <div className="flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-green-600" />
+          <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: "var(--emerald-signal)" }} />
           <div>
-            <p className="text-sm font-medium text-green-900">Generation Complete!</p>
-            <p className="text-xs text-green-700">Your report cards are ready.</p>
+            <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Generation Complete!</p>
+            <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>Your report cards are ready.</p>
           </div>
         </div>
         {job.format === "combined" && job.documentUrl ? (
-          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => onOpenPdf(job.documentUrl!)}>
-            <ExternalLink className="w-4 h-4 mr-2" /> Open PDF
-          </Button>
+          <button
+            onClick={() => onOpenPdf(job.documentUrl!)}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold"
+            style={{ borderRadius: "var(--radius-md)", background: "var(--emerald-signal)", color: "white" }}
+          >
+            <ExternalLink className="w-4 h-4" /> Open PDF
+          </button>
         ) : (
-          <Button size="sm" variant="outline" className="border-green-300 text-green-700 hover:bg-green-100" onClick={onRefreshHistory}>
+          <button
+            onClick={onRefreshHistory}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold"
+            style={{ borderRadius: "var(--radius-md)", border: "1px solid color-mix(in oklch, var(--emerald-signal) 30%, transparent)", color: "var(--emerald-signal)" }}
+          >
             View in Downloads
-          </Button>
+          </button>
         )}
       </div>
     );
@@ -93,12 +99,12 @@ function ClassJobBanner({
 
   if (job.status === "failed") {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+      <div className="p-4 flex items-center justify-between" style={{ borderRadius: "var(--radius-lg)", background: "var(--crimson-tint)", border: "1px solid color-mix(in oklch, var(--crimson-signal) 20%, transparent)" }}>
         <div className="flex items-center gap-3">
-          <XCircle className="w-5 h-5 text-red-600" />
+          <XCircle className="w-5 h-5 shrink-0" style={{ color: "var(--crimson-signal)" }} />
           <div>
-            <p className="text-sm font-medium text-red-900">Generation Failed</p>
-            <p className="text-xs text-red-700">{job.failureReason || "An unknown error occurred"}</p>
+            <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Generation Failed</p>
+            <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>{job.failureReason || "An unknown error occurred"}</p>
           </div>
         </div>
       </div>
@@ -124,7 +130,6 @@ const teacherReportsTourSteps = [
   },
 ];
 
-const DEFAULT_PRIMARY = "#641BC4";
 type TabType = "generation" | "download";
 
 // ── Template Picker Dialog ───────────────────────────────────────────────────
@@ -149,7 +154,7 @@ function TemplatePicker({
         </DialogHeader>
 
         {templates.length === 0 ? (
-          <div className="py-16 text-center text-slate-400 space-y-2">
+          <div className="py-16 text-center space-y-2" style={{ color: "var(--foreground-muted)" }}>
             <ImageOff className="mx-auto h-10 w-10" />
             <p className="text-sm">No active templates. Add templates in School Settings.</p>
           </div>
@@ -158,22 +163,23 @@ function TemplatePicker({
             {/* Auto option */}
             <button
               onClick={() => { onSelect("__active__"); onOpenChange(false); }}
-              className={`relative rounded-2xl border-2 overflow-hidden text-left transition-all hover:shadow-md ${
-                selectedId === "__active__"
-                  ? "border-[#641BC4] shadow-md shadow-purple-100"
-                  : "border-slate-200 hover:border-purple-200"
-              }`}
+              className="relative overflow-hidden text-left transition-all"
+              style={{
+                borderRadius: "var(--radius-xl)",
+                border: selectedId === "__active__" ? "2px solid var(--violet-ink)" : "2px solid var(--border-fine)",
+                boxShadow: selectedId === "__active__" ? "var(--shadow-card)" : "none",
+              }}
             >
-              <div className="aspect-[3/4] bg-gradient-to-br from-purple-50 to-indigo-50 flex flex-col items-center justify-center gap-2">
-                <LayoutTemplate className="w-10 h-10 text-purple-300" />
-                <span className="text-xs text-slate-500 font-medium">Default / Auto</span>
+              <div className="aspect-[3/4] flex flex-col items-center justify-center gap-2" style={{ background: "var(--violet-tint)" }}>
+                <LayoutTemplate className="w-10 h-10" style={{ color: "var(--violet-ink)", opacity: 0.6 }} />
+                <span className="text-xs font-medium" style={{ color: "var(--foreground-muted)" }}>Default / Auto</span>
               </div>
-              <div className="p-3 border-t border-slate-100">
-                <p className="font-semibold text-sm text-slate-800">Auto (first active)</p>
-                <p className="text-xs text-slate-500 mt-0.5">Use school's default active template</p>
+              <div className="p-3" style={{ borderTop: "1px solid var(--border-fine)" }}>
+                <p className="font-semibold text-sm" style={{ color: "var(--foreground)" }}>Auto (first active)</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--foreground-muted)" }}>Use school's default active template</p>
               </div>
               {selectedId === "__active__" && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-[#641BC4] rounded-full flex items-center justify-center">
+                <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "var(--violet-ink)" }}>
                   <CheckCircle2 className="w-4 h-4 text-white" />
                 </div>
               )}
@@ -186,13 +192,14 @@ function TemplatePicker({
                 <button
                   key={t.id}
                   onClick={() => { onSelect(t.id); onOpenChange(false); }}
-                  className={`relative rounded-2xl border-2 overflow-hidden text-left transition-all hover:shadow-md ${
-                    isSelected
-                      ? "border-[#641BC4] shadow-md shadow-purple-100"
-                      : "border-slate-200 hover:border-purple-200"
-                  }`}
+                  className="relative overflow-hidden text-left transition-all"
+                  style={{
+                    borderRadius: "var(--radius-xl)",
+                    border: isSelected ? "2px solid var(--violet-ink)" : "2px solid var(--border-fine)",
+                    boxShadow: isSelected ? "var(--shadow-card)" : "none",
+                  }}
                 >
-                  <div className="aspect-[3/4] bg-slate-100 overflow-hidden">
+                  <div className="aspect-[3/4] overflow-hidden" style={{ background: "var(--surface-muted)" }}>
                     {tpl.thumbnailUrl ? (
                       <Image
                         src={tpl.thumbnailUrl}
@@ -203,20 +210,20 @@ function TemplatePicker({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <ImageOff className="h-10 w-10 text-slate-300" />
+                        <ImageOff className="h-10 w-10" style={{ color: "var(--border-medium)" }} />
                       </div>
                     )}
                   </div>
-                  <div className="p-3 border-t border-slate-100">
-                    <p className="font-semibold text-sm text-slate-800 truncate">
+                  <div className="p-3" style={{ borderTop: "1px solid var(--border-fine)" }}>
+                    <p className="font-semibold text-sm truncate" style={{ color: "var(--foreground)" }}>
                       {tpl.name ?? "Template"}
                     </p>
                     {tpl.description && (
-                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{tpl.description}</p>
+                      <p className="text-xs mt-0.5 line-clamp-1" style={{ color: "var(--foreground-muted)" }}>{tpl.description}</p>
                     )}
                   </div>
                   {isSelected && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-[#641BC4] rounded-full flex items-center justify-center">
+                    <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "var(--violet-ink)" }}>
                       <CheckCircle2 className="w-4 h-4 text-white" />
                     </div>
                   )}
@@ -248,22 +255,27 @@ function SelectedTemplateChip({
   return (
     <button
       onClick={onChangClick}
-      className="flex items-center gap-3 px-4 py-2.5 rounded-2xl border-2 border-dashed border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-400 transition-all group w-full"
+      className="flex items-center gap-3 px-4 py-2.5 w-full transition-all"
+      style={{
+        borderRadius: "var(--radius-xl)",
+        border: "2px dashed color-mix(in oklch, var(--violet-ink) 25%, transparent)",
+        background: "var(--violet-tint)",
+      }}
     >
-      <div className="w-10 h-12 rounded-lg overflow-hidden bg-white border border-slate-200 shrink-0">
+      <div className="w-10 h-12 overflow-hidden shrink-0" style={{ borderRadius: "var(--radius-md)", background: "white", border: "1px solid var(--border-fine)" }}>
         {thumb ? (
           <Image src={thumb} alt={name} width={40} height={48} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-purple-50">
-            <LayoutTemplate className="w-5 h-5 text-purple-400" />
+          <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--violet-tint)" }}>
+            <LayoutTemplate className="w-5 h-5" style={{ color: "var(--violet-ink)" }} />
           </div>
         )}
       </div>
       <div className="text-left flex-1 min-w-0">
-        <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Template</p>
-        <p className="text-sm font-bold text-slate-800 truncate">{name}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--violet-ink)" }}>Template</p>
+        <p className="text-sm font-bold truncate" style={{ color: "var(--foreground)" }}>{name}</p>
       </div>
-      <span className="text-xs text-purple-600 font-semibold group-hover:underline shrink-0">Change</span>
+      <span className="text-xs font-semibold shrink-0" style={{ color: "var(--violet-ink)" }}>Change</span>
     </button>
   );
 }
@@ -273,9 +285,6 @@ export function TeacherReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { teacherClasses } = useSelector((s: RootState) => s.teacher);
   const { user } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
-
   const [activeTab, setActiveTab] = useState<TabType>("generation");
 
   const [deleteReportCard] = useDeleteReportCardMutation();
@@ -649,10 +658,12 @@ export function TeacherReportsPage() {
 
   const selectedClass = useMemo(() => uniqueClasses.find((c) => c.id === classId), [uniqueClasses, classId]);
 
-  const statusColor = (s: string) => ({
-    approved: "bg-green-100 text-green-700", published: "bg-green-100 text-green-700",
-    pending: "bg-yellow-100 text-yellow-700", rejected: "bg-red-100 text-red-700",
-  }[s?.toLowerCase()] ?? "bg-gray-100 text-gray-700");
+  const statusStyle = (s: string): React.CSSProperties => ({
+    approved: { background: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+    published: { background: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+    pending: { background: "var(--amber-tint)", color: "var(--amber-signal)" },
+    rejected: { background: "var(--crimson-tint)", color: "var(--crimson-signal)" },
+  }[s?.toLowerCase()] ?? { background: "var(--surface-muted)", color: "var(--foreground-muted)" });
 
   const fmtBytes = (b: number) => { if (!b) return "N/A"; const k = b / 1024; return k < 1024 ? `${k.toFixed(1)} KB` : `${(k / 1024).toFixed(1)} MB`; };
   const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "N/A";
@@ -665,17 +676,17 @@ export function TeacherReportsPage() {
       <main className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-coolvetica">Report Cards</h1>
-          <p className="text-gray-600 mt-1 font-coolvetica">
+          <h1 className="text-3xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>Report Cards</h1>
+          <p className="mt-1" style={{ color: "var(--foreground-muted)" }}>
             Manage student report card generation and downloads
           </p>
         </div>
 
         {/* Filters Card */}
-        <Card className="teacher-reports-filter-card p-6 space-y-4">
+        <div className="teacher-reports-filter-card p-6 space-y-4 bg-white" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Class</label>
+              <label className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Class</label>
               <Select value={classId} onValueChange={setClassId}>
                 <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
                 <SelectContent>
@@ -686,7 +697,7 @@ export function TeacherReportsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Session</label>
+              <label className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Session</label>
               <Select value={session} onValueChange={setSession}>
                 <SelectTrigger><SelectValue placeholder="Select session" /></SelectTrigger>
                 <SelectContent>
@@ -697,7 +708,7 @@ export function TeacherReportsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Term</label>
+              <label className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Term</label>
               <Select value={term} onValueChange={setTerm}>
                 <SelectTrigger><SelectValue placeholder="Select term" /></SelectTrigger>
                 <SelectContent>
@@ -711,7 +722,7 @@ export function TeacherReportsPage() {
 
           {/* Template selector */}
           <div className="pt-1">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Report Card Template</label>
+            <label className="text-sm font-medium mb-2 block" style={{ color: "var(--foreground)" }}>Report Card Template</label>
             <div className="flex items-center gap-3">
               <div className="flex-1 max-w-sm">
                 <SelectedTemplateChip
@@ -731,7 +742,7 @@ export function TeacherReportsPage() {
               </Button>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Template Picker Dialog */}
         <TemplatePicker
@@ -743,19 +754,21 @@ export function TeacherReportsPage() {
         />
 
         {/* Tabs */}
-        <div className="teacher-reports-tabs border-b border-gray-200">
+        <div className="teacher-reports-tabs" style={{ borderBottom: "1px solid var(--border-fine)" }}>
           <nav className="-mb-px flex space-x-8">
             {(["generation", "download"] as TabType[]).map((tab) => (
-              <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab
-                    ? "border-violet-500 text-violet-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2"
+                style={{
+                  borderBottomColor: activeTab === tab ? "var(--violet-ink)" : "transparent",
+                  color: activeTab === tab ? "var(--violet-ink)" : "var(--foreground-muted)",
+                }}
               >
                 {tab === "generation"
-                  ? <><FileText className="inline-block w-5 h-5 mr-2" />Generate Reports</>
-                  : <><Download className="inline-block w-5 h-5 mr-2" />Download Reports</>}
+                  ? <><FileText className="w-5 h-5" />Generate Reports</>
+                  : <><Download className="w-5 h-5" />Download Reports</>}
               </button>
             ))}
           </nav>
@@ -763,15 +776,15 @@ export function TeacherReportsPage() {
 
         {/* Content */}
         {!classId || !session || !term ? (
-          <Card className="p-12">
-            <div className="text-center text-gray-500">
+          <div className="p-12 bg-white" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+            <div className="text-center" style={{ color: "var(--foreground-muted)" }}>
               <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium">Select class, session, and term to get started</p>
             </div>
-          </Card>
+          </div>
         ) : activeTab === "generation" ? (
           <div className="space-y-6">
-            <Card className="p-6 space-y-4">
+            <div className="p-6 space-y-4 bg-white" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
               <div className="teacher-reports-generate-actions flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <Input
                   placeholder="Search students…"
@@ -790,10 +803,10 @@ export function TeacherReportsPage() {
 
               {loadingStudents ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+                <div className="w-8 h-8 rounded-full" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
               </div>
             ) : filteredStudents.length === 0 ? (
-              <div className="text-center py-12 text-gray-500"><p>No students found</p></div>
+              <div className="text-center py-12" style={{ color: "var(--foreground-muted)" }}><p>No students found</p></div>
             ) : (
               <>
                 <div className="border rounded-lg overflow-hidden">
@@ -839,7 +852,7 @@ export function TeacherReportsPage() {
 
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm" style={{ color: "var(--foreground-muted)" }}>
                       Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredStudents.length)} of {filteredStudents.length}
                     </p>
                     <div className="flex gap-2">
@@ -855,47 +868,51 @@ export function TeacherReportsPage() {
                 )}
               </>
             )}
-            </Card>
+            </div>
 
             {/* Class-Wide Generation Section */}
-            <Card className="p-6 border-purple-100 bg-purple-50/30">
+            <div className="p-6" style={{ borderRadius: "var(--radius-xl)", border: "1px solid color-mix(in oklch, var(--violet-ink) 15%, transparent)", background: "var(--violet-tint)", boxShadow: "var(--shadow-card)" }}>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <LayoutTemplate className="w-5 h-5 text-purple-600" />
+                  <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+                    <LayoutTemplate className="w-5 h-5" style={{ color: "var(--violet-ink)" }} />
                     Class-Wide Generation
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>
                     Queue all {filteredStudents.length} students in {selectedClass?.name || 'this class'} for background processing.
                   </p>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-3">
-                  <Button
-                    variant="outline"
+                  <button
                     onClick={() => generateAllClass("combined")}
                     disabled={!filteredStudents.length || loadingStudents || bulkGenerating || classJob?.status === "processing"}
-                    className="gap-2 bg-white"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                    style={{ borderRadius: "var(--radius-md)", background: "white", border: "1px solid var(--border-fine)", color: "var(--foreground)" }}
                   >
-                    {classJob?.status === "processing" && classJob?.format === "combined" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+                    {classJob?.status === "processing" && classJob?.format === "combined"
+                      ? <div className="w-4 h-4 rounded-full" style={{ border: "2px solid var(--border-fine)", borderTopColor: "var(--foreground-muted)", animation: "spin 0.6s linear infinite" }} />
+                      : <Users className="w-4 h-4" />}
                     Combined PDF
-                  </Button>
-                  <Button
-                    style={{ backgroundColor: primaryColor }}
+                  </button>
+                  <button
                     onClick={() => generateAllClass("individual")}
                     disabled={!filteredStudents.length || loadingStudents || bulkGenerating || classJob?.status === "processing"}
-                    className="gap-2 text-white"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    style={{ borderRadius: "var(--radius-md)", background: "var(--violet-ink)" }}
                   >
-                    {classJob?.status === "processing" && classJob?.format === "individual" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+                    {classJob?.status === "processing" && classJob?.format === "individual"
+                      ? <div className="w-4 h-4 rounded-full" style={{ border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.6s linear infinite" }} />
+                      : <Users className="w-4 h-4" />}
                     Individual PDFs
-                  </Button>
+                  </button>
                 </div>
               </div>
 
               {classJob && (
-                <div className="mt-4 pt-4 border-t border-purple-100">
-                  <ClassJobBanner 
-                    job={classJob} 
+                <div className="mt-4 pt-4" style={{ borderTop: "1px solid color-mix(in oklch, var(--violet-ink) 15%, transparent)" }}>
+                  <ClassJobBanner
+                    job={classJob}
                     onRefreshHistory={() => {
                       setActiveTab("download");
                       fetchReports();
@@ -905,18 +922,18 @@ export function TeacherReportsPage() {
                   />
                 </div>
               )}
-            </Card>
+            </div>
           </div>
         ) : (
           <div className="space-y-6">
-            <Card className="p-6 space-y-4">
+            <div className="p-6 space-y-4 bg-white" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <Users className="w-5 h-5 text-gray-500" />
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+                    <Users className="w-5 h-5" style={{ color: "var(--foreground-muted)" }} />
                     Class PDF History
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">Recent combined PDF generations for this class</p>
+                  <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>Recent combined PDF generations for this class</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={fetchClassHistory} disabled={loadingHistory}>
                   {loadingHistory ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
@@ -925,13 +942,13 @@ export function TeacherReportsPage() {
               </div>
 
               {classHistory.filter(h => h.format === "combined").length === 0 ? (
-                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                <div className="text-center py-8 rounded-lg border border-dashed" style={{ color: "var(--foreground-muted)", background: "var(--surface-muted)", borderColor: "var(--border-medium)" }}>
                   <p className="text-sm">No combined class PDFs generated recently</p>
                 </div>
               ) : (
-                <div className="border rounded-lg overflow-hidden border-gray-200">
+                <div className="overflow-hidden" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)" }}>
                   <Table>
-                    <TableHeader className="bg-gray-50">
+                    <TableHeader style={{ background: "var(--surface-muted)" }}>
                       <TableRow>
                         <TableHead>Date</TableHead>
                         <TableHead>Format</TableHead>
@@ -947,16 +964,16 @@ export function TeacherReportsPage() {
                           <TableCell className="font-medium">{fmtDate(h.createdAt)}</TableCell>
                           <TableCell className="capitalize">{h.format}</TableCell>
                           <TableCell>
-                            <Badge className={{
-                              'completed': 'bg-green-100 text-green-700',
-                              'processing': 'bg-blue-100 text-blue-700',
-                              'failed': 'bg-red-100 text-red-700',
-                            }[h.status as string] || 'bg-gray-100 text-gray-700'}>
+                            <span className="px-2 py-0.5 text-xs font-semibold rounded-full" style={({
+                              completed: { background: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+                              processing: { background: "var(--cobalt-tint)", color: "var(--cobalt-signal)" },
+                              failed: { background: "var(--crimson-tint)", color: "var(--crimson-signal)" },
+                            } as Record<string, React.CSSProperties>)[h.status] || { background: "var(--surface-muted)", color: "var(--foreground-muted)" }}>
                               {h.status}
-                            </Badge>
+                            </span>
                           </TableCell>
-                          <TableCell className="text-gray-600">{h.session} - {h.term}</TableCell>
-                          <TableCell className="text-gray-600">{fmtBytes(h.bytes)}</TableCell>
+                          <TableCell style={{ color: "var(--foreground-muted)" }}>{h.session} - {h.term}</TableCell>
+                          <TableCell style={{ color: "var(--foreground-muted)" }}>{fmtBytes(h.bytes)}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">
                               {h.documentUrl && h.status === "completed" && h.format === "combined" ? (
@@ -968,20 +985,21 @@ export function TeacherReportsPage() {
                                   <ExternalLink className="w-4 h-4 mr-2" /> Open PDF
                                 </Button>
                               ) : h.status === "failed" && h.failureReason ? (
-                                <span className="text-xs text-red-500 truncate max-w-[200px] block" title={h.failureReason}>{h.failureReason}</span>
+                                <span className="text-xs truncate max-w-[200px] block" style={{ color: "var(--crimson-signal)" }} title={h.failureReason}>{h.failureReason}</span>
                               ) : (
-                                <span className="text-xs text-gray-400">—</span>
+                                <span className="text-xs" style={{ color: "var(--foreground-muted)" }}>—</span>
                               )}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                              <button
+                                className="flex items-center justify-center w-8 h-8 transition-colors disabled:opacity-50"
+                                style={{ borderRadius: "var(--radius-md)", border: "1px solid color-mix(in oklch, var(--crimson-signal) 25%, transparent)", color: "var(--crimson-signal)" }}
                                 onClick={() => handleDeleteClassJob(h.id)}
                                 disabled={deletingJobs.has(h.id)}
                                 title="Delete class job"
+                                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--crimson-tint)")}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                               >
-                                {deletingJobs.has(h.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash className="w-4 h-4" />}
-                              </Button>
+                                {deletingJobs.has(h.id) ? <div className="w-4 h-4 rounded-full" style={{ border: "2px solid var(--border-fine)", borderTopColor: "var(--crimson-signal)", animation: "spin 0.6s linear infinite" }} /> : <Trash className="w-4 h-4" />}
+                              </button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -990,39 +1008,46 @@ export function TeacherReportsPage() {
                   </Table>
                 </div>
               )}
-            </Card>
+            </div>
 
-            <Card className="p-6 space-y-4">
+            <div className="p-6 space-y-4 bg-white" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-gray-500" />
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+                    <FileText className="w-5 h-5" style={{ color: "var(--foreground-muted)" }} />
                     Student Report Cards
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">Individual generated report cards</p>
+                  <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>Individual generated report cards</p>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={fetchReports} disabled={isBulkDeleting}>Refresh</Button>
-                  <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300" onClick={handleBulkDelete} disabled={isBulkDeleting || reportCards.length === 0}>
-                    {isBulkDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash className="w-4 h-4 mr-2" />}
+                  <button
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold transition-colors disabled:opacity-50"
+                    style={{ borderRadius: "var(--radius-md)", border: "1px solid color-mix(in oklch, var(--crimson-signal) 25%, transparent)", color: "var(--crimson-signal)" }}
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting || reportCards.length === 0}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--crimson-tint)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                  >
+                    {isBulkDeleting ? <div className="w-4 h-4 rounded-full" style={{ border: "2px solid var(--border-fine)", borderTopColor: "var(--crimson-signal)", animation: "spin 0.6s linear infinite" }} /> : <Trash className="w-4 h-4" />}
                     Delete All
-                  </Button>
+                  </button>
                 </div>
               </div>
             {loadingReports ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+                <div className="w-8 h-8 rounded-full" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
               </div>
             ) : reportCards.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
+              <div className="text-center py-12" style={{ color: "var(--foreground-muted)" }}>
                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium">No report cards found</p>
                 <p className="text-sm mt-2">Generate report cards in the Generate Reports tab</p>
               </div>
             ) : (
-              <div className="border rounded-lg overflow-hidden">
+              <div className="overflow-hidden" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--border-fine)" }}>
                 <Table>
-                  <TableHeader>
+                  <TableHeader style={{ background: "var(--surface-muted)" }}>
                     <TableRow>
                       <TableHead>Student Name</TableHead>
                       <TableHead>Student ID</TableHead>
@@ -1041,9 +1066,13 @@ export function TeacherReportsPage() {
                           <TableCell className="font-medium">{r.studentName || "N/A"}</TableCell>
                           <TableCell className="font-mono text-sm">{r.studentId || "N/A"}</TableCell>
                           <TableCell>{r.className || selectedClass?.name || "N/A"}</TableCell>
-                          <TableCell><Badge className={statusColor(r.status)}>{r.status || "Unknown"}</Badge></TableCell>
-                          <TableCell className="text-sm text-gray-600">{fmtBytes(r.bytes)}</TableCell>
-                          <TableCell className="text-sm text-gray-600">{fmtDate(r.createdAt)}</TableCell>
+                          <TableCell>
+                            <span className="px-2 py-0.5 text-xs font-semibold rounded-full" style={statusStyle(r.status)}>
+                              {r.status || "Unknown"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm" style={{ color: "var(--foreground-muted)" }}>{fmtBytes(r.bytes)}</TableCell>
+                          <TableCell className="text-sm" style={{ color: "var(--foreground-muted)" }}>{fmtDate(r.createdAt)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Button
@@ -1053,18 +1082,19 @@ export function TeacherReportsPage() {
                                 disabled={!url || downloadingReport === url}
                               >
                                 {downloadingReport === url
-                                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                                  ? <div className="w-4 h-4 rounded-full" style={{ border: "2px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
                                   : <><ExternalLink className="w-4 h-4 mr-2" />Open PDF</>}
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                              <button
+                                className="flex items-center justify-center w-8 h-8 transition-colors disabled:opacity-50"
+                                style={{ borderRadius: "var(--radius-md)", border: "1px solid color-mix(in oklch, var(--crimson-signal) 25%, transparent)", color: "var(--crimson-signal)" }}
                                 onClick={() => handleDeleteReport(r.id)}
                                 disabled={deletingReports.has(r.id)}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--crimson-tint)")}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                               >
-                                {deletingReports.has(r.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash className="w-4 h-4" />}
-                              </Button>
+                                {deletingReports.has(r.id) ? <div className="w-4 h-4 rounded-full" style={{ border: "2px solid var(--border-fine)", borderTopColor: "var(--crimson-signal)", animation: "spin 0.6s linear infinite" }} /> : <Trash className="w-4 h-4" />}
+                              </button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -1074,7 +1104,7 @@ export function TeacherReportsPage() {
                 </Table>
               </div>
             )}
-            </Card>
+            </div>
           </div>
         )}
       </main>

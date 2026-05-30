@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/reduxToolKit/store";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/reduxToolKit/store";
 import { fetchStudentReportCard } from "@/reduxToolKit/teacher/teacherThunks";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Download,
   Printer,
@@ -20,8 +18,6 @@ import {
 import { downloadStudentReportCardPdf } from "@/lib/reportPdf";
 import { toast } from "sonner";
 
-const DEFAULT_PRIMARY = "#641BC4";
-
 interface StudentReportPreviewProps {
   studentId: string;
   classId: string;
@@ -30,6 +26,17 @@ interface StudentReportPreviewProps {
   term: string;
   onClose: () => void;
 }
+
+const getGradeStyle = (grade: string): React.CSSProperties => {
+  switch (grade?.toUpperCase()) {
+    case "A": case "A+": return { color: "var(--emerald-signal)", background: "var(--emerald-tint)" };
+    case "B": case "B+": return { color: "var(--cobalt-signal)", background: "var(--cobalt-tint)" };
+    case "C": case "C+": return { color: "var(--amber-signal)", background: "var(--amber-tint)" };
+    case "D": return { color: "oklch(0.62 0.19 45)", background: "oklch(0.97 0.04 80)" };
+    case "E": case "F": return { color: "var(--crimson-signal)", background: "var(--crimson-tint)" };
+    default: return { color: "var(--foreground-muted)", background: "var(--surface-muted)" };
+  }
+};
 
 export function StudentReportPreview({
   studentId,
@@ -40,8 +47,6 @@ export function StudentReportPreview({
   onClose,
 }: StudentReportPreviewProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -51,9 +56,7 @@ export function StudentReportPreview({
     const loadReport = async () => {
       setLoading(true);
       try {
-        const data = await dispatch(
-          fetchStudentReportCard({ studentId, session, term })
-        ).unwrap();
+        const data = await dispatch(fetchStudentReportCard({ studentId, session, term })).unwrap();
         setReportData(data);
       } catch (e: any) {
         toast.error("Failed to load report card");
@@ -76,15 +79,9 @@ export function StudentReportPreview({
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
+  const handleEmail = () => toast.info("Email functionality coming soon");
 
-  const handleEmail = () => {
-    toast.info("Email functionality coming soon");
-  };
-
-  // Extract data from report
   const school = reportData?.school || {};
   const student = reportData?.student || {};
   const academic = reportData?.academic || {};
@@ -93,96 +90,67 @@ export function StudentReportPreview({
   const principalRemark = reportData?.principalRemark || "";
   const promotionStatus = reportData?.promotionStatus || {};
 
-  // Calculate totals
   const totalScore = subjects.reduce((sum: number, s: any) => sum + (s.marks || 0), 0);
-  const averageGrade = subjects.length > 0 
+  const averageGrade = subjects.length > 0
     ? (subjects.reduce((sum: number, s: any) => sum + (s.marks || 0), 0) / subjects.length).toFixed(1)
     : 0;
-
-  const getGradeColor = (grade: string) => {
-    switch (grade?.toUpperCase()) {
-      case "A": case "A+": return "text-emerald-600 bg-emerald-50";
-      case "B": case "B+": return "text-blue-600 bg-blue-50";
-      case "C": case "C+": return "text-amber-600 bg-amber-50";
-      case "D": return "text-orange-600 bg-orange-50";
-      case "E": case "F": return "text-red-600 bg-red-50";
-      default: return "text-slate-600 bg-slate-50";
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0" style={{ background: "rgba(15,23,42,0.5)" }} onClick={onClose} />
 
       {/* Modal Content */}
       <div className="relative flex flex-1 max-w-6xl mx-auto my-4 overflow-hidden">
         {/* Main Content */}
-        <div className="flex-1 bg-slate-100 rounded-l-2xl overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-xl) 0 0 var(--radius-xl)" }}>
           {loading ? (
             <div className="flex items-center justify-center h-full">
-              <div
-                className="animate-spin rounded-full h-12 w-12 border-[3px] border-slate-200"
-                style={{ borderTopColor: primaryColor }}
-              />
+              <div style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }} />
             </div>
           ) : (
             <div className="p-6">
               {/* Breadcrumb */}
-              <div className="flex items-center gap-2 text-sm text-slate-500 mb-4">
+              <div className="flex items-center gap-2 text-sm mb-4" style={{ color: "var(--foreground-muted)" }}>
                 <span>Students</span>
                 <span>›</span>
                 <span>{student.class || "Class"}</span>
                 <span>›</span>
-                <span className="text-slate-900 font-medium">Report Card Preview</span>
+                <span className="font-medium" style={{ color: "var(--foreground)" }}>Report Card Preview</span>
               </div>
 
               <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-slate-900">
+                <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
                   Report Card Preview
                 </h1>
-                <span className="text-sm text-slate-500">
+                <span className="text-sm" style={{ color: "var(--foreground-muted)" }}>
                   Last updated: {new Date().toLocaleDateString()}
                 </span>
               </div>
 
               {/* Report Card */}
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="overflow-hidden" style={{ background: "white", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-card)" }}>
                 {/* School Header */}
-                <div
-                  className="p-6 text-white"
-                  style={{ backgroundColor: primaryColor }}
-                >
+                <div className="p-6 text-white" style={{ background: "var(--violet-ink)" }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
+                      <div className="w-14 h-14 flex items-center justify-center" style={{ borderRadius: "var(--radius-lg)", background: "rgba(255,255,255,0.2)" }}>
                         <GraduationCap className="w-8 h-8" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold">
-                          {school.name || "School Name"}
-                        </h2>
-                        <p className="text-white/70 text-sm">
-                          {school.motto || "School Motto"}
-                        </p>
-                        <p className="text-white/70 text-sm">
-                          Academic Session {session}
-                        </p>
+                        <h2 className="text-xl font-bold">{school.name || "School Name"}</h2>
+                        <p className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{school.motto || "School Motto"}</p>
+                        <p className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>Academic Session {session}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-2">
-                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold">
+                      <div className="flex items-center gap-3 px-4 py-2" style={{ background: "rgba(255,255,255,0.1)", borderRadius: "var(--radius-lg)" }}>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ background: "rgba(255,255,255,0.2)" }}>
                           {(student.firstName?.[0] || "")}{(student.lastName?.[0] || "")}
                         </div>
                         <div>
-                          <p className="font-semibold">
-                            {student.name || studentName}
-                          </p>
-                          <p className="text-sm text-white/70">
+                          <p className="font-semibold">{student.name || studentName}</p>
+                          <p className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
                             ID: {student.studentId || "N/A"} • {student.class || "Class"}
                           </p>
                         </div>
@@ -192,32 +160,28 @@ export function StudentReportPreview({
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-3 gap-4 p-6 border-b border-slate-100">
-                  <div className="bg-slate-50 rounded-xl p-4">
-                    <p className="text-sm text-slate-500 mb-1">Total Score</p>
-                    <p className="text-2xl font-bold text-slate-900">
+                <div className="grid grid-cols-3 gap-4 p-6" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+                  <div className="p-4" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-lg)" }}>
+                    <p className="text-sm mb-1" style={{ color: "var(--foreground-muted)" }}>Total Score</p>
+                    <p className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
                       {totalScore}{" "}
-                      <span className="text-sm font-normal text-slate-400">
+                      <span className="text-sm font-normal" style={{ color: "var(--foreground-muted)" }}>
                         / {subjects.length * 100}
                       </span>
                     </p>
                   </div>
-                  <div className="bg-amber-50 rounded-xl p-4">
-                    <p className="text-sm text-amber-600 mb-1">Average Grade</p>
-                    <p className="text-2xl font-bold text-amber-600">
+                  <div className="p-4" style={{ background: "var(--amber-tint)", borderRadius: "var(--radius-lg)" }}>
+                    <p className="text-sm mb-1" style={{ color: "var(--amber-signal)" }}>Average Grade</p>
+                    <p className="text-2xl font-bold" style={{ color: "var(--amber-signal)" }}>
                       {averageGrade}
-                      <span className="text-sm font-normal text-amber-400">
-                        {" "}/ 100
-                      </span>
+                      <span className="text-sm font-normal"> / 100</span>
                     </p>
                   </div>
-                  <div className="bg-blue-50 rounded-xl p-4">
-                    <p className="text-sm text-blue-600 mb-1">Class Position</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                  <div className="p-4" style={{ background: "var(--cobalt-tint)", borderRadius: "var(--radius-lg)" }}>
+                    <p className="text-sm mb-1" style={{ color: "var(--cobalt-signal)" }}>Class Position</p>
+                    <p className="text-2xl font-bold" style={{ color: "var(--cobalt-signal)" }}>
                       {rankings.classPosition || "—"}
-                      <span className="text-sm font-normal text-blue-400">
-                        {" "}/ {rankings.classSize || "—"} places
-                      </span>
+                      <span className="text-sm font-normal"> / {rankings.classSize || "—"} places</span>
                     </p>
                   </div>
                 </div>
@@ -226,65 +190,51 @@ export function StudentReportPreview({
                 <div className="p-6">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-slate-100">
-                        <th className="text-left py-3 text-sm font-semibold text-slate-600">
-                          Subject
-                        </th>
-                        <th className="text-center py-3 text-sm font-semibold text-slate-600">
-                          CA (50)
-                        </th>
-                        <th className="text-center py-3 text-sm font-semibold text-slate-600">
-                          Exam (70)
-                        </th>
-                        <th className="text-center py-3 text-sm font-semibold text-slate-600">
-                          Total
-                        </th>
-                        <th className="text-center py-3 text-sm font-semibold text-slate-600">
-                          Grade
-                        </th>
-                        <th className="text-left py-3 text-sm font-semibold text-slate-600">
-                          Teacher Remarks
-                        </th>
+                      <tr style={{ borderBottom: "1px solid var(--border-fine)" }}>
+                        {["Subject", "CA (50)", "Exam (70)", "Total", "Grade", "Teacher Remarks"].map((h, i) => (
+                          <th key={h} className={`py-3 text-sm font-semibold ${i === 0 || i === 5 ? "text-left" : "text-center"}`} style={{ color: "var(--foreground-muted)" }}>
+                            {h}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
                       {subjects.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="py-8 text-center text-slate-400">
+                          <td colSpan={6} className="py-8 text-center" style={{ color: "var(--foreground-muted)" }}>
                             No subjects data available
                           </td>
                         </tr>
                       ) : (
                         subjects.map((subject: any, idx: number) => {
-                          const ca = subject.caScore || subject.assessments?.find((a: any) => 
+                          const ca = subject.caScore || subject.assessments?.find((a: any) =>
                             a.categoryName?.includes("CA") || a.category?.includes("Test"))?.marks || 0;
-                          const exam = subject.examScore || subject.assessments?.find((a: any) => 
+                          const exam = subject.examScore || subject.assessments?.find((a: any) =>
                             a.categoryName?.includes("Exam") || a.category?.includes("Exam"))?.marks || 0;
                           const total = subject.marks || (ca + exam);
                           const grade = subject.grade || "—";
                           const remark = subject.remark || subject.teacherRemark || "";
 
                           return (
-                            <tr
-                              key={idx}
-                              className="border-b border-slate-50 last:border-0"
+                            <tr key={idx} style={{ borderBottom: "1px solid var(--border-fine)" }}
+                              onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-muted)")}
+                              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                             >
-                              <td className="py-3 font-medium text-slate-900">
+                              <td className="py-3 font-medium" style={{ color: "var(--foreground)" }}>
                                 {subject.subjectName || subject.name}
                               </td>
-                              <td className="py-3 text-center text-slate-600">{ca}</td>
-                              <td className="py-3 text-center text-slate-600">{exam}</td>
-                              <td className="py-3 text-center font-semibold text-slate-900">
-                                {total}
-                              </td>
+                              <td className="py-3 text-center" style={{ color: "var(--foreground-muted)" }}>{ca}</td>
+                              <td className="py-3 text-center" style={{ color: "var(--foreground-muted)" }}>{exam}</td>
+                              <td className="py-3 text-center font-semibold" style={{ color: "var(--foreground)" }}>{total}</td>
                               <td className="py-3 text-center">
                                 <span
-                                  className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-semibold ${getGradeColor(grade)}`}
+                                  className="inline-flex items-center justify-center w-8 h-8 font-semibold"
+                                  style={{ ...getGradeStyle(grade), borderRadius: "var(--radius-md)" }}
                                 >
                                   {grade}
                                 </span>
                               </td>
-                              <td className="py-3 text-sm text-slate-500 italic">
+                              <td className="py-3 text-sm italic" style={{ color: "var(--foreground-muted)" }}>
                                 {remark || "—"}
                               </td>
                             </tr>
@@ -300,73 +250,77 @@ export function StudentReportPreview({
         </div>
 
         {/* Sidebar */}
-        <div className="w-80 bg-white rounded-r-2xl border-l border-slate-100 flex flex-col">
+        <div className="w-80 flex flex-col" style={{ background: "white", borderRadius: "0 var(--radius-xl) var(--radius-xl) 0", borderLeft: "1px solid var(--border-fine)" }}>
           {/* Close Button */}
-          <div className="p-4 border-b border-slate-100 flex items-center justify-end">
+          <div className="p-4 flex items-center justify-end" style={{ borderBottom: "1px solid var(--border-fine)" }}>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100"
+              className="p-2 transition-colors"
+              style={{ borderRadius: "var(--radius-md)", border: "none", background: "transparent", color: "var(--foreground-muted)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-muted)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              <X className="w-5 h-5 text-slate-500" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Quick Actions */}
-          <div className="p-6 border-b border-slate-100">
-            <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-4">
+          <div className="p-6" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+            <h3 className="flex items-center gap-2 font-semibold mb-4" style={{ color: "var(--foreground)" }}>
               <Award className="w-5 h-5" />
               Quick Actions
             </h3>
             <div className="space-y-3">
-              <Button
+              <button
                 onClick={handleDownload}
                 disabled={downloading}
-                className="w-full h-11 rounded-xl text-white gap-2"
-                style={{ backgroundColor: primaryColor }}
+                className="w-full h-11 font-semibold text-sm flex items-center justify-center gap-2 text-white transition-all disabled:opacity-70"
+                style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-lg)", border: "none" }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
+                onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
               >
-                {downloading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
+                {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 Download PDF
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={handlePrint}
-                variant="outline"
-                className="w-full h-11 rounded-xl gap-2"
+                className="w-full h-11 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+                style={{ background: "white", color: "var(--foreground)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-medium)" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-muted)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "white")}
               >
                 <Printer className="w-4 h-4" />
                 Print Report
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={handleEmail}
-                variant="outline"
-                className="w-full h-11 rounded-xl gap-2"
+                className="w-full h-11 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+                style={{ background: "white", color: "var(--foreground)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border-medium)" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-muted)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "white")}
               >
                 <Mail className="w-4 h-4" />
                 Email to Parent
-              </Button>
+              </button>
             </div>
           </div>
 
           {/* Principal's Remark */}
-          <div className="p-6 border-b border-slate-100">
-            <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-3">
-              <GraduationCap className="w-5 h-5" style={{ color: primaryColor }} />
+          <div className="p-6" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+            <h3 className="flex items-center gap-2 font-semibold mb-3" style={{ color: "var(--foreground)" }}>
+              <GraduationCap className="w-5 h-5" style={{ color: "var(--violet-ink)" }} />
               Principal's Remark
             </h3>
-            <p className="text-sm text-slate-500 mb-3">
+            <p className="text-sm mb-3" style={{ color: "var(--foreground-muted)" }}>
               This comment will appear at the bottom of the final printed report.
             </p>
-            <div className="bg-slate-50 rounded-xl p-4">
-              <p className="text-sm text-slate-700">
-                {principalRemark ||
-                  "Alex has had a wonderful term. His dedication to Mathematics and Sciences is commendable. We encourage him to maintain this momentum."}
+            <div className="p-4" style={{ background: "var(--surface-muted)", borderRadius: "var(--radius-lg)" }}>
+              <p className="text-sm" style={{ color: "var(--foreground)" }}>
+                {principalRemark || "Alex has had a wonderful term. His dedication to Mathematics and Sciences is commendable. We encourage him to maintain this momentum."}
               </p>
               <button
                 className="mt-3 text-sm font-medium"
-                style={{ color: primaryColor }}
+                style={{ color: "var(--violet-ink)", background: "transparent", border: "none" }}
               >
                 SAVE REMARK
               </button>
@@ -375,20 +329,19 @@ export function StudentReportPreview({
 
           {/* Promotion Status */}
           <div className="p-6">
-            <h3 className="flex items-center gap-2 font-semibold text-slate-900 mb-3">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
+            <h3 className="flex items-center gap-2 font-semibold mb-3" style={{ color: "var(--foreground)" }}>
+              <TrendingUp className="w-5 h-5" style={{ color: "var(--emerald-signal)" }} />
               Promotion Status
             </h3>
-            <div className="bg-emerald-50 rounded-xl p-4">
+            <div className="p-4" style={{ background: "var(--emerald-tint)", borderRadius: "var(--radius-lg)" }}>
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
-                <span className="font-semibold text-emerald-700">
+                <CheckCircle className="w-5 h-5" style={{ color: "var(--emerald-signal)" }} />
+                <span className="font-semibold" style={{ color: "var(--emerald-signal)" }}>
                   {promotionStatus.status || "Eligible for Promotion"}
                 </span>
               </div>
-              <p className="text-sm text-emerald-600">
-                {promotionStatus.message ||
-                  "Based on current grades, this student is eligible for promotion to next class."}
+              <p className="text-sm" style={{ color: "var(--foreground)" }}>
+                {promotionStatus.message || "Based on current grades, this student is eligible for promotion to next class."}
               </p>
             </div>
           </div>

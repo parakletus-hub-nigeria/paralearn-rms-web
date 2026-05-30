@@ -69,7 +69,7 @@ export function Step1SessionSetup({
     <div className="space-y-6">
       {/* Academic Year Section */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 px-6 py-4">
+        <div className="px-6 py-4 border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#641BC4] to-[#8538E0] text-white flex items-center justify-center font-bold text-sm shadow-md">
               1
@@ -138,7 +138,7 @@ export function Step1SessionSetup({
 
       {/* Terms Section */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 px-6 py-4">
+        <div className="px-6 py-4 border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#641BC4] to-[#8538E0] text-white flex items-center justify-center font-bold text-sm shadow-md">
               2

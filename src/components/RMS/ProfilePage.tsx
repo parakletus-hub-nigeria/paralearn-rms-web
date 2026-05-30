@@ -231,7 +231,7 @@ export const ProfilePage = () => {
 
           <TabsContent value="profile" className="mt-6">
             <Card className="border border-slate-200 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
+              <CardHeader className="border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
                 <CardTitle className="text-xl sm:text-2xl font-bold text-slate-900">
                   Personal Information
                 </CardTitle>
@@ -391,7 +391,7 @@ export const ProfilePage = () => {
 
           <TabsContent value="password" className="mt-6">
             <Card className="border border-slate-200 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
+              <CardHeader className="border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
                 <CardTitle className="text-xl sm:text-2xl font-bold text-slate-900">
                   Change Password
                 </CardTitle>

@@ -30,6 +30,7 @@ import {
   Palette,
   LogOut,
   MonitorCheck,
+  Menu,
 } from "lucide-react";
 import { routespath } from "@/lib/routepath";
 import Link from "next/link";
@@ -48,24 +49,30 @@ const SideBar = ({ children }: { children: ReactNode }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
 
-  const { token: standaloneToken, user: standaloneUser } = useSelector((s: RootState) => s.sabiStandaloneAuth);
-  const isStandalone = !!standaloneToken || (typeof window !== "undefined" && !!localStorage.getItem("sabiStandaloneToken"));
+  const { token: standaloneToken, user: standaloneUser } = useSelector(
+    (s: RootState) => s.sabiStandaloneAuth
+  );
+  const isStandalone =
+    !!standaloneToken ||
+    (typeof window !== "undefined" &&
+      !!localStorage.getItem("sabiStandaloneToken"));
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
       if (isStandalone) {
-        const { standaloneLogout } = await import("@/reduxToolKit/sabiStandaloneAuth/sabiStandaloneAuthThunks");
+        const { standaloneLogout } = await import(
+          "@/reduxToolKit/sabiStandaloneAuth/sabiStandaloneAuthThunks"
+        );
         await dispatch(standaloneLogout()).unwrap();
         router.push(routespath.SABINOTE_LOGIN);
       } else {
         await dispatch(logoutUser()).unwrap();
         router.push(routespath.SIGNIN);
       }
-      toast.success("Logged out successfully");
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Failed to logout");
+      toast.success("Logged out");
+    } catch {
+      toast.error("Failed to log out");
     } finally {
       setIsLoggingOut(false);
       setIsLogoutModalOpen(false);
@@ -76,90 +83,27 @@ const SideBar = ({ children }: { children: ReactNode }) => {
     () => [
       {
         label: "Dashboard",
-        path: isStandalone ? routespath.SABINOTE_DASHBOARD : routespath.DASHBOARD,
+        path: isStandalone
+          ? routespath.SABINOTE_DASHBOARD
+          : routespath.DASHBOARD,
         icon: Home,
         roles: ["admin", "teacher"],
       },
       ...(!isStandalone
         ? [
-            {
-              label: "Users",
-              path: routespath.USERS,
-              icon: UserCircle,
-              roles: ["admin"],
-            },
-            {
-              label: "Enrollments",
-              path: routespath.ENROLLMENTS,
-              icon: UserPlus,
-              roles: ["admin"],
-            },
-            {
-              label: "Classes",
-              path: routespath.CLASSES,
-              icon: BookOpenCheck,
-              roles: ["admin", "teacher"],
-            },
-            {
-              label: "Subjects",
-              path: routespath.SUBJECTS,
-              icon: BookOpen,
-              roles: ["admin", "teacher"],
-            },
-            {
-              label: "Assessments",
-              path: routespath.ASSESSMENTS,
-              icon: ClipboardList,
-              roles: ["admin", "teacher"],
-            },
-            {
-              label: "CBT",
-              path: routespath.CBT,
-              icon: MonitorCheck,
-              roles: ["admin"],
-            },
-            {
-              label: "Report Cards",
-              path: routespath.REPORT,
-              icon: BookOpen,
-              roles: ["admin", "teacher"],
-            },
-            {
-              label: "Comments",
-              path: routespath.COMMENTS,
-              icon: MessageSquareText,
-              roles: ["admin", "teacher"],
-            },
-            {
-              label: "Attendance",
-              path: routespath.ATTENDANCE,
-              icon: Calendar,
-              roles: ["admin", "teacher"],
-            },
-            {
-              label: "Bulk Upload",
-              path: routespath.BULK_UPLOAD,
-              icon: DownloadIcon,
-              roles: ["admin"],
-            },
-            {
-              label: "Academic",
-              path: routespath.ACADEMIC,
-              icon: Calendar,
-              roles: ["admin"],
-            },
-            {
-              label: "School Settings",
-              path: routespath.SCHOOL_SETTINGS,
-              icon: Settings,
-              roles: ["admin"],
-            },
-            {
-              label: "Branding",
-              path: routespath.BRANDING,
-              icon: Palette,
-              roles: ["admin"],
-            },
+            { label: "Users",         path: routespath.USERS,          icon: UserCircle,      roles: ["admin"] },
+            { label: "Enrollments",   path: routespath.ENROLLMENTS,    icon: UserPlus,        roles: ["admin"] },
+            { label: "Classes",       path: routespath.CLASSES,        icon: BookOpenCheck,   roles: ["admin", "teacher"] },
+            { label: "Subjects",      path: routespath.SUBJECTS,       icon: BookOpen,        roles: ["admin", "teacher"] },
+            { label: "Assessments",   path: routespath.ASSESSMENTS,    icon: ClipboardList,   roles: ["admin", "teacher"] },
+            { label: "CBT",           path: routespath.CBT,            icon: MonitorCheck,    roles: ["admin"] },
+            { label: "Report Cards",  path: routespath.REPORT,         icon: BookOpen,        roles: ["admin", "teacher"] },
+            { label: "Comments",      path: routespath.COMMENTS,       icon: MessageSquareText, roles: ["admin", "teacher"] },
+            { label: "Attendance",    path: routespath.ATTENDANCE,     icon: Calendar,        roles: ["admin", "teacher"] },
+            { label: "Bulk Upload",   path: routespath.BULK_UPLOAD,    icon: DownloadIcon,    roles: ["admin"] },
+            { label: "Academic",      path: routespath.ACADEMIC,       icon: Calendar,        roles: ["admin"] },
+            { label: "School Settings", path: routespath.SCHOOL_SETTINGS, icon: Settings,    roles: ["admin"] },
+            { label: "Branding",      path: routespath.BRANDING,       icon: Palette,         roles: ["admin"] },
           ]
         : []),
       {
@@ -169,29 +113,21 @@ const SideBar = ({ children }: { children: ReactNode }) => {
         roles: ["admin", "teacher"],
       },
       ...(!isStandalone
-        ? [
-            {
-              label: "Settings",
-              path: routespath.SETTINGS,
-              icon: Settings,
-              roles: ["admin", "teacher"],
-            },
-          ]
+        ? [{ label: "Settings", path: routespath.SETTINGS, icon: Settings, roles: ["admin", "teacher"] }]
         : []),
     ],
-    [isStandalone],
+    [isStandalone]
   );
 
   const filteredContent = useMemo(() => {
     return sideBarContent.filter((item) => {
-      if (isStandalone) return true; // Standalone users already have their menu pre-filtered
+      if (isStandalone) return true;
       if (!item.roles) return true;
       const userRoles = user?.roles || [];
       return item.roles.some((r) => userRoles.includes(r));
     });
   }, [sideBarContent, user?.roles, isStandalone]);
 
-  // Use either standalone user info or regular user info for display
   const effectiveUser = isStandalone
     ? {
         name: standaloneUser?.name || "Teacher",
@@ -201,20 +137,7 @@ const SideBar = ({ children }: { children: ReactNode }) => {
       }
     : user;
 
-  const effectiveTenantInfo = isStandalone
-    ? { name: "SabiNote" }
-    : tenantInfo;
-
-  const getInitials = (name: string) => {
-    if (!name) return "??";
-    return name
-      .split(" ")
-      .filter(Boolean)
-      .map((n) => n[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
-  };
+  const effectiveTenantInfo = isStandalone ? { name: "SabiNote" } : tenantInfo;
 
   return (
     <SidebarProvider>
@@ -266,135 +189,352 @@ const SidebarContentContainer = ({
   const { open: isExpanded, isMobile } = useSidebar();
   const sidebarContentRef = useRef<HTMLDivElement>(null);
 
-  // Scroll Persistence Logic
   useEffect(() => {
     const sidebar = sidebarContentRef.current;
     if (!sidebar) return;
-
-    // Restore scroll position
-    const savedScrollPos = sessionStorage.getItem("sidebar-scroll-pos");
-    if (savedScrollPos) {
-      // Use requestAnimationFrame to ensure the content is rendered and layout is stable
+    const saved = sessionStorage.getItem("sidebar-scroll-pos");
+    if (saved) {
       requestAnimationFrame(() => {
-        sidebar.scrollTop = parseInt(savedScrollPos, 10);
+        sidebar.scrollTop = parseInt(saved, 10);
       });
     }
+    const onScroll = () =>
+      sessionStorage.setItem("sidebar-scroll-pos", sidebar.scrollTop.toString());
+    sidebar.addEventListener("scroll", onScroll);
+    return () => sidebar.removeEventListener("scroll", onScroll);
+  }, [pathname]);
 
-    // Save scroll position on scroll
-    const handleScroll = () => {
-      sessionStorage.setItem(
-        "sidebar-scroll-pos",
-        sidebar.scrollTop.toString(),
-      );
-    };
+  const getInitials = (name: string) => {
+    if (!name) return "PL";
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
 
-    sidebar.addEventListener("scroll", handleScroll);
-    return () => sidebar.removeEventListener("scroll", handleScroll);
-  }, [pathname]); // Re-run when pathname changes to ensure we restore position on new pages
+  const roleName =
+    user?.roles?.[0]
+      ? user.roles[0].charAt(0).toUpperCase() + user.roles[0].slice(1)
+      : "User";
 
   return (
     <>
-      <Sidebar className="border-r border-purple-100/50 bg-white">
-        <SidebarHeader className="p-4 sm:p-5 pb-2 relative">
-          <div className="absolute top-2 right-2 hidden md:block">
-            <SidebarTrigger className="hover:bg-purple-50 h-8 w-8 text-slate-500" />
-          </div>
-          <div className="flex flex-col items-center text-center gap-1 mt-2">
-            <Link
-              href={routespath.DASHBOARD}
-              prefetch={false}
-              className="block shrink-0"
-            >
+      {/* ── Sidebar ───────────────────────────────────────────────────── */}
+      <Sidebar
+        style={{
+          borderRight: "1px solid var(--border-fine)",
+          background: "#ffffff",
+        }}
+      >
+        {/* Logo + school name */}
+        <SidebarHeader style={{ padding: "20px 16px 12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <Link href={routespath.DASHBOARD} prefetch={false}>
               <Image
                 src={logo}
                 width={930}
                 height={479}
-                className="h-[64px] sm:h-[72px] w-auto object-contain"
-                alt="paralearn logo"
+                style={{ height: 36, width: "auto", objectFit: "contain" }}
+                alt="ParaLearn"
               />
             </Link>
-            <div className="flex flex-col leading-tight w-full px-1">
-              <p className="text-[#641BC4] font-bold text-lg sm:text-lg tracking-tight line-clamp-2">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  fontFamily: "var(--font-manrope), system-ui, sans-serif",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  letterSpacing: "-0.02em",
+                  color: "var(--violet-ink)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  lineHeight: 1.3,
+                }}
+              >
                 {tenantInfo?.name || "ParaLearn"}
               </p>
-              <p className="text-xs text-slate-500 font-medium mt-0.5 flex justify-center items-center gap-1.5">
-                <span className="truncate">
-                  {user?.roles?.[0]?.charAt(0).toUpperCase() +
-                    user?.roles?.[0]?.slice(1) || "User"}
-                  {user?.firstName ? ` • ${user.firstName}` : ""}
-                </span>
+              <p
+                style={{
+                  fontFamily: "var(--font-manrope), system-ui, sans-serif",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  color: "var(--text-secondary)",
+                  marginTop: 1,
+                  lineHeight: 1.4,
+                }}
+              >
+                {roleName}
+                {user?.firstName ? ` · ${user.firstName}` : ""}
               </p>
             </div>
+            {/* Collapse trigger — desktop only */}
+            <SidebarTrigger
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "var(--radius-sm)",
+                flexShrink: 0,
+              }}
+              className="hidden md:flex hover:bg-[var(--surface-muted)] text-[var(--text-secondary)]"
+            />
           </div>
         </SidebarHeader>
 
-        <SidebarContent ref={sidebarContentRef} className="px-4">
-          <nav className="flex flex-col gap-1.5 mt-4">
+        {/* Nav items */}
+        <SidebarContent
+          ref={sidebarContentRef}
+          style={{ padding: "4px 8px" }}
+        >
+          <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {filteredContent.map((item, index) => {
-              const isSelected = pathname === item.path;
+              const isActive = pathname === item.path;
               const isBranding = item.path === routespath.BRANDING;
 
-              const content = (
+              const navItem = (
                 <div
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${
-                    isSelected
-                      ? "bg-[#EDEAFB] text-[#641BC4] font-semibold"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                  key={index}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "9px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    position: "relative",
+                    transition:
+                      "background var(--dur-quick) var(--ease-out-expo), color var(--dur-quick)",
+                    background: isActive ? "var(--violet-tint)" : "transparent",
+                    color: isActive
+                      ? "var(--violet-ink)"
+                      : "var(--text-secondary)",
+                    fontFamily:
+                      "var(--font-manrope), system-ui, sans-serif",
+                    fontSize: 13,
+                    fontWeight: isActive ? 600 : 500,
+                    cursor: "pointer",
+                  }}
+                  className={!isActive ? "hover:bg-[var(--surface-muted)] hover:text-[#0f172a]" : ""}
                 >
+                  {/* Active left bar */}
+                  {isActive && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 6,
+                        bottom: 6,
+                        width: 3,
+                        background: "var(--violet-ink)",
+                        borderRadius: "0 3px 3px 0",
+                      }}
+                    />
+                  )}
                   <item.icon
-                    className={`w-[18px] h-[18px] transition-transform duration-300 ${
-                      isSelected ? "scale-110" : "group-hover:translate-x-0.5"
-                    }`}
+                    style={{ width: 16, height: 16, flexShrink: 0 }}
+                    strokeWidth={isActive ? 2 : 1.75}
                   />
-                  <span
-                    className={`text-[15px] ${
-                      isSelected ? "font-semibold" : "font-medium"
-                    }`}
-                  >
-                    {item.label}
-                  </span>
+                  <span>{item.label}</span>
                 </div>
               );
 
+              if (isBranding) {
+                return (
+                  <button
+                    key={index}
+                    onClick={onBrandingClick}
+                    style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", padding: 0 }}
+                  >
+                    {navItem}
+                  </button>
+                );
+              }
+
               return (
                 <Link key={index} href={item.path} prefetch={false}>
-                  {content}
+                  {navItem}
                 </Link>
               );
             })}
           </nav>
         </SidebarContent>
-        <SidebarFooter>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center py-3 px-4 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 cursor-pointer"
+
+        {/* Footer: user avatar + logout */}
+        <SidebarFooter style={{ padding: "12px 8px 16px", borderTop: "1px solid var(--border-fine)" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 12px",
+              borderRadius: "var(--radius-sm)",
+            }}
           >
-            Logout
-          </button>
+            {/* Avatar */}
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "var(--radius-sm)",
+                background: "var(--violet-tint)",
+                color: "var(--violet-ink)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: "var(--font-manrope), system-ui, sans-serif",
+                fontWeight: 700,
+                fontSize: 12,
+                flexShrink: 0,
+              }}
+            >
+              {getInitials(user?.firstName || user?.name || "PL")}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  fontFamily: "var(--font-manrope), system-ui, sans-serif",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#0f172a",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  lineHeight: 1.3,
+                }}
+              >
+                {user?.firstName || "User"}
+              </p>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-secondary)",
+                  lineHeight: 1.3,
+                }}
+              >
+                {roleName}
+              </p>
+            </div>
+            {/* Logout icon button */}
+            <button
+              onClick={handleLogout}
+              title="Log out"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border-fine)",
+                background: "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                flexShrink: 0,
+                transition: "background var(--dur-quick), color var(--dur-quick), border-color var(--dur-quick)",
+              }}
+              className="hover:bg-[var(--crimson-tint)] hover:text-[var(--crimson-signal)] hover:border-[var(--crimson-signal)]/30"
+            >
+              <LogOut style={{ width: 14, height: 14 }} strokeWidth={2} />
+            </button>
+          </div>
         </SidebarFooter>
       </Sidebar>
 
-      <main className="flex-1 bg-[#fbfaff] min-h-screen relative overflow-x-hidden">
-        {/* Only show the 'outside' trigger if the sidebar is NOT expanded or if we are on mobile */}
+      {/* ── Main content ──────────────────────────────────────────────── */}
+      <main
+        style={{
+          flex: 1,
+          background: "var(--background)",
+          minHeight: "100dvh",
+          overflowX: "hidden",
+          position: "relative",
+        }}
+      >
+        {/* Mobile top bar */}
         {(!isExpanded || isMobile) && (
-          <div className="absolute top-4 left-0 right-0 px-4 flex justify-between items-center z-50 md:hidden">
-            <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10 border border-purple-100 bg-white shadow-sm" />
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              padding: "12px 16px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              zIndex: 50,
+            }}
+            className="md:hidden"
+          >
+            <SidebarTrigger
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border-fine)",
+                background: "#ffffff",
+              }}
+              className="hover:bg-[var(--surface-muted)]"
+            />
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg font-bold text-xs border border-red-100 shadow-sm active:scale-95 transition-all"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 12px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border-fine)",
+                background: "#ffffff",
+                fontFamily: "var(--font-manrope), system-ui, sans-serif",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+              }}
             >
-              <LogOut className="w-3.5 h-3.5" />
-              Logout
+              <LogOut style={{ width: 13, height: 13 }} />
+              Log out
             </button>
           </div>
         )}
+
+        {/* Desktop collapsed trigger */}
         {!isExpanded && !isMobile && (
-          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50 hidden md:block">
-            <SidebarTrigger className="hover:bg-purple-50 h-9 w-9 sm:h-10 sm:w-10" />
+          <div
+            style={{
+              position: "absolute",
+              top: 20,
+              left: 16,
+              zIndex: 50,
+            }}
+            className="hidden md:block"
+          >
+            <SidebarTrigger
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border-fine)",
+                background: "#ffffff",
+              }}
+              className="hover:bg-[var(--surface-muted)]"
+            />
           </div>
         )}
-        <div className="px-4 py-4 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
+
+        {/* Page content */}
+        <div
+          style={{
+            padding: "32px 40px",
+            width: "100%",
+            maxWidth: 1600,
+            margin: "0 auto",
+          }}
+          className="px-4 py-4 sm:px-6 sm:py-6 md:px-10 md:py-8"
+        >
           {children}
         </div>
       </main>

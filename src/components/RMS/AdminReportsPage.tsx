@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -41,7 +41,6 @@ const reportTourSteps = [
   { target: ".reports-class-actions", content: "Use class-wide bulk generation to create PDFs for all students at once." },
 ];
 
-const DEFAULT_PRIMARY = "#641BC4";
 type TabType = "generation" | "download";
 
 type ClassJobStatus = {
@@ -71,7 +70,7 @@ function TemplatePicker({
           <DialogTitle className="text-lg font-bold">Choose Report Card Template</DialogTitle>
         </DialogHeader>
         {templates.length === 0 ? (
-          <div className="py-16 text-center text-slate-400 space-y-2">
+          <div className="py-16 text-center space-y-2" style={{ color: "var(--foreground-muted)" }}>
             <ImageOff className="mx-auto h-10 w-10" />
             <p className="text-sm">No active templates. Add templates in School Settings.</p>
           </div>
@@ -79,20 +78,19 @@ function TemplatePicker({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
             <button
               onClick={() => { onSelect("__active__"); onOpenChange(false); }}
-              className={`relative rounded-2xl border-2 overflow-hidden text-left transition-all hover:shadow-md ${
-                selectedId === "__active__" ? "border-[#641BC4] shadow-md shadow-purple-100" : "border-slate-200 hover:border-purple-200"
-              }`}
+              className="relative overflow-hidden text-left transition-all"
+              style={{ borderRadius: "var(--radius-xl)", border: `2px solid ${selectedId === "__active__" ? "var(--violet-ink)" : "var(--border-fine)"}`, boxShadow: selectedId === "__active__" ? "var(--shadow-card)" : "none" }}
             >
-              <div className="aspect-[3/4] bg-gradient-to-br from-purple-50 to-indigo-50 flex flex-col items-center justify-center gap-2">
-                <LayoutTemplate className="w-10 h-10 text-purple-300" />
-                <span className="text-xs text-slate-500 font-medium">Default / Auto</span>
+              <div className="aspect-[3/4] flex flex-col items-center justify-center gap-2" style={{ background: "var(--violet-tint)" }}>
+                <LayoutTemplate className="w-10 h-10" style={{ color: "var(--violet-ink)", opacity: 0.5 }} />
+                <span className="text-xs font-medium" style={{ color: "var(--foreground-muted)" }}>Default / Auto</span>
               </div>
-              <div className="p-3 border-t border-slate-100">
-                <p className="font-semibold text-sm text-slate-800">Auto (first active)</p>
-                <p className="text-xs text-slate-500 mt-0.5">Use school's default active template</p>
+              <div className="p-3" style={{ borderTop: "1px solid var(--border-fine)" }}>
+                <p className="font-semibold text-sm" style={{ color: "var(--foreground)" }}>Auto (first active)</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--foreground-muted)" }}>Use school's default active template</p>
               </div>
               {selectedId === "__active__" && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-[#641BC4] rounded-full flex items-center justify-center">
+                <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "var(--violet-ink)" }}>
                   <CheckCircle2 className="w-4 h-4 text-white" />
                 </div>
               )}
@@ -104,9 +102,8 @@ function TemplatePicker({
                 <button
                   key={t.id}
                   onClick={() => { onSelect(t.id); onOpenChange(false); }}
-                  className={`relative rounded-2xl border-2 overflow-hidden text-left transition-all hover:shadow-md ${
-                    isSelected ? "border-[#641BC4] shadow-md shadow-purple-100" : "border-slate-200 hover:border-purple-200"
-                  }`}
+                  className="relative overflow-hidden text-left transition-all"
+                  style={{ borderRadius: "var(--radius-xl)", border: `2px solid ${isSelected ? "var(--violet-ink)" : "var(--border-fine)"}`, boxShadow: isSelected ? "var(--shadow-card)" : "none" }}
                 >
                   <div className="aspect-[3/4] bg-slate-100 overflow-hidden">
                     {tpl.thumbnailUrl ? (
@@ -120,7 +117,7 @@ function TemplatePicker({
                     {tpl.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{tpl.description}</p>}
                   </div>
                   {isSelected && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-[#641BC4] rounded-full flex items-center justify-center">
+                    <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "var(--violet-ink)" }}>
                       <CheckCircle2 className="w-4 h-4 text-white" />
                     </div>
                   )}
@@ -147,22 +144,23 @@ function SelectedTemplateChip({ templates, selectedId, onChangClick }: {
   return (
     <button
       onClick={onChangClick}
-      className="flex items-center gap-3 px-4 py-2.5 rounded-2xl border-2 border-dashed border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-400 transition-all group w-full"
+      className="flex items-center gap-3 px-4 py-2.5 transition-all group w-full"
+      style={{ borderRadius: "var(--radius-lg)", border: "2px dashed color-mix(in oklch, var(--violet-ink) 30%, transparent)", background: "var(--violet-tint)" }}
     >
-      <div className="w-10 h-12 rounded-lg overflow-hidden bg-white border border-slate-200 shrink-0">
+      <div className="w-10 h-12 overflow-hidden bg-white shrink-0" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)" }}>
         {thumb ? (
           <Image src={thumb} alt={name} width={40} height={48} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-purple-50">
-            <LayoutTemplate className="w-5 h-5 text-purple-400" />
+          <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--violet-tint)" }}>
+            <LayoutTemplate className="w-5 h-5" style={{ color: "var(--violet-ink)", opacity: 0.5 }} />
           </div>
         )}
       </div>
       <div className="text-left flex-1 min-w-0">
-        <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Template</p>
-        <p className="text-sm font-bold text-slate-800 truncate">{name}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--violet-ink)" }}>Template</p>
+        <p className="text-sm font-bold truncate" style={{ color: "var(--foreground)" }}>{name}</p>
       </div>
-      <span className="text-xs text-purple-600 font-semibold group-hover:underline shrink-0">Change</span>
+      <span className="text-xs font-semibold group-hover:underline shrink-0" style={{ color: "var(--violet-ink)" }}>Change</span>
     </button>
   );
 }
@@ -176,54 +174,54 @@ function ClassJobBanner({ job, onViewDownloads, onOpenPdf, onDismiss }: {
 }) {
   if (job.status === "processing") {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200 mt-3">
-        <Loader2 className="w-5 h-5 text-blue-500 animate-spin shrink-0" />
+      <div className="flex items-center gap-3 p-4 mt-3" style={{ borderRadius: "var(--radius-lg)", background: "var(--cobalt-tint)", border: "1px solid color-mix(in oklch, var(--cobalt-signal) 20%, transparent)" }}>
+        <Loader2 className="w-5 h-5 animate-spin shrink-0" style={{ color: "var(--cobalt-signal)" }} />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-blue-800">
+          <p className="text-sm font-semibold" style={{ color: "var(--cobalt-signal)" }}>
             Generating {job.format === "combined" ? "combined PDF" : "individual report cards"}…
           </p>
-          <p className="text-xs text-blue-600 mt-0.5">This may take a few minutes. You can navigate away safely.</p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--cobalt-signal)", opacity: 0.8 }}>This may take a few minutes. You can navigate away safely.</p>
         </div>
       </div>
     );
   }
   if (job.status === "completed") {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-green-50 border border-green-200 mt-3">
-        <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+      <div className="flex items-center gap-3 p-4 mt-3" style={{ borderRadius: "var(--radius-lg)", background: "var(--emerald-tint)", border: "1px solid color-mix(in oklch, var(--emerald-signal) 20%, transparent)" }}>
+        <CheckCircle className="w-5 h-5 shrink-0" style={{ color: "var(--emerald-signal)" }} />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-green-800">
+          <p className="text-sm font-semibold" style={{ color: "var(--emerald-signal)" }}>
             {job.format === "combined" ? "Combined PDF is ready!" : `${job.successCount ?? 0} report cards generated`}
           </p>
           {!!job.failCount && (
-            <p className="text-xs text-orange-600 mt-0.5">{job.failCount} student(s) failed</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--amber-signal)" }}>{job.failCount} student(s) failed</p>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {job.format === "combined" && job.documentUrl && (
-            <Button size="sm" onClick={() => onOpenPdf(job.documentUrl!)} className="gap-1.5 h-8 bg-green-600 hover:bg-green-700 text-white">
+            <Button size="sm" onClick={() => onOpenPdf(job.documentUrl!)} className="gap-1.5 h-8 text-white" style={{ background: "var(--emerald-signal)" }}>
               <ExternalLink className="w-3.5 h-3.5" />Open PDF
             </Button>
           )}
           {job.format === "individual" && (
-            <Button size="sm" variant="outline" onClick={onViewDownloads} className="gap-1.5 h-8 border-green-300 text-green-700 hover:bg-green-50">
+            <Button size="sm" variant="outline" onClick={onViewDownloads} className="gap-1.5 h-8" style={{ borderColor: "color-mix(in oklch, var(--emerald-signal) 30%, transparent)", color: "var(--emerald-signal)" }}>
               <Download className="w-3.5 h-3.5" />View Downloads
             </Button>
           )}
-          <button onClick={onDismiss} className="text-gray-400 hover:text-gray-600 p-1 rounded">✕</button>
+          <button onClick={onDismiss} className="p-1 rounded" style={{ color: "var(--foreground-muted)" }}>✕</button>
         </div>
       </div>
     );
   }
   if (job.status === "failed") {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 border border-red-200 mt-3">
-        <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+      <div className="flex items-center gap-3 p-4 mt-3" style={{ borderRadius: "var(--radius-lg)", background: "var(--crimson-tint)", border: "1px solid color-mix(in oklch, var(--crimson-signal) 20%, transparent)" }}>
+        <XCircle className="w-5 h-5 shrink-0" style={{ color: "var(--crimson-signal)" }} />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-red-800">Generation failed</p>
-          {job.failureReason && <p className="text-xs text-red-600 mt-0.5 truncate">{job.failureReason}</p>}
+          <p className="text-sm font-semibold" style={{ color: "var(--crimson-signal)" }}>Generation failed</p>
+          {job.failureReason && <p className="text-xs mt-0.5 truncate" style={{ color: "var(--crimson-signal)", opacity: 0.8 }}>{job.failureReason}</p>}
         </div>
-        <button onClick={onDismiss} className="text-gray-400 hover:text-gray-600 p-1 rounded shrink-0">✕</button>
+        <button onClick={onDismiss} className="p-1 rounded shrink-0" style={{ color: "var(--foreground-muted)" }}>✕</button>
       </div>
     );
   }
@@ -235,9 +233,6 @@ export function AdminReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { classes, error, success } = useSelector((s: RootState) => s.admin);
   const { user, tenantInfo } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
-
   const [activeTab, setActiveTab] = useState<TabType>("generation");
   const [classId, setClassId] = useState("");
   const [session, setSession] = useState("");
@@ -534,46 +529,49 @@ export function AdminReportsPage() {
 
   const selectedClass = useMemo(() => classes.find((c) => c.id === classId), [classes, classId]);
 
-  const statusColor = (s: string) => ({
-    approved: "bg-green-100 text-green-700", published: "bg-green-100 text-green-700",
-    pending: "bg-yellow-100 text-yellow-700", rejected: "bg-red-100 text-red-700",
-    processing: "bg-blue-100 text-blue-700", completed: "bg-green-100 text-green-700",
-    failed: "bg-red-100 text-red-700",
-  }[s?.toLowerCase()] ?? "bg-gray-100 text-gray-700");
+  const statusStyle = (s: string): React.CSSProperties => ({
+    approved: { background: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+    published: { background: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+    pending: { background: "var(--amber-tint)", color: "var(--amber-signal)" },
+    rejected: { background: "var(--crimson-tint)", color: "var(--crimson-signal)" },
+    processing: { background: "var(--cobalt-tint)", color: "var(--cobalt-signal)" },
+    completed: { background: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+    failed: { background: "var(--crimson-tint)", color: "var(--crimson-signal)" },
+  }[s?.toLowerCase()] ?? { background: "var(--surface-muted)", color: "var(--foreground-muted)" });
 
   const fmtBytes = (b: number) => { if (!b) return "N/A"; const k = b / 1024; return k < 1024 ? `${k.toFixed(1)} KB` : `${(k / 1024).toFixed(1)} MB`; };
   const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "N/A";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <ProductTour tourKey="admin_reports" steps={reportTourSteps} />
       <Header schoolLogo={tenantInfo?.logoUrl} schoolName={tenantInfo?.name || "ParaLearn School"} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Report Cards</h1>
-          <p className="text-gray-600 mt-1">Manage student report card generation and downloads</p>
+          <h1 className="text-3xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>Report Cards</h1>
+          <p className="mt-1" style={{ color: "var(--foreground-muted)" }}>Manage student report card generation and downloads</p>
         </div>
 
         {/* Filters */}
         <Card className="reports-filter-card p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Class</label>
+              <label className="text-sm font-medium" style={{ color: "var(--foreground-muted)" }}>Class</label>
               <Select value={classId} onValueChange={setClassId}>
                 <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
                 <SelectContent>{classes.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Session</label>
+              <label className="text-sm font-medium" style={{ color: "var(--foreground-muted)" }}>Session</label>
               <Select value={session} onValueChange={setSession}>
                 <SelectTrigger><SelectValue placeholder="Select session" /></SelectTrigger>
                 <SelectContent>{sessionOptions.map((o) => <SelectItem key={o.id || o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Term</label>
+              <label className="text-sm font-medium" style={{ color: "var(--foreground-muted)" }}>Term</label>
               <Select value={term} onValueChange={setTerm}>
                 <SelectTrigger><SelectValue placeholder="Select term" /></SelectTrigger>
                 <SelectContent>{termOptions.map((o) => <SelectItem key={o.id || o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
@@ -581,7 +579,7 @@ export function AdminReportsPage() {
             </div>
           </div>
           <div className="pt-1">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Report Card Template</label>
+            <label className="text-sm font-medium mb-2 block" style={{ color: "var(--foreground-muted)" }}>Report Card Template</label>
             <div className="flex items-center gap-3">
               <div className="flex-1 max-w-sm">
                 <SelectedTemplateChip templates={activeTemplates} selectedId={selectedTemplateId} onChangClick={() => setTemplatePickerOpen(true)} />
@@ -596,11 +594,12 @@ export function AdminReportsPage() {
         <TemplatePicker open={templatePickerOpen} onOpenChange={setTemplatePickerOpen} templates={activeTemplates} selectedId={selectedTemplateId} onSelect={setSelectedTemplateId} />
 
         {/* Tabs */}
-        <div className="reports-tab-nav border-b border-gray-200">
+        <div className="reports-tab-nav" style={{ borderBottom: "1px solid var(--border-fine)" }}>
           <nav className="-mb-px flex space-x-8">
             {(["generation", "download"] as TabType[]).map((tab) => (
               <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab ? "border-violet-500 text-violet-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`}
+                className="py-4 px-1 border-b-2 font-medium text-sm transition-colors"
+                style={{ borderBottomColor: activeTab === tab ? "var(--violet-ink)" : "transparent", color: activeTab === tab ? "var(--violet-ink)" : "var(--foreground-muted)" }}
               >
                 {tab === "generation"
                   ? <><FileText className="inline-block w-5 h-5 mr-2" />Generate Reports</>
@@ -613,7 +612,7 @@ export function AdminReportsPage() {
         {/* Content */}
         {!classId || !session || !term ? (
           <Card className="p-12">
-            <div className="text-center text-gray-500">
+            <div className="text-center" style={{ color: "var(--foreground-muted)" }}>
               <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium">Select class, session, and term to get started</p>
             </div>
@@ -624,8 +623,8 @@ export function AdminReportsPage() {
             <Card className="p-6 space-y-4">
               <div className="reports-individual-actions flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800">Individual Report Cards</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Generate report cards for specific students</p>
+                  <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>Individual Report Cards</h2>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--foreground-muted)" }}>Generate report cards for specific students</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Input placeholder="Search students…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-48 h-9" />
@@ -636,7 +635,7 @@ export function AdminReportsPage() {
               </div>
 
               {loadingStudents ? (
-                <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-violet-500" /></div>
+                <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--violet-ink)" }} /></div>
               ) : filteredStudents.length === 0 ? (
                 <div className="text-center py-12 text-gray-500"><p>No students found</p></div>
               ) : (
@@ -671,7 +670,7 @@ export function AdminReportsPage() {
                   </div>
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-600">Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredStudents.length)} of {filteredStudents.length}</p>
+                      <p className="text-sm" style={{ color: "var(--foreground-muted)" }}>Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredStudents.length)} of {filteredStudents.length}</p>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4" /></Button>
                         <span className="px-4 py-2 text-sm">Page {currentPage} of {totalPages}</span>
@@ -688,10 +687,10 @@ export function AdminReportsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
-                    <Users className="w-4 h-4 text-violet-500" />
-                    <h2 className="text-base font-semibold text-gray-800">Class-Wide Generation</h2>
+                    <Users className="w-4 h-4 " style={{ color: "var(--violet-ink)" }} />
+                    <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>Class-Wide Generation</h2>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>
                     Generate report cards for all {filteredStudents.length > 0 ? filteredStudents.length : ""} students at once. Runs in the background.
                   </p>
                 </div>
@@ -706,7 +705,7 @@ export function AdminReportsPage() {
                     Combined PDF
                   </Button>
                   <Button
-                    style={{ backgroundColor: primaryColor }}
+                    style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}
                     onClick={() => generateAllClass("individual")}
                     disabled={!filteredStudents.length || loadingStudents || bulkGenerating || classJob?.status === "processing"}
                     className="gap-2 text-white"
@@ -733,8 +732,8 @@ export function AdminReportsPage() {
             <Card className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800">Class PDF Jobs</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Bulk generation history for {selectedClass?.name || "this class"}</p>
+                  <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>Class PDF Jobs</h2>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--foreground-muted)" }}>Bulk generation history for {selectedClass?.name || "this class"}</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={fetchClassJobHistory} disabled={loadingHistory} className="gap-2">
                   {loadingHistory ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Clock className="w-3.5 h-3.5" />}
@@ -742,9 +741,9 @@ export function AdminReportsPage() {
                 </Button>
               </div>
               {loadingHistory ? (
-                <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-violet-500" /></div>
+                <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--violet-ink)" }} /></div>
               ) : classJobHistory.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8" style={{ color: "var(--foreground-muted)" }}>
                   <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
                   <p className="text-sm">No class PDF jobs yet. Use "Class-Wide Generation" to get started.</p>
                 </div>
@@ -763,15 +762,15 @@ export function AdminReportsPage() {
                     <TableBody>
                       {classJobHistory.map((job: any) => (
                         <TableRow key={job.id}>
-                          <TableCell className="text-sm text-gray-600">{fmtDate(job.createdAt)}</TableCell>
-                          <TableCell><Badge variant="outline" className="capitalize">{job.format}</Badge></TableCell>
+                          <TableCell className="text-sm" style={{ color: "var(--foreground-muted)" }}>{fmtDate(job.createdAt)}</TableCell>
+                          <TableCell><span className="capitalize text-xs font-medium px-2 py-0.5" style={{ borderRadius: "var(--radius-sm)", background: "var(--surface-muted)", color: "var(--foreground-muted)" }}>{job.format}</span></TableCell>
                           <TableCell>
-                            <Badge className={statusColor(job.status)}>
+                            <span className="inline-flex items-center text-xs font-medium px-2 py-0.5" style={{ borderRadius: "var(--radius-sm)", ...statusStyle(job.status) }}>
                               {job.status === "processing" && <Loader2 className="w-3 h-3 mr-1 animate-spin inline" />}
                               {job.status}
-                            </Badge>
+                            </span>
                           </TableCell>
-                          <TableCell className="text-sm text-gray-600">{fmtBytes(job.bytes)}</TableCell>
+                          <TableCell className="text-sm" style={{ color: "var(--foreground-muted)" }}>{fmtBytes(job.bytes)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               {job.documentUrl && job.status === "completed" && job.format === "combined" ? (
@@ -779,14 +778,14 @@ export function AdminReportsPage() {
                                   <ExternalLink className="w-3.5 h-3.5" />Open PDF
                                 </Button>
                               ) : job.status === "failed" && job.failureReason ? (
-                                <span className="text-xs text-red-500 truncate max-w-[200px] block" title={job.failureReason}>{job.failureReason}</span>
+                                <span className="text-xs truncate max-w-[200px] block" style={{ color: "var(--crimson-signal)" }} title={job.failureReason}>{job.failureReason}</span>
                               ) : (
-                                <span className="text-xs text-gray-400">—</span>
+                                <span className="text-xs" style={{ color: "var(--foreground-muted)" }}>—</span>
                               )}
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                                style={{ borderColor: "color-mix(in oklch, var(--crimson-signal) 30%, transparent)", color: "var(--crimson-signal)" }}
                                 onClick={() => handleDeleteClassJob(job.id)}
                                 disabled={deletingJobs.has(job.id)}
                                 title="Delete class job"
@@ -807,19 +806,19 @@ export function AdminReportsPage() {
             <Card className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800">Individual Report Cards</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Per-student generated report cards</p>
+                  <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>Individual Report Cards</h2>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--foreground-muted)" }}>Per-student generated report cards</p>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={fetchReports} disabled={isBulkDeleting}>Refresh</Button>
-                  <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300" onClick={handleBulkDelete} disabled={isBulkDeleting || reportCards.length === 0}>
+                  <Button variant="outline" size="sm" style={{ borderColor: "color-mix(in oklch, var(--crimson-signal) 30%, transparent)", color: "var(--crimson-signal)" }} onClick={handleBulkDelete} disabled={isBulkDeleting || reportCards.length === 0}>
                     {isBulkDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash className="w-4 h-4 mr-2" />}
                     Delete All
                   </Button>
                 </div>
               </div>
               {loadingReports ? (
-                <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-violet-500" /></div>
+                <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--violet-ink)" }} /></div>
               ) : reportCards.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -848,9 +847,9 @@ export function AdminReportsPage() {
                             <TableCell className="font-medium">{r.studentName || "N/A"}</TableCell>
                             <TableCell className="font-mono text-sm">{r.studentId || "N/A"}</TableCell>
                             <TableCell>{r.className || selectedClass?.name || "N/A"}</TableCell>
-                            <TableCell><Badge className={statusColor(r.status)}>{r.status || "Unknown"}</Badge></TableCell>
-                            <TableCell className="text-sm text-gray-600">{fmtBytes(r.bytes)}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{fmtDate(r.createdAt)}</TableCell>
+                            <TableCell><span className="inline-flex items-center text-xs font-medium px-2 py-0.5" style={{ borderRadius: "var(--radius-sm)", ...statusStyle(r.status) }}>{r.status || "Unknown"}</span></TableCell>
+                            <TableCell className="text-sm" style={{ color: "var(--foreground-muted)" }}>{fmtBytes(r.bytes)}</TableCell>
+                            <TableCell className="text-sm" style={{ color: "var(--foreground-muted)" }}>{fmtDate(r.createdAt)}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <Button size="sm" variant="outline" onClick={() => url ? openPdf(url, r.studentName) : toast.error("URL not available")} disabled={!url || downloadingReport === url}>
@@ -859,7 +858,7 @@ export function AdminReportsPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                                  style={{ borderColor: "color-mix(in oklch, var(--crimson-signal) 30%, transparent)", color: "var(--crimson-signal)" }}
                                   onClick={() => handleDeleteReport(r.id)}
                                   disabled={deletingReports.has(r.id)}
                                 >

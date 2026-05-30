@@ -65,24 +65,16 @@ const subjectTourSteps = [
 
 const DEFAULT_PRIMARY = "#641BC4";
 
-// Array of badge colors for shuffled assignment
-const badgeColors = [
-  { bg: "bg-emerald-100", text: "text-emerald-700" },
-  { bg: "bg-blue-100", text: "text-blue-700" },
-  { bg: "bg-purple-100", text: "text-purple-700" },
-  { bg: "bg-amber-100", text: "text-amber-700" },
-  { bg: "bg-cyan-100", text: "text-cyan-700" },
-  { bg: "bg-rose-100", text: "text-rose-700" },
-  { bg: "bg-indigo-100", text: "text-indigo-700" },
-  { bg: "bg-teal-100", text: "text-teal-700" },
-  { bg: "bg-orange-100", text: "text-orange-700" },
-  { bg: "bg-pink-100", text: "text-pink-700" },
+// Design-system class badge accents
+const classBadgeAccents = [
+  { bg: "var(--violet-tint)", color: "var(--violet-ink)" },
+  { bg: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+  { bg: "var(--cobalt-tint)", color: "var(--cobalt-signal)" },
+  { bg: "var(--amber-tint)", color: "var(--amber-signal)" },
+  { bg: "var(--crimson-tint)", color: "var(--crimson-signal)" },
 ];
 
-// Get color based on index (shuffled per row)
-const getColorByIndex = (idx: number) => {
-  return badgeColors[idx % badgeColors.length];
-};
+const getAccentByIndex = (idx: number) => classBadgeAccents[idx % classBadgeAccents.length];
 
 export function AdminSubjectsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -386,17 +378,16 @@ export function AdminSubjectsPage() {
     return `${(firstName || "")[0] || ""}${(lastName || "")[0] || ""}`.toUpperCase() || "?";
   };
 
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      "bg-violet-500",
-      "bg-blue-500",
-      "bg-emerald-500",
-      "bg-amber-500",
-      "bg-rose-500",
-      "bg-cyan-500",
+  const getAvatarAccent = (name: string) => {
+    const accents = [
+      { bg: "var(--violet-tint)", color: "var(--violet-ink)" },
+      { bg: "var(--cobalt-tint)", color: "var(--cobalt-signal)" },
+      { bg: "var(--emerald-tint)", color: "var(--emerald-signal)" },
+      { bg: "var(--amber-tint)", color: "var(--amber-signal)" },
+      { bg: "var(--crimson-tint)", color: "var(--crimson-signal)" },
     ];
-    const index = (name || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
-    return colors[index];
+    const index = (name || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % accents.length;
+    return accents[index];
   };
 
   return (
@@ -408,18 +399,18 @@ export function AdminSubjectsPage() {
       />
 
       {/* Page Header */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+      <div>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 20 }}>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">Subject Management</h1>
-            <p className="text-slate-500 text-sm mt-1 font-coolvetica">
+            <h1 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: "clamp(1.25rem, 2vw, 1.5rem)", fontWeight: 800, letterSpacing: "-0.025em", color: "var(--foreground)", margin: 0 }}>Subject Management</h1>
+            <p style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>
               Manage curriculum, assign teachers, and organize classes.
             </p>
           </div>
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="subjects-create-btn h-11 rounded-xl gap-2 text-white"
-            style={{ backgroundColor: primaryColor }}
+            className="subjects-create-btn h-10 gap-2 text-white"
+            style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600 }}
           >
             <Plus className="w-4 h-4" />
             Create Subject
@@ -427,304 +418,171 @@ export function AdminSubjectsPage() {
         </div>
 
         {/* Search and Filters */}
-        <div className="subjects-filter-bar flex flex-col md:flex-row gap-3 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="subjects-filter-bar" style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
+          <div style={{ position: "relative", flex: "1 1 240px", minWidth: 0 }}>
+            <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 15, height: 15, color: "var(--text-secondary)", pointerEvents: "none" }} />
             <Input
               placeholder="Search by subject code or name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-slate-200 bg-slate-50/50"
+              style={{ paddingLeft: 36, height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-slate-500 font-medium">FILTER BY:</span>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
             <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="h-11 w-[140px] rounded-xl border-slate-200">
+              <SelectTrigger style={{ height: 40, width: 160, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}>
                 <SelectValue placeholder="All Classes" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent>
                 <SelectItem value="all">All Classes</SelectItem>
                 {classes.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
-            {/* "All" indicator button */}
-            <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
-              <button
-                onClick={() => setLevelFilter("all")}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap bg-white text-slate-900 shadow-sm"
-              >
-                All
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Table */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div
-                className="inline-block animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200 mb-4"
-                style={{ borderTopColor: primaryColor }}
-              />
-              <p className="text-slate-500 font-medium">Loading subjects...</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite", margin: "0 auto 12px" }} />
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500 }}>Loading subjects...</p>
             </div>
           </div>
         ) : (
           <>
-            <div className="rounded-2xl border border-slate-100 overflow-x-auto">
-              <table className="w-full min-w-[700px]">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="text-left text-slate-500 font-semibold text-xs uppercase tracking-wider py-4 px-5">
-                      Subject Code
-                    </th>
-                    <th className="text-left text-slate-500 font-semibold text-xs uppercase tracking-wider py-4 px-3">
-                      Subject Name
-                    </th>
-                    <th className="text-left text-slate-500 font-semibold text-xs uppercase tracking-wider py-4 px-3">
-                      Class Level
-                    </th>
-                    <th className="text-left text-slate-500 font-semibold text-xs uppercase tracking-wider py-4 px-3">
-                      Assigned Teacher
-                    </th>
-                    <th className="text-center text-slate-500 font-semibold text-xs uppercase tracking-wider py-4 px-3">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedSubjects.map((subject: any, idx) => {
-                    // New model: classes come from classSubjects[]
-                    const classSubjects: any[] = subject.classSubjects || [];
-                    const globalIdx = (page - 1) * ITEMS_PER_PAGE + idx;
-                    const teacher = getTeacherInfo(subject);
+            <div className="subjects-table" style={{ background: "#ffffff", border: "1px solid var(--border-fine)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", overflow: "hidden" }}>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", minWidth: 700, borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}>
+                      {["Subject Code", "Subject Name", "Classes", "Assigned Teacher", "Actions"].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 4 ? "center" : "left", fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-secondary)", padding: i === 0 ? "12px 20px" : "12px 12px" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedSubjects.map((subject: any, idx) => {
+                      const classSubjects: any[] = subject.classSubjects || [];
+                      const globalIdx = (page - 1) * ITEMS_PER_PAGE + idx;
+                      const teacher = getTeacherInfo(subject);
+                      const teacherName = teacher?.name || `${teacher?.firstName || ""} ${teacher?.lastName || ""}`.trim();
+                      const teacherAccent = teacher ? getAvatarAccent(teacherName) : null;
 
-                    return (
-                      <tr
-                        key={subject.id || idx}
-                        className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
-                      >
-                        <td className="py-4 px-5">
-                          <span className="font-mono text-sm text-slate-600">
-                            {subject.code || "—"}
-                          </span>
-                        </td>
-                        <td className="py-4 px-3">
-                          <span className="font-semibold text-slate-900">
-                            {subject.name}
-                          </span>
-                        </td>
-                        <td className="py-4 px-3">
-                          {classSubjects.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {classSubjects.slice(0, 3).map((cs: any, i: number) => {
-                                const color = getColorByIndex(globalIdx + i);
-                                const name = cs.class?.name || classById.get(cs.classId)?.name || cs.classId;
-                                return (
-                                  <Badge key={cs.id || i} className={`rounded-lg px-2 py-0.5 font-medium text-xs ${color.bg} ${color.text}`}>
-                                    {name}
-                                  </Badge>
-                                );
-                              })}
-                              {classSubjects.length > 3 && (
-                                <Badge className="rounded-lg px-2 py-0.5 font-medium text-xs bg-slate-100 text-slate-500">
-                                  +{classSubjects.length - 3} more
-                                </Badge>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 text-sm italic">No classes</span>
-                          )}
-                        </td>
-                        <td className="py-4 px-3">
-                          {teacher ? (
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(
-                                  teacher.name || `${teacher.firstName || ""}${teacher.lastName || ""}`
-                                )}`}
+                      return (
+                        <tr
+                          key={subject.id || idx}
+                          style={{ borderBottom: "1px solid var(--border-fine)", background: "#ffffff", transition: "background var(--dur-fast)" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--violet-tint)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
+                        >
+                          <td style={{ padding: "14px 20px" }}>
+                            <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: 12, color: "var(--text-secondary)", background: "var(--surface-muted)", padding: "3px 8px", borderRadius: "var(--radius-xs)" }}>
+                              {subject.code || "—"}
+                            </span>
+                          </td>
+                          <td style={{ padding: "14px 12px" }}>
+                            <span style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>{subject.name}</span>
+                          </td>
+                          <td style={{ padding: "14px 12px" }}>
+                            {classSubjects.length > 0 ? (
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                                {classSubjects.slice(0, 3).map((cs: any, i: number) => {
+                                  const accent = getAccentByIndex(globalIdx + i);
+                                  const name = cs.class?.name || classById.get(cs.classId)?.name || cs.classId;
+                                  return (
+                                    <span key={cs.id || i} style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: "var(--radius-xs)", background: accent.bg, color: accent.color, fontSize: 11, fontWeight: 600 }}>
+                                      {name}
+                                    </span>
+                                  );
+                                })}
+                                {classSubjects.length > 3 && (
+                                  <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: "var(--radius-xs)", background: "var(--surface-muted)", color: "var(--text-secondary)", fontSize: 11, fontWeight: 600 }}>
+                                    +{classSubjects.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: 13, color: "var(--text-secondary)", fontStyle: "italic" }}>No classes</span>
+                            )}
+                          </td>
+                          <td style={{ padding: "14px 12px" }}>
+                            {teacher && teacherAccent ? (
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <div style={{ width: 32, height: 32, borderRadius: "50%", background: teacherAccent.bg, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 12, color: teacherAccent.color, flexShrink: 0 }}>
+                                  {teacher.name
+                                    ? teacher.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+                                    : getInitials(teacher.firstName, teacher.lastName)
+                                  }
+                                </div>
+                                <div>
+                                  <p style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{teacherName || "Teacher"}</p>
+                                  <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>Subject Teacher</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => openAssignModal(subject)}
+                                style={{ display: "flex", alignItems: "center", gap: 8, background: "transparent", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 13 }}
                               >
-                                {teacher.name
-                                  ? teacher.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
-                                  : getInitials(teacher.firstName, teacher.lastName)
-                                }
-                              </div>
-                              <div>
-                                <p className="font-semibold text-slate-900 text-sm">
-                                  {teacher.name || `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim() || "Teacher"}
-                                </p>
-                                <p className="text-slate-500 text-xs">Subject Teacher</p>
-                              </div>
+                                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-muted)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                  <UserPlus style={{ width: 14, height: 14 }} />
+                                </div>
+                                <span style={{ fontStyle: "italic" }}>Unassigned</span>
+                              </button>
+                            )}
+                          </td>
+                          <td style={{ padding: "14px 12px", textAlign: "center" }}>
+                            <div style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
+                              <button onClick={() => { setEditSubject(subject); setEditForm({ name: subject.name, code: subject.code || "" }); setShowEditModal(true); }} style={{ padding: 7, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }} title="Edit">
+                                <Pencil style={{ width: 14, height: 14 }} />
+                              </button>
+                              <button onClick={() => openAssignModal(subject)} style={{ padding: 7, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }} title="Assign teacher">
+                                <UserPlus style={{ width: 14, height: 14 }} />
+                              </button>
+                              <button onClick={() => { setManagingSubject(subject); setShowManageClassesModal(true); }} style={{ padding: 7, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--cobalt-signal)" }} title="Manage classes">
+                                <Link style={{ width: 14, height: 14 }} />
+                              </button>
+                              <button onClick={() => { setDeleteSubjectId(subject.id); setDeleteSubjectName(subject.name); }} style={{ padding: 7, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--crimson-signal)" }} title="Delete">
+                                <Trash2 style={{ width: 14, height: 14 }} />
+                              </button>
                             </div>
-                          ) : (
-                            <button
-                              onClick={() => openAssignModal(subject)}
-                              className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 transition-colors"
-                            >
-                              <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center">
-                                <UserPlus className="w-4 h-4" />
-                              </div>
-                              <span className="italic">Unassigned</span>
-                            </button>
-                          )}
-                        </td>
-                        <td className="py-4 px-3 text-center">
-                          <div className="inline-flex items-center gap-1">
-                            <button
-                              onClick={() => { setEditSubject(subject); setEditForm({ name: subject.name, code: subject.code || "" }); setShowEditModal(true); }}
-                              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-                              title="Edit subject name/code"
-                            >
-                              <Pencil className="w-4 h-4 text-slate-400" />
-                            </button>
-                            <button
-                              onClick={() => openAssignModal(subject)}
-                              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-                              title="Assign teacher"
-                            >
-                              <UserPlus className="w-4 h-4 text-slate-400" />
-                            </button>
-                            <button
-                              onClick={() => { setManagingSubject(subject); setShowManageClassesModal(true); }}
-                              className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                              title="Manage class assignments"
-                            >
-                              <Link className="w-4 h-4 text-blue-400" />
-                            </button>
-                            <button
-                              onClick={() => { setDeleteSubjectId(subject.id); setDeleteSubjectName(subject.name); }}
-                              className="p-2 rounded-lg hover:bg-red-50 transition-colors"
-                              title="Delete subject"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-400" />
-                            </button>
-                          </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {paginatedSubjects.length === 0 && (
+                      <tr>
+                        <td colSpan={5} style={{ padding: "64px 0", textAlign: "center", color: "var(--text-secondary)", fontSize: 13 }}>
+                          No subjects found matching your criteria.
                         </td>
                       </tr>
-                    );
-                  })}
-                  {paginatedSubjects.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="py-16 text-center text-slate-500 font-medium">
-                        No subjects found matching your criteria.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Pagination */}
-            {filtered.length > 0 && (
-              <div className="flex items-center justify-between mt-5">
-                <p className="text-sm text-slate-500">
-                  Showing <span className="font-semibold text-slate-700">{(page - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
-                  <span className="font-semibold text-slate-700">
-                    {Math.min(page * ITEMS_PER_PAGE, filtered.length)}
-                  </span>{" "}
-                  of <span className="font-semibold text-slate-700">{filtered.length}</span> results
+            {filtered.length > 0 && totalPages > 1 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, flexWrap: "wrap", gap: 10 }}>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  Showing <strong style={{ color: "var(--foreground)" }}>{(page - 1) * ITEMS_PER_PAGE + 1}</strong>–<strong style={{ color: "var(--foreground)" }}>{Math.min(page * ITEMS_PER_PAGE, filtered.length)}</strong> of <strong style={{ color: "var(--foreground)" }}>{filtered.length}</strong>
                 </p>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="h-9 px-3 rounded-lg border-slate-200"
-                  >
-                    Previous
-                  </Button>
-                  
-                  {/* Sliding pagination - shows 5 pages at a time */}
-                  {(() => {
-                    const maxVisible = 5;
-                    let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
-                    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-                    
-                    // Adjust start if we're near the end
-                    if (endPage - startPage + 1 < maxVisible) {
-                      startPage = Math.max(1, endPage - maxVisible + 1);
-                    }
-                    
-                    const pages = [];
-                    
-                    // Show first page + ellipsis if needed
-                    if (startPage > 1) {
-                      pages.push(
-                        <Button
-                          key={1}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setPage(1)}
-                          className="h-9 w-9 rounded-lg border-slate-200"
-                        >
-                          1
-                        </Button>
-                      );
-                      if (startPage > 2) {
-                        pages.push(
-                          <span key="ellipsis-start" className="px-2 text-slate-400">...</span>
-                        );
-                      }
-                    }
-                    
-                    // Show visible page range
-                    for (let p = startPage; p <= endPage; p++) {
-                      pages.push(
-                        <Button
-                          key={p}
-                          variant={page === p ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPage(p)}
-                          className={`h-9 w-9 rounded-lg transition-all ${
-                            page === p ? "text-white" : "border-slate-200"
-                          }`}
-                          style={page === p ? { backgroundColor: primaryColor } : {}}
-                        >
-                          {p}
-                        </Button>
-                      );
-                    }
-                    
-                    // Show ellipsis + last page if needed
-                    if (endPage < totalPages) {
-                      if (endPage < totalPages - 1) {
-                        pages.push(
-                          <span key="ellipsis-end" className="px-2 text-slate-400">...</span>
-                        );
-                      }
-                      pages.push(
-                        <Button
-                          key={totalPages}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setPage(totalPages)}
-                          className="h-9 w-9 rounded-lg border-slate-200"
-                        >
-                          {totalPages}
-                        </Button>
-                      );
-                    }
-                    
-                    return pages;
-                  })()}
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages || totalPages === 0}
-                    className="h-9 px-3 rounded-lg border-slate-200"
-                  >
-                    Next
-                  </Button>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} style={{ height: 32, padding: "0 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)", background: "#ffffff", fontSize: 13, cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.4 : 1 }}>Previous</button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const maxVis = 5;
+                    let start = Math.max(1, page - Math.floor(maxVis / 2));
+                    const end = Math.min(totalPages, start + maxVis - 1);
+                    if (end - start + 1 < maxVis) start = Math.max(1, end - maxVis + 1);
+                    return start + i;
+                  }).map((p) => (
+                    <button key={p} onClick={() => setPage(p)} style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)", background: page === p ? "var(--violet-ink)" : "#ffffff", color: page === p ? "#ffffff" : "var(--foreground)", fontSize: 13, fontWeight: page === p ? 600 : 400, cursor: "pointer" }}>{p}</button>
+                  ))}
+                  <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} style={{ height: 32, padding: "0 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-fine)", background: "#ffffff", fontSize: 13, cursor: page >= totalPages ? "not-allowed" : "pointer", opacity: page >= totalPages ? 0.4 : 1 }}>Next</button>
                 </div>
               </div>
             )}
@@ -734,126 +592,58 @@ export function AdminSubjectsPage() {
 
       {/* Create Subject Modal */}
       {showCreateModal && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowCreateModal(false); setForm({ name: "", code: "", classIds: [], description: "" }); }} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => { setShowCreateModal(false); setForm({ name: "", code: "", classIds: [], description: "" }); }} />
+          <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 620, overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)" }}>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Create Subject</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Add a new subject to one or more classes</p>
+                <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Create Subject</h2>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>Add a new subject to one or more classes</p>
               </div>
-              <button onClick={() => { setShowCreateModal(false); setForm({ name: "", code: "", classIds: [], description: "" }); }} className="p-2 rounded-lg hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
+              <button onClick={() => { setShowCreateModal(false); setForm({ name: "", code: "", classIds: [], description: "" }); }} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
             </div>
-
-            <div className="px-6 py-5 grid grid-cols-2 gap-6">
-              {/* Left column */}
-              <div className="space-y-4">
+            <div style={{ padding: "20px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Subject Name</label>
-                  <Input
-                    value={form.name}
-                    onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                    placeholder="e.g. Mathematics"
-                    className="mt-2 h-11 rounded-xl"
-                  />
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Subject Name</label>
+                  <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. Mathematics" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                 </div>
-
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Code</label>
-                  <Input
-                    value={form.code}
-                    onChange={(e) => setForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))}
-                    placeholder="e.g. MATH101"
-                    className="mt-2 h-11 rounded-xl font-mono"
-                  />
-                  {form.classIds.length > 1 && form.code.trim() && (
-                    <p className="text-xs text-slate-400 mt-1">
-                      A class suffix will be appended for each class (e.g. {form.code.trim()}-JSS1A)
-                    </p>
-                  )}
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Code</label>
+                  <Input value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))} placeholder="e.g. MATH101" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13, fontFamily: "'Geist Mono', ui-monospace, monospace" }} />
+                  {form.classIds.length > 1 && form.code.trim() && <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>A class suffix will be appended for each class.</p>}
                 </div>
-
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Description (Optional)</label>
-                  <Input
-                    value={form.description}
-                    onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                    placeholder="Brief description of the subject"
-                    className="mt-2 h-11 rounded-xl"
-                  />
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Description (Optional)</label>
+                  <Input value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Brief description" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
                 </div>
               </div>
-
-              {/* Right column — Classes */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    Classes
-                    {form.classIds.length > 0 && (
-                      <span className="ml-2 text-xs font-normal text-slate-500">
-                        ({form.classIds.length} selected)
-                      </span>
-                    )}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>
+                    Classes {form.classIds.length > 0 && <span style={{ fontWeight: 400, color: "var(--text-secondary)" }}>({form.classIds.length} selected)</span>}
                   </label>
-                  {form.classIds.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setForm((p) => ({ ...p, classIds: [] }))}
-                      className="text-xs text-slate-400 hover:text-slate-600"
-                    >
-                      Clear all
-                    </button>
-                  )}
+                  {form.classIds.length > 0 && <button type="button" onClick={() => setForm((p) => ({ ...p, classIds: [] }))} style={{ fontSize: 11, color: "var(--text-secondary)", background: "none", border: "none", cursor: "pointer" }}>Clear all</button>}
                 </div>
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                <div style={{ border: "1px solid var(--border-fine)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
+                  <div style={{ maxHeight: 240, overflowY: "auto" }}>
                     {classes.map((c) => {
                       const checked = form.classIds.includes(c.id);
                       return (
-                        <label
-                          key={c.id}
-                          className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-slate-50 transition-colors"
-                        >
-                          <Checkbox
-                            checked={checked}
-                            onCheckedChange={(val) =>
-                              setForm((p) => ({
-                                ...p,
-                                classIds: val
-                                  ? [...p.classIds, c.id]
-                                  : p.classIds.filter((id) => id !== c.id),
-                              }))
-                            }
-                          />
-                          <span className="text-sm text-slate-800">
-                            {c.name}
-                            {c.level ? (
-                              <span className="text-slate-400 ml-1">({c.level})</span>
-                            ) : null}
-                          </span>
+                        <label key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", cursor: "pointer", borderBottom: "1px solid var(--border-fine)", background: checked ? "var(--violet-tint)" : "#ffffff" }}>
+                          <Checkbox checked={checked} onCheckedChange={(val) => setForm((p) => ({ ...p, classIds: val ? [...p.classIds, c.id] : p.classIds.filter((id) => id !== c.id) }))} />
+                          <span style={{ fontSize: 13, color: "var(--foreground)" }}>{c.name}{c.level ? <span style={{ color: "var(--text-secondary)", marginLeft: 6 }}>({c.level})</span> : null}</span>
                         </label>
                       );
                     })}
-                    {classes.length === 0 && (
-                      <p className="px-4 py-4 text-sm text-slate-400 text-center">No classes found</p>
-                    )}
+                    {classes.length === 0 && <p style={{ padding: "16px", textAlign: "center", fontSize: 13, color: "var(--text-secondary)" }}>No classes found</p>}
                   </div>
                 </div>
               </div>
             </div>
-
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)} className="h-11 px-6 rounded-xl">
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreateSubject}
-                disabled={loading}
-                className="h-11 px-6 rounded-xl text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", gap: 10, background: "var(--surface-muted)" }}>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Cancel</Button>
+              <Button onClick={handleCreateSubject} disabled={loading} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--violet-ink)", color: "#ffffff" }}>
                 {loading ? "Creating..." : form.classIds.length > 1 ? `Create ${form.classIds.length} Subjects` : "Create Subject"}
               </Button>
             </div>
@@ -864,32 +654,21 @@ export function AdminSubjectsPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteSubjectId && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
-              <h2 className="text-lg font-bold text-slate-900">Delete Subject</h2>
-              <button onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} className="p-2 rounded-lg hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} />
+          <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 400, overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)" }}>
+              <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Delete Subject</h2>
+              <button onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
             </div>
-            <div className="px-6 py-5">
-              <p className="text-sm text-slate-600">
-                Are you sure you want to delete <span className="font-semibold text-slate-900">{deleteSubjectName}</span>?
-                This will also remove teacher assignments for this subject. Associated assessments will be unlinked but not deleted.
+            <div style={{ padding: "16px 24px" }}>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>
+                Are you sure you want to delete <strong style={{ color: "var(--foreground)" }}>{deleteSubjectName}</strong>? Teacher assignments will also be removed. Associated assessments will be unlinked but not deleted.
               </p>
             </div>
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
-              <Button variant="outline" onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} className="h-10 px-5 rounded-xl">
-                Cancel
-              </Button>
-              <Button
-                onClick={handleDeleteSubject}
-                disabled={deleting}
-                className="h-10 px-5 rounded-xl text-white bg-red-600 hover:bg-red-700"
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </Button>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", gap: 10, background: "var(--surface-muted)" }}>
+              <Button variant="outline" onClick={() => { setDeleteSubjectId(null); setDeleteSubjectName(""); }} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Cancel</Button>
+              <Button onClick={handleDeleteSubject} disabled={deleting} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--crimson-signal)", color: "#ffffff", border: "none" }}>{deleting ? "Deleting..." : "Delete"}</Button>
             </div>
           </div>
         </div>,
@@ -898,33 +677,29 @@ export function AdminSubjectsPage() {
 
       {/* Edit Subject Modal */}
       {showEditModal && editSubject && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => setShowEditModal(false)} />
+          <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 420, overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)" }}>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Edit Subject</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Updates the school-wide subject name and code</p>
+                <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Edit Subject</h2>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>Updates the school-wide subject name and code</p>
               </div>
-              <button onClick={() => setShowEditModal(false)} className="p-2 rounded-lg hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
+              <button onClick={() => setShowEditModal(false)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
             </div>
-            <div className="px-6 py-5 space-y-4">
+            <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
-                <label className="text-sm font-semibold text-slate-700">Subject Name</label>
-                <Input value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} className="mt-2 h-11 rounded-xl" placeholder="e.g. Mathematics" />
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Subject Name</label>
+                <Input value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. Mathematics" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }} />
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">Code</label>
-                <Input value={editForm.code} onChange={(e) => setEditForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))} className="mt-2 h-11 rounded-xl font-mono" placeholder="e.g. MTH101" />
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Code</label>
+                <Input value={editForm.code} onChange={(e) => setEditForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))} placeholder="e.g. MTH101" style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13, fontFamily: "'Geist Mono', ui-monospace, monospace" }} />
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
-              <Button variant="outline" onClick={() => setShowEditModal(false)} className="h-11 px-6 rounded-xl">Cancel</Button>
-              <Button onClick={handleEditSubject} disabled={editLoading} className="h-11 px-6 rounded-xl text-white" style={{ backgroundColor: primaryColor }}>
-                {editLoading ? "Saving..." : "Save Changes"}
-              </Button>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", gap: 10, background: "var(--surface-muted)" }}>
+              <Button variant="outline" onClick={() => setShowEditModal(false)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Cancel</Button>
+              <Button onClick={handleEditSubject} disabled={editLoading} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--violet-ink)", color: "#ffffff" }}>{editLoading ? "Saving..." : "Save Changes"}</Button>
             </div>
           </div>
         </div>,
@@ -933,51 +708,41 @@ export function AdminSubjectsPage() {
 
       {/* Manage Class Assignments Modal */}
       {showManageClassesModal && managingSubject && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowManageClassesModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => setShowManageClassesModal(false)} />
+          <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 480, overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "80vh" }}>
+            <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)", flexShrink: 0 }}>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Manage Classes</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Assign or remove <span className="font-semibold">{managingSubject.name}</span> from classes</p>
+                <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Manage Classes</h2>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>Assign or remove <strong style={{ color: "var(--foreground)" }}>{managingSubject.name}</strong> from classes</p>
               </div>
-              <button onClick={() => setShowManageClassesModal(false)} className="p-2 rounded-lg hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
+              <button onClick={() => setShowManageClassesModal(false)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
             </div>
-            <div className="px-6 py-4 max-h-[60vh] overflow-y-auto space-y-1">
+            <div style={{ padding: "12px 24px", overflowY: "auto", flex: 1 }}>
               {classes.map((cls: any) => {
                 const assigned = (managingSubject.classSubjects || []).some((cs: any) => cs.classId === cls.id);
                 return (
-                  <div key={cls.id} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-slate-50">
+                  <div key={cls.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: "var(--radius-md)", marginBottom: 4 }}>
                     <div>
-                      <p className="font-semibold text-slate-800 text-sm">{cls.name}</p>
-                      {cls.level && <p className="text-slate-400 text-xs">{cls.level}</p>}
+                      <p style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{cls.name}</p>
+                      {cls.level && <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "2px 0 0" }}>{cls.level}</p>}
                     </div>
                     {assigned ? (
-                      <button
-                        onClick={() => handleRemoveFromClass(cls.id)}
-                        disabled={manageClassLoading}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-                      >
-                        <Unlink className="w-3.5 h-3.5" /> Remove
+                      <button onClick={() => handleRemoveFromClass(cls.id)} disabled={manageClassLoading} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--crimson-signal)", background: "var(--crimson-tint)", border: "none", padding: "6px 10px", borderRadius: "var(--radius-sm)", cursor: "pointer" }}>
+                        <Unlink style={{ width: 12, height: 12 }} />Remove
                       </button>
                     ) : (
-                      <button
-                        onClick={() => handleAssignToClass(cls.id)}
-                        disabled={manageClassLoading}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors"
-                      >
-                        <Link className="w-3.5 h-3.5" /> Assign
+                      <button onClick={() => handleAssignToClass(cls.id)} disabled={manageClassLoading} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--emerald-signal)", background: "var(--emerald-tint)", border: "none", padding: "6px 10px", borderRadius: "var(--radius-sm)", cursor: "pointer" }}>
+                        <Link style={{ width: 12, height: 12 }} />Assign
                       </button>
                     )}
                   </div>
                 );
               })}
-              {classes.length === 0 && <p className="text-center text-slate-400 py-6 text-sm">No classes found</p>}
+              {classes.length === 0 && <p style={{ textAlign: "center", color: "var(--text-secondary)", padding: "24px 0", fontSize: 13 }}>No classes found</p>}
             </div>
-            <div className="px-6 py-4 border-t border-slate-100 flex justify-end bg-slate-50/50">
-              <Button variant="outline" onClick={() => setShowManageClassesModal(false)} className="h-11 px-6 rounded-xl">Done</Button>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", background: "var(--surface-muted)", flexShrink: 0 }}>
+              <Button variant="outline" onClick={() => setShowManageClassesModal(false)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Done</Button>
             </div>
           </div>
         </div>,
@@ -986,63 +751,46 @@ export function AdminSubjectsPage() {
 
       {/* Assign Teacher Modal */}
       {showAssignModal && selectedSubject && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAssignModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100">
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.5)" }} onClick={() => setShowAssignModal(false)} />
+          <div style={{ position: "relative", background: "#ffffff", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)", width: "100%", maxWidth: 420, overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-fine)" }}>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Assign Teacher</h2>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  Assign a teacher to <span className="font-semibold">{selectedSubject.name}</span>
-                </p>
+                <h2 style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif", fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Assign Teacher</h2>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>Assign a teacher to <strong style={{ color: "var(--foreground)" }}>{selectedSubject.name}</strong></p>
               </div>
-              <button onClick={() => setShowAssignModal(false)} className="p-2 rounded-lg hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
+              <button onClick={() => setShowAssignModal(false)} style={{ padding: 6, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}><X style={{ width: 16, height: 16 }} /></button>
             </div>
-
-            <div className="px-6 py-5 space-y-4">
-              {/* Class scope selector — shown when subject is in multiple classes */}
+            <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
               {selectedSubject.classSubjects?.length > 1 && (
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Assign for Class</label>
-                  <Select
-                    value={assignClassSubjectId ?? ""}
-                    onValueChange={(v) => setAssignClassSubjectId(v || null)}
-                  >
-                    <SelectTrigger className="mt-2 h-11 w-full rounded-xl">
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Assign for Class</label>
+                  <Select value={assignClassSubjectId ?? ""} onValueChange={(v) => setAssignClassSubjectId(v || null)}>
+                    <SelectTrigger style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}>
                       <SelectValue placeholder="Select class" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl" style={{ zIndex: 10002 }}>
+                    <SelectContent style={{ zIndex: 10002 }}>
                       {selectedSubject.classSubjects.map((cs: any) => {
                         const name = cs.class?.name ?? classById.get(cs.classId)?.name ?? cs.classId;
                         return <SelectItem key={cs.id} value={cs.id}>{name}</SelectItem>;
                       })}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-slate-400 mt-1">Teacher will be scoped to this class only</p>
+                  <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>Teacher will be scoped to this class only</p>
                 </div>
               )}
-
               <div>
-                <label className="text-sm font-semibold text-slate-700">Select Teacher</label>
-                <div className="mt-2" style={{ position: "relative", zIndex: 10001 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "block", marginBottom: 6 }}>Select Teacher</label>
+                <div style={{ position: "relative", zIndex: 10001 }}>
                   <Select value={assignTeacherId} onValueChange={setAssignTeacherId}>
-                    <SelectTrigger className="h-11 w-full rounded-xl">
+                    <SelectTrigger style={{ height: 40, borderRadius: "var(--radius-md)", borderColor: "var(--border-fine)", fontSize: 13 }}>
                       <SelectValue placeholder="Choose a teacher" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl max-h-[300px]" style={{ zIndex: 10002 }}>
+                    <SelectContent style={{ zIndex: 10002 }}>
                       {(teachers || []).map((t: any) => {
                         const name = `${t.firstName || ""} ${t.lastName || ""}`.trim();
                         return (
-                          <SelectItem key={t.id} value={t.id}>
-                            <div className="flex items-center gap-2">
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold ${getAvatarColor(name)}`}>
-                                {getInitials(t.firstName, t.lastName)}
-                              </div>
-                              <span>{name || t.email || t.id}</span>
-                            </div>
-                          </SelectItem>
+                          <SelectItem key={t.id} value={t.id}>{name || t.email || t.id}</SelectItem>
                         );
                       })}
                     </SelectContent>
@@ -1050,18 +798,9 @@ export function AdminSubjectsPage() {
                 </div>
               </div>
             </div>
-
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
-              <Button variant="outline" onClick={() => setShowAssignModal(false)} className="h-11 px-6 rounded-xl">
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAssignTeacher}
-                disabled={loading}
-                className="h-11 px-6 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700"
-              >
-                {loading ? "Assigning..." : "Assign Teacher"}
-              </Button>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-fine)", display: "flex", justifyContent: "flex-end", gap: 10, background: "var(--surface-muted)" }}>
+              <Button variant="outline" onClick={() => setShowAssignModal(false)} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13 }}>Cancel</Button>
+              <Button onClick={handleAssignTeacher} disabled={loading} style={{ height: 40, borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600, background: "var(--violet-ink)", color: "#ffffff" }}>{loading ? "Assigning..." : "Assign Teacher"}</Button>
             </div>
           </div>
         </div>,

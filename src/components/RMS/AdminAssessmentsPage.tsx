@@ -77,8 +77,6 @@ const assessmentTourSteps = [
   },
 ];
 
-const DEFAULT_PRIMARY = "#641BC4";
-
 // Assessment icon based on subject
 const getAssessmentIcon = (subjectName: string) => {
   const name = (subjectName || "").toLowerCase();
@@ -94,29 +92,27 @@ const getAssessmentIcon = (subjectName: string) => {
   return FileText;
 };
 
-// Get status color
 const getStatusStyle = (status?: string) => {
   if (status === "started" || status === "active") {
-    return { bg: "bg-emerald-50", text: "text-emerald-700", label: "Active" };
+    return { background: "var(--emerald-tint)", color: "var(--emerald-signal)", label: "Active" };
   }
   if (status === "ended") {
-    return { bg: "bg-slate-100", text: "text-slate-600", label: "Ended" };
+    return { background: "var(--surface-muted)", color: "var(--foreground-muted)", label: "Ended" };
   }
   if (status === "pending" || status === "not_started") {
-    return { bg: "bg-amber-50", text: "text-amber-700", label: "Pending" };
+    return { background: "var(--amber-tint)", color: "var(--amber-signal)", label: "Pending" };
   }
-  return { bg: "bg-purple-50", text: "text-purple-700", label: "Draft" };
+  return { background: "var(--violet-tint)", color: "var(--violet-ink)", label: "Draft" };
 };
 
-// Get icon background color
 const getIconBg = (subjectName: string) => {
   const name = (subjectName || "").toLowerCase();
-  if (name.includes("math")) return "bg-violet-100 text-violet-600";
-  if (name.includes("physics")) return "bg-blue-100 text-blue-600";
+  if (name.includes("math")) return { background: "var(--violet-tint)", color: "var(--violet-ink)" };
+  if (name.includes("physics")) return { background: "var(--cobalt-tint)", color: "var(--cobalt-signal)" };
   if (name.includes("english") || name.includes("history"))
-    return "bg-rose-100 text-rose-600";
-  if (name.includes("geo")) return "bg-emerald-100 text-emerald-600";
-  return "bg-slate-100 text-slate-600";
+    return { background: "var(--crimson-tint)", color: "var(--crimson-signal)" };
+  if (name.includes("geo")) return { background: "var(--emerald-tint)", color: "var(--emerald-signal)" };
+  return { background: "var(--surface-muted)", color: "var(--foreground-muted)" };
 };
 
 export function AdminAssessmentsPage() {
@@ -124,9 +120,6 @@ export function AdminAssessmentsPage() {
   const { assessments, classes, subjects, loading, error, success } =
     useSelector((s: RootState) => s.admin);
   const { tenantInfo } = useSelector((s: RootState) => s.user);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
-
   const { assessmentCategories } = useSelector((s: RootState) => s.admin);
 
   const [q, setQ] = useState("");
@@ -379,10 +372,10 @@ export function AdminAssessmentsPage() {
       {/* Page Header */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 font-coolvetica">
+          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
             Assessments Overview
           </h1>
-          <p className="text-slate-500 text-sm mt-1 font-coolvetica">
+          <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>
             Create and monitor assessments across all classes and subjects.
           </p>
         </div>
@@ -390,14 +383,15 @@ export function AdminAssessmentsPage() {
           <ManageCategoriesDialog>
             <Button
               variant="outline"
-              className="assessments-manage-categories-btn gap-2 border-slate-200 shadow-sm"
+              className="assessments-manage-categories-btn gap-2"
+              style={{ borderColor: "var(--border-fine)", borderRadius: "var(--radius-md)" }}
             >
               <Settings className="w-4 h-4" /> Manage Categories
             </Button>
           </ManageCategoriesDialog>
           <Button
             className="gap-2 text-white shadow-sm"
-            style={{ backgroundColor: primaryColor }}
+            style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}
             onClick={() => setShowCreateModal(true)}
           >
             <Plus className="w-4 h-4" /> Create Assessment
@@ -406,13 +400,16 @@ export function AdminAssessmentsPage() {
       </div>
 
       {/* Info Banner */}
-      <div className="assessments-info-banner bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+      <div
+        className="assessments-info-banner rounded-xl p-4 mb-6 flex items-start gap-3"
+        style={{ background: "var(--cobalt-tint)", border: "1px solid color-mix(in oklch, var(--cobalt-signal) 20%, transparent)" }}
+      >
+        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "var(--cobalt-signal)" }} />
         <div>
-          <p className="text-sm font-semibold text-blue-900">
+          <p className="text-sm font-semibold" style={{ color: "var(--cobalt-signal)" }}>
             Assessment Management
           </p>
-          <p className="text-sm text-blue-700 mt-0.5">
+          <p className="text-sm mt-0.5" style={{ color: "var(--cobalt-signal)", opacity: 0.85 }}>
             Create assessments for one or more subjects at once by selecting a
             class and checking the subjects. Teachers can also create
             assessments from their dashboard.
@@ -477,19 +474,19 @@ export function AdminAssessmentsPage() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-          <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
+        <div className="bg-white rounded-xl p-4" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+          <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>
             Total Assessments
           </p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">
+          <p className="text-2xl font-bold mt-1" style={{ color: "var(--foreground)" }}>
             {assessments.length}
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-          <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
+        <div className="bg-white rounded-xl p-4" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+          <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>
             Active
           </p>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">
+          <p className="text-2xl font-bold mt-1" style={{ color: "var(--emerald-signal)" }}>
             {
               assessments.filter(
                 (a) => a.status === "started" || a.status === "active",
@@ -497,22 +494,22 @@ export function AdminAssessmentsPage() {
             }
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-          <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
+        <div className="bg-white rounded-xl p-4" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+          <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>
             Pending
           </p>
-          <p className="text-2xl font-bold text-amber-600 mt-1">
+          <p className="text-2xl font-bold mt-1" style={{ color: "var(--amber-signal)" }}>
             {
               assessments.filter((a) => a.status === "not_started" || !a.status)
                 .length
             }
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-          <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
+        <div className="bg-white rounded-xl p-4" style={{ border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}>
+          <p className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>
             Completed
           </p>
-          <p className="text-2xl font-bold text-slate-600 mt-1">
+          <p className="text-2xl font-bold mt-1" style={{ color: "var(--foreground-muted)" }}>
             {assessments.filter((a) => a.status === "ended").length}
           </p>
         </div>
@@ -523,8 +520,8 @@ export function AdminAssessmentsPage() {
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div
-              className="inline-block animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200 mb-4"
-              style={{ borderTopColor: primaryColor }}
+              className="inline-block rounded-full h-10 w-10 mb-4"
+              style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }}
             />
             <p className="text-slate-500 font-medium">Loading assessments...</p>
           </div>
@@ -543,13 +540,15 @@ export function AdminAssessmentsPage() {
             return (
               <div
                 key={assessment.id}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all p-5"
+                className="bg-white p-5 transition-all"
+                style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--border-fine)", boxShadow: "var(--shadow-card)" }}
               >
                 {/* Card Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-11 h-11 rounded-xl flex items-center justify-center ${iconBg}`}
+                      className="w-11 h-11 flex items-center justify-center flex-shrink-0"
+                      style={{ borderRadius: "var(--radius-lg)", ...iconBg }}
                     >
                       <Icon className="w-5 h-5" />
                     </div>
@@ -582,16 +581,18 @@ export function AdminAssessmentsPage() {
 
                 <div className="flex flex-col gap-3 mb-4 mt-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge
-                      className={`rounded-lg px-2.5 py-0.5 text-xs font-medium border-0 ${statusStyle.bg} ${statusStyle.text}`}
+                    <span
+                      className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium"
+                      style={{ borderRadius: "var(--radius-sm)", background: statusStyle.background, color: statusStyle.color }}
                     >
                       {statusStyle.label}
-                    </Badge>
-                    <Badge
-                      className={`rounded-lg px-2.5 py-0.5 text-xs font-medium border-0 ${assessment.isOnline !== false ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"}`}
+                    </span>
+                    <span
+                      className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium"
+                      style={{ borderRadius: "var(--radius-sm)", background: assessment.isOnline !== false ? "var(--cobalt-tint)" : "var(--surface-muted)", color: assessment.isOnline !== false ? "var(--cobalt-signal)" : "var(--foreground-muted)" }}
                     >
                       {assessment.isOnline !== false ? "Online" : "Offline"}
-                    </Badge>
+                    </span>
                     {assessment.session && (
                       <span className="text-xs text-slate-400 font-medium tracking-wide">
                         • {assessment.session}
@@ -636,13 +637,15 @@ export function AdminAssessmentsPage() {
                   href={`/RMS/assessments/${assessment.id}`}
                   className="block"
                 >
-                  <Button
-                    variant="outline"
-                    className="w-full h-10 rounded-xl border-slate-200 text-sm font-medium gap-2 hover:bg-slate-50 transition-colors"
+                  <button
+                    className="w-full h-10 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                    style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-fine)", color: "var(--foreground)", background: "transparent" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     <Eye className="w-4 h-4" />
                     View Details
-                  </Button>
+                  </button>
                 </Link>
               </div>
             );
@@ -666,13 +669,17 @@ export function AdminAssessmentsPage() {
         createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center">
             <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              className="absolute inset-0"
+              style={{ background: "rgba(15,23,42,0.5)" }}
               onClick={() => {
                 setShowCreateModal(false);
                 resetForm();
               }}
             />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div
+              className="relative bg-white w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col overflow-hidden"
+              style={{ borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)" }}
+            >
               {/* Header */}
               <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
                 <div>
@@ -1017,7 +1024,7 @@ export function AdminAssessmentsPage() {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 bg-slate-50/50 flex-shrink-0">
+              <div className="px-6 py-4 flex items-center justify-between gap-3 flex-shrink-0" style={{ borderTop: "1px solid var(--border-fine)", background: "var(--surface-muted)" }}>
                 <p className="text-xs text-slate-400">
                   {form.classIds.length > 0 && form.subjectNames.length > 0
                     ? (() => {
@@ -1051,8 +1058,8 @@ export function AdminAssessmentsPage() {
                   <Button
                     onClick={handleCreateAssessment}
                     disabled={creating}
-                    className="h-11 px-6 rounded-xl text-white"
-                    style={{ backgroundColor: primaryColor }}
+                    className="h-11 px-6 text-white"
+                    style={{ backgroundColor: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}
                   >
                     {creating ? "Creating..." : "Create Assessments"}
                   </Button>
