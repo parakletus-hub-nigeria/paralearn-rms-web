@@ -294,11 +294,11 @@ export default function StudentDashboardPage() {
             </div>
 
             {/* Tab Switcher */}
-            <div className="flex items-center justify-center mb-10">
-              <div className="p-1.5 flex gap-2" style={{ background: "rgba(255,255,255,0.15)", borderRadius: "var(--radius-xl)", border: "1px solid rgba(255,255,255,0.2)" }}>
+            <div className="flex items-center justify-center mb-10 overflow-x-auto no-scrollbar px-2">
+              <div className="p-1.5 flex gap-1 sm:gap-2 shrink-0" style={{ background: "rgba(255,255,255,0.15)", borderRadius: "var(--radius-xl)", border: "1px solid rgba(255,255,255,0.2)" }}>
                 <button
                   onClick={() => setActiveTab("active")}
-                  className="relative px-4 sm:px-6 py-2 sm:py-3 text-sm font-bold transition-all duration-300 flex items-center gap-2"
+                  className="relative px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-1.5 sm:gap-2"
                   style={{ borderRadius: "var(--radius-lg)", color: activeTab === "active" ? "var(--violet-ink)" : "rgba(255,255,255,0.7)" }}
                 >
                   {activeTab === "active" && (
@@ -315,7 +315,7 @@ export default function StudentDashboardPage() {
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="relative z-10 ml-1 px-2 py-0.5 text-[10px] font-black"
+                      className="relative z-10 ml-1 px-2 py-0.5 text-[10px] font-black hidden sm:inline-block"
                       style={{ borderRadius: "var(--radius-xl)", background: activeTab === "active" ? "var(--violet-tint)" : "rgba(255,255,255,0.2)", color: activeTab === "active" ? "var(--violet-ink)" : "rgba(255,255,255,0.8)" }}
                     >
                       {activeList.length}
@@ -324,7 +324,7 @@ export default function StudentDashboardPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("ended")}
-                  className="relative px-4 sm:px-6 py-2 sm:py-3 text-sm font-bold transition-all duration-300 flex items-center gap-2"
+                  className="relative px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-1.5 sm:gap-2"
                   style={{ borderRadius: "var(--radius-lg)", color: activeTab === "ended" ? "var(--crimson-signal)" : "rgba(255,255,255,0.7)" }}
                 >
                   {activeTab === "ended" && (
@@ -341,7 +341,7 @@ export default function StudentDashboardPage() {
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="relative z-10 ml-1 px-2 py-0.5 text-[10px] font-black"
+                      className="relative z-10 ml-1 px-2 py-0.5 text-[10px] font-black hidden sm:inline-block"
                       style={{ borderRadius: "var(--radius-xl)", background: activeTab === "ended" ? "var(--crimson-tint)" : "rgba(255,255,255,0.2)", color: activeTab === "ended" ? "var(--crimson-signal)" : "rgba(255,255,255,0.8)" }}
                     >
                       {endedList.length}
@@ -351,7 +351,7 @@ export default function StudentDashboardPage() {
 
                 <button
                   onClick={() => setActiveTab("reports")}
-                  className="relative px-4 sm:px-6 py-2 sm:py-3 text-sm font-bold transition-all duration-300 flex items-center gap-2"
+                  className="relative px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-1.5 sm:gap-2"
                   style={{ borderRadius: "var(--radius-lg)", color: activeTab === "reports" ? "var(--emerald-signal)" : "rgba(255,255,255,0.7)" }}
                 >
                   {activeTab === "reports" && (

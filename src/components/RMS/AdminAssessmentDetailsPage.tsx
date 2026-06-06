@@ -11,8 +11,6 @@ import {
   deleteAssessment,
 } from "@/reduxToolKit/admin/adminThunks";
 import { Header } from "@/components/RMS/header";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Clock,
@@ -85,19 +83,24 @@ export function AdminAssessmentDetailsPage() {
 
   if (error || !selectedAssessment) {
     return (
-      <div className="p-8 text-center bg-red-50 rounded-xl m-8">
-        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-red-900">
+      <div
+        className="p-8 text-center rounded-xl m-8"
+        style={{ background: "var(--crimson-tint)" }}
+      >
+        <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "var(--crimson-signal)" }} />
+        <h2 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
           Error Loading Assessment
         </h2>
-        <p className="text-red-700 mt-2">{error || "Assessment not found"}</p>
-        <Button
-          variant="outline"
+        <p className="mt-2" style={{ color: "var(--crimson-signal)" }}>{error || "Assessment not found"}</p>
+        <button
           onClick={() => router.back()}
-          className="mt-6 border-red-200 hover:bg-red-100"
+          className="mt-6 px-4 py-2 rounded-xl border text-sm font-medium transition-colors"
+          style={{ borderColor: "var(--border-medium)", color: "var(--foreground-muted)", background: "white" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--crimson-tint)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
         >
           Go Back
-        </Button>
+        </button>
       </div>
     );
   }
@@ -108,12 +111,12 @@ export function AdminAssessmentDetailsPage() {
       : selectedAssessment.status === "ended"
         ? "Ended"
         : "Pending";
-  const statusColor =
+  const statusStyle =
     selectedAssessment.status === "started"
-      ? "bg-emerald-100 text-emerald-700"
+      ? { background: "var(--emerald-tint)", color: "var(--emerald-signal)" }
       : selectedAssessment.status === "ended"
-        ? "bg-red-100 text-red-700"
-        : "bg-amber-100 text-amber-700";
+        ? { background: "var(--crimson-tint)", color: "var(--crimson-signal)" }
+        : { background: "var(--amber-tint)", color: "var(--amber-signal)" };
 
   return (
     <div className="w-full pb-10">
@@ -126,71 +129,85 @@ export function AdminAssessmentDetailsPage() {
         {/* Navigation Breadcrumb */}
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-6 group"
+          className="flex items-center gap-2 transition-colors mb-6"
+          style={{ color: "var(--foreground-muted)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--foreground)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")}
         >
-          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            style={{ background: "var(--surface-muted)" }}
+          >
             <ArrowLeft className="w-4 h-4" />
           </div>
           <span className="font-medium text-sm">Back to Assessments</span>
         </button>
 
         {/* Hero Section */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-8">
+        <div className="bg-white rounded-3xl shadow-sm p-6 mb-8" style={{ border: "1px solid var(--border-fine)" }}>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Badge
-                  className={`${statusColor} border-0 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider`}
+                <span
+                  className="border-0 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
+                  style={statusStyle}
                 >
                   {statusLabel}
-                </Badge>
-                <Badge className="bg-slate-100 text-slate-600 border-0 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+                </span>
+                <span
+                  className="border-0 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
+                  style={{ background: "var(--surface-muted)", color: "var(--foreground-muted)" }}
+                >
                   {isOnline() ? "Online" : "Offline"}
-                </Badge>
+                </span>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-1">
+                <h1 className="text-3xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
                   {selectedAssessment.title}
                 </h1>
-                <p className="text-slate-500 flex items-center gap-2">
-                  <span className="font-semibold text-primary">
+                <p className="flex items-center gap-2" style={{ color: "var(--foreground-muted)" }}>
+                  <span className="font-semibold" style={{ color: "var(--violet-ink)" }}>
                     {selectedAssessment.subject?.name || "Subject"}
                   </span>
-                  <span className="text-slate-300">•</span>
+                  <span style={{ color: "var(--border-medium)" }}>•</span>
                   <span>{selectedAssessment.class?.name || "Class"}</span>
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
+              <button
                 onClick={() =>
                   router.push(`/RMS/assessments/edit/${selectedAssessment.id}`)
                 }
-                className="rounded-xl border-slate-200"
+                className="rounded-xl px-4 py-2 text-sm font-medium border transition-colors"
+                style={{ borderColor: "var(--border-medium)", color: "var(--foreground-muted)", background: "white" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
               >
                 Edit
-              </Button>
-              <Button
-                variant="destructive"
+              </button>
+              <button
                 onClick={handleDelete}
-                className="rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border-0 flex items-center gap-2"
+                className="rounded-xl px-4 py-2 text-sm font-medium border-0 flex items-center gap-2 transition-colors"
+                style={{ background: "var(--crimson-tint)", color: "var(--crimson-signal)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(0.95)")}
+                onMouseLeave={(e) => (e.currentTarget.style.filter = "")}
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Delete</span>
-              </Button>
+              </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-8 pt-8 border-t border-slate-50">
-            <div className="bg-slate-50/50 rounded-2xl p-4 border border-white">
-              <div className="flex items-center gap-2 text-slate-500 mb-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-8 pt-8" style={{ borderTop: "1px solid var(--border-fine)" }}>
+            <div className="rounded-2xl p-4" style={{ background: "var(--surface-muted)" }}>
+              <div className="flex items-center gap-2 mb-2" style={{ color: "var(--foreground-muted)" }}>
                 <Clock className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">
                   Duration
                 </span>
               </div>
-              <p className="text-xl font-bold text-slate-900">
+              <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
                 {selectedAssessment.durationMins ||
                   selectedAssessment.duration ||
                   "—"}{" "}
@@ -198,40 +215,40 @@ export function AdminAssessmentDetailsPage() {
               </p>
             </div>
 
-            <div className="bg-slate-50/50 rounded-2xl p-4 border border-white">
-              <div className="flex items-center gap-2 text-slate-500 mb-2">
+            <div className="rounded-2xl p-4" style={{ background: "var(--surface-muted)" }}>
+              <div className="flex items-center gap-2 mb-2" style={{ color: "var(--foreground-muted)" }}>
                 <BarChart3 className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">
                   Total Marks
                 </span>
               </div>
-              <p className="text-xl font-bold text-slate-900">
+              <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
                 {selectedAssessment.totalMarks || "—"}
               </p>
             </div>
 
-            <div className="bg-slate-50/50 rounded-2xl p-4 border border-white">
-              <div className="flex items-center gap-2 text-slate-500 mb-2">
+            <div className="rounded-2xl p-4" style={{ background: "var(--surface-muted)" }}>
+              <div className="flex items-center gap-2 mb-2" style={{ color: "var(--foreground-muted)" }}>
                 <HelpCircle className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">
                   Questions
                 </span>
               </div>
-              <p className="text-xl font-bold text-slate-900">
+              <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
                 {selectedAssessment._count?.questions ||
                   selectedAssessment.questions?.length ||
                   0}
               </p>
             </div>
 
-            <div className="bg-slate-50/50 rounded-2xl p-4 border border-white">
-              <div className="flex items-center gap-2 text-emerald-600 mb-2">
+            <div className="rounded-2xl p-4" style={{ background: "var(--surface-muted)" }}>
+              <div className="flex items-center gap-2 mb-2" style={{ color: "var(--emerald-signal)" }}>
                 <CheckCircle className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">
                   Submissions
                 </span>
               </div>
-              <p className="text-xl font-bold text-emerald-600">
+              <p className="text-xl font-bold" style={{ color: "var(--emerald-signal)" }}>
                 {assessmentSubmissions.length}
               </p>
             </div>
@@ -242,44 +259,47 @@ export function AdminAssessmentDetailsPage() {
           {/* Main Info Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Instructions */}
-            <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" /> Instructions
+            <section className="bg-white rounded-3xl shadow-sm p-6" style={{ border: "1px solid var(--border-fine)" }}>
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+                <FileText className="w-5 h-5" style={{ color: "var(--violet-ink)" }} /> Instructions
               </h2>
-              <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed italic">
+              <div className="prose max-w-none leading-relaxed italic" style={{ color: "var(--foreground-muted)" }}>
                 {selectedAssessment.instructions ||
                   "No special instructions provided for this assessment."}
               </div>
             </section>
 
             {/* Questions List */}
-            <section className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-primary" /> Assessment
+            <section className="bg-white rounded-3xl shadow-sm overflow-hidden" style={{ border: "1px solid var(--border-fine)" }}>
+              <div className="p-6 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+                  <HelpCircle className="w-5 h-5" style={{ color: "var(--violet-ink)" }} /> Assessment
                   Questions
                 </h2>
-                <Badge
-                  variant="outline"
-                  className="rounded-full border-slate-200"
+                <span
+                  className="rounded-full px-3 py-1 text-xs font-semibold"
+                  style={{ border: "1px solid var(--border-medium)", color: "var(--foreground-muted)", background: "white" }}
                 >
                   {selectedAssessment.questions?.length || 0} Total
-                </Badge>
+                </span>
               </div>
-              <div className="divide-y divide-slate-50">
+              <div>
                 {selectedAssessment.questions &&
                 selectedAssessment.questions.length > 0 ? (
                   selectedAssessment.questions.map((q, idx) => (
                     <div
                       key={q.id}
-                      className="p-6 hover:bg-slate-50/50 transition-colors"
+                      className="p-6 transition-colors"
+                      style={{ borderTop: idx === 0 ? undefined : "1px solid var(--border-fine)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+                          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "var(--border-medium)" }}>
                             Question {idx + 1}
                           </p>
-                          <p className="text-slate-800 font-medium text-lg leading-relaxed">
+                          <p className="font-medium text-lg leading-relaxed" style={{ color: "var(--foreground)" }}>
                             {q.text || q.question}
                           </p>
                           {q.options && q.options.length > 0 && (
@@ -287,7 +307,12 @@ export function AdminAssessmentDetailsPage() {
                               {q.options.map((opt: string, i: number) => (
                                 <div
                                   key={i}
-                                  className={`text-sm p-2.5 rounded-xl border ${opt === q.correctAnswer ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-white border-slate-100 text-slate-500"}`}
+                                  className="text-sm p-2.5 rounded-xl"
+                                  style={
+                                    opt === q.correctAnswer
+                                      ? { background: "var(--emerald-tint)", border: "1px solid var(--emerald-signal)", color: "var(--emerald-signal)" }
+                                      : { background: "white", border: "1px solid var(--border-fine)", color: "var(--foreground-muted)" }
+                                  }
                                 >
                                   <span className="font-bold mr-2">
                                     {String.fromCharCode(65 + i)}.
@@ -302,22 +327,22 @@ export function AdminAssessmentDetailsPage() {
                           )}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-sm font-bold text-primary">
+                          <p className="text-sm font-bold" style={{ color: "var(--violet-ink)" }}>
                             {q.marks || 0} Marks
                           </p>
-                          <Badge
-                            variant="outline"
-                            className="mt-2 text-[10px] font-bold uppercase rounded-lg border-slate-200 bg-slate-50 text-slate-500"
+                          <span
+                            className="mt-2 inline-block text-[10px] font-bold uppercase rounded-lg px-2 py-0.5"
+                            style={{ border: "1px solid var(--border-medium)", background: "var(--surface-muted)", color: "var(--foreground-muted)" }}
                           >
                             {q.type || "Multiple Choice"}
-                          </Badge>
+                          </span>
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="p-12 text-center text-slate-400">
-                    <HelpCircle className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                  <div className="p-12 text-center" style={{ color: "var(--border-medium)" }}>
+                    <HelpCircle className="w-12 h-12 mx-auto mb-3 opacity-40" />
                     <p>No questions have been added to this assessment yet.</p>
                   </div>
                 )}
@@ -328,21 +353,21 @@ export function AdminAssessmentDetailsPage() {
           {/* Sidebar Info Column */}
           <div className="space-y-8">
             {/* Timeline Info */}
-            <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-primary" /> Schedule &
+            <section className="bg-white rounded-3xl shadow-sm p-6" style={{ border: "1px solid var(--border-fine)" }}>
+              <h2 className="text-lg font-bold mb-6 flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+                <Calendar className="w-5 h-5" style={{ color: "var(--violet-ink)" }} /> Schedule &
                 Timeline
               </h2>
               <div className="space-y-6">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-muted)", color: "var(--foreground-muted)" }}>
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                    <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: "var(--border-medium)" }}>
                       Start Time
                     </p>
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       {selectedAssessment.startsAt
                         ? format(new Date(selectedAssessment.startsAt), "PPp")
                         : "Not scheduled"}
@@ -350,14 +375,14 @@ export function AdminAssessmentDetailsPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-muted)", color: "var(--foreground-muted)" }}>
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                    <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: "var(--border-medium)" }}>
                       End Time
                     </p>
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       {selectedAssessment.endsAt
                         ? format(new Date(selectedAssessment.endsAt), "PPp")
                         : "Continuous"}
@@ -368,9 +393,9 @@ export function AdminAssessmentDetailsPage() {
             </section>
 
             {/* Submissions Overview */}
-            <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 overflow-hidden">
-              <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" /> Submissions (
+            <section className="bg-white rounded-3xl shadow-sm p-6 overflow-hidden" style={{ border: "1px solid var(--border-fine)" }}>
+              <h2 className="text-lg font-bold mb-6 flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+                <Users className="w-5 h-5" style={{ color: "var(--violet-ink)" }} /> Submissions (
                 {assessmentSubmissions.length})
               </h2>
               <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
@@ -378,36 +403,53 @@ export function AdminAssessmentDetailsPage() {
                   assessmentSubmissions.map((sub: any) => (
                     <div
                       key={sub.id}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100/80 transition-colors border border-transparent hover:border-slate-100"
+                      className="flex items-center justify-between p-3 rounded-2xl transition-colors"
+                      style={{ background: "var(--surface-muted)", border: "1px solid transparent" }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "var(--border-fine)";
+                        e.currentTarget.style.borderColor = "var(--border-fine)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "var(--surface-muted)";
+                        e.currentTarget.style.borderColor = "transparent";
+                      }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs"
+                          style={{ background: "var(--violet-tint)", color: "var(--violet-ink)" }}
+                        >
                           {sub.student?.firstName?.[0] || "S"}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-900 leading-none mb-1">
+                          <p className="text-sm font-bold leading-none mb-1" style={{ color: "var(--foreground)" }}>
                             {sub.student?.firstName} {sub.student?.lastName}
                           </p>
-                          <p className="text-[10px] text-slate-500 font-medium">
+                          <p className="text-[10px] font-medium" style={{ color: "var(--foreground-muted)" }}>
                             Score:{" "}
-                            <span className="text-primary font-bold">
+                            <span className="font-bold" style={{ color: "var(--violet-ink)" }}>
                               {sub.score ?? "—"}
                             </span>{" "}
                             / {selectedAssessment.totalMarks}
                           </p>
                         </div>
                       </div>
-                      <Badge
-                        className={`${sub.status === "graded" ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"} border-0 rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter`}
+                      <span
+                        className="border-0 rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter"
+                        style={
+                          sub.status === "graded"
+                            ? { background: "var(--emerald-tint)", color: "var(--emerald-signal)" }
+                            : { background: "var(--cobalt-tint)", color: "var(--cobalt-signal)" }
+                        }
                       >
                         {sub.status || "Submitted"}
-                      </Badge>
+                      </span>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-10">
-                    <Users className="w-10 h-10 text-slate-200 mx-auto mb-2" />
-                    <p className="text-slate-400 text-sm">
+                    <Users className="w-10 h-10 mx-auto mb-2" style={{ color: "var(--border-medium)" }} />
+                    <p className="text-sm" style={{ color: "var(--border-medium)" }}>
                       No submissions yet.
                     </p>
                   </div>

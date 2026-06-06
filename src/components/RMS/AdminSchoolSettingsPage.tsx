@@ -144,75 +144,75 @@ export const AdminSchoolSettingsPage = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-8">
         {/* Title */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#641BC4] to-[#8538E0] flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md" style={{ backgroundColor: "var(--violet-ink)" }}>
             <Settings className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">School Settings</h1>
-            <p className="text-sm text-slate-500">Manage your school information and branding</p>
+            <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>School Settings</h1>
+            <p className="text-sm" style={{ color: "var(--foreground-muted)" }}>Manage your school information and branding</p>
           </div>
         </div>
 
         {/* ── School Information ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{ border: "1px solid var(--border-medium)" }}>
           <div className="flex items-center gap-3 px-6 py-4 border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
-            <div className="w-9 h-9 rounded-xl bg-[#641BC4] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "var(--violet-ink)" }}>
               <Building2 className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="font-bold text-slate-900">School Information</p>
-              <p className="text-xs text-slate-500">Your registered school details</p>
+              <p className="font-bold" style={{ color: "var(--foreground)" }}>School Information</p>
+              <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>Your registered school details</p>
             </div>
           </div>
           <form onSubmit={handleSaveInfo} className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <Label htmlFor="schoolName" className="text-sm font-semibold text-slate-700">School Name</Label>
+              <Label htmlFor="schoolName" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>School Name</Label>
               <Input id="schoolName" value={infoData.schoolName}
                 onChange={(e) => setInfoData({ ...infoData, schoolName: e.target.value })}
                 placeholder="School Name"
-                className="h-11 rounded-xl border-slate-200" />
+                className="h-11 rounded-xl" />
             </div>
 
-            <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <Label className="text-sm font-semibold text-slate-700">Subdomain</Label>
-              <p className="font-bold text-slate-900 mt-1">
+            <div className="space-y-1.5 p-4 rounded-xl" style={{ background: "var(--surface-muted)", border: "1px solid var(--border-medium)" }}>
+              <Label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>Subdomain</Label>
+              <p className="font-bold mt-1" style={{ color: "var(--foreground)" }}>
                 {tenantInfo?.subdomain || "—"}
-                {tenantInfo?.subdomain && <span className="font-normal text-slate-400 text-sm ml-1">.pln.ng</span>}
+                {tenantInfo?.subdomain && <span className="font-normal text-sm ml-1" style={{ color: "var(--foreground-muted)" }}>.pln.ng</span>}
               </p>
-              <p className="text-xs text-slate-500">Subdomain is read-only.</p>
+              <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>Subdomain is read-only.</p>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="address" className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+              <Label htmlFor="address" className="text-sm font-semibold flex items-center gap-1" style={{ color: "var(--foreground)" }}>
                 <MapPin className="w-3 h-3" /> Address
               </Label>
               <Input id="address" value={infoData.address}
                 onChange={(e) => setInfoData({ ...infoData, address: e.target.value })}
                 placeholder="School Address"
-                className="h-11 rounded-xl border-slate-200" />
+                className="h-11 rounded-xl" />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phoneNumber" className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+              <Label htmlFor="phoneNumber" className="text-sm font-semibold flex items-center gap-1" style={{ color: "var(--foreground)" }}>
                 <Phone className="w-3 h-3" /> Phone Number
               </Label>
               <Input id="phoneNumber" value={infoData.phoneNumber}
                 onChange={(e) => setInfoData({ ...infoData, phoneNumber: e.target.value })}
                 placeholder="Phone Number"
-                className="h-11 rounded-xl border-slate-200" />
+                className="h-11 rounded-xl" />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="website" className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+              <Label htmlFor="website" className="text-sm font-semibold flex items-center gap-1" style={{ color: "var(--foreground)" }}>
                 <Globe className="w-3 h-3" /> Website
               </Label>
               <Input id="website" value={infoData.website}
                 onChange={(e) => setInfoData({ ...infoData, website: e.target.value })}
                 placeholder="https://yourschool.com"
-                className="h-11 rounded-xl border-slate-200" />
+                className="h-11 rounded-xl" />
             </div>
 
-            <div className="sm:col-span-2 flex justify-end pt-2 border-t border-slate-100 mt-2">
+            <div className="sm:col-span-2 flex justify-end pt-2 border-t mt-2" style={{ borderColor: "var(--border-fine)" }}>
               <Button type="submit" disabled={loading}
                 className="h-11 px-6 rounded-xl text-white gap-2"
                 style={{ backgroundColor: "#641BC4" }}>

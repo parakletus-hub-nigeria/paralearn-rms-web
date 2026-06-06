@@ -72,8 +72,6 @@ const usersTourSteps = [
   },
 ];
 
-// Default ParaLearn brand color
-const DEFAULT_PRIMARY = "#641BC4";
 
 type UserRow = {
   id: string;
@@ -96,9 +94,6 @@ export const UsersPage = () => {
   const router = useRouter();
   const { students, teachers, loading, tenantInfo } = useSelector((s: RootState) => s.user);
   const { classes } = useSelector((s: RootState) => s.admin);
-  const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
-
-  const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "teacher" | "student">("all");
@@ -450,10 +445,10 @@ export const UsersPage = () => {
                                 </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" style={{ minWidth: 160 }}>
-                                <DropdownMenuItem onClick={() => handleViewUser(user)} className="cursor-pointer gap-2 py-2"><Eye className="w-4 h-4 text-slate-400" />View Details</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer gap-2 py-2"><Pencil className="w-4 h-4 text-slate-400" />Edit User</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewUser(user)} className="cursor-pointer gap-2 py-2"><Eye className="w-4 h-4" style={{ color: "var(--foreground-muted)" }} />View Details</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer gap-2 py-2"><Pencil className="w-4 h-4" style={{ color: "var(--foreground-muted)" }} />Edit User</DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleHardDeleteUser(user)} className="cursor-pointer gap-2 py-2 text-red-600 focus:text-red-700 focus:bg-red-50"><Trash2 className="w-4 h-4" />Delete Permanently</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleHardDeleteUser(user)} className="cursor-pointer gap-2 py-2" style={{ color: "var(--crimson-signal)" }}><Trash2 className="w-4 h-4" />Delete Permanently</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </td>
@@ -490,7 +485,7 @@ export const UsersPage = () => {
         onOpenChange={setAddModalOpen}
         type={addModalType}
         onTypeChange={setAddModalType}
-        primaryColor={primaryColor}
+        primaryColor="var(--violet-ink)"
         onSuccess={() => {
           dispatch(fetchAllUsers());
           setAddModalOpen(false);
@@ -562,7 +557,7 @@ export const UsersPage = () => {
         open={!!editUserModal}
         onOpenChange={(open) => !open && setEditUserModal(null)}
         user={editUserModal}
-        primaryColor={primaryColor}
+        primaryColor="var(--violet-ink)"
         classes={classes}
         onSuccess={() => {
           dispatch(fetchAllUsers());

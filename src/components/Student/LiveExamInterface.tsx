@@ -440,7 +440,7 @@ export default function LiveExamInterface() {
               ></div>
             </div>
 
-            <div className="flex-1 flex flex-col min-h-[600px]">
+            <div className="flex-1 flex flex-col min-h-[400px] md:min-h-[600px]">
               <div className="flex justify-between items-center mb-8 pb-4" style={{ borderBottom: "1px solid var(--border-fine)" }}>
                 <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--foreground-muted)" }}>
                   Question {currentQuestionIdx + 1} of {questions.length}

@@ -226,17 +226,19 @@ export function AdminScoresPage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
               <Input
                 placeholder="Search student by name or ID..."
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                className="pl-10 h-11 w-[280px] rounded-xl border-slate-200 bg-slate-50/50"
+                className="pl-10 h-11 w-[280px]"
+                style={{ borderRadius: "var(--radius-xl)", borderColor: "var(--border-medium)", background: "var(--surface-muted)" }}
               />
             </div>
-            <Button 
-              variant="outline" 
-              className="h-11 rounded-xl gap-2 border-slate-200"
+            <Button
+              variant="outline"
+              className="h-11 gap-2"
+              style={{ borderRadius: "var(--radius-xl)", borderColor: "var(--border-medium)" }}
               onClick={exportScores}
               disabled={scores.length === 0}
             >
@@ -254,10 +256,10 @@ export function AdminScoresPage() {
               <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Subject</span>
             </div>
             <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="h-10 rounded-lg border-0 bg-white shadow-sm">
+              <SelectTrigger className="h-10" style={{ borderRadius: "var(--radius-md)", border: "none", background: "#ffffff", boxShadow: "var(--shadow-card)" }}>
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent>
                 {subjects.map((s: any) => (
                   <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                 ))}
@@ -271,10 +273,10 @@ export function AdminScoresPage() {
               <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Class</span>
             </div>
             <Select value={selectedClass} onValueChange={setSelectedClass}>
-              <SelectTrigger className="h-10 rounded-lg border-0 bg-white shadow-sm">
+              <SelectTrigger className="h-10" style={{ borderRadius: "var(--radius-md)", border: "none", background: "#ffffff", boxShadow: "var(--shadow-card)" }}>
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent>
                 {classes.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
@@ -288,7 +290,7 @@ export function AdminScoresPage() {
               <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: "var(--foreground-muted)" }}>Term</span>
             </div>
             <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-              <SelectTrigger className="h-10 rounded-lg border-0 bg-white shadow-sm">
+              <SelectTrigger className="h-10" style={{ borderRadius: "var(--radius-md)", border: "none", background: "#ffffff", boxShadow: "var(--shadow-card)" }}>
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -320,10 +322,10 @@ export function AdminScoresPage() {
         <div className="mt-4 flex items-center gap-3">
           <div className="flex-1">
             <Select value={selectedAssessment} onValueChange={setSelectedAssessment}>
-              <SelectTrigger className="h-11 rounded-xl border-slate-200">
+              <SelectTrigger className="h-11" style={{ borderRadius: "var(--radius-xl)", borderColor: "var(--border-medium)" }}>
                 <SelectValue placeholder="Select Assessment" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent>
                 {filteredAssessments.map((a) => (
                   <SelectItem key={a.id} value={a.id}>{a.title}</SelectItem>
                 ))}
@@ -344,16 +346,17 @@ export function AdminScoresPage() {
         {/* Bulk Upload Section */}
         <div className="mt-4 pt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3" style={{ borderTop: "1px solid var(--border-fine)" }}>
           <div className="flex items-center gap-2 flex-1">
-            <FileSpreadsheet className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <FileSpreadsheet className="w-4 h-4 flex-shrink-0" style={{ color: "var(--foreground-muted)" }} />
             <div>
-              <p className="text-sm font-semibold text-slate-700">Bulk Score Upload</p>
-              <p className="text-xs text-slate-500">Download the template, fill in scores, then upload for the selected assessment.</p>
+              <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>Bulk Score Upload</p>
+              <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>Download the template, fill in scores, then upload for the selected assessment.</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <Button
               variant="outline"
-              className="h-10 rounded-xl gap-2 border-slate-200 text-sm"
+              className="h-10 gap-2 text-sm"
+              style={{ borderRadius: "var(--radius-xl)", borderColor: "var(--border-medium)" }}
               onClick={() => generateTemplate("scores")}
             >
               <Download className="w-4 h-4" />
@@ -443,9 +446,9 @@ export function AdminScoresPage() {
             {!loading && filtered.length === 0 && (
               <tr>
                 <td colSpan={6} className="py-16 text-center">
-                  <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 font-medium">No scores loaded</p>
-                  <p className="text-slate-400 text-sm mt-1">Select an assessment and click "View Scores"</p>
+                  <FileText className="w-12 h-12 mx-auto mb-3" style={{ color: "var(--border-medium)" }} />
+                  <p className="font-medium" style={{ color: "var(--foreground-muted)" }}>No scores loaded</p>
+                  <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)", opacity: 0.7 }}>Select an assessment and click "View Scores"</p>
                 </td>
               </tr>
             )}

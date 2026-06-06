@@ -727,6 +727,32 @@ Cream / Off-White: #FFFBEB */
   scrollbar-color: #641BC4 transparent;
 }
 
+/* Custom thin scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 2px;
+}
+
+/* Hide scrollbar but keep scrollability */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 [data-sonner-toaster] {
   position: fixed !important;
   top: 5rem !important; /* Shifted down to avoid overlapping headers/top buttons */

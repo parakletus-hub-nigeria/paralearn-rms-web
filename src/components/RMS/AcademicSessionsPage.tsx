@@ -256,25 +256,30 @@ export const AcademicSessionsPage = () => {
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 mt-2">
           <div className="flex-1 min-w-0">
-             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 font-coolvetica truncate">
+             <h1 className="text-2xl sm:text-3xl font-black tracking-tight truncate" style={{ color: "var(--foreground)" }}>
                 Academic Management
               </h1>
-            <p className="text-sm sm:text-base text-slate-500 font-medium line-clamp-1 font-coolvetica">
+            <p className="text-sm sm:text-base font-medium line-clamp-1" style={{ color: "var(--foreground-muted)" }}>
               Manage sessions, terms, and academic calendars
             </p>
           </div>
 
+          <button
+            className="academic-create-session-btn w-full md:w-auto transition-all duration-300 gap-2 h-11 sm:h-12 px-6 sm:px-8 rounded-xl sm:rounded-2xl active:scale-95 font-bold flex items-center justify-center"
+            style={{ backgroundColor: "var(--violet-ink)", color: "#fff", boxShadow: "0 10px 20px rgba(100,27,196,0.2)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "color-mix(in srgb, var(--violet-ink) 85%, #000)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--violet-ink)")}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+            Create New Session
+          </button>
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="academic-create-session-btn w-full md:w-auto bg-[#641BC4] hover:bg-[#5217a1] text-white shadow-[0_10px_20px_rgba(100,27,196,0.2)] transition-all duration-300 gap-2 h-11 sm:h-12 px-6 sm:px-8 rounded-xl sm:rounded-2xl active:scale-95 font-bold">
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
-                Create New Session
-              </Button>
-            </DialogTrigger>
+            <DialogTrigger asChild className="hidden"><span /></DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0">
-               <div className="bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-8 text-white">
-                <DialogTitle className="text-2xl font-black font-coolvetica">Create Academic Session</DialogTitle>
-                <DialogDescription className="text-purple-100 font-medium mt-1">
+               <div className="p-8 text-white" style={{ backgroundColor: "var(--violet-ink)" }}>
+                <DialogTitle className="text-2xl font-black">Create Academic Session</DialogTitle>
+                <DialogDescription className="font-medium mt-1" style={{ color: "rgba(255,255,255,0.8)" }}>
                   Establish a new academic cycle for your institution
                 </DialogDescription>
               </div>
@@ -282,15 +287,15 @@ export const AcademicSessionsPage = () => {
               <div className="p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-slate-700 font-bold">Academic Year</Label>
-                    <Select 
-                      value={newSession.session} 
+                    <Label className="font-bold" style={{ color: "var(--foreground-muted)" }}>Academic Year</Label>
+                    <Select
+                      value={newSession.session}
                       onValueChange={(v) => setNewSession({...newSession, session: v})}
                     >
-                      <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200">
+                      <SelectTrigger className="h-12 rounded-xl" style={{ borderColor: "var(--border-medium)", backgroundColor: "var(--surface-muted)" }}>
                         <SelectValue placeholder="Select year" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                      <SelectContent className="rounded-xl shadow-xl" style={{ borderColor: "var(--border-fine)" }}>
                         {academicYearOptions.map((year) => (
                           <SelectItem key={year} value={year}>
                             {year}
@@ -300,48 +305,51 @@ export const AcademicSessionsPage = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700 font-bold">Start Date</Label>
-                    <Input 
-                      type="date" 
-                      className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
-                      value={newSession.startsAt} 
+                    <Label className="font-bold" style={{ color: "var(--foreground-muted)" }}>Start Date</Label>
+                    <Input
+                      type="date"
+                      className="h-12 rounded-xl"
+                      style={{ borderColor: "var(--border-medium)", backgroundColor: "var(--surface-muted)" }}
+                      value={newSession.startsAt}
                       onChange={(e) => setNewSession({...newSession, startsAt: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700 font-bold">End Date</Label>
-                    <Input 
-                      type="date" 
-                      className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
-                      value={newSession.endsAt} 
+                    <Label className="font-bold" style={{ color: "var(--foreground-muted)" }}>End Date</Label>
+                    <Input
+                      type="date"
+                      className="h-12 rounded-xl"
+                      style={{ borderColor: "var(--border-medium)", backgroundColor: "var(--surface-muted)" }}
+                      value={newSession.endsAt}
                       onChange={(e) => setNewSession({...newSession, endsAt: e.target.value})}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-5">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="font-bold text-slate-800 tracking-tight">Terms Configuration</h3>
-                    <Badge variant="outline" className="rounded-full px-4 text-[10px] font-black uppercase tracking-widest text-[#641BC4] border-[#641BC4]/20 bg-purple-50">3 Terms Default</Badge>
+                  <div className="flex items-center justify-between pb-3" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+                    <h3 className="font-bold tracking-tight" style={{ color: "var(--foreground)" }}>Terms Configuration</h3>
+                    <Badge variant="outline" className="rounded-full px-4 text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--violet-ink)", borderColor: "color-mix(in srgb, var(--violet-ink) 20%, transparent)", backgroundColor: "var(--violet-tint)" }}>3 Terms Default</Badge>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {newSession.terms.map((term, index) => (
-                      <div key={term.id} className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-4 transition-all hover:border-purple-200 hover:shadow-md">
+                      <div key={term.id} className="p-5 bg-white rounded-2xl shadow-sm space-y-4 transition-all hover:shadow-md" style={{ border: "1px solid var(--border-fine)" }}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-[#641BC4] font-black text-xs">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs" style={{ backgroundColor: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                               {index + 1}
                             </div>
-                            <span className="font-bold text-slate-800">{term.term}</span>
+                            <span className="font-bold" style={{ color: "var(--foreground)" }}>{term.term}</span>
                           </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <Label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Start Date</Label>
-                            <Input 
-                              type="date" 
-                              className="h-10 rounded-lg border-slate-100 bg-slate-50/30 focus:bg-white"
+                            <Label className="text-[11px] font-black uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>Start Date</Label>
+                            <Input
+                              type="date"
+                              className="h-10 rounded-lg"
+                              style={{ borderColor: "var(--border-fine)", backgroundColor: "var(--surface-muted)" }}
                               value={term.startsAt}
                               onChange={(e) => {
                                 const updated = [...newSession.terms];
@@ -351,10 +359,11 @@ export const AcademicSessionsPage = () => {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">End Date</Label>
-                            <Input 
-                              type="date" 
-                              className="h-10 rounded-lg border-slate-100 bg-slate-50/30 focus:bg-white"
+                            <Label className="text-[11px] font-black uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>End Date</Label>
+                            <Input
+                              type="date"
+                              className="h-10 rounded-lg"
+                              style={{ borderColor: "var(--border-fine)", backgroundColor: "var(--surface-muted)" }}
                               value={term.endsAt}
                               onChange={(e) => {
                                 const updated = [...newSession.terms];
@@ -369,15 +378,18 @@ export const AcademicSessionsPage = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="p-8 bg-slate-50 flex justify-end gap-3 border-t border-slate-100">
-                <Button variant="ghost" onClick={() => setIsCreateModalOpen(false)} className="rounded-xl font-bold text-slate-500 hover:bg-slate-200/50">Cancel</Button>
-                <Button 
+
+              <div className="p-8 flex justify-end gap-3" style={{ backgroundColor: "var(--surface-muted)", borderTop: "1px solid var(--border-fine)" }}>
+                <button onClick={() => setIsCreateModalOpen(false)} className="rounded-xl font-bold px-4 py-2" style={{ color: "var(--foreground-muted)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--border-fine)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Cancel</button>
+                <button
                   onClick={handleCreateSession}
-                  className="bg-[#641BC4] hover:bg-[#5217a1] rounded-xl px-8 font-bold shadow-lg shadow-purple-200"
+                  className="rounded-xl px-8 font-bold text-white"
+                  style={{ backgroundColor: "var(--violet-ink)", boxShadow: "0 4px 12px color-mix(in srgb, var(--violet-ink) 30%, transparent)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "color-mix(in srgb, var(--violet-ink) 85%, #000)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "var(--violet-ink)")}
                 >
                   Confirm & Create
-                </Button>
+                </button>
               </div>
             </DialogContent>
           </Dialog>
@@ -385,9 +397,9 @@ export const AcademicSessionsPage = () => {
           {/* Update Session Modal */}
           <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0">
-               <div className="bg-gradient-to-r from-[#641BC4] to-[#8538E0] p-8 text-white">
-                <DialogTitle className="text-2xl font-black font-coolvetica">Update Academic Session</DialogTitle>
-                <DialogDescription className="text-purple-100 font-medium mt-1">
+               <div className="p-8 text-white" style={{ backgroundColor: "var(--violet-ink)" }}>
+                <DialogTitle className="text-2xl font-black">Update Academic Session</DialogTitle>
+                <DialogDescription className="font-medium mt-1" style={{ color: "rgba(255,255,255,0.8)" }}>
                   Modify the current academic cycle schedule
                 </DialogDescription>
               </div>
@@ -396,55 +408,59 @@ export const AcademicSessionsPage = () => {
                 <div className="p-8 space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-slate-700 font-bold">Academic Year</Label>
-                      <Input 
-                        value={updateSessionData.session} 
+                      <Label className="font-bold" style={{ color: "var(--foreground-muted)" }}>Academic Year</Label>
+                      <Input
+                        value={updateSessionData.session}
                         disabled
-                        className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-500 font-medium"
+                        className="h-12 rounded-xl font-medium"
+                        style={{ borderColor: "var(--border-medium)", backgroundColor: "var(--surface-muted)", color: "var(--foreground-muted)" }}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700 font-bold">Start Date</Label>
-                      <Input 
-                        type="date" 
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
-                        value={updateSessionData.startsAt} 
+                      <Label className="font-bold" style={{ color: "var(--foreground-muted)" }}>Start Date</Label>
+                      <Input
+                        type="date"
+                        className="h-12 rounded-xl"
+                        style={{ borderColor: "var(--border-medium)", backgroundColor: "var(--surface-muted)" }}
+                        value={updateSessionData.startsAt}
                         onChange={(e) => setUpdateSessionData({...updateSessionData, startsAt: e.target.value})}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700 font-bold">End Date</Label>
-                      <Input 
-                        type="date" 
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:ring-purple-200"
-                        value={updateSessionData.endsAt} 
+                      <Label className="font-bold" style={{ color: "var(--foreground-muted)" }}>End Date</Label>
+                      <Input
+                        type="date"
+                        className="h-12 rounded-xl"
+                        style={{ borderColor: "var(--border-medium)", backgroundColor: "var(--surface-muted)" }}
+                        value={updateSessionData.endsAt}
                         onChange={(e) => setUpdateSessionData({...updateSessionData, endsAt: e.target.value})}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-5">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <h3 className="font-bold text-slate-800 tracking-tight">Terms Configuration</h3>
+                    <div className="flex items-center justify-between pb-3" style={{ borderBottom: "1px solid var(--border-fine)" }}>
+                      <h3 className="font-bold tracking-tight" style={{ color: "var(--foreground)" }}>Terms Configuration</h3>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {updateSessionData.terms.map((term: any, index: number) => (
-                        <div key={index} className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-4 transition-all hover:border-purple-200 hover:shadow-md">
+                        <div key={index} className="p-5 bg-white rounded-2xl shadow-sm space-y-4 transition-all hover:shadow-md" style={{ border: "1px solid var(--border-fine)" }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-[#641BC4] font-black text-xs">
+                              <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs" style={{ backgroundColor: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                                 {index + 1}
                               </div>
-                              <span className="font-bold text-slate-800">{term.term}</span>
+                              <span className="font-bold" style={{ color: "var(--foreground)" }}>{term.term}</span>
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <Label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Start Date</Label>
-                              <Input 
-                                type="date" 
-                                className="h-10 rounded-lg border-slate-100 bg-slate-50/30 focus:bg-white"
+                              <Label className="text-[11px] font-black uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>Start Date</Label>
+                              <Input
+                                type="date"
+                                className="h-10 rounded-lg"
+                                style={{ borderColor: "var(--border-fine)", backgroundColor: "var(--surface-muted)" }}
                                 value={term.startsAt}
                                 onChange={(e) => {
                                   const updatedTerms = [...updateSessionData.terms];
@@ -454,10 +470,11 @@ export const AcademicSessionsPage = () => {
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">End Date</Label>
-                              <Input 
-                                type="date" 
-                                className="h-10 rounded-lg border-slate-100 bg-slate-50/30 focus:bg-white"
+                              <Label className="text-[11px] font-black uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>End Date</Label>
+                              <Input
+                                type="date"
+                                className="h-10 rounded-lg"
+                                style={{ borderColor: "var(--border-fine)", backgroundColor: "var(--surface-muted)" }}
                                 value={term.endsAt}
                                 onChange={(e) => {
                                   const updatedTerms = [...updateSessionData.terms];
@@ -473,15 +490,18 @@ export const AcademicSessionsPage = () => {
                   </div>
                 </div>
               )}
-              
-              <div className="p-8 bg-slate-50 flex justify-end gap-3 border-t border-slate-100">
-                <Button variant="ghost" onClick={() => setIsUpdateModalOpen(false)} className="rounded-xl font-bold text-slate-500 hover:bg-slate-200/50">Cancel</Button>
-                <Button 
+
+              <div className="p-8 flex justify-end gap-3" style={{ backgroundColor: "var(--surface-muted)", borderTop: "1px solid var(--border-fine)" }}>
+                <button onClick={() => setIsUpdateModalOpen(false)} className="rounded-xl font-bold px-4 py-2" style={{ color: "var(--foreground-muted)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--border-fine)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Cancel</button>
+                <button
                   onClick={handleUpdateSession}
-                  className="bg-[#641BC4] hover:bg-[#5217a1] rounded-xl px-8 font-bold shadow-lg shadow-purple-200"
+                  className="rounded-xl px-8 font-bold text-white"
+                  style={{ backgroundColor: "var(--violet-ink)", boxShadow: "0 4px 12px color-mix(in srgb, var(--violet-ink) 30%, transparent)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "color-mix(in srgb, var(--violet-ink) 85%, #000)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "var(--violet-ink)")}
                 >
                   Save Changes
-                </Button>
+                </button>
               </div>
             </DialogContent>
           </Dialog>
@@ -489,21 +509,21 @@ export const AcademicSessionsPage = () => {
 
         {/* Current Session Progress */}
         {currentSession && (
-          <Card className="academic-current-progress rounded-[2.5rem] border-slate-100 bg-white shadow-sm mb-12 overflow-hidden">
+          <Card className="academic-current-progress rounded-[2.5rem] bg-white shadow-sm mb-12 overflow-hidden" style={{ borderColor: "var(--border-fine)" }}>
              <div className="p-8 pb-4">
                  <div className="flex justify-between items-center mb-6">
                      <div>
-                        <h2 className="text-xl font-bold text-slate-900">Current Session Progress</h2>
-                        <p className="text-slate-500 text-sm mt-1">Visual timeline for {currentSession.session}</p>
+                        <h2 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>Current Session Progress</h2>
+                        <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)" }}>Visual timeline for {currentSession.session}</p>
                      </div>
-                     <Badge className="bg-[#EDE9FE] text-[#641BC4] hover:bg-[#EDE9FE] border-none px-4 py-1.5 rounded-full font-bold">
+                     <Badge className="border-none px-4 py-1.5 rounded-full font-bold" style={{ backgroundColor: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                         {currentSession.session} Session
                      </Badge>
                  </div>
                  
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
                      {/* Timeline connector visual (desktop) */}
-                    <div className="hidden md:block absolute top-[28px] left-[10%] right-[10%] h-[2px] bg-slate-100 -z-0" />
+                    <div className="hidden md:block absolute top-[28px] left-[10%] right-[10%] h-[2px] -z-0" style={{ backgroundColor: "var(--border-fine)" }} />
                     
                     {currentSession.sessionDetails.terms.map((term: any) => {
                         const status = getTermStatus(term, currentSession.termDetails.id === term.id);
@@ -512,32 +532,46 @@ export const AcademicSessionsPage = () => {
 
                         return (
                             <div key={term.id} className={`relative flex flex-col ${status === 'active' ? 'z-10' : 'z-0'}`}>
-                                <div className={`p-6 rounded-2xl border-2 transition-all duration-300 h-full flex flex-col ${
-                                    status === 'active' 
-                                    ? 'border-[#641BC4] bg-[#FDFDFF] shadow-lg shadow-purple-500/5 ring-4 ring-purple-50' 
-                                    : status === 'completed'
-                                    ? 'border-emerald-100 bg-emerald-50/30'
-                                    : 'border-slate-100 bg-white opacity-80'
-                                }`}>
+                                <div
+                                  className="p-6 rounded-2xl border-2 transition-all duration-300 h-full flex flex-col"
+                                  style={
+                                    status === 'active'
+                                      ? { borderColor: "var(--violet-ink)", backgroundColor: "#FDFDFF", boxShadow: "0 8px 24px color-mix(in srgb, var(--violet-ink) 5%, transparent)" }
+                                      : status === 'completed'
+                                      ? { borderColor: "color-mix(in srgb, var(--emerald-signal) 20%, transparent)", backgroundColor: "color-mix(in srgb, var(--emerald-tint) 30%, #fff)" }
+                                      : { borderColor: "var(--border-fine)", backgroundColor: "#fff", opacity: 0.8 }
+                                  }
+                                >
                                    
                                    <div className="flex justify-between items-start mb-4">
                                        <div className="flex items-center gap-3">
-                                           <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                                               status === 'completed' ? 'bg-emerald-100 text-emerald-600' :
-                                               status === 'active' ? 'bg-[#641BC4] text-white shadow-lg shadow-purple-500/30' :
-                                               'bg-slate-100 text-slate-400'
-                                           }`}>
+                                           <div
+                                             className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                                             style={
+                                               status === 'completed'
+                                                 ? { backgroundColor: "var(--emerald-tint)", color: "var(--emerald-signal)" }
+                                                 : status === 'active'
+                                                 ? { backgroundColor: "var(--violet-ink)", color: "#fff", boxShadow: "0 4px 12px color-mix(in srgb, var(--violet-ink) 30%, transparent)" }
+                                                 : { backgroundColor: "var(--surface-muted)", color: "var(--foreground-muted)" }
+                                             }
+                                           >
                                                {status === 'completed' ? <CheckCircle2 className="w-5 h-5" /> :
                                                 status === 'pending' ? <Lock className="w-4 h-4" /> :
                                                 <Clock className="w-5 h-5 animate-pulse" />}
                                            </div>
                                            <div>
-                                               <h3 className={`font-bold ${status === 'active' ? 'text-slate-900' : 'text-slate-500'}`}>{term.term}</h3>
-                                               <Badge variant="outline" className={`mt-1 border-none px-2 py-0.5 text-[10px] uppercase font-black tracking-wider ${
-                                                   status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                                                   status === 'active' ? 'bg-[#641BC4] text-white' :
-                                                   'bg-slate-100 text-slate-400'
-                                               }`}>
+                                               <h3 className="font-bold" style={{ color: status === 'active' ? "var(--foreground)" : "var(--foreground-muted)" }}>{term.term}</h3>
+                                               <Badge
+                                                 variant="outline"
+                                                 className="mt-1 border-none px-2 py-0.5 text-[10px] uppercase font-black tracking-wider"
+                                                 style={
+                                                   status === 'completed'
+                                                     ? { backgroundColor: "var(--emerald-tint)", color: "var(--emerald-signal)" }
+                                                     : status === 'active'
+                                                     ? { backgroundColor: "var(--violet-ink)", color: "#fff" }
+                                                     : { backgroundColor: "var(--surface-muted)", color: "var(--foreground-muted)" }
+                                                 }
+                                               >
                                                    {status === 'active' ? 'Active' : status}
                                                </Badge>
                                            </div>
@@ -546,19 +580,19 @@ export const AcademicSessionsPage = () => {
 
                                    {status === 'active' ? (
                                        <div className="mt-auto space-y-3">
-                                           <div className="flex justify-between text-xs font-bold text-slate-500">
+                                           <div className="flex justify-between text-xs font-bold" style={{ color: "var(--foreground-muted)" }}>
                                                <span>{weekInfo}</span>
-                                               <span className="text-[#641BC4]">{Math.round(progress)}%</span>
+                                               <span style={{ color: "var(--violet-ink)" }}>{Math.round(progress)}%</span>
                                            </div>
-                                           <Progress value={progress} className="h-2 bg-purple-100" />
-                                            <div className="flex justify-between text-[10px] font-medium text-slate-400 pt-2">
+                                           <Progress value={progress} className="h-2" style={{ backgroundColor: "var(--violet-tint)" }} />
+                                            <div className="flex justify-between text-[10px] font-medium pt-2" style={{ color: "var(--foreground-muted)" }}>
                                                 <span>{new Date(term.startsAt).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
                                                 <span>{new Date(term.endsAt).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}</span>
                                             </div>
                                        </div>
                                    ) : (
-                                       <div className="mt-auto pt-6 border-t border-dashed border-slate-200/50">
-                                            <div className="flex justify-between text-[11px] font-medium text-slate-400">
+                                       <div className="mt-auto pt-6 border-t border-dashed" style={{ borderColor: "color-mix(in srgb, var(--border-medium) 50%, transparent)" }}>
+                                            <div className="flex justify-between text-[11px] font-medium" style={{ color: "var(--foreground-muted)" }}>
                                                 <span>{new Date(term.startsAt).toLocaleDateString(undefined, {month:'short', day:'numeric', year: 'numeric'})}</span>
                                             </div>
                                        </div>
@@ -575,14 +609,14 @@ export const AcademicSessionsPage = () => {
         <Tabs defaultValue="active" className="academic-sessions-tabs w-full">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-50 rounded-lg text-[#641BC4]">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--violet-tint)", color: "var(--violet-ink)" }}>
                         <Calendar className="w-5 h-5" />
                     </div>
-                    <h2 className="text-xl font-bold text-slate-900">Session & Terms Management</h2>
+                    <h2 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>Session & Terms Management</h2>
                 </div>
-                <TabsList className="bg-white p-1 rounded-xl border border-slate-100 shadow-sm">
-                    <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-[#641BC4] data-[state=active]:text-white">Active</TabsTrigger>
-                    <TabsTrigger value="archive" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">Archive</TabsTrigger>
+                <TabsList className="bg-white p-1 rounded-xl shadow-sm" style={{ border: "1px solid var(--border-fine)" }}>
+                    <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-[--violet-ink] data-[state=active]:text-white" style={{ "--violet-ink": "var(--violet-ink)" } as React.CSSProperties}>Active</TabsTrigger>
+                    <TabsTrigger value="archive" className="rounded-lg" style={{ "--tw-bg-opacity": "1" } as React.CSSProperties}>Archive</TabsTrigger>
                 </TabsList>
             </div>
 

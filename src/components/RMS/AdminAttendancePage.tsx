@@ -279,7 +279,7 @@ export function AdminAttendancePage() {
                       setHasUnsavedChanges(false);
                     }}
                 >
-                    <SelectTrigger className="pl-4 h-11 bg-slate-50 border-slate-200 rounded-xl font-bold text-slate-700 w-full">
+                    <SelectTrigger className="pl-4 h-11 font-bold w-full" style={{ background: "var(--surface-muted)", borderColor: "var(--border-medium)", borderRadius: "var(--radius-xl)", color: "var(--foreground)" }}>
                     <SelectValue placeholder="Select Class" />
                     </SelectTrigger>
                     <SelectContent>
@@ -298,9 +298,10 @@ export function AdminAttendancePage() {
                     <PopoverTrigger 
                         className={cn(
                             buttonVariants({ variant: "outline" }),
-                            "w-full md:w-[240px] pl-3 text-left font-normal h-11 rounded-xl",
+                            "w-full md:w-[240px] pl-3 text-left font-normal h-11",
                             !currentDate && "text-muted-foreground"
                         )}
+                        style={{ borderRadius: "var(--radius-xl)" }}
                     >
                         {currentDate ? (
                             format(currentDate, "PPP")
@@ -375,19 +376,19 @@ export function AdminAttendancePage() {
                 </TableRow>
               ) : isError ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-40 text-center text-red-500 font-medium">Failed to load attendance data. Please try again.</TableCell>
+                  <TableCell colSpan={5} className="h-40 text-center font-medium" style={{ color: "var(--crimson-signal)" }}>Failed to load attendance data. Please try again.</TableCell>
                 </TableRow>
               ) : !selectedClassId ? (
                 <TableRow>
-                    <TableCell colSpan={5} className="h-40 text-center text-slate-500">Please select a class to view attendance.</TableCell>
+                    <TableCell colSpan={5} className="h-40 text-center" style={{ color: "var(--foreground-muted)" }}>Please select a class to view attendance.</TableCell>
                 </TableRow>
               ) : !attendanceData || attendanceData.length === 0 ? (
                 <TableRow>
-                    <TableCell colSpan={5} className="h-40 text-center text-slate-500">No students found for this class.</TableCell>
+                    <TableCell colSpan={5} className="h-40 text-center" style={{ color: "var(--foreground-muted)" }}>No students found for this class.</TableCell>
                 </TableRow>
               ) : filteredData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-40 text-center text-slate-500">No students found matching your search.</TableCell>
+                  <TableCell colSpan={5} className="h-40 text-center" style={{ color: "var(--foreground-muted)" }}>No students found matching your search.</TableCell>
                 </TableRow>
               ) : (
                 filteredData.map((record: any, index: number) => {
@@ -418,7 +419,7 @@ export function AdminAttendancePage() {
                       </TableCell>
                       <TableCell className="text-center">{renderStatusButtons(record.enrollmentId, status)}</TableCell>
                       <TableCell>
-                        <Input maxLength={255} value={remarks} onChange={(e) => handleRemarkChange(record.enrollmentId, e.target.value)} placeholder="Add remark..." className="h-9 bg-transparent border-transparent hover:border-slate-200 focus:bg-white focus:border-purple-200 rounded-lg text-sm transition-all" />
+                        <Input maxLength={255} value={remarks} onChange={(e) => handleRemarkChange(record.enrollmentId, e.target.value)} placeholder="Add remark..." className="h-9 text-sm transition-all" style={{ background: "transparent", borderColor: "transparent", borderRadius: "var(--radius-md)" }} />
                       </TableCell>
                       <TableCell className="text-right pr-8">
                         <DropdownMenu>

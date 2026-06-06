@@ -184,7 +184,8 @@ const Signin = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
-                className="absolute top-1/2 right-3 -translate-y-1/2 text-lg text-gray-600"
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-lg"
+                style={{ color: "var(--foreground-muted)" }}
               >
                 {!showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>

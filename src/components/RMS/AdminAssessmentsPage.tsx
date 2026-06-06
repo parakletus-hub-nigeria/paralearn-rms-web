@@ -420,17 +420,18 @@ export function AdminAssessmentsPage() {
       {/* Search and Filters */}
       <div className="assessments-filter-bar flex flex-col md:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
           <Input
             placeholder="Search assessments..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="pl-10 h-11 rounded-xl border-slate-200 bg-white shadow-sm"
+            className="pl-10 h-11 rounded-xl shadow-sm"
+            style={{ borderColor: "var(--border-medium)", background: "white" }}
           />
         </div>
         <div className="flex gap-3 flex-wrap">
           <Select value={classFilter} onValueChange={setClassFilter}>
-            <SelectTrigger className="h-11 w-full sm:w-[150px] rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectTrigger className="h-11 w-full sm:w-[150px] rounded-xl shadow-sm" style={{ borderColor: "var(--border-medium)", background: "white" }}>
               <SelectValue placeholder="All Classes" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -443,7 +444,7 @@ export function AdminAssessmentsPage() {
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-11 w-full sm:w-[150px] rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectTrigger className="h-11 w-full sm:w-[150px] rounded-xl shadow-sm" style={{ borderColor: "var(--border-medium)", background: "white" }}>
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -454,7 +455,7 @@ export function AdminAssessmentsPage() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-11 w-full sm:w-[140px] rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectTrigger className="h-11 w-full sm:w-[140px] rounded-xl shadow-sm" style={{ borderColor: "var(--border-medium)", background: "white" }}>
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -465,9 +466,10 @@ export function AdminAssessmentsPage() {
           </Select>
           <Button
             variant="outline"
-            className="h-11 w-11 p-0 rounded-xl border-slate-200 bg-white shadow-sm"
+            className="h-11 w-11 p-0 rounded-xl shadow-sm"
+            style={{ borderColor: "var(--border-medium)", background: "white" }}
           >
-            <Filter className="w-4 h-4 text-slate-500" />
+            <Filter className="w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
           </Button>
         </div>
       </div>
@@ -523,7 +525,7 @@ export function AdminAssessmentsPage() {
               className="inline-block rounded-full h-10 w-10 mb-4"
               style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)", animation: "spin 0.6s linear infinite" }}
             />
-            <p className="text-slate-500 font-medium">Loading assessments...</p>
+            <p className="font-medium" style={{ color: "var(--foreground-muted)" }}>Loading assessments...</p>
           </div>
         </div>
       ) : (
@@ -553,24 +555,29 @@ export function AdminAssessmentsPage() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 line-clamp-1">
+                      <h3 className="font-bold line-clamp-1" style={{ color: "var(--foreground)" }}>
                         {assessment.title}
                       </h3>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm" style={{ color: "var(--foreground-muted)" }}>
                         {subjectName} • {className}
                       </p>
                     </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                        <MoreVertical className="w-4 h-4 text-slate-400" />
+                      <button
+                        className="p-1.5 rounded-lg transition-colors"
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <MoreVertical className="w-4 h-4" style={{ color: "var(--foreground-muted)" }} />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-xl">
                       <DropdownMenuItem
                         onClick={() => handleDelete(assessment.id)}
-                        className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer"
+                        className="cursor-pointer"
+                        style={{ color: "var(--crimson-signal)" }}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete
@@ -594,7 +601,7 @@ export function AdminAssessmentsPage() {
                       {assessment.isOnline !== false ? "Online" : "Offline"}
                     </span>
                     {assessment.session && (
-                      <span className="text-xs text-slate-400 font-medium tracking-wide">
+                      <span className="text-xs font-medium tracking-wide" style={{ color: "var(--foreground-muted)" }}>
                         • {assessment.session}
                       </span>
                     )}
@@ -604,29 +611,29 @@ export function AdminAssessmentsPage() {
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="text-center">
-                    <p className="text-lg font-bold text-slate-900">
+                    <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
                       {(assessment as any)._count?.submissions ??
                         (assessment as any).submittedCount ??
                         (assessment as any).submissionCount ??
                         "—"}
                     </p>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">
+                    <p className="text-xs uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>
                       Submitted
                     </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-slate-900">
+                    <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
                       {assessment.totalMarks ? `${assessment.totalMarks}` : "—"}
                     </p>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">
+                    <p className="text-xs uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>
                       Total Marks
                     </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-slate-900">
+                    <p className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
                       {assessment.durationMins ?? assessment.duration ?? "—"}
                     </p>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide">
+                    <p className="text-xs uppercase tracking-wide" style={{ color: "var(--foreground-muted)" }}>
                       Minutes
                     </p>
                   </div>
@@ -653,9 +660,9 @@ export function AdminAssessmentsPage() {
 
           {filtered.length === 0 && !loading && (
             <div className="col-span-full py-16 text-center">
-              <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">No assessments found</p>
-              <p className="text-slate-400 text-sm mt-1">
+              <FileText className="w-12 h-12 mx-auto mb-3" style={{ color: "var(--border-medium)" }} />
+              <p className="font-medium" style={{ color: "var(--foreground-muted)" }}>No assessments found</p>
+              <p className="text-sm mt-1" style={{ color: "var(--foreground-muted)", opacity: 0.7 }}>
                 Create an assessment or wait for teachers to create them.
               </p>
             </div>
@@ -681,12 +688,12 @@ export function AdminAssessmentsPage() {
               style={{ borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-dialog)" }}
             >
               {/* Header */}
-              <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
+              <div className="px-6 pt-6 pb-4 flex items-center justify-between flex-shrink-0" style={{ borderBottom: "1px solid var(--border-fine)" }}>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
+                  <h2 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
                     Create Assessments
                   </h2>
-                  <p className="text-sm text-slate-500 mt-0.5">
+                  <p className="text-sm mt-0.5" style={{ color: "var(--foreground-muted)" }}>
                     Select multiple classes and subjects — one assessment is
                     created per matching pair
                   </p>
@@ -696,9 +703,11 @@ export function AdminAssessmentsPage() {
                     setShowCreateModal(false);
                     resetForm();
                   }}
-                  className="p-2 rounded-lg hover:bg-slate-100"
+                  className="p-2 rounded-lg"
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
-                  <X className="w-5 h-5 text-slate-500" />
+                  <X className="w-5 h-5" style={{ color: "var(--foreground-muted)" }} />
                 </button>
               </div>
 
@@ -707,8 +716,8 @@ export function AdminAssessmentsPage() {
                 {/* Col 1 — assessment details */}
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
-                      Assessment Title <span className="text-red-500">*</span>
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                      Assessment Title <span style={{ color: "var(--crimson-signal)" }}>*</span>
                     </label>
                     <Input
                       value={form.title}
@@ -721,7 +730,7 @@ export function AdminAssessmentsPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Category
                     </label>
                     <Select
@@ -745,7 +754,7 @@ export function AdminAssessmentsPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-sm font-semibold text-slate-700">
+                      <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                         Total Marks
                       </label>
                       <Input
@@ -760,7 +769,7 @@ export function AdminAssessmentsPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-semibold text-slate-700">
+                      <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                         Pass Mark
                       </label>
                       <Input
@@ -781,7 +790,7 @@ export function AdminAssessmentsPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-sm font-semibold text-slate-700">
+                      <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                         Duration (mins)
                       </label>
                       <Input
@@ -799,7 +808,7 @@ export function AdminAssessmentsPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-semibold text-slate-700">
+                      <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                         Term
                       </label>
                       <Select
@@ -822,8 +831,8 @@ export function AdminAssessmentsPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-sm font-semibold text-slate-700">
-                        Start Date <span className="text-red-500">*</span>
+                      <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                        Start Date <span style={{ color: "var(--crimson-signal)" }}>*</span>
                       </label>
                       <Input
                         type="datetime-local"
@@ -835,7 +844,7 @@ export function AdminAssessmentsPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-semibold text-slate-700">
+                      <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                         End Date
                       </label>
                       <Input
@@ -859,7 +868,7 @@ export function AdminAssessmentsPage() {
                     />
                     <label
                       htmlFor="isOnline"
-                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                      className="text-sm font-medium cursor-pointer" style={{ color: "var(--foreground)" }}
                     >
                       Online (CBT)
                     </label>
@@ -869,10 +878,10 @@ export function AdminAssessmentsPage() {
                 {/* Col 2 — multi-class select */}
                 <div className="flex flex-col">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-semibold text-slate-700">
-                      Classes <span className="text-red-500">*</span>
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                      Classes <span style={{ color: "var(--crimson-signal)" }}>*</span>
                       {form.classIds.length > 0 && (
-                        <span className="ml-1.5 text-xs font-normal text-slate-500">
+                        <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--foreground-muted)" }}>
                           ({form.classIds.length})
                         </span>
                       )}
@@ -887,14 +896,18 @@ export function AdminAssessmentsPage() {
                             subjectNames: [],
                           }))
                         }
-                        className="text-xs text-slate-400 hover:text-slate-600"
+                        className="text-xs"
+                        style={{ color: "var(--foreground-muted)" }}
                       >
                         Clear
                       </button>
                     )}
                   </div>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden flex-1">
-                    <label className="flex items-center gap-3 px-3 py-2 cursor-pointer bg-slate-50 border-b border-slate-100 hover:bg-slate-100 transition-colors">
+                  <div className="rounded-xl overflow-hidden flex-1" style={{ border: "1px solid var(--border-medium)" }}>
+                    <label className="flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors" style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--border-fine)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                    >
                       <Checkbox
                         checked={
                           form.classIds.length === classes.length &&
@@ -908,15 +921,18 @@ export function AdminAssessmentsPage() {
                           }))
                         }
                       />
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-xs font-semibold" style={{ color: "var(--foreground)" }}>
                         Select All
                       </span>
                     </label>
-                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                    <div className="max-h-64 overflow-y-auto" style={{ borderColor: "var(--border-fine)" }}>
                       {classes.map((c) => (
                         <label
                           key={c.id}
-                          className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 transition-colors"
+                          className="flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors"
+                          style={{ borderBottom: "1px solid var(--border-fine)" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                         >
                           <Checkbox
                             checked={form.classIds.includes(c.id)}
@@ -930,7 +946,7 @@ export function AdminAssessmentsPage() {
                               }))
                             }
                           />
-                          <span className="text-sm text-slate-800">
+                          <span className="text-sm" style={{ color: "var(--foreground)" }}>
                             {c.name}
                           </span>
                         </label>
@@ -942,10 +958,10 @@ export function AdminAssessmentsPage() {
                 {/* Col 3 — subject names (de-duplicated across selected classes) */}
                 <div className="flex flex-col">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-semibold text-slate-700">
-                      Subjects <span className="text-red-500">*</span>
+                    <label className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                      Subjects <span style={{ color: "var(--crimson-signal)" }}>*</span>
                       {form.subjectNames.length > 0 && (
-                        <span className="ml-1.5 text-xs font-normal text-slate-500">
+                        <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--foreground-muted)" }}>
                           ({form.subjectNames.length})
                         </span>
                       )}
@@ -956,7 +972,8 @@ export function AdminAssessmentsPage() {
                         onClick={() =>
                           setForm((p) => ({ ...p, subjectNames: [] }))
                         }
-                        className="text-xs text-slate-400 hover:text-slate-600"
+                        className="text-xs"
+                        style={{ color: "var(--foreground-muted)" }}
                       >
                         Clear
                       </button>
@@ -964,16 +981,19 @@ export function AdminAssessmentsPage() {
                   </div>
 
                   {form.classIds.length === 0 ? (
-                    <div className="border border-slate-200 rounded-xl flex items-center justify-center flex-1 text-xs text-slate-400 text-center px-3">
+                    <div className="rounded-xl flex items-center justify-center flex-1 text-xs text-center px-3" style={{ border: "1px solid var(--border-medium)", color: "var(--foreground-muted)" }}>
                       Select classes first
                     </div>
                   ) : uniqueSubjectNames.length === 0 ? (
-                    <div className="border border-slate-200 rounded-xl flex items-center justify-center flex-1 text-xs text-slate-400 text-center px-3">
+                    <div className="rounded-xl flex items-center justify-center flex-1 text-xs text-center px-3" style={{ border: "1px solid var(--border-medium)", color: "var(--foreground-muted)" }}>
                       No subjects in selected classes
                     </div>
                   ) : (
-                    <div className="border border-slate-200 rounded-xl overflow-hidden flex-1">
-                      <label className="flex items-center gap-3 px-3 py-2 cursor-pointer bg-slate-50 border-b border-slate-100 hover:bg-slate-100 transition-colors">
+                    <div className="rounded-xl overflow-hidden flex-1" style={{ border: "1px solid var(--border-medium)" }}>
+                      <label className="flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors" style={{ background: "var(--surface-muted)", borderBottom: "1px solid var(--border-fine)" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--border-fine)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                      >
                         <Checkbox
                           checked={
                             form.subjectNames.length ===
@@ -986,15 +1006,18 @@ export function AdminAssessmentsPage() {
                             }))
                           }
                         />
-                        <span className="text-xs font-semibold text-slate-700">
+                        <span className="text-xs font-semibold" style={{ color: "var(--foreground)" }}>
                           Select All
                         </span>
                       </label>
-                      <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                      <div className="max-h-64 overflow-y-auto">
                         {uniqueSubjectNames.map((name) => (
                           <label
                             key={name}
-                            className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors"
+                            style={{ borderBottom: "1px solid var(--border-fine)" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-muted)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                           >
                             <Checkbox
                               checked={form.subjectNames.includes(name)}
@@ -1007,11 +1030,11 @@ export function AdminAssessmentsPage() {
                                 }))
                               }
                             />
-                            <span className="text-sm text-slate-800 flex-1">
+                            <span className="text-sm flex-1" style={{ color: "var(--foreground)" }}>
                               {name}
                             </span>
                             {subjectClassCount[name] > 1 && (
-                              <span className="text-xs text-slate-400 shrink-0">
+                              <span className="text-xs shrink-0" style={{ color: "var(--foreground-muted)" }}>
                                 {subjectClassCount[name]} classes
                               </span>
                             )}
@@ -1025,7 +1048,7 @@ export function AdminAssessmentsPage() {
 
               {/* Footer */}
               <div className="px-6 py-4 flex items-center justify-between gap-3 flex-shrink-0" style={{ borderTop: "1px solid var(--border-fine)", background: "var(--surface-muted)" }}>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>
                   {form.classIds.length > 0 && form.subjectNames.length > 0
                     ? (() => {
                         let count = 0;

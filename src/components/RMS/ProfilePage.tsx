@@ -203,16 +203,16 @@ export const ProfilePage = () => {
       
       <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 mt-6 sm:mt-8">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
             Profile Settings
           </h1>
-          <p className="text-sm sm:text-base text-slate-600">
+          <p className="text-sm sm:text-base" style={{ color: "var(--foreground-muted)" }}>
             Manage your personal information and account security
           </p>
         </div>
 
         <Tabs defaultValue="profile" className="profile-tabs w-full">
-          <TabsList className="grid w-full grid-cols-2 h-auto p-1 bg-slate-100 rounded-lg">
+          <TabsList className="grid w-full grid-cols-2 h-auto p-1 rounded-lg" style={{ background: "var(--surface-muted)" }}>
             <TabsTrigger 
               value="profile" 
               className="flex items-center justify-center gap-2 py-3 px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
@@ -230,12 +230,12 @@ export const ProfilePage = () => {
           </TabsList>
 
           <TabsContent value="profile" className="mt-6">
-            <Card className="border border-slate-200 shadow-lg">
+            <Card className="shadow-lg" style={{ borderColor: "var(--border-medium)" }}>
               <CardHeader className="border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
-                <CardTitle className="text-xl sm:text-2xl font-bold text-slate-900">
+                <CardTitle className="text-xl sm:text-2xl font-bold" style={{ color: "var(--foreground)" }}>
                   Personal Information
                 </CardTitle>
-                <CardDescription className="text-sm sm:text-base text-slate-600 mt-1">
+                <CardDescription className="text-sm sm:text-base mt-1" style={{ color: "var(--foreground-muted)" }}>
                   Update your personal information and contact details
                 </CardDescription>
               </CardHeader>
@@ -257,7 +257,7 @@ export const ProfilePage = () => {
                   <form onSubmit={handleProfileUpdate} className="profile-info-form space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-sm font-semibold text-slate-700">
+                        <Label htmlFor="firstName" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                           First Name
                         </Label>
                         <Input
@@ -267,12 +267,12 @@ export const ProfilePage = () => {
                             setProfileData({ ...profileData, firstName: e.target.value })
                           }
                           required
-                          className="h-11 bg-slate-50/50 focus:bg-white border-slate-300"
+                          className="h-11"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-sm font-semibold text-slate-700">
+                        <Label htmlFor="lastName" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                           Last Name
                         </Label>
                         <Input
@@ -282,12 +282,12 @@ export const ProfilePage = () => {
                             setProfileData({ ...profileData, lastName: e.target.value })
                           }
                           required
-                          className="h-11 bg-slate-50/50 focus:bg-white border-slate-300"
+                          className="h-11"
                         />
                       </div>
 
                       <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="email" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                        <Label htmlFor="email" className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--foreground)" }}>
                           <Mail className="w-4 h-4" />
                           Email
                         </Label>
@@ -296,16 +296,16 @@ export const ProfilePage = () => {
                           type="email"
                           value={profileData.email}
                           disabled
-                          className="h-11 bg-slate-100 border-slate-300 cursor-not-allowed"
+                          className="h-11 cursor-not-allowed"
                         />
-                        <p className="text-xs text-slate-500 flex items-center gap-1">
+                        <p className="text-xs flex items-center gap-1" style={{ color: "var(--foreground-muted)" }}>
                           <Lock className="w-3 h-3" />
                           Email cannot be changed
                         </p>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="phoneNumber" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                        <Label htmlFor="phoneNumber" className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--foreground)" }}>
                           <Phone className="w-4 h-4" />
                           Phone Number
                         </Label>
@@ -317,12 +317,12 @@ export const ProfilePage = () => {
                             setProfileData({ ...profileData, phoneNumber: e.target.value })
                           }
                           placeholder="+234 123 456 7890"
-                          className="h-11 bg-slate-50/50 focus:bg-white border-slate-300"
+                          className="h-11"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="dateOfBirth" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                        <Label htmlFor="dateOfBirth" className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--foreground)" }}>
                           <Calendar className="w-4 h-4" />
                           Date of Birth
                         </Label>
@@ -333,12 +333,12 @@ export const ProfilePage = () => {
                           onChange={(e) =>
                             setProfileData({ ...profileData, dateOfBirth: e.target.value })
                           }
-                          className="h-11 bg-slate-50/50 focus:bg-white border-slate-300"
+                          className="h-11"
                         />
                       </div>
 
                       <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="gender" className="text-sm font-semibold text-slate-700">
+                        <Label htmlFor="gender" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                           Gender
                         </Label>
                         <select
@@ -347,7 +347,8 @@ export const ProfilePage = () => {
                           onChange={(e) =>
                             setProfileData({ ...profileData, gender: e.target.value })
                           }
-                          className="flex h-11 w-full rounded-md border border-slate-300 bg-slate-50/50 focus:bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#641BC4] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex h-11 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          style={{ borderColor: "var(--border-medium)", color: "var(--foreground)" }}
                         >
                           <option value="">Select Gender</option>
                           <option value="male">Male</option>
@@ -358,7 +359,7 @@ export const ProfilePage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="address" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                      <Label htmlFor="address" className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--foreground)" }}>
                         <MapPin className="w-4 h-4" />
                         Address
                       </Label>
@@ -369,19 +370,20 @@ export const ProfilePage = () => {
                           setProfileData({ ...profileData, address: e.target.value })
                         }
                         placeholder="Enter your full address"
-                        className="h-11 bg-slate-50/50 focus:bg-white border-slate-300"
+                        className="h-11"
                       />
                     </div>
 
-                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
-                      <Button
+                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t" style={{ borderColor: "var(--border-medium)" }}>
+                      <button
                         type="submit"
                         disabled={loading}
-                        className="profile-save-btn w-full sm:w-auto bg-gradient-to-r from-[#641BC4] to-[#8538E0] hover:from-[#5a2ba8] hover:to-[#7530c7] text-white shadow-md hover:shadow-lg transition-all"
+                        className="profile-save-btn w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-6 rounded-md text-white font-medium shadow-md transition-all disabled:opacity-50"
+                        style={{ backgroundColor: "var(--violet-ink)" }}
                       >
-                        <Save className="w-4 h-4 mr-2" />
+                        <Save className="w-4 h-4" />
                         {loading ? "Saving..." : "Save Changes"}
-                      </Button>
+                      </button>
                     </div>
                   </form>
                 )}
@@ -390,19 +392,19 @@ export const ProfilePage = () => {
           </TabsContent>
 
           <TabsContent value="password" className="mt-6">
-            <Card className="border border-slate-200 shadow-lg">
+            <Card className="shadow-lg" style={{ borderColor: "var(--border-medium)" }}>
               <CardHeader className="border-b" style={{ background: "var(--violet-tint)", borderColor: "var(--border-fine)" }}>
-                <CardTitle className="text-xl sm:text-2xl font-bold text-slate-900">
+                <CardTitle className="text-xl sm:text-2xl font-bold" style={{ color: "var(--foreground)" }}>
                   Change Password
                 </CardTitle>
-                <CardDescription className="text-sm sm:text-base text-slate-600 mt-1">
+                <CardDescription className="text-sm sm:text-base mt-1" style={{ color: "var(--foreground-muted)" }}>
                   Update your password to keep your account secure
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6 sm:p-8">
                 <form onSubmit={handlePasswordChange} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="currentPassword" className="text-sm font-semibold text-slate-700">
+                    <Label htmlFor="currentPassword" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Current Password
                     </Label>
                     <div className="relative">
@@ -418,14 +420,15 @@ export const ProfilePage = () => {
                         }
                         required
                         placeholder="Enter your current password"
-                        className="h-11 bg-slate-50/50 focus:bg-white border-slate-300 pr-10"
+                        className="h-11 pr-10"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowPasswords({ ...showPasswords, current: !showPasswords.current })
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                        style={{ color: "var(--foreground-muted)" }}
                         aria-label={showPasswords.current ? "Hide password" : "Show password"}
                       >
                         {showPasswords.current ? (
@@ -438,7 +441,7 @@ export const ProfilePage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword" className="text-sm font-semibold text-slate-700">
+                    <Label htmlFor="newPassword" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       New Password
                     </Label>
                     <div className="relative">
@@ -455,14 +458,15 @@ export const ProfilePage = () => {
                         required
                         minLength={6}
                         placeholder="Enter new password (min. 6 characters)"
-                        className="h-11 bg-slate-50/50 focus:bg-white border-slate-300 pr-10"
+                        className="h-11 pr-10"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowPasswords({ ...showPasswords, new: !showPasswords.new })
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                        style={{ color: "var(--foreground-muted)" }}
                         aria-label={showPasswords.new ? "Hide password" : "Show password"}
                       >
                         {showPasswords.new ? (
@@ -472,11 +476,11 @@ export const ProfilePage = () => {
                         )}
                       </button>
                     </div>
-                    <p className="text-xs text-slate-500">Password must be at least 6 characters</p>
+                    <p className="text-xs" style={{ color: "var(--foreground-muted)" }}>Password must be at least 6 characters</p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-semibold text-slate-700">
+                    <Label htmlFor="confirmPassword" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Confirm New Password
                     </Label>
                     <div className="relative">
@@ -493,14 +497,15 @@ export const ProfilePage = () => {
                         required
                         minLength={6}
                         placeholder="Confirm your new password"
-                        className="h-11 bg-slate-50/50 focus:bg-white border-slate-300 pr-10"
+                        className="h-11 pr-10"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                        style={{ color: "var(--foreground-muted)" }}
                         aria-label={showPasswords.confirm ? "Hide password" : "Show password"}
                       >
                         {showPasswords.confirm ? (
@@ -513,19 +518,20 @@ export const ProfilePage = () => {
                     {passwordData.newPassword &&
                       passwordData.confirmPassword &&
                       passwordData.newPassword !== passwordData.confirmPassword && (
-                        <p className="text-xs text-red-600">Passwords do not match</p>
+                        <p className="text-xs" style={{ color: "var(--crimson-signal)" }}>Passwords do not match</p>
                       )}
                   </div>
 
-                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
-                    <Button
+                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t" style={{ borderColor: "var(--border-medium)" }}>
+                    <button
                       type="submit"
                       disabled={loading || passwordData.newPassword !== passwordData.confirmPassword}
-                      className="w-full sm:w-auto bg-gradient-to-r from-[#641BC4] to-[#8538E0] hover:from-[#5a2ba8] hover:to-[#7530c7] text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-6 rounded-md text-white font-medium shadow-md transition-all disabled:opacity-50"
+                      style={{ backgroundColor: "var(--violet-ink)" }}
                     >
-                      <Lock className="w-4 h-4 mr-2" />
+                      <Lock className="w-4 h-4" />
                       {loading ? "Changing..." : "Change Password"}
-                    </Button>
+                    </button>
                   </div>
                 </form>
               </CardContent>

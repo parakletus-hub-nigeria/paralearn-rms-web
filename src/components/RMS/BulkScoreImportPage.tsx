@@ -41,7 +41,7 @@ import {
 } from "@/reduxToolKit/api/endpoints/assessments";
 import { useCreateSubjectMutation } from "@/reduxToolKit/api/endpoints/subjects";
 
-const DEFAULT_PRIMARY = "#641BC4";
+// Token: use var(--violet-ink) everywhere instead of a hardcoded primary color
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

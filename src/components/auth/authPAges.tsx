@@ -447,9 +447,9 @@ export function PageThree({data,changeData,step,setStep}: any){
                 body: JSON.stringify(backendData),
             })
 
-            const res = await registerAdmin.json()
+            // Safely parse — server may return HTML on 500s
+            const res = await registerAdmin.json().catch(() => null);
             if(!registerAdmin.ok) {
-                // Robustly extract error message from all possible backend response shapes
                 const errorMessage =
                     res?.message ||
                     res?.error ||

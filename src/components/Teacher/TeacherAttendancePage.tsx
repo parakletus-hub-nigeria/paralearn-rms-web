@@ -608,18 +608,18 @@ export default function TeacherAttendancePage() {
         <div className="md:hidden space-y-3">
           {isLoading ? (
             <div className="flex justify-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+              <div className="animate-spin rounded-full h-8 w-8" style={{ border: "3px solid var(--border-fine)", borderTopColor: "var(--violet-ink)" }} />
             </div>
           ) : isError ? (
-            <div className="text-center py-10 text-red-500 font-medium">
+            <div className="text-center py-10 font-medium" style={{ color: "var(--crimson-signal)" }}>
               Failed to load attendance data. Please try again.
             </div>
           ) : !attendanceData ? (
-            <div className="text-center py-10 text-slate-500">
+            <div className="text-center py-10" style={{ color: "var(--foreground-muted)" }}>
               No attendance data found for this date/class.
             </div>
           ) : filteredData.length === 0 ? (
-            <div className="text-center py-10 text-slate-500">
+            <div className="text-center py-10" style={{ color: "var(--foreground-muted)" }}>
               No students found matching your search.
             </div>
           ) : (
