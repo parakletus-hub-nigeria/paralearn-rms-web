@@ -101,6 +101,24 @@ export const apiFetch = async (
         // If response is not JSON, use status text
         errorMessage = response.statusText || errorMessage;
       }
+
+      // Check if it's a subdomain error to trigger automatic logout
+      const isSubdomainError = 
+        errorMessage.toLowerCase().includes("subdomain") || 
+        errorMessage.toLowerCase().includes("invalid subdomain");
+
+      if (isSubdomainError) {
+        console.warn("[API Fetch] Invalid subdomain error detected, logging out...");
+        tokenManager.removeToken();
+        store.dispatch(logoutUser());
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes("/auth/")) {
+            window.location.href = "/auth/signin";
+          }
+        }
+      }
+
       throw new Error(`${errorMessage} (HTTP ${response.status})`);
     }
 

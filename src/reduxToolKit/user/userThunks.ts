@@ -69,18 +69,6 @@ export const loginUser = createAsyncThunk(
       const { token: tokenFromResponse, user: userFromResponse } =
         extractTokenAndUser(response.data);
 
-      console.log(
-        "[Login Debug] Full Response Keys:",
-        Object.keys(response.data),
-      );
-      console.log(
-        "[Login Debug] User Response Keys:",
-        Object.keys(userFromResponse || {}),
-      );
-      console.log(
-        "[Login Debug] Full Response Data:",
-        JSON.stringify(response.data, null, 2),
-      );
 
       // Try to get token from response first, then from cookies (set by backend)
       let accessToken = tokenFromResponse || tokenManager.getToken();

@@ -6,7 +6,10 @@ const TOKEN_KEY = "accessToken";
 const getCookieDomain = () => {
   if (typeof window === "undefined") return undefined;
   const hostname = window.location.hostname;
-  const isLocalhost = hostname === "localhost" || hostname.endsWith(".localhost") || hostname === "127.0.0.1";
+  const isLocalhost =
+    hostname === "localhost" ||
+    hostname.endsWith(".localhost") ||
+    hostname === "127.0.0.1";
 
   if (isLocalhost) {
     // Do NOT set a domain on localhost — Chromium silently drops cookies with
@@ -15,13 +18,13 @@ const getCookieDomain = () => {
     // current origin after landing.
     return undefined;
   }
-  
+
   // Check if IP address using regex
   const isIpAddress = /^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$/.test(hostname);
   if (isIpAddress) {
     return undefined; // Let the browser use the exact IP address
   }
-  
+
   // For production domains (e.g., school.pln.ng -> .pln.ng)
   const parts = hostname.split(".");
   if (parts.length >= 2) {
@@ -34,10 +37,10 @@ const getCookieOptions = () => ({
   expires: 7, // 7 days
   path: "/",
   domain: getCookieDomain(),
-  secure: typeof window !== "undefined" && window.location.protocol === "https:",
+  secure:
+    typeof window !== "undefined" && window.location.protocol === "https:",
   sameSite: "lax" as const, // Changed from strict to lax to allow cross-subdomain navigation
 });
-
 
 // Helper to manage our auth token in cookies
 export const tokenManager = {
@@ -62,11 +65,11 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return;
     }
-    
+
     // Get all possible domain variations
     const hostname = window.location.hostname;
     const cookieDomain = getCookieDomain();
-    
+
     // Try to remove in all possible configurations
     const removalConfigs = [
       { path: "/" }, // No domain (current exact domain)
@@ -74,17 +77,17 @@ export const tokenManager = {
       { path: "/", domain: hostname }, // Current hostname
       { path: "/", domain: `.${hostname}` }, // Current hostname with dot prefix
     ];
-    
+
     // Also try without dot for localhost
     if (hostname === "localhost" || hostname.endsWith(".localhost")) {
       removalConfigs.push(
         { path: "/", domain: "localhost" },
-        { path: "/", domain: ".localhost" }
+        { path: "/", domain: ".localhost" },
       );
     }
-    
+
     // Remove token with all configurations
-    removalConfigs.forEach(config => {
+    removalConfigs.forEach((config) => {
       Cookies.remove(TOKEN_KEY, config);
     });
   },
@@ -99,10 +102,10 @@ export const tokenManager = {
     if (typeof window === "undefined") {
       return;
     }
-    
+
     // Use the same comprehensive removal as removeToken
     this.removeToken();
-    
+
     // Also manually clear localStorage user data
     try {
       localStorage.removeItem("currentUser");

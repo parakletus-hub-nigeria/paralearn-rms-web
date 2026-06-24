@@ -223,11 +223,39 @@ export const createApiClient = (baseURL: string): AxiosInstance => {
         console.error("[API] Server Error:", error.response.data);
       }
 
-      // Check for subdomain error to filter development logs
-      const errorMessage = "";
+      // Check for subdomain error to filter development logs and trigger logout
+      const responseData = error.response?.data as any;
+      const responseMsg = responseData?.message || responseData?.error || "";
+      const errorMessage =
+        typeof responseMsg === "string"
+          ? responseMsg
+          : Array.isArray(responseMsg)
+          ? responseMsg.join(", ")
+          : "";
+
       const isSubdomainError =
         errorMessage.toLowerCase().includes("subdomain") ||
-        errorMessage.toLowerCase().includes("invalid subdomain");
+        errorMessage.toLowerCase().includes("invalid subdomain") ||
+        (error.message && error.message.toLowerCase().includes("subdomain"));
+
+      if (isSubdomainError) {
+        console.warn("[API] Invalid subdomain error detected, logging out...");
+        tokenManager.removeToken();
+        const store = getStore();
+        import("@/reduxToolKit/user/userThunks").then(({ logoutUser }) => {
+          store.dispatch(logoutUser());
+        });
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes("/auth/") && !currentPath.includes("/sabinote/auth/")) {
+            toast.error("Session expired, please log in again");
+            const isSabinoteRequest = (config?.url || "").includes("/lesson-generator") || (config?.url || "").includes("/sabinote/auth");
+            const redirectPath = isSabinoteRequest ? routespath.SABINOTE_LOGIN : routespath.SIGNIN;
+            setTimeout(() => { window.location.href = redirectPath; }, 1500);
+          }
+        }
+        return Promise.reject(error);
+      }
 
       if (process.env.NODE_ENV === "development" && !isSubdomainError) {
         const errorInfo: any = { message: error.message || "Unknown error" };
