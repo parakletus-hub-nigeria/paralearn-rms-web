@@ -221,13 +221,35 @@ export const fetchMyAssessments = createAsyncThunk(
       }
 
       // NORMALIZATION: Ensure consistent field naming across model versions
-      items = items.map((a: any) => ({
-        ...a,
-        isOnline: a.isOnline ?? a.assessmentType === "online",
-        totalMarks: a.totalMarks ?? a.marks ?? a.totalScore ?? 100,
-        duration: a.duration ?? a.durationMins ?? a.durationMinutes ?? 60,
-        submissionCount: a.submissionCount ?? 0,
-      }));
+      items = items.map((a: any) => {
+        const isOnline = a.isOnline ?? a.assessmentType === "online";
+        const totalMarks = a.totalMarks ?? a.marks ?? a.totalScore ?? 100;
+        const duration = a.duration ?? a.durationMins ?? a.durationMinutes ?? 60;
+        const submissionCount = a.submissionCount ?? 0;
+
+        let status = "draft";
+        if (a.isPublished) {
+          const now = new Date();
+          const startsAt = a.startsAt ? new Date(a.startsAt) : null;
+          const endsAt = a.endsAt ? new Date(a.endsAt) : null;
+          if (endsAt && now > endsAt) {
+            status = "ended";
+          } else if (startsAt && now >= startsAt) {
+            status = "started";
+          } else {
+            status = "not_started";
+          }
+        }
+
+        return {
+          ...a,
+          isOnline,
+          totalMarks,
+          duration,
+          submissionCount,
+          status,
+        };
+      });
 
       // Deduplicate by ID
       const byId = new Map<string, Assessment>();
@@ -573,6 +595,37 @@ export const fetchAssessmentsByClassSubject = createAsyncThunk(
           })) as Assessment[];
       }
 
+      // Normalize items and compute status dynamically before returning
+      items = items.map((a: any) => {
+        const isOnline = a.isOnline ?? a.assessmentType === "online";
+        const totalMarks = a.totalMarks ?? a.marks ?? a.totalScore ?? 100;
+        const duration = a.duration ?? a.durationMins ?? a.durationMinutes ?? 60;
+        const submissionCount = a.submissionCount ?? 0;
+
+        let status = "draft";
+        if (a.isPublished) {
+          const now = new Date();
+          const startsAt = a.startsAt ? new Date(a.startsAt) : null;
+          const endsAt = a.endsAt ? new Date(a.endsAt) : null;
+          if (endsAt && now > endsAt) {
+            status = "ended";
+          } else if (startsAt && now >= startsAt) {
+            status = "started";
+          } else {
+            status = "not_started";
+          }
+        }
+
+        return {
+          ...a,
+          isOnline,
+          totalMarks,
+          duration,
+          submissionCount,
+          status,
+        };
+      });
+
       console.log(
         `[fetchAssessmentsByClassSubject] Returning ${items.length} assessments`,
       );
@@ -649,7 +702,28 @@ export const fetchAssessmentDetail = createAsyncThunk(
       );
       const data = res.data?.data || res.data;
       if (!data) return rejectWithValue("Assessment not found");
-      return data as Assessment;
+
+      let status = "draft";
+      if (data.isPublished) {
+        const now = new Date();
+        const startsAt = data.startsAt ? new Date(data.startsAt) : null;
+        const endsAt = data.endsAt ? new Date(data.endsAt) : null;
+        if (endsAt && now > endsAt) {
+          status = "ended";
+        } else if (startsAt && now >= startsAt) {
+          status = "started";
+        } else {
+          status = "not_started";
+        }
+      }
+
+      return {
+        ...data,
+        isOnline: data.isOnline ?? data.assessmentType === "online",
+        totalMarks: data.totalMarks ?? data.marks ?? data.totalScore ?? 100,
+        duration: data.duration ?? data.durationMins ?? data.durationMinutes ?? 60,
+        status,
+      } as Assessment;
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to load assessment",

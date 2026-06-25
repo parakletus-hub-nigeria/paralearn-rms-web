@@ -57,49 +57,22 @@ export interface StartAssessmentResponse {
 }
 
 // Fetch all available assessments for the student (K-12 System)
-// Uses the same endpoint pattern as teachers - fetches all statuses
+// Uses the optimized student/published endpoint (returns all statuses in one call)
 // The backend filters to PUBLISHED assessments only (role-based authorization)
 export const fetchStudentAssessments = createAsyncThunk(
   "student/fetchAssessments",
   async (_, { rejectWithValue }) => {
     try {
       console.log(
-        "[fetchStudentAssessments] Fetching published assessments from backend...",
+        "[fetchStudentAssessments] Fetching published assessments from backend in a single request...",
       );
 
-      // K-12 Endpoint: Fetch all statuses (started, ended, not_started)
-      // Backend filters by publication status and student eligibility automatically
-      const statuses: Array<"started" | "ended" | "not_started"> = [
-        "started",
-        "ended",
-        "not_started",
-      ];
-      const results = await Promise.all(
-        statuses.map(async (status) => {
-          try {
-            const res = await apiClient.get(`/api/proxy/assessments/${status}`);
-            const data = res.data?.data || res.data || [];
-            console.log(
-              `[fetchStudentAssessments] Response for status=${status}:`,
-              data,
-            );
-            return Array.isArray(data) ? data : [];
-          } catch (e: any) {
-            console.error(
-              `[fetchStudentAssessments] Failed to fetch status=${status}:`,
-              {
-                httpStatus: e?.response?.status,
-                error: e?.message,
-              },
-            );
-            return [];
-          }
-        }),
-      );
+      const res = await apiClient.get("/api/proxy/assessments/student/published");
+      const rawData = res.data?.data || res.data || [];
+      const rawCombined = Array.isArray(rawData) ? rawData : [];
 
-      const rawCombined = results.flat();
       console.log(
-        "[fetchStudentAssessments] Total items from all statuses:",
+        "[fetchStudentAssessments] Raw items returned:",
         rawCombined.length,
       );
 
@@ -117,6 +90,21 @@ export const fetchStudentAssessments = createAsyncThunk(
         rawCombined.forEach((group: any) => {
           if (group.assessments && Array.isArray(group.assessments)) {
             group.assessments.forEach((assess: any) => {
+              // Calculate fallback status if missing
+              let status = assess.status;
+              if (!status) {
+                const now = new Date();
+                const startsAt = assess.startsAt ? new Date(assess.startsAt) : null;
+                const endsAt = assess.endsAt ? new Date(assess.endsAt) : null;
+                if (endsAt && now > endsAt) {
+                  status = "ended";
+                } else if (startsAt && now >= startsAt) {
+                  status = "started";
+                } else {
+                  status = "not_started";
+                }
+              }
+
               assessments.push({
                 ...assess,
                 classId: group.class?.id || assess.classId,
@@ -128,7 +116,8 @@ export const fetchStudentAssessments = createAsyncThunk(
                 },
                 class: group.class || { id: "unknown", name: "Unknown Class" },
                 isPublished: true,
-                isOnline: true,
+                isOnline: assess.isOnline ?? assess.assessmentType === "online",
+                status,
               });
             });
           }
@@ -137,11 +126,29 @@ export const fetchStudentAssessments = createAsyncThunk(
         console.log(
           "[fetchStudentAssessments] Response is FLAT array - using directly",
         );
-        assessments = rawCombined.map((a: any) => ({
-          ...a,
-          isPublished: true,
-          isOnline: true,
-        }));
+        assessments = rawCombined.map((a: any) => {
+          // Calculate fallback status if missing
+          let status = a.status;
+          if (!status) {
+            const now = new Date();
+            const startsAt = a.startsAt ? new Date(a.startsAt) : null;
+            const endsAt = a.endsAt ? new Date(a.endsAt) : null;
+            if (endsAt && now > endsAt) {
+              status = "ended";
+            } else if (startsAt && now >= startsAt) {
+              status = "started";
+            } else {
+              status = "not_started";
+            }
+          }
+
+          return {
+            ...a,
+            isPublished: true,
+            isOnline: a.isOnline ?? a.assessmentType === "online",
+            status,
+          };
+        });
       }
 
       console.log(
