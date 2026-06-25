@@ -8,6 +8,7 @@ import { AppDispatch, RootState } from "@/reduxToolKit/store";
 import { fetchAllUsers, getTenantInfo } from "@/reduxToolKit/user/userThunks";
 import { bulkEnrollStudents, fetchClasses, fetchClassDetails, removeStudentFromClass, previewSchoolPromotion, executeSchoolPromotion } from "@/reduxToolKit/admin/adminThunks";
 import type { PromotionPreviewResponse, ClassItem } from "@/reduxToolKit/admin/adminThunks";
+import { fetchCurrentSession } from "@/reduxToolKit/setUp/setUpThunk";
 import { AddStudentDialog } from "@/components/RMS/dialogs";
 import { Header } from "@/components/RMS/header";
 import { Card } from "@/components/ui/card";
@@ -48,6 +49,7 @@ export function AdminEnrollmentsPage() {
   const { students, teachers, tenantInfo } = useSelector((s: RootState) => s.user);
   const { classes, selectedClassDetails, promotionPreview, promotionLoading, promotionError } = useSelector((s: RootState) => s.admin);
   const schoolSettings = useSelector((s: RootState) => s.admin.schoolSettings);
+  const { currentSession } = useSelector((s: RootState) => s.setUp);
   const primaryColor = schoolSettings?.primaryColor || DEFAULT_PRIMARY;
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
@@ -65,7 +67,26 @@ export function AdminEnrollmentsPage() {
     dispatch(fetchAllUsers());
     dispatch(fetchClasses(undefined));
     dispatch(getTenantInfo());
+    dispatch(fetchCurrentSession());
   }, [dispatch]);
+
+  const currentSessionName = currentSession?.session || "";
+  const newSessionName = useMemo(() => {
+    if (!currentSessionName) return "";
+    const parts = currentSessionName.split("/");
+    if (parts.length === 2) {
+      const start = parseInt(parts[0], 10);
+      const end = parseInt(parts[1], 10);
+      if (!isNaN(start) && !isNaN(end)) {
+        return `${start + 1}/${end + 1}`;
+      }
+    }
+    const year = parseInt(currentSessionName, 10);
+    if (!isNaN(year)) {
+      return String(year + 1);
+    }
+    return currentSessionName;
+  }, [currentSessionName]);
 
   // Load class details when a class is selected
   useEffect(() => {
@@ -455,14 +476,49 @@ export function AdminEnrollmentsPage() {
             setPromotionOverrides={setPromotionOverrides}
             executing={executing}
             primaryColor={primaryColor}
-            onPreview={() => dispatch(previewSchoolPromotion())}
+            currentSessionName={currentSessionName}
+            newSessionName={newSessionName}
+            onPreview={() => {
+              if (!currentSessionName) {
+                toast.error("Active academic session not set. Please set it up first.");
+                return;
+              }
+              dispatch(previewSchoolPromotion({ currentSession: currentSessionName, newSession: newSessionName }));
+            }}
             onExecute={async () => {
+              if (!currentSessionName) {
+                toast.error("Active academic session not set.");
+                return;
+              }
               setExecuting(true);
               try {
-                const overridesList = Object.entries(promotionOverrides).map(
-                  ([studentId, targetClassId]) => ({ studentId, targetClassId }),
-                );
-                await dispatch(executeSchoolPromotion({ overrides: overridesList })).unwrap();
+                const overridesMap: Record<string, { status: string; toClassId?: string }> = {};
+                
+                Object.entries(promotionOverrides).forEach(([studentId, targetClassId]) => {
+                  let fromClassId = "";
+                  if (promotionPreview?.classes) {
+                    for (const cls of promotionPreview.classes) {
+                      const hasStudent = cls.students.some((s: any) => s.studentId === studentId);
+                      if (hasStudent) {
+                        fromClassId = cls.fromClass.id;
+                        break;
+                      }
+                    }
+                  }
+                  const isRepeat = fromClassId && targetClassId === fromClassId;
+                  overridesMap[studentId] = {
+                    status: isRepeat ? "repeated" : "promoted",
+                    toClassId: targetClassId,
+                  };
+                });
+
+                await dispatch(
+                  executeSchoolPromotion({
+                    currentSession: currentSessionName,
+                    newSession: newSessionName,
+                    overrides: overridesMap,
+                  }),
+                ).unwrap();
                 toast.success("Class promotion executed successfully");
                 setPromotionOverrides({});
                 dispatch(fetchClasses(undefined));
@@ -493,6 +549,8 @@ type ClassPromotionTabProps = {
   primaryColor: string;
   onPreview: () => void;
   onExecute: () => void;
+  currentSessionName: string;
+  newSessionName: string;
 };
 
 const ACTION_LABELS: Record<string, { label: string; color: string }> = {
@@ -512,6 +570,8 @@ function ClassPromotionTab({
   primaryColor,
   onPreview,
   onExecute,
+  currentSessionName,
+  newSessionName,
 }: ClassPromotionTabProps) {
   const previewClasses = promotionPreview?.classes ?? [];
   const totalStudents  = previewClasses.reduce((n, c) => n + (c.students?.length ?? 0), 0);
@@ -528,6 +588,23 @@ function ClassPromotionTab({
               Preview which students will be promoted, graduated, or held back before committing
               any changes. You can override individual students using the dropdowns below.
             </p>
+            {currentSessionName ? (
+              <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-600">
+                <span>Active Session:</span>
+                <Badge variant="outline" className="border-purple-200 bg-purple-50/50 text-purple-700">
+                  {currentSessionName}
+                </Badge>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <span>Next Session:</span>
+                <Badge variant="outline" className="border-emerald-200 bg-emerald-50/50 text-emerald-700">
+                  {newSessionName}
+                </Badge>
+              </div>
+            ) : (
+              <p className="text-xs text-amber-600 mt-2 font-medium">
+                No active academic session detected. Please set up the current session first.
+              </p>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <Button

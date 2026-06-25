@@ -1006,7 +1006,7 @@ export function TeacherScoresPage() {
                           student.admissionNo ||
                           "—";
                         const studentTotal = getStudentTotal(studentId);
-                        const { grade, color, textColor } =
+                        const { grade, badgeBg, scoreColor } =
                           getGrade(studentTotal);
 
                         return (

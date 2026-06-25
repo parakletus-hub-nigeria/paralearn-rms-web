@@ -354,10 +354,74 @@ export type PromotionPreviewResponse = {
 
 export const previewSchoolPromotion = createAsyncThunk(
   "admin/previewSchoolPromotion",
-  async (_, { rejectWithValue }) => {
+  async (
+    payload: { currentSession: string; newSession: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.post("/api/proxy/classes/promote/preview");
-      return unwrap(res) as PromotionPreviewResponse;
+      const { currentSession, newSession } = payload;
+      const res = await apiClient.get(
+        `/api/proxy/student-progression/school/promotion-preview?currentSession=${encodeURIComponent(
+          currentSession,
+        )}&newSession=${encodeURIComponent(newSession)}`,
+      );
+      const data = unwrap(res);
+      if (!data) return { classes: [], totalStudents: 0, summary: {} };
+
+      const mappedClasses = (data.classes || []).map((cls: any) => {
+        return {
+          fromClass: { id: cls.classId, name: cls.className },
+          toClass: cls.nextClassName
+            ? { id: cls.nextClassId || "", name: cls.nextClassName }
+            : null,
+          students: (cls.students || []).map((student: any) => {
+            let action = "repeat";
+            if (
+              student.recommendedAction === "promoted" ||
+              student.recommendedAction === "promote"
+            ) {
+              action = "promote";
+            } else if (
+              student.recommendedAction === "graduated" ||
+              student.recommendedAction === "graduate"
+            ) {
+              action = "graduate";
+            } else if (student.recommendedAction === "repeated") {
+              action = "repeat";
+            }
+
+            return {
+              studentId: student.id,
+              studentName: student.name,
+              action,
+              targetClassId: cls.nextClassId || undefined,
+              targetClassName: cls.nextClassName || undefined,
+            };
+          }),
+        };
+      });
+
+      let totalPromote = 0;
+      let totalRepeat = 0;
+      let totalGraduate = 0;
+
+      mappedClasses.forEach((c: any) => {
+        c.students.forEach((s: any) => {
+          if (s.action === "promote") totalPromote++;
+          else if (s.action === "repeat") totalRepeat++;
+          else if (s.action === "graduate") totalGraduate++;
+        });
+      });
+
+      return {
+        classes: mappedClasses,
+        totalStudents: data.totalStudents || 0,
+        summary: {
+          promote: totalPromote,
+          repeat: totalRepeat,
+          graduate: totalGraduate,
+        },
+      };
     } catch (e: any) {
       return rejectWithValue(
         e?.response?.data?.message || e?.message || "Failed to preview promotion",
@@ -369,11 +433,18 @@ export const previewSchoolPromotion = createAsyncThunk(
 export const executeSchoolPromotion = createAsyncThunk(
   "admin/executeSchoolPromotion",
   async (
-    payload: { overrides?: Array<{ studentId: string; targetClassId: string }> },
+    payload: {
+      currentSession: string;
+      newSession: string;
+      overrides: Record<string, { status: string; toClassId?: string }>;
+    },
     { rejectWithValue },
   ) => {
     try {
-      const res = await apiClient.post("/api/proxy/classes/promote/execute", payload);
+      const res = await apiClient.post(
+        "/api/proxy/student-progression/school/execute-promotion",
+        payload,
+      );
       return unwrap(res);
     } catch (e: any) {
       return rejectWithValue(
