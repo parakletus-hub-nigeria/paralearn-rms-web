@@ -101,15 +101,6 @@ export function QuestionDraftingPage() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (selectedAssessment) {
-      setPublishDates({
-        startsAt: selectedAssessment.startsAt ? new Date(selectedAssessment.startsAt).toISOString().slice(0, 16) : "",
-        endsAt: selectedAssessment.endsAt ? new Date(selectedAssessment.endsAt).toISOString().slice(0, 16) : "",
-      });
-    }
-  }, [selectedAssessment]);
-
-  useEffect(() => {
     if (assessmentIdFromUrl) setSelectedAssessmentId(assessmentIdFromUrl);
   }, [assessmentIdFromUrl]);
 
@@ -179,6 +170,15 @@ export function QuestionDraftingPage() {
   );
   const selectedAssessment = assessments.find((a: any) => a.id === selectedAssessmentId);
   const activeQ = draftQuestions.find((q) => q.id === activeQuestionId) || null;
+
+  useEffect(() => {
+    if (selectedAssessment) {
+      setPublishDates({
+        startsAt: selectedAssessment.startsAt ? new Date(selectedAssessment.startsAt).toISOString().slice(0, 16) : "",
+        endsAt: selectedAssessment.endsAt ? new Date(selectedAssessment.endsAt).toISOString().slice(0, 16) : "",
+      });
+    }
+  }, [selectedAssessment]);
 
   const handleSave = async (shouldPublish = false) => {
     if (!selectedAssessmentId) return toast.error("Select an assessment first.");
