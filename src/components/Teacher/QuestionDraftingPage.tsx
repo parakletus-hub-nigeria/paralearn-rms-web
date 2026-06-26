@@ -216,7 +216,14 @@ export function QuestionDraftingPage() {
   const handlePublishClick = () => {
     if (!selectedAssessmentId) return toast.error("Select an assessment first.");
     if (draftQuestions.length === 0) return toast.error("No questions to save");
-    setShowDateModal(true);
+    
+    if (selectedAssessment?.startsAt) {
+      if (confirm("Are you sure you want to publish this assessment with its pre-configured dates?")) {
+        handleSave(true);
+      }
+    } else {
+      setShowDateModal(true);
+    }
   };
 
   const handleConfirmAndPublish = async () => {
