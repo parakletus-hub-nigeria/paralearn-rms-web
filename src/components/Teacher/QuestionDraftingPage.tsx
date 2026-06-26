@@ -185,14 +185,20 @@ export function QuestionDraftingPage() {
     if (draftQuestions.length === 0) return toast.error("No questions to save");
     setIsSaving(true);
     try {
-      const formattedQuestions = draftQuestions.map((q) => ({
-        prompt: q.questionText,
-        type: q.questionType,
-        marks: q.marks || 1,
-        choices: (q.options || []).map((o: any) => ({ text: o.text, isCorrect: o.isCorrect })),
-        correctAnswer: q.correctAnswer,
-        explanation: q.explanation,
-      }));
+      const formattedQuestions = draftQuestions.map((q) => {
+        const mappedChoices = (q.options || []).map((o: any) => ({ text: o.text, isCorrect: o.isCorrect }));
+        return {
+          questionText: q.questionText,
+          prompt: q.questionText,
+          questionType: q.questionType,
+          type: q.questionType,
+          marks: q.marks || 1,
+          options: mappedChoices,
+          choices: mappedChoices,
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation,
+        };
+      });
       await dispatch(updateTeacherAssessment({ id: selectedAssessmentId, data: { questions: formattedQuestions } })).unwrap();
       if (shouldPublish) {
         await dispatch(publishAssessment({ assessmentId: selectedAssessmentId, publish: true })).unwrap();
@@ -238,14 +244,20 @@ export function QuestionDraftingPage() {
 
     setIsSaving(true);
     try {
-      const formattedQuestions = draftQuestions.map((q) => ({
-        prompt: q.questionText,
-        type: q.questionType,
-        marks: q.marks || 1,
-        choices: (q.options || []).map((o: any) => ({ text: o.text, isCorrect: o.isCorrect })),
-        correctAnswer: q.correctAnswer,
-        explanation: q.explanation,
-      }));
+      const formattedQuestions = draftQuestions.map((q) => {
+        const mappedChoices = (q.options || []).map((o: any) => ({ text: o.text, isCorrect: o.isCorrect }));
+        return {
+          questionText: q.questionText,
+          prompt: q.questionText,
+          questionType: q.questionType,
+          type: q.questionType,
+          marks: q.marks || 1,
+          options: mappedChoices,
+          choices: mappedChoices,
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation,
+        };
+      });
 
       // 1. Update questions and dates atomically
       await dispatch(
