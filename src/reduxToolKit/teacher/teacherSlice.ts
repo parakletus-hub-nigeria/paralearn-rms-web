@@ -277,20 +277,37 @@ const teacherSlice = createSlice({
       .addCase(publishAssessment.fulfilled, (state, action) => {
         state.loading = false;
         state.success = "Publish status updated";
-        // Update the status of the published/unpublished assessment in state immediately
+        // Update the status of the published/unpublished assessment in state immediately using the updated dates
         const payload = action.payload as any;
         const assessmentId = payload?.id;
-        const isPublished = payload?.isPublished ?? payload?.publish;
+        const isPublished = payload?.isPublished;
         if (assessmentId) {
-          state.assessments = state.assessments.map((a) =>
-            a.id === assessmentId
-              ? {
-                  ...a,
-                  status: isPublished ? "started" : "not_started",
-                  isPublished,
+          state.assessments = state.assessments.map((a) => {
+            if (a.id === assessmentId) {
+              const startsAt = payload.startsAt ?? a.startsAt;
+              const endsAt = payload.endsAt ?? a.endsAt;
+              let status = "draft";
+              if (isPublished) {
+                const now = new Date();
+                const start = startsAt ? new Date(startsAt) : null;
+                const end = endsAt ? new Date(endsAt) : null;
+                if (end && now > end) {
+                  status = "ended";
+                } else if (start && now >= start) {
+                  status = "started";
+                } else {
+                  status = "not_started";
                 }
-              : a,
-          );
+              }
+              return {
+                ...a,
+                ...payload,
+                status,
+                isPublished,
+              };
+            }
+            return a;
+          });
         }
       })
       .addCase(publishAssessment.rejected, (state, action) => {

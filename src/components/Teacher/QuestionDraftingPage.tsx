@@ -32,6 +32,7 @@ import {
   GripVertical,
   BookOpen,
   CloudUpload,
+  CloudOff,
   Edit3,
   Save,
   Check,
@@ -81,6 +82,8 @@ export function QuestionDraftingPage() {
 
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string>(assessmentIdFromUrl || "");
   const [isSaving, setIsSaving] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [publishDates, setPublishDates] = useState({ startsAt: "", endsAt: "" });
 
   const [prompt, setPrompt] = useState("");
   const [questionCount, setQuestionCount] = useState<number>(5);
@@ -96,6 +99,15 @@ export function QuestionDraftingPage() {
   useEffect(() => {
     dispatch(fetchMyAssessments());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (selectedAssessment) {
+      setPublishDates({
+        startsAt: selectedAssessment.startsAt ? new Date(selectedAssessment.startsAt).toISOString().slice(0, 16) : "",
+        endsAt: selectedAssessment.endsAt ? new Date(selectedAssessment.endsAt).toISOString().slice(0, 16) : "",
+      });
+    }
+  }, [selectedAssessment]);
 
   useEffect(() => {
     if (assessmentIdFromUrl) setSelectedAssessmentId(assessmentIdFromUrl);
@@ -196,6 +208,88 @@ export function QuestionDraftingPage() {
       if (shouldPublish) router.push("/teacher/assessments");
     } catch (error: any) {
       toast.error(error || "Failed to save questions");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePublishClick = () => {
+    if (!selectedAssessmentId) return toast.error("Select an assessment first.");
+    if (draftQuestions.length === 0) return toast.error("No questions to save");
+    setShowDateModal(true);
+  };
+
+  const handleConfirmAndPublish = async () => {
+    if (!publishDates.startsAt || !publishDates.endsAt) {
+      return toast.error("Both start and end dates/times are required.");
+    }
+    const start = new Date(publishDates.startsAt);
+    const end = new Date(publishDates.endsAt);
+    if (end <= start) {
+      return toast.error("End date must be after start date.");
+    }
+
+    setIsSaving(true);
+    try {
+      const formattedQuestions = draftQuestions.map((q) => ({
+        prompt: q.questionText,
+        type: q.questionType,
+        marks: q.marks || 1,
+        choices: (q.options || []).map((o: any) => ({ text: o.text, isCorrect: o.isCorrect })),
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+      }));
+
+      // 1. Update questions and dates atomically
+      await dispatch(
+        updateTeacherAssessment({
+          id: selectedAssessmentId,
+          data: {
+            questions: formattedQuestions,
+            startsAt: start.toISOString(),
+            endsAt: end.toISOString(),
+          },
+        })
+      ).unwrap();
+
+      // 2. Publish
+      await dispatch(
+        publishAssessment({ assessmentId: selectedAssessmentId, publish: true })
+      ).unwrap();
+
+      toast.success("Assessment scheduled and published successfully!");
+
+      try {
+        localStorage.removeItem(`draft_questions_${selectedAssessmentId}`);
+      } catch (e) {
+        // ignore
+      }
+
+      setShowDateModal(false);
+      router.push("/teacher/assessments");
+    } catch (error: any) {
+      toast.error(error?.message || error || "Failed to publish assessment");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!selectedAssessmentId) return;
+    if (
+      !confirm(
+        "Are you sure you want to unpublish this assessment? Students will no longer be able to access or start it."
+      )
+    )
+      return;
+    setIsSaving(true);
+    try {
+      await dispatch(
+        publishAssessment({ assessmentId: selectedAssessmentId, publish: false })
+      ).unwrap();
+      toast.success("Assessment unpublished successfully!");
+    } catch (err: any) {
+      toast.error(err || "Failed to unpublish assessment");
     } finally {
       setIsSaving(false);
     }
@@ -387,17 +481,31 @@ export function QuestionDraftingPage() {
           </nav>
           <div className="hidden md:block h-8 w-px" style={{ background: "var(--border-fine)" }} />
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => handleSave(true)}
-              disabled={!selectedAssessmentId || draftQuestions.length === 0 || isSaving}
-              className="drafting-publish-btn flex h-9 md:h-10 items-center gap-2 px-3 md:px-4 text-xs md:text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-medium)", background: "white", color: "var(--foreground)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--violet-ink)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--violet-ink)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--foreground)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-medium)"; }}
-            >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4 md:w-5 md:h-5" />}
-              <span className="hidden sm:inline">Publish</span>
-            </button>
+            {selectedAssessment?.isPublished ? (
+              <button
+                onClick={handleUnpublish}
+                disabled={!selectedAssessmentId || isSaving}
+                className="drafting-unpublish-btn flex h-9 md:h-10 items-center gap-2 px-3 md:px-4 text-xs md:text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-medium)", background: "white", color: "var(--crimson-signal)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "var(--crimson-tint)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "white"; }}
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudOff className="w-4 h-4 md:w-5 md:h-5" />}
+                <span className="hidden sm:inline">Unpublish</span>
+              </button>
+            ) : (
+              <button
+                onClick={handlePublishClick}
+                disabled={!selectedAssessmentId || draftQuestions.length === 0 || isSaving}
+                className="drafting-publish-btn flex h-9 md:h-10 items-center gap-2 px-3 md:px-4 text-xs md:text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ borderRadius: "var(--radius-md)", border: "1px solid var(--border-medium)", background: "white", color: "var(--foreground)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--violet-ink)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--violet-ink)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--foreground)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-medium)"; }}
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4 md:w-5 md:h-5" />}
+                <span className="hidden sm:inline">Publish</span>
+              </button>
+            )}
             {(user as any)?.school?.logoUrl ? (
               <div className="h-8 w-8 md:h-10 md:w-10 rounded-full overflow-hidden" style={{ border: "1px solid var(--border-fine)" }}>
                 <img alt="Profile" className="h-full w-full object-cover" src={(user as any).school.logoUrl} />
@@ -1039,6 +1147,62 @@ export function QuestionDraftingPage() {
           </button>
         </div>
       </footer>
+
+      <Dialog open={showDateModal} onOpenChange={setShowDateModal}>
+        <DialogContent className="sm:max-w-md" style={{ background: "white", borderRadius: "var(--radius-xl)" }}>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold" style={{ color: "var(--foreground)", fontFamily: "var(--font-manrope)" }}>
+              Publish Assessment Schedule
+            </DialogTitle>
+            <DialogDescription className="text-sm" style={{ color: "var(--foreground-muted)" }}>
+              Please confirm or set the dates and times for this assessment before publishing.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>
+                Start Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                value={publishDates.startsAt}
+                onChange={(e) => setPublishDates(prev => ({ ...prev, startsAt: e.target.value }))}
+                className="w-full h-10 px-3 border focus:outline-none focus:ring-1 focus:ring-violet-500"
+                style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-medium)", background: "white", color: "var(--foreground)" }}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--foreground-muted)" }}>
+                End Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                value={publishDates.endsAt}
+                onChange={(e) => setPublishDates(prev => ({ ...prev, endsAt: e.target.value }))}
+                className="w-full h-10 px-3 border focus:outline-none focus:ring-1 focus:ring-violet-500"
+                style={{ borderRadius: "var(--radius-md)", borderColor: "var(--border-medium)", background: "white", color: "var(--foreground)" }}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-4">
+            <button
+              onClick={() => setShowDateModal(false)}
+              className="h-10 px-4 text-sm font-semibold transition-all"
+              style={{ background: "white", color: "var(--foreground)", border: "1px solid var(--border-medium)", borderRadius: "var(--radius-md)" }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmAndPublish}
+              disabled={isSaving || !publishDates.startsAt || !publishDates.endsAt}
+              className="h-10 px-4 text-sm font-semibold text-white transition-all disabled:opacity-50"
+              style={{ background: "var(--violet-ink)", borderRadius: "var(--radius-md)" }}
+            >
+              {isSaving ? "Publishing..." : "Confirm & Publish"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
